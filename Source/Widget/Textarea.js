@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Textarea.js
+ 
+description: Multiline text input
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Input
+
+provides: [ART.Widget.Textarea]
+ 
+...
+*/
+
 ART.Widget.Textarea = new Class({
   Extends: ART.Widget.Input,
   
@@ -7,4 +24,4 @@ ART.Widget.Textarea = new Class({
     if (!this.input) this.input = new Element('textarea');
     return this.input;
   }
-})
+});

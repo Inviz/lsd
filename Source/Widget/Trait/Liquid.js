@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Liquid.js
+ 
+description: Set width and height as expressions to recalculate
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+provides: [ART.Widget.Trait.Liquid]
+ 
+...
+*/
+
+
 ART.Widget.Trait.Liquid = new Class({
   attach: Macro.onion(function() {
     this.onDOMInject(function(widget) {

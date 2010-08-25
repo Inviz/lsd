@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Container.js
+ 
+description: A container class that swallows all kind of a content
+ 
+license: MIT-style license.
+ 
+requires:
+- ART
+ 
+provides: [ART.Container]
+ 
+...
+*/
+
 ART.Container = new Class({
 	
 	Implements: [Events, Options],

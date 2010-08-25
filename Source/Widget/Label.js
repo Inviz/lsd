@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Label.js
+ 
+description: Supplementary field for any kind of widgets that take focus
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Element
+
+provides: [ART.Widget.Label]
+ 
+...
+*/
+
 ART.Widget.Label = new Class({
   Extends: ART.Widget.Element,
   
@@ -33,6 +50,6 @@ ART.Widget.Label = new Class({
     }
     hook.retrieve('widget').retain();
   }
-})
+});
 
 ART.Widget.Ignore.attributes.push('container');

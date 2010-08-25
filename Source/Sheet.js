@@ -1,10 +1,25 @@
 /*
-Script: ART.Sheet.js
-
-License:
-	MIT-style license.
+---
+ 
+script: Sheet.js
+ 
+description: Code to extract style rule definitions from the stylesheet
+ 
+license: MIT-style license.
+ 
+requires:
+- ART
+- CSSParser/CSSParser
+- Core/Slick.Parser
+- Core/Slick.Finder
+- Core/Request
+- Core/Element.Style
+- ART.Widget.Module.Styles
+ 
+provides: [ART.Sheet]
+ 
+...
 */
-
 ART.Sheet = {};
 
 (function(){
@@ -93,7 +108,7 @@ ART.Sheet = {};
   	}).join(' ');
 	}
 	
-	Element.Styles.Except = new ART.Hash('backgroundColor', 'width', 'height', 'minWidth');
+	Element.Styles.Except = new FastArray('backgroundColor', 'width', 'height', 'minWidth');
 	
 	ART.Sheet.isElementStyle = function(cc) {
 	  return ((Element.Styles[cc] || Element.Styles.More[cc]) && !Element.Styles.Except[cc]);
@@ -135,7 +150,7 @@ ART.Sheet = {};
         onSuccess: function(text) {
           var sheet = {}
           
-          var parsed = cssParser.parse(text);;
+          var parsed = CSSParser.parse(text);;
           parsed.each(function(rule) {
             var selector = rule.selectors.map(function(selector) {
               return selector.selector.

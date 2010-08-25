@@ -1,7 +1,27 @@
+/*
+---
+ 
+script: Scrollbar.js
+ 
+description: Scrollbars for everything
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Paint
+- ART.Widget.Section
+- ART.Widget.Button
+- Base/Widget.Trait.Slider
+
+provides: [ART.Widget.Scrollbar]
+ 
+...
+*/
+
 ART.Widget.Scrollbar = new Class({
   Includes: [
     ART.Widget.Paint,
-    ART.Widget.Trait.HasSlider
+    Widget.Trait.Slider
   ],
   
   name: 'scrollbar',

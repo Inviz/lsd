@@ -1,3 +1,24 @@
+/*
+---
+ 
+script: Radio.js
+ 
+description: A radio button, set of connected widgets that steal checkedness from each other
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Input
+- ART.Widget.Paint
+- Base/Widget.Trait.Touchable
+- Base/Widget.Trait.Focus
+- Base/Widget.Trait.Accessibility
+
+provides: [ART.Widget.Input.Radio]
+ 
+...
+*/
+
 ART.Widget.Input.Radio = new Class({
   Includes: [
     ART.Widget.Paint,
@@ -44,4 +65,4 @@ ART.Widget.Input.Radio = new Class({
 	  this.check();
 	  this.focus();
 	}
-})
+});

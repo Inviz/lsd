@@ -1,3 +1,22 @@
+/*
+---
+ 
+script: Checkbox.js
+ 
+description: Boolean checkbox type of input
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Input
+- Base/Widget.Trait.Touchable
+- Base/Widget.Trait.Focus
+- Base/Widget.Trait.Accessibility
+
+provides: [ART.Widget.Input.Checkbox]
+ 
+...
+*/
 ART.Widget.Input.Checkbox = new Class({
   Includes: [
     ART.Widget.Paint,
@@ -34,4 +53,4 @@ ART.Widget.Input.Checkbox = new Class({
 	  this.toggle();
 	  this.focus();
 	}
-})
+});

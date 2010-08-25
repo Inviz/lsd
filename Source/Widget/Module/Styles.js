@@ -1,6 +1,25 @@
+/*
+---
+ 
+script: Styles.js
+ 
+description: Set, get and render different kind of styles on widget
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+- Core/Element.Style
+- Ext/FastArray
+
+provides: [ART.Widget.Module.Styles, ART.Styles]
+ 
+...
+*/
+
 (function() {
 	
-	ART.Styles = new ART.Hash(
+	ART.Styles = new FastArray(
 	  'glyphColor', 'glyphShadow', 'glyphSize', 'glyphStroke', 'glyph', 'glyphColor', 'glyphColor', 'glyphHeight', 'glyphWidth', 'glyphTop', 'glyphLeft', 		
 		'cornerRadius', 'cornerRadiusTopLeft', 'cornerRadiusBottomLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight',		
 		'reflectionColor',  'backgroundColor', 'strokeColor', 'fillColor', 'starRays',
@@ -200,3 +219,5 @@ ART.Widget.Module.Styles = new Class({
 		return true;
 	}
 });
+
+Element.Styles.More = new FastArray('float', 'display', 'clear', 'cursor', 'verticalAlign', 'textAlign');

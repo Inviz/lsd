@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Ellipse.js
+ 
+description: Draw ellipses and circles without a hassle
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Shape
+ 
+provides: [ART.Shape.Ellipse]
+ 
+...
+*/
+
 ART.Shape.Ellipse = new Class({
 	
 	Extends: ART.Shape,

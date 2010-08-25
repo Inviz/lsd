@@ -1,3 +1,21 @@
+/*
+---
+ 
+script: Dimensions.js
+ 
+description: Get and set dimensions of widget
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+
+provides: [ART.Widget.Trait.Dimensions]
+ 
+...
+*/
+
+
 ART.Widget.Trait.Dimensions = new Class({
 	size: {},
 	
@@ -78,4 +96,4 @@ ART.Widget.Trait.Dimensions = new Class({
 		return width;
 	}
 	
-})
+});

@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Fill.js
+ 
+description: Fills shape with color
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Layer
+ 
+provides: [ART.Layer.Fill]
+ 
+...
+*/
+
 ART.Layer.Fill = new Class({
   Extends: ART.Layer,
   
@@ -7,4 +24,4 @@ ART.Layer.Fill = new Class({
 		this.shape.fill.apply(this.shape, $splat(color));
 	}
 
-})
+});

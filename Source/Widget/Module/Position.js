@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Position.js
+ 
+description: Easily reposition element by positioning widget absolutely and one of the edges
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+
+provides: [ART.Widget.Module.Position]
+ 
+...
+*/
+
 ART.Widget.Module.Position = new Class({
   
   attach: Macro.onion(function() {

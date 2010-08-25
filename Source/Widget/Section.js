@@ -1,3 +1,19 @@
+/*
+---
+ 
+script: Section.js
+ 
+description: SVG-Based content element (like <section> in html5)
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Paint
+
+provides: [ART.Widget.Section]
+ 
+...
+*/
 
 ART.Widget.Section = new Class({
   Extends: ART.Widget.Paint,
@@ -17,4 +33,4 @@ ART.Widget.Section = new Class({
 	  reflection:  ['fill', ['reflectionColor']],
 	  background: ['fill', ['backgroundColor']]
 	}
-})
+});

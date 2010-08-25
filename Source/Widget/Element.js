@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Element.js
+ 
+description: Lightweight base class for element-based widgets
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget
+
+provides: [ART.Widget.Element]
+ 
+...
+*/
+
 ART.Widget.Element = new Class({
 
   Extends: ART.Widget,
@@ -42,4 +59,4 @@ ART.Widget.Element = new Class({
   
   findStyles: $lambda(false),
   renderStyles: $lambda(false)
-})
+});

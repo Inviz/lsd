@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Scrollable.js
+ 
+description: For all the scrollbars you always wanted
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Scrollbar
+
+provides: [ART.Widget.Trait.Scrollable]
+ 
+...
+*/
+
 ART.Widget.Trait.Scrollable = new Class({
   build: Macro.onion(function() {
     if (!this.wrapper) this.wrapper = new Element('div', {'class': 'wrapper'}).setStyle('position', 'relative').setStyle('overflow', 'hidden')

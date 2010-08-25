@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: ResizableContainer.js
+ 
+description: Make container resize, not the widget itself.
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Trait.Resizable
+
+provides: [ART.Widget.Trait.Resizable]
+ 
+...
+*/
+
 ART.Widget.Trait.ResizableContainer = new Class({
   getResized: function() {
     return this.content;

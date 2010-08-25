@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Draggable.js
+ 
+description: Drag widget around the screen
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+- More/Drag
+
+provides: [ART.Widget.Trait.Draggable]
+ 
+...
+*/
 
 ART.Widget.Trait.Draggable = new Class({
   States: {
@@ -83,4 +100,4 @@ ART.Widget.Trait.Draggable = new Class({
 	})
 });
 
-ART.Widget.Ignore.events.push('dragger')
+ART.Widget.Ignore.events.push('dragger');

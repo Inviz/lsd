@@ -1,11 +1,20 @@
 /*
-Script: ART.Widget.Button.js
+---
+ 
+script: Button.js
+ 
+description: A button widget. You click it, it fires the event
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Paint
+- Base/Widget.Trait.Touchable
 
-License:
-	MIT-style license.
+provides: [ART.Widget.Button]
+ 
+...
 */
-
-// Button Widget. Work in progress.
 
 ART.Widget.Button = new Class({
 

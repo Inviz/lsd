@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Arrow.js
+ 
+description: An arrow shape. Useful for all the chat bubbles and validation errors.
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Shape
+ 
+provides: [ART.Shape.Arrow]
+ 
+...
+*/
+
 ART.Shape.Arrow = new Class({
 
 	Extends: ART.Shape,

@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Toolbar.js
+ 
+description: A section with links or buttons
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget
+
+provides: [ART.Widget.Toolbar]
+ 
+...
+*/
+
 ART.Widget.Toolbar = new Class({
 	
 	Extends: ART.Widget.Paint,

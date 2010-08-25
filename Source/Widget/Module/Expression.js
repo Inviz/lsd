@@ -1,3 +1,21 @@
+/*
+---
+ 
+script: Expression.js
+ 
+description: Parses and applied various selector strings
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+- Slick.Parser
+
+provides: [ART.Widget.Module.Expression]
+ 
+...
+*/
+
 ART.Widget.Module.Expression = new Class({
 	expression: false,
 	

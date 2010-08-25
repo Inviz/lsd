@@ -1,3 +1,19 @@
+/*
+---
+ 
+script: Panel.js
+ 
+description: A fieldset like widget for various content
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Paint
+
+provides: [ART.Widget.Panel]
+ 
+...
+*/
 
 ART.Widget.Panel = new Class({
 	Extends: ART.Widget.Paint,

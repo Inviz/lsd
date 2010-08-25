@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Shadow.js
+ 
+description: Drops outer shadow with offsets. Like a box shadow!
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Layer
+ 
+provides: [ART.Layer.Shadow, ART.Layer.Shadow.Layer]
+ 
+...
+*/
+
 ART.Layer.Shadow = new Class({
   Extends: ART.Layer,
     
@@ -126,7 +143,7 @@ ART.Layer.Shadow.Layer = new Class({
 ART.Layer.Shadow.Layer.stack = [];
 ART.Layer.Shadow.Layer.getInstance = function() {
   return ART.Layer.Shadow.Layer.stack.pop() || (new ART.Layer.Shadow.Layer);
-}
+};
 ART.Layer.Shadow.Layer.release = function(layer) {
   var shape = layer.shape;
   if (shape) shape.element.parentNode.removeChild(shape.element);

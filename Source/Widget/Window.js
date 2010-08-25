@@ -1,8 +1,20 @@
 /*
-Script: ART.Widget.Window.js
-
-License:
-	MIT-style license.
+---
+ 
+script: Window.js
+ 
+description: Window for fun and profit
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Paint
+- ART.Widget.Trait.Aware
+- Base/Widget.Trait.Animation
+ 
+provides: [ART.Widget.Window]
+ 
+...
 */
 
 // Window Widget. Work in progress.
@@ -53,5 +65,3 @@ ART.Widget.Window = new Class({
 	}
 	
 });
-
-ART.Widget.Ignore.states.push('dirty');

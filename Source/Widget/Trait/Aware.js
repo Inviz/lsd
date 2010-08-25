@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Aware.js
+ 
+description: A trait that allows to wait for related widgets until they are ready
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+
+provides: [ART.Widget.Trait.Aware]
+ 
+...
+*/
+
 ART.Widget.Trait.Aware = new Class({
   
   use: function() {

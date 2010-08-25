@@ -1,3 +1,28 @@
+/*
+---
+ 
+script: Select.js
+ 
+description: Basic selectbox
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Paint
+- ART.Widget.Button
+- ART.Widget.Container
+- ART.Widget.Trait.Menu
+- Base/Widget.Trait.List
+- Base/Widget.Trait.Choice
+- Base/Widget.Trait.Value
+- Base/Widget.Trait.Focus
+- Base/Widget.Trait.Accessibility
+
+provides: [ART.Widget.Select, ART.Widget.Select.Button, ART.Widget.Select.Option]
+ 
+...
+*/
+
 ART.Widget.Select = new Class({
   
   Includes: [
@@ -5,7 +30,7 @@ ART.Widget.Select = new Class({
     Class.Stateful({
       'expanded': ['expand', 'collapse']
     }),
-    ART.Widget.Trait.HasMenu,
+    ART.Widget.Trait.Menu,
     Widget.Trait.List,
     Widget.Trait.Choice,
     Widget.Trait.Value,
@@ -66,7 +91,7 @@ ART.Widget.Select = new Class({
 
 ART.Widget.Select.Button = new Class({
   Extends: ART.Widget.Button
-})
+});
 
 ART.Widget.Select.Option = new Class({
   Extends: ART.Widget.Container,
@@ -91,4 +116,4 @@ ART.Widget.Select.Option = new Class({
   chooseOnHover: function() {
     this.selectWidget.select(this, true)
   }
-})
+});

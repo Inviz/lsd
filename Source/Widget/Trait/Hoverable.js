@@ -1,3 +1,19 @@
+/*
+---
+ 
+script: Hoverable.js
+ 
+description: For the times you need to know if mouse is over or not
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+provides: [ART.Widget.Trait.Hoverable]
+ 
+...
+*/
+
 ART.Widget.Trait.Hoverable = new Class({
   States: {
     'hover': ['mouseenter', 'mouseleave']

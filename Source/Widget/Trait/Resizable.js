@@ -1,3 +1,21 @@
+/*
+---
+ 
+script: Resizable.js
+ 
+description: Resize widget with the mouse freely
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+- More/Drag
+
+provides: [ART.Widget.Trait.Resizable]
+ 
+...
+*/
+
 
 ART.Widget.Trait.Resizable = new Class({
   States: {
@@ -121,4 +139,4 @@ ART.Widget.Trait.Resizable = new Class({
 	})
 });
 
-ART.Widget.Ignore.events.push('resizer')
+ART.Widget.Ignore.events.push('resizer');

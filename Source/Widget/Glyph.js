@@ -1,3 +1,21 @@
+/*
+---
+ 
+script: Glyph.js
+ 
+description: Like a button with icon but without a button, actually
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Paint
+- Base/Widget.Trait.Touchable
+
+provides: [ART.Widget.Glyph]
+ 
+...
+*/
+
 ART.Widget.Glyph = new Class({
   Includes: [
 		ART.Widget.Paint,
@@ -26,4 +44,4 @@ ART.Widget.Glyph = new Class({
 		}
 		return true;
 	}
-})
+});

@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Layer.js
+ 
+description: Adds a piece of SVG that can be drawn with widget styles
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Shape
+ 
+provides: [ART.Layer, ART.Layer.Shaped]
+ 
+...
+*/
+
 ART.Layer = new Class({
   initialize: function(shape) {
     this.base = shape;
@@ -24,4 +41,4 @@ ART.Layer.Shaped = new Class({
     if (!this.shape) return;
     return this.shape[method].apply(this.shape, arguments);
   })
-})
+});

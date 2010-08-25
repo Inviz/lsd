@@ -1,3 +1,21 @@
+/*
+---
+ 
+script: Icon.js
+ 
+description: For the times you need both icon and glyph on one widget. Ugly, I know.
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Layer
+ 
+provides: [ART.Layer.Icon]
+ 
+...
+*/
+
+
 ART.Layer.Icon = new Class({
   Extends: ART.Layer.Shaped,
   

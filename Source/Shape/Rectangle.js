@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Rectangle.js
+ 
+description: Rectangles with rounded corners
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Shape
+ 
+provides: [ART.Shape.Rectangle]
+ 
+...
+*/
+
 ART.Shape.Rectangle = new Class({
 
 	Extends: ART.Shape,

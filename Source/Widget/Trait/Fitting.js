@@ -1,3 +1,22 @@
+/*
+---
+ 
+script: Fitting.js
+ 
+description: Fit widget around its content. Useful for variable-height widgets like windows and dialogs.
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+- Ext/Drag.Limits
+
+provides: [ART.Widget.Trait.Fitting]
+ 
+...
+*/
+
+
 ART.Widget.Trait.Fitting = new Class({
   fit: function() {
     var element = $(this.content.getContainer());

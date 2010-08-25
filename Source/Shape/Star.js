@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Star.js
+ 
+description: A star with variable number of edges
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Shape
+ 
+provides: [ART.Shape.Star]
+ 
+...
+*/
+
 ART.Shape.Star = new Class({
 	
 	Extends: ART.Shape,
@@ -53,7 +70,7 @@ ART.Shape.Star = new Class({
 
 });  
 
-ART.Styles.push('starRays', 'starRadius', 'starOffset')
+ART.Styles.push('starRays', 'starRadius', 'starOffset');
 //
 //Raphael.fn.star = function (cx, cy, r, r2, rays) 
 //{ 

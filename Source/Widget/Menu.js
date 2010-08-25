@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Menu.js
+ 
+description: Menu widget to be used as a drop down
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Paint
+- Base/Widget.Trait.Animation
+
+provides: [ART.Widget.Menu]
+ 
+...
+*/
 ART.Widget.Menu = new Class({
   Includes: [
     ART.Widget.Paint,

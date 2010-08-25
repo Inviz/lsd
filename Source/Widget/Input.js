@@ -1,7 +1,25 @@
+/*
+---
+ 
+script: Input.js
+ 
+description: A base class for all kinds of form controls
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Paint
+- Base/Widget.Trait.Input
+
+provides: [ART.Widget.Input]
+ 
+...
+*/
+
 ART.Widget.Input = new Class({
   Includes: [
     ART.Widget.Paint,
-    ART.Widget.Trait.HasInput
+    Widget.Trait.Input
   ],
   
   name: 'input',

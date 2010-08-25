@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Glyph.js
+ 
+description: A separate layer for glyph
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Layer
+ 
+provides: [ART.Layer.Glyph]
+ 
+...
+*/
+
 ART.Layer.Glyph = new Class({
   Extends: ART.Layer.Shaped,
   

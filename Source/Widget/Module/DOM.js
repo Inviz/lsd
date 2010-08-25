@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: DOM.js
+ 
+description: Provides DOM-compliant interface to play around with other widgets
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+
+provides: [ART.Widget.Module.DOM]
+ 
+...
+*/
+
 ART.Widget.Module.DOM = new Class({
   initialize: function() {
     this.childNodes = [];
@@ -121,4 +138,4 @@ ART.Widget.Module.DOM = new Class({
 	match: function(selector) {
 	  return ART.Sheet.match(selector, this.getHierarchy())
 	}
-})
+});

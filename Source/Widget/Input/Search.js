@@ -1,3 +1,29 @@
+/*
+---
+ 
+script: Search.js
+ 
+description: Search field with a dropdown
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Input
+- ART.Widget.Container
+- ART.Widget.Button
+- ART.Widget.Trait.Menu
+- ART.Widget.Trait.Aware
+- Base/Widget.Trait.List
+- Base/Widget.Trait.Choice
+- Base/Widget.Trait.Value
+- Base/Widget.Trait.Observer
+- Base/Widget.Trait.Accessibility
+
+provides: [ART.Widget.Input.Search]
+ 
+...
+*/
+
 ART.Widget.Input.Search = new Class({
   Includes: [
     ART.Widget.Input,
@@ -6,7 +32,7 @@ ART.Widget.Input.Search = new Class({
     	'detailed': ['enrich', 'clean'],
     	'uniconed': ['uniconize', 'iconize']
     }),
-    ART.Widget.Trait.HasMenu,
+    ART.Widget.Trait.Menu,
     ART.Widget.Trait.Aware,
     Widget.Trait.List,
     Widget.Trait.Choice,
@@ -129,7 +155,7 @@ ART.Widget.Input.Option = new Class({
   chooseOnHover: function() {
     this.selectWidget.select(this, true)
   }
-})
+});
 
 
 ART.Widget.Input.Icon = new Class({
@@ -142,4 +168,4 @@ ART.Widget.Input.Icon = new Class({
   layered: {
     icon: ['icon']
   }
-})
+});

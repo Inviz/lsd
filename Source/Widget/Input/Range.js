@@ -1,7 +1,29 @@
+/*
+---
+ 
+script: Range.js
+ 
+description: Range slider input
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Input
+- ART.Widget.Button
+- ART.Widget.Paint
+- Base/Widget.Trait.Slider
+- Base/Widget.Trait.Focus
+- Base/Widget.Trait.Accessibility
+
+provides: [ART.Widget.Input.Range]
+ 
+...
+*/
+
 ART.Widget.Input.Range = new Class({
   Includes: [
     ART.Widget.Paint,
-    ART.Widget.Trait.HasSlider,
+    Widget.Trait.Slider,
     Widget.Trait.Focus,
     Widget.Trait.Accessibility
   ],
@@ -41,7 +63,7 @@ ART.Widget.Input.Range = new Class({
 	decrement: function() {
 	  this.slider.set(this.slider.step - 10)
 	}
-})
+});
 
 ART.Widget.Input.Range.Thumb = new Class({
   Includes: [

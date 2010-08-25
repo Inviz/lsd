@@ -1,3 +1,21 @@
+/*
+---
+ 
+script: Container.js
+ 
+description: Makes widget use container - wrapper around content setting
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+- ART.Container
+
+provides: [ART.Widget.Module.Container]
+ 
+...
+*/
+
 ART.Widget.Module.Container = new Class({
   options: {
 		container: false

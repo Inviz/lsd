@@ -1,3 +1,22 @@
+/*
+---
+ 
+script: Layout.js
+ 
+description: A logic to render (and nest) a few widgets out of the key-value hash
+ 
+license: MIT-style license.
+ 
+requires:
+- ART
+- ART.Widget.Base
+- Ext/Logger
+ 
+provides: [ART.Layout]
+ 
+...
+*/
+
 ART.Layout = new Class({
   
   Implements: [Options, Logger],
@@ -124,4 +143,4 @@ ART.Layout.build = function(selector, layout, parent, element) {
 	if (styles) widget.setStyles(styles);
 	if ($type(layout) == 'string') widget.setContent(layout);
 	return widget;
-}
+};

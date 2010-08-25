@@ -1,3 +1,22 @@
+/*
+---
+ 
+script: List.js
+ 
+description: List widget to render (and select) various items
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Paint
+- Base/Widget.Trait.List
+- Base/Widget.Trait.Focus
+- Base/Widget.Trait.Accessibility
+
+provides: [ART.Widget.List]
+ 
+...
+*/
 
 ART.Widget.List = new Class({
   Includes: [
@@ -73,4 +92,4 @@ ART.Widget.List.Item = new Class({
   unselect: Macro.onion(function() {
     this.refresh();
   })
-})
+});

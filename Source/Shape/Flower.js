@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Flower.js
+ 
+description: Ever wanted a flower button? Here you go
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Shape
+ 
+provides: [ART.Shape.Flower]
+ 
+...
+*/
+
 ART.Shape.Flower = new Class({
 	
 	Extends: ART.Shape,

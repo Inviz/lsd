@@ -1,3 +1,21 @@
+/*
+---
+ 
+script: Document.js
+ 
+description: Provides a virtual root to all the widgets. DOM-Compatible for Slick traversals.
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Module.DOM
+ 
+provides: [ART.Document]
+ 
+...
+*/
+
+
 ART.Document = new Class({
   Includes: [
     new Class({initialize: function() {

@@ -1,3 +1,21 @@
+/*
+---
+ 
+script: Expression.js
+ 
+description: Adds layout capabilities to widget (parse and render widget trees from objects)
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+- ART.Layout
+
+provides: [ART.Widget.Module.Layout]
+ 
+...
+*/
+
 ART.Widget.Module.Layout = new Class({
 	layout: false,
 	

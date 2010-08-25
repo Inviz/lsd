@@ -1,3 +1,23 @@
+/*
+---
+ 
+script: LayoutEvents.js
+ 
+description: Apply events on layout elements (child nodes and everything)
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+- ART.Widget.Trait.Aware
+- Base/Widget.Module.Events
+
+provides: [ART.Widget.Module.LayoutEvents]
+ 
+...
+*/
+
+
 (function() {
 ART.Widget.Module.LayoutEvents = new Class({
   

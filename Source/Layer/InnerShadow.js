@@ -1,3 +1,21 @@
+/*
+---
+ 
+script: InnerShadow.js
+ 
+description: Dropps inner shadow with offsets 
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Layer
+- ART.Layer.Shadow
+ 
+provides: [ART.Layer.InnerShadow, ART.Layer.InnerShadow.Layer]
+ 
+...
+*/
+
 ART.Layer.InnerShadow = new Class({
   Extends: ART.Layer.Shadow,
   
@@ -11,7 +29,9 @@ ART.Layer.InnerShadow = new Class({
     if (shadow > 0 || y > 0 || x > 0) {
       var fill = new Color(color);
       fill.base = fill.alpha;
-      var transition = Fx.Transitions.Sine;
+      var transition = function(p){
+    		return 1 - Math.sin((1 - p) * Math.PI / 2);
+    	};
       var offset = Math.max(Math.abs(x), Math.abs(y));
       shadow += offset;
       //if (!shadow) shadow = 1;;
@@ -62,7 +82,7 @@ ART.Layer.InnerShadow = new Class({
       if (layer) layer.translate(x + layer.x, y + layer.y);
     }
   } 
-})
+});
 ART.Layer.InnerShadow.Layer = new Class({
   Extends: ART.Layer,
 	

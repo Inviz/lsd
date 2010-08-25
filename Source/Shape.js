@@ -1,3 +1,22 @@
+/*
+---
+ 
+script: Shape.js
+ 
+description: Additional methods to clone the shape
+ 
+license: MIT-style license.
+ 
+requires:
+- ART
+- ART/ART.Shape
+- ART.Styles
+ 
+provides: [ART.Shape]
+ 
+...
+*/
+
 ART.Shape.implement({
   produce: function(delta, shape) {
     if (!shape) shape = new this.$constructor;

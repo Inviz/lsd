@@ -1,0 +1,73 @@
+name: LSD
+fullname: Lovely SVG Drawings
+filename: lsd.js
+description: Psychodelically awesome library for UI in javascript and SVG
+license: MIT-Style License, http://mootools.net/license
+copyright: Yaroslaff Fedin
+authors: Yaroslaff Fedin
+sources:
+  - Source/ART.js
+  - Source/Container.js
+  - Source/Document.js
+  - Source/Fx.js
+  - Source/Glyphs.js
+  - Source/Layout.js
+  - Source/Layer.js
+  - Source/Layer/Fill.js
+  - Source/Layer/Glyph.js
+  - Source/Layer/Icon.js
+  - Source/Layer/InnerShadow.js
+  - Source/Layer/Shadow.js
+  - Source/Layer/Stroke.js
+  - Source/Shape.js
+  - Source/Shape/Arrow.js
+  - Source/Shape/Ellipse.js
+  - Source/Shape/Flower.js
+  - Source/Shape/Rectangle.js
+  - Source/Shape/Star.js
+  - Source/Sheet.js
+  - Source/Widget/Base.js
+  - Source/Widget/Button.js
+  - Source/Widget/Container.js
+  - Source/Widget/Element.js
+  - Source/Widget/Form.js
+  - Source/Widget/Glyph.js
+  - Source/Widget/Input.js
+  - Source/Widget/Input/Checkbox.js
+  - Source/Widget/Input/Combo.js
+  #- Source/Widget/Input/Date.js
+  - Source/Widget/Input/Radio.js
+  - Source/Widget/Input/Range.js
+  - Source/Widget/Input/Search.js
+  - Source/Widget/Label.js
+  - Source/Widget/List.js
+  - Source/Widget/Menu.js
+  - Source/Widget/Module/Container.js
+  - Source/Widget/Module/DOM.js
+  - Source/Widget/Module/Expression.js
+  - Source/Widget/Module/Layout.js
+  - Source/Widget/Module/LayoutEvents.js
+  - Source/Widget/Module/Position.js
+  - Source/Widget/Module/Styles.js
+  - Source/Widget/Paint.js
+  - Source/Widget/Panel.js
+  - Source/Widget/Scrollbar.js
+  - Source/Widget/Section.js
+  - Source/Widget/Select.js
+  - Source/Widget/Toolbar.js
+  - Source/Widget/Textarea.js
+  - Source/Widget/Trait/Aware.js
+  - Source/Widget/Trait/Dimensions.js
+  - Source/Widget/Trait/Draggable.js
+  - Source/Widget/Trait/Fitting.js
+  - Source/Widget/Trait/Hoverable.js
+  - Source/Widget/Trait/Layers.js
+  - Source/Widget/Trait/Liquid.js
+  - Source/Widget/Trait/List.js
+  - Source/Widget/Trait/Menu.js
+  - Source/Widget/Trait/Resizable.js
+  - Source/Widget/Trait/ResizableContainer.js
+  - Source/Widget/Trait/Scrollable.js
+  - Source/Widget/Trait/Shape.js
+  - Source/Widget/Widget.js
+  - Source/Widget/Window.js

@@ -1,3 +1,23 @@
+/*
+---
+ 
+script: Layers.js
+ 
+description: Make widget use layers for all the SVG
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Widget.Base
+- ART.Layer
+- ART.Shape
+
+provides: [ART.Widget.Trait.Layers]
+ 
+...
+*/
+
+
 (function() {
 
 var empty = {translate: {x: 0, y: 0}, outside: {x: 0, y: 0}, inside: {x: 0, y: 0}};

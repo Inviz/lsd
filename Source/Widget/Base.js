@@ -1,3 +1,21 @@
+/*
+---
+ 
+script: Base.js
+ 
+description: Lightweight base widget class to inherit from.
+ 
+license: MIT-style license.
+ 
+requires:
+- ART
+- Base/Widget.Base
+ 
+provides: [ART.Widget.Base, ART.Widget.create]
+ 
+...
+*/
+
 if (!ART.Widget) ART.Widget = {};
 ART.Widget.Base = new Class({
   Extends: Widget.Base,
@@ -114,10 +132,6 @@ ART.Widget.create = function(klasses, a, b, c, d) {
 	ART.Widget.count++;
 	return new widget(a, b, c, d)
 }
-
-
-
-Element.Styles.More = new ART.Hash('float', 'display', 'clear', 'cursor', 'verticalAlign', 'textAlign');
 
 ART.Widget.Module = {};
 ART.Widget.Trait = $mixin(Widget.Trait);

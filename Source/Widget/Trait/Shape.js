@@ -1,3 +1,20 @@
+/*
+---
+ 
+script: Shape.js
+ 
+description: Draw a widget with any SVG path you want
+ 
+license: MIT-style license.
+ 
+requires:
+- ART.Shape
+- ART.Widget.Base
+provides: [ART.Widget.Trait.Shape]
+ 
+...
+*/
+
 ART.Widget.Trait.Shape = new Class({
   options: {
     shape: 'rectangle'
