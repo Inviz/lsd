@@ -1,0 +1,30 @@
+[submodule "Dependencies/mootools-ext"]
+	path = Dependencies/mootools-ext
+	url = git://github.com/Inviz/mootools-ext.git
+[submodule "Dependencies/mootools-touch"]
+	path = Dependencies/mootools-touch
+	url = git://github.com/kamicane/mootools-touch.git
+[submodule "Dependencies/qfocuser"]
+	path = Dependencies/qfocuser
+	url = git://github.com/Inviz/qfocuser.git
+[submodule "Dependencies/cssparser"]
+	path = Dependencies/cssparser
+	url = git://github.com/Inviz/cssparser.git
+[submodule "Dependencies/art"]
+	path = Dependencies/art
+	url = git://github.com/kamicane/art.git
+[submodule "Dependencies/mootools-color"]
+	path = Dependencies/mootools-color
+	url = git://github.com/kamicane/mootools-color.git
+[submodule "Dependencies/mootools-more"]
+	path = Dependencies/mootools-more
+	url = git://github.com/mootools/mootools-more.git
+[submodule "Dependencies/mootools-core"]
+	path = Dependencies/mootools-core
+	url = git://github.com/mootools/mootools-core.git
+[submodule "Dependencies/lsd-examples"]
+	path = Dependencies/lsd-examples
+	url = git://github.com/Inviz/lsd-examples.git
+[submodule "Dependencies/lsd-base"]
+	path = Dependencies/lsd-base
+	url = git@github.com:Inviz/lsd-base.git
