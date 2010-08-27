@@ -27,4 +27,4 @@
 	url = git://github.com/Inviz/lsd-examples.git
 [submodule "Dependencies/lsd-base"]
 	path = Dependencies/lsd-base
-	url = git@github.com:Inviz/lsd-base.git
+	url = git://github.com/Inviz/lsd-base.git
