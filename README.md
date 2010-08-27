@@ -13,36 +13,36 @@ An interface library that blows the mind, does things that were obvious but neve
 * **Layers** - Each widget consist of a few SVG paths. You can add as many of them as you want, we have presets (stroke layer, shadow layer, fill layer). Just provide the name of a layer and CSS properties it works with.
 
 * **Stylesheets** - Remember the times when you had to hardcode widget styles into javascript? I don't, because it is always a bad idea. But here you dont need anything like that anymore. Our way of styling everything is specially baked CSS (includes a cool module for guys who use ruby and sass) with special CSS properties for everything. The best thing is that for known properties Does "" look familiar to you? Exactly.
-  
+	
 	// Input: window.sass
 	window.hud
-	  button
-	    &:active
-	      :font-size 110%
-	      :reflection-color hsl(0, 0, 0, 0.5)
-	    &:hover
-	      :reflection-color hsl(0, 0, 0, 0.7)
-	      
-	      
+		button
+			&:active
+				:font-size 110%
+				:reflection-color hsl(0, 0, 0, 0.5)
+			&:hover
+				:reflection-color hsl(0, 0, 0, 0.7)
+				
+				
 	// Output: window.css
 	.art.window.hud .art.button.pseudo-active {
-	  font-size: 110%;                           /* set by browser, usual CSS, speedy! */
-	  -lsd-reflection-color: hsl(0, 0, 0, 0.5)   /* custom property that has to be applied by LSD */
+		font-size: 110%;													 /* set by browser, usual CSS, speedy! */
+		-lsd-reflection-color: hsl(0, 0, 0, 0.5)	 /* custom property that has to be applied by LSD */
 	}
 	.art.window.hud .art.button.pseudo-hover {
-	  -lsd-reflection-color: hsl(0, 0, 0, 0.7)
+		-lsd-reflection-color: hsl(0, 0, 0, 0.7)
 	}
-  
+	
 * **Document** - The single most useful thing in mootools 1.3 for me was Slick. The engine that blazingly fast retrieves elements from the DOM using selectors. Our widget trees are partially DOM-compatible, so Slick can just walk through widgets like if they were regular elements. 
 
-    var button = Slick.search($d, "button + button")[0]
-    var previous = Slick.search(button, "! + button");
-    var nextWindow = Slick.search(button, "! window + window"); //finds button's window and the next window after that
-    
+		var button = Slick.search($d, "button + button")[0]
+		var previous = Slick.search(button, "! + button");
+		var nextWindow = Slick.search(button, "! window + window"); //finds button's window and the next window after that
+		
 * **Modularity** - I believe that there is not enough multiple inheritance in javascript world, so I'd like to change that. We have our own special class mutator and all the code split to small modules (One window widget consists of 20+ modules all chainted together). I believe common things like Lists, Grids, Resizing and things like that can be done one time and used everywhere. It's just a shame to copy and paste tons of crap to create a new widget. No more!
-    
+		
 * **Best practices** - There are a lot of things that are (or to be) done right in this library. Focus handling, keyboard access, events DSL, Dropdown menus, dialogs, overlays, etc. 
-    
+		
 * **Made to be extended** - Trust me, alright? The idea is to make something that makes it a pleasure to add another widget, or set of widgets, or widget state, or one more layer of behaviour, whatever! Just do it, like i did.
 
 * **Laziness** - Always trying not to do something unless it is needed now. You've got that dropdown menu? We dont care until we show it.
@@ -56,7 +56,7 @@ These are the things that come for free (by using other libraries):
 - Multiple inheritance (that adds a whole lot of fun into creating of new mutators)
 - Safari tabindex emulation
 
-    
+		
 ## Timeline
 
 This is already almost an year of my time and I'm willing to spend half more year (until february-march 2011) to finish everythings. There are small bugs here and there, but that is because the foundation gets changed so hard getting better each time so it's hard to keep everything working all the time.
@@ -78,7 +78,7 @@ This is a second library in a set. It requires lsd-base to function properly. An
 ## Usage
 
 Only jsus (http://github.com/markiz/jsus) can save you. You need it is a gem to build the package.
-  
+	
 	sudo gem install jsus
 	git clone git://github.com/Inviz/lsd.git
 	cd lsd
@@ -86,4 +86,4 @@ Only jsus (http://github.com/markiz/jsus) can save you. You need it is a gem to 
 	cd dependencies/lsd-examples
 	jsus -i . -o Scripts -d ../..
 	open demos/index.html
-  
+	
