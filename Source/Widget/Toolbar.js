@@ -8,7 +8,7 @@ description: A section with links or buttons
 license: MIT-style license.
  
 requires:
-- ART.Widget
+- ART.Widget.Paint
 
 provides: [ART.Widget.Toolbar]
  
