@@ -14,25 +14,24 @@ An interface library that blows the mind, does things that were obvious but neve
 
 * **Stylesheets** - Remember the times when you had to hardcode widget styles into javascript? I don't, because it is always a bad idea. But here you dont need anything like that anymore. Our way of styling everything is specially baked CSS (includes a cool module for guys who use ruby and sass) with special CSS properties for everything. The best thing is that for known properties Does "" look familiar to you? Exactly.
   
-  
-    /* Input: window.sass */
-    window.hud
-      button
-        &:active
-          :font-size 110%
-          :reflection-color hsl(0, 0, 0, 0.5)
-        &:hover
-          :reflection-color hsl(0, 0, 0, 0.7)
-          
-          
-    /* Output: window.css */
-    .art.window.hud .art.button.pseudo-active {
-      font-size: 110%;                           /* set by browser, usual CSS, speedy! */
-      -lsd-reflection-color: hsl(0, 0, 0, 0.5)   /* custom property that has to be applied by LSD */
-    }
-    .art.window.hud .art.button.pseudo-hover {
-      -lsd-reflection-color: hsl(0, 0, 0, 0.7)
-    }
+	/* Input: window.sass */
+	window.hud
+	  button
+	    &:active
+	      :font-size 110%
+	      :reflection-color hsl(0, 0, 0, 0.5)
+	    &:hover
+	      :reflection-color hsl(0, 0, 0, 0.7)
+	      
+	      
+	/* Output: window.css */
+	.art.window.hud .art.button.pseudo-active {
+	  font-size: 110%;                           /* set by browser, usual CSS, speedy! */
+	  -lsd-reflection-color: hsl(0, 0, 0, 0.5)   /* custom property that has to be applied by LSD */
+	}
+	.art.window.hud .art.button.pseudo-hover {
+	  -lsd-reflection-color: hsl(0, 0, 0, 0.7)
+	}
   
 * **Document** - The single most useful thing in mootools 1.3 for me was Slick. The engine that blazingly fast retrieves elements from the DOM using selectors. Our widget trees are partially DOM-compatible, so Slick can just walk through widgets like if they were regular elements. 
 
@@ -74,3 +73,17 @@ This is a second library in a set. It requires lsd-base to function properly. An
 * mootools-more
 * lsd-base
 * art
+
+
+## Usage
+
+Only jsus (http://github.com/markiz/jsus) can save you. You need it is a gem to build the package.
+  
+  sudo gem install jsus
+  git clone git://github.com/Inviz/lsd.git
+  cd lsd
+  git submodule update
+  cd dependencies/lsd-examples
+  jsus -i . -o Scripts -d ../..
+  open demos/index.html
+  
