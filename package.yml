@@ -7,6 +7,7 @@ copyright: Yaroslaff Fedin
 authors: Yaroslaff Fedin
 sources:
   - Source/ART.js
+  - Source/ART/ART.SVG.js
   - Source/Container.js
   - Source/Document.js
   - Source/Fx.js
