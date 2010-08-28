@@ -9,7 +9,7 @@ license: MIT-style license.
  
 requires:
 - ART.Widget.Base
-- Slick.Parser
+- Core/Slick.Parser
 
 provides: [ART.Widget.Module.Expression]
  

@@ -10,7 +10,7 @@ license: MIT-style license.
 requires:
 - ART.Widget.Trait.Resizable
 
-provides: [ART.Widget.Trait.Resizable]
+provides: [ART.Widget.Trait.ResizableContainer]
  
 ...
 */
