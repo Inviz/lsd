@@ -82,7 +82,7 @@ Only jsus (http://github.com/markiz/jsus) can save you. You need it is a gem to 
 	sudo gem install jsus
 	git clone git://github.com/Inviz/lsd.git
 	cd lsd
-	git submodule update
+	git submodule update --init
 	cd dependencies/lsd-examples
 	jsus -i . -o Scripts -d ../..
 	open demos/index.html
