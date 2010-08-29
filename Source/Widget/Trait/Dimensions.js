@@ -64,33 +64,33 @@ ART.Widget.Trait.Dimensions = new Class({
 		return width;
 	},
 	
-	getOffsetHeight: function() {;
+	getOffsetHeight: function(height) {;
 	  var styles = this.style.current;
-		var height = this.getClientHeight();
+		if (!height) height = this.getClientHeight();
 		height += (styles.strokeWidth || 0) * 2
 		height += styles.borderBottomWidth || 0;
 		height += styles.borderTopWidth || 0;
 		return height;
 	},
 	
-	getOffsetWidth: function() {
+	getOffsetWidth: function(width) {
 	  var styles = this.style.current;
-		var width = this.getClientWidth();
+		if (!width) width = this.getClientWidth();
 		width += (styles.strokeWidth || 0) * 2
 		width += styles.borderLeftWidth || 0;
 		width += styles.borderBottomWidth || 0;
 		return width;
 	},
 	
-	getLayoutHeight: function() {
-		var height = this.getOffsetHeight();
+	getLayoutHeight: function(height) {
+		height = this.getOffsetHeight(height);
 		height += ((this.offset.padding.top || 0) - (this.offset.inside.top || 0));
 		height += ((this.offset.padding.bottom || 0) - (this.offset.inside.bottom || 0));
 		return height;
 	},
 
-	getLayoutWidth: function() {
-		var width = this.getOffsetWidth();
+	getLayoutWidth: function(width) {
+		width = this.getOffsetWidth(width);
 		width += ((this.offset.inside.left || 0) + (this.style.current.marginLeft || 0));
 		width += ((this.offset.inside.right || 0) + (this.style.current.marginRight || 0));
 		return width;
