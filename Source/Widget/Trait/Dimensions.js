@@ -26,19 +26,19 @@ ART.Widget.Trait.Dimensions = new Class({
 	},
 	
 	setHeight: function(value, light) {
-	  value = Math.max(this.style.current.minHeight || 0, value);
-		if (!light && (this.size.height == value)) return;
+	  value = Math.min(this.style.current.maxHeight || 1500, Math.max(this.style.current.minHeight || 0, value));
+		if (!light && this.size.height == value) return;
 		this.size.height = value;
-		if (!light) this.setStyle('height', value);
-		return true;
+		if (!light) this.setStyle('height', value );
+		return value;
 	},
 		
 	setWidth: function(value, light) {
-	  value = Math.max(this.style.current.minWidth || 0, value);
+	  value = Math.min(this.style.current.maxHeight || 1500, Math.max(this.style.current.minWidth || 0, value));
 		if (this.size.width == value) return;
 		this.size.width = value;
 		if (!light) this.setStyle('width', value);
-		return true;
+		return value;
 	},
 	
 	getClientHeight: function() {
