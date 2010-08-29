@@ -79,6 +79,7 @@ ART.Widget.Input.Search = new Class({
       $(this.input).inject(this.glyph, 'after')
     }
     if (this.canceller) this.canceller.refresh();
+    this.input.setStyle('width', this.size.width - this.canceller.getLayoutWidth(this.canceller.size.width) - this.glyph.getLayoutWidth())
   }),
   
   events: {
