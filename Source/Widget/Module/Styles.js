@@ -60,19 +60,25 @@ ART.Widget.Module.Styles = new Class({
 		var found = this.lookupStyles();
 		if (found) {
 			for (var property in found.style) if (property in this.style.given) delete found.style[property];
-			var rendered = false;
+			var changed = false;
 			for (var property in found.style) if (!$equals(found.style[property], this.style.current[property])) {
+			  changed = true;
+			  break;
+			}
+			if (!changed) for (var property in this.style.found) if (!(property in found.style)) {
+			  changed = true;
+			  break;
+			}
+			if (changed) {
   			this.style.found = found.style;
   			this.setStyles(found.style, true);
-  			rendered = true
-  			break;
+  			for (var property in found.implied) if (property in this.style.given) delete found.implied[property];
+  			this.style.implied = found.implied;
+  			$extend(this.style.current, this.style.implied);
+  			return true;
 			}	
-			if (!rendered) return false;
-			for (var property in found.implied) if (property in this.style.given) delete found.implied[property];
-			this.style.implied = found.implied;
-			$extend(this.style.current, this.style.implied);
-			return true;
-		}
+		}  
+		return false;
 	},
 
 	lookupStyles: function() {
@@ -148,7 +154,7 @@ ART.Widget.Module.Styles = new Class({
     if (this.size.height) {
       var size = $merge(this.size);
       //if (this.style.current.height != 'auto') size.height += (this.style.current.paddingTop || 0) + (this.style.current.paddingBottom || 0)      
-      $extend(styles, size);
+      $extend(styles, this.size);
       //return styles;
     }
     
