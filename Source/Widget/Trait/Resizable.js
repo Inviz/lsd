@@ -94,12 +94,11 @@ ART.Widget.Trait.Resizable = new Class({
       if (!$chk(self.limit)) self.limit = this.resizer.options.limit.x[0];
       this.resizer.setMinX(width);
       resized.setWidth(width);
-      if (resized.horizontal) resized.horizontal.adaptToSize()
-      return true;
       $clear(self.delay);
       self.delay = (function() { //reset limit options in one second
         this.resizer.setMinX(self.limit);
       }).delay(1000, this);
+      return false;
     }
 	},
 	
