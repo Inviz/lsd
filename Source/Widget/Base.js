@@ -57,8 +57,7 @@ ART.Widget.Base = new Class({
 		return selector;
 	},
 
-	render: function(style){
-		if (!this.parent.apply(this, arguments)) return; //only renders if dirty == true
+	render: Macro.onion(function(style){
 	  delete this.halted;
 
   	var size = this.size;
@@ -68,13 +67,9 @@ ART.Widget.Base = new Class({
 		});
 		if (size) {
   	  var newSize = {height: this.getStyle('height'), width: this.getStyle('width')};
-  	  if (size.height != newSize.height) this.setHeight(newSize.height, true);
-      if (size.width != newSize.width) this.setWidth(newSize.width, true);
-  	  this.fireEvent('resize', [newSize, size])
+  	  if (this.setHeight(newSize.height, true) + this.setWidth(newSize.width, true)) this.fireEvent('resize', [newSize, size])
 		}
-
-		return true;
-	},
+	}),
 
 	//halt render process	
 	halt: function() {
