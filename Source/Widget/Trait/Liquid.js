@@ -38,12 +38,12 @@ ART.Widget.Trait.Liquid = new Class({
   },
   
   setHeight: function(height) {
-    if (height && (this.size.height != height)) this.setElementStyle('height', height);
+    if (height && (this.size.height != height)) this.setElementStyle('height', height - (this.style.current.paddingTop || 0) - (this.style.current.paddingBottom || 0));
     return this.parent.apply(this, arguments);
   },
   
   setWidth: function(width) {
-    if (width && (this.size.width != width))  this.setElementStyle('width', width);
+    if (width && (this.size.width != width))  this.setElementStyle('width', width - (this.style.current.paddingLeft || 0) - (this.style.current.paddingRight || 0));
     return this.parent.apply(this, arguments);
   },
   
