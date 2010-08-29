@@ -35,7 +35,7 @@ ART.Layer.InnerShadow = new Class({
       var offset = Math.max(Math.abs(x), Math.abs(y));
       shadow += offset;
       //if (!shadow) shadow = 1;;
-      console.log(['x', x], ['y', y], ['s', shadow])
+      //console.log(['x', x], ['y', y], ['s', shadow])
       for (var i = 0; i < shadow; i++) {
         if (shadow == 0) {
           fill.alpha = Math.min(fill.base * 2, 1)
@@ -56,14 +56,14 @@ ART.Layer.InnerShadow = new Class({
           Math.min(((layer.x > 0) ? ((layer.dx - i < 0) ? 1 : 0.5) * - layer.x  - 0.25 : 0), 0),
           Math.min(((layer.y > 0) ? (layer.dy + i < 0 ? 1 : 0.5) * - layer.y  - 0.25: 0), 0)
         ]);
-          console.log(
-            layer.shape.element,
-            [layer.y, layer.x], 
-            [layer.dy, layer.dx, i],
-            [
-              Math.min(((layer.x > 0) ? (layer.dx + i <= 0 ? 1 : 0.5) * - layer.x  - 0.25: i / 2), 0),
-              Math.min(((layer.y > 0) ? (layer.dy + i <= 0 ? 1 : 0.5) * - layer.y  - 0.25: i / 2), 0)
-            ])
+         // console.log(
+         //   layer.shape.element,
+         //   [layer.y, layer.x], 
+         //   [layer.dy, layer.dx, i],
+         //   [
+         //     Math.min(((layer.x > 0) ? (layer.dx + i <= 0 ? 1 : 0.5) * - layer.x  - 0.25: i / 2), 0),
+         //     Math.min(((layer.y > 0) ? (layer.dy + i <= 0 ? 1 : 0.5) * - layer.y  - 0.25: i / 2), 0)
+         //   ])
         layer.stroke(fill, 1);
       }
       var length = this.layers.length;
