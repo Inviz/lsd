@@ -15,6 +15,32 @@ provides: [ART.Widget.Module.DOM]
 ...
 */
 
+
+(function() {
+  
+var inserters = {
+
+	before: function(context, element){
+		var parent = element.parentNode;
+		if (parent) return parent.insertBefore(context, element);
+	},
+
+	after: function(context, element){
+		var parent = element.parentNode;
+		if (parent) return parent.insertBefore(context, element.nextSibling);
+	},
+
+	bottom: function(context, element){
+		return element.appendChild(context);
+	},
+
+	top: function(context, element){
+		return element.insertBefore(context, element.firstChild);
+	}
+
+};
+
+
 ART.Widget.Module.DOM = new Class({
   initialize: function() {
     this.childNodes = [];
@@ -73,23 +99,38 @@ ART.Widget.Module.DOM = new Class({
 	  }
 	  this.parentNode = widget;
 	},
-
-	adopt: function(widget) {
+	appendChild: function(widget, adoption) {
+	  if (this.canAppendChild && !this.canAppendChild(widget)) return false;
 		if (widget.options.id) {
 			if (this[widget.options.id]) this[widget.options.id].dispose();
 			this[widget.options.id] = widget;
 		}
 		this.childNodes.push(widget);
 	  if (!(this instanceof ART.Document)) widget.setParent(this);
-	  $(this).adopt(widget);
+	  if (!adoption) var adoption = function() {
+	    $(this).appendChild($(widget));
+	  }
+	  adoption.apply(this, arguments)
 		this.fireEvent('adopt', [widget, widget.options.id])
 
 	  var parent = widget;
-	  while (parent = parent.parentNode) parent.fireEvent('hello', widget)
+	  while (parent = parent.parentNode) parent.fireEvent('hello', widget);
+	  return true;
 	},
 	
-	inject: function(widget, quiet) {
-		widget.adopt(this);
+	insertBefore: function(insertion, element) {
+	  return this.appendChild(insertion, function(parent) {
+	    $(insertion).inject($(element), 'before')
+	  });
+	},
+	
+	grab: function(el, where){
+		inserters[where || 'bottom'](document.id(el, true), this);
+		return this;
+	},
+	
+	inject: function(widget, where, quiet) {
+		inserters[where || 'bottom'](this, widget);
 		var element = $(widget);
 		this.fireEvent('inject', arguments);
 		this.fireEvent('afterInject', arguments);
@@ -139,3 +180,7 @@ ART.Widget.Module.DOM = new Class({
 	  return ART.Sheet.match(selector, this.getHierarchy())
 	}
 });
+
+Widget.Ignore.attributes.push('shy');
+
+})();

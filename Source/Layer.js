@@ -35,8 +35,19 @@ ART.Layer.Shaped = new Class({
   }
 });
 
+ART.Layer.implement({
+  inject: function() {
+    this.injected = true;
+    if (this.shape) return this.shape.inject.apply(this.shape, arguments);
+  },
+  
+  eject: function() {
+    delete this.injected
+    if (this.shape) return this.shape.eject.apply(this.shape, arguments);
+  }
+});
 
-['inject', 'eject', 'translate', 'fill', 'stroke'].each(function(method) {
+['translate', 'fill', 'stroke'].each(function(method) {
   ART.Layer.implement(method, function() {
     if (!this.shape) return;
     return this.shape[method].apply(this.shape, arguments);

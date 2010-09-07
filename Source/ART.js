@@ -14,11 +14,9 @@ requires:
 - Core/Browser
 - Ext/Macro
 - Ext/Class.Stateful
-- Ext/Class.Binds.Remover
 - ART/ART
 - ART/ART.Path
 - ART/ART.SVG
-- ART.SVG.Extensions
 - ART/ART.VML
 - ART/ART.Base
  

@@ -48,7 +48,8 @@ ART.Widget.Base = new Class({
 	},
   
 	getSelector: function(){
-		var selector = (this.parentNode) ? this.parentNode.getSelector() + ' ' : '';
+	  var parent = this.parentNode;
+		var selector = (parent && parent.getSelector) ? parent.getSelector() + ' ' : '';
 		selector += this.name;
 		if (this.options.id) selector += "#" + this.options.id;
 		if (this.classes.length) selector += '.' + this.classes.join('.');
@@ -102,7 +103,7 @@ ART.Widget.Base = new Class({
 ART.Widget.count = 0;
 ART.Widget.create = function(klasses, a, b, c, d) {
   klasses = $splat(klasses);
-  var base = ART.Widget;
+  var base = klasses[0].indexOf ? ART.Widget : klasses.shift();
   var klass = klasses.shift();
   var original = klass;
   if (klass.indexOf('-') > -1) { 

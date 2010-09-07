@@ -53,4 +53,4 @@ ART.Widget.Module.LayoutEvents = new Class({
 
 })();
 
-ART.Widget.Ignore.events.push('self', 'element', 'parent');
+ART.Widget.Ignore.events.push('self', 'internal', 'element', 'parent');

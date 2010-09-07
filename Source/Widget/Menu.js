@@ -3,7 +3,7 @@
  
 script: Menu.js
  
-description: Menu widget to be used as a drop down
+description: Menu widget base class
  
 license: MIT-style license.
  
@@ -16,19 +16,7 @@ provides: [ART.Widget.Menu]
 ...
 */
 ART.Widget.Menu = new Class({
-  Includes: [
-    ART.Widget.Paint,
-    Widget.Trait.Animation
-  ],
-  
-  options: {
-    animation: {
-      duration: 0,
-      value: 0
-    }
-  },
-  
-  position: 'absolute',
+  Extends: ART.Widget.Paint,
   
   name: 'menu',
   

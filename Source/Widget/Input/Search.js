@@ -27,12 +27,7 @@ provides: [ART.Widget.Input.Search]
 ART.Widget.Input.Search = new Class({
   Includes: [
     ART.Widget.Input,
-    Class.Stateful({
-    	'expanded': ['expand', 'collapse'],
-    	'detailed': ['enrich', 'clean'],
-    	'uniconed': ['uniconize', 'iconize']
-    }),
-    ART.Widget.Trait.Menu,
+    ART.Widget.Trait.Menu.Stateful,
     ART.Widget.Trait.Aware,
     Widget.Trait.List,
     Widget.Trait.Choice,
@@ -40,6 +35,11 @@ ART.Widget.Input.Search = new Class({
     Widget.Trait.Observer,
     Widget.Trait.Accessibility
   ],
+  
+  States: {
+    'detailed': ['enrich', 'clean'],
+    'uniconed': ['uniconize', 'iconize']
+  },
   
   layout: {
     'input-icon#glyph': {},

@@ -34,7 +34,7 @@ ART.Widget.Trait.Dimensions = new Class({
 	},
 		
 	setWidth: function(value, light) {
-	  value = Math.min(this.style.current.maxHeight || 1500, Math.max(this.style.current.minWidth || 0, value));
+	  value = Math.min(this.style.current.maxWidth || 3500, Math.max(this.style.current.minWidth || 0, value));
 		if (this.size.width == value) return;
 		this.size.width = value;
 		if (!light) this.setStyle('width', value);

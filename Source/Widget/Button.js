@@ -48,7 +48,7 @@ ART.Widget.Button = new Class({
 	},
 
   setContent: Macro.onion(function(content) {
-    this.addPseudo('text')
+    this.setState('text')
   })
 
 });

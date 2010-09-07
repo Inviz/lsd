@@ -26,8 +26,6 @@ ART.Widget.Section = new Class({
 		}
 	},
 	
-	properties: ['cornerRadius', 'offset'],
-	
 	layered: {
 	  fill:  ['stroke'],
 	  reflection:  ['fill', ['reflectionColor']],

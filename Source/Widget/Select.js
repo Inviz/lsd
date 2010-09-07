@@ -27,10 +27,7 @@ ART.Widget.Select = new Class({
   
   Includes: [
     ART.Widget.Paint,
-    Class.Stateful({
-      'expanded': ['expand', 'collapse']
-    }),
-    ART.Widget.Trait.Menu,
+    ART.Widget.Trait.Menu.Stateful,
     Widget.Trait.List,
     Widget.Trait.Choice,
     Widget.Trait.Value,
@@ -110,10 +107,10 @@ ART.Widget.Select.Option = new Class({
   name: 'option',
   
   select: function() {
-    this.selectWidget.select.delay(20, this.selectWidget, [this]);
+    this.selectWidget.selectItem.delay(20, this.selectWidget, [this]);
   },
   
   chooseOnHover: function() {
-    this.selectWidget.select(this, true)
+    this.selectWidget.selectItem(this, true)
   }
 });

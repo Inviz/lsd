@@ -89,7 +89,20 @@ ART.Layout.build = function(selector, layout, parent, element) {
   var attributes = {};
 	if (parsed.id) options.id = parsed.id
 	var mixins = [];
-	var styles;
+	var styles;	
+	switch (parsed.combinator) {
+    case '^': //add full parent class path (tag, type, subclass)
+      tag = parent.source + '-' + tag;
+      break;
+    case ">": //add partial parent class path (tag and type)
+      var type = parent.getAttribute('type');
+      if (type) tag = type + '-' + tag;
+      var bits = parent.source.split('-');
+      bits.pop();
+	    tag = bits.join('-') + '-' + tag;
+	}
+	
+	
 	if (parsed.attributes) parsed.attributes.each(function(attribute) {
 	  if (attribute.key == "style") {
 	    styles = {};
@@ -118,7 +131,24 @@ ART.Layout.build = function(selector, layout, parent, element) {
 	  options.attributes = attributes;
 	  break;
 	}
+
+
+  if (parsed.classes) {
+    if (!options.classes) options.classes = [];
+    options.classes.push.apply(options.classes, parsed.classes.map(function(klass) { 
+      return klass.value; 
+    }));
+  }
+	if (parsed.pseudos) {
+	  if (!options.pseudos) options.pseudos = [];
+    options.pseudos.push.apply(options.pseudos, parsed.pseudos.map(function(klass) { 
+      return klass.key; 
+    }));
+	}
+	
+	
 	var widget = ART.Widget.create(mixins, options);
+	widget.source = tag;
 	widget.build();
 	
 	if (!options.id && parent) {
@@ -126,20 +156,10 @@ ART.Layout.build = function(selector, layout, parent, element) {
 	  if (!parent[property]) parent[property] = [];
 	  parent[property].push(widget)
 	}
-  
+	
   if (!element) element = parent;
-  if (element) widget.inject(element, true)
+  if (element) widget.inject(element, 'bottom', true)
   
-  if (parsed.classes) {
-    var klasses = parsed.classes.map(function(klass) { return klass.value })
-    widget.classes.push.apply(widget.classes, klasses);
-    klasses.each(widget.addClass.bind(widget));
-  }
-	if (parsed.pseudos) {
-	  parsed.pseudos.each(function(pseudo) {
-	    widget.setStateTo(pseudo.key, true)
-	  });
-	}
 	if (styles) widget.setStyles(styles);
 	if ($type(layout) == 'string') widget.setContent(layout);
 	return widget;

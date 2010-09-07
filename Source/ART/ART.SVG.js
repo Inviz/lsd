@@ -7,9 +7,7 @@ description: Some extensions (filters, dash, shadow blur)
  
 license: MIT-style license.
 
-requires: [ART/ART.SVG]
-
-provides: [ART.SVG.Extensions]
+extends: ART/ART.SVG
  
 ...
 */
@@ -34,11 +32,11 @@ ART.SVG.Base.implement({
 	inject: function(container){
 		this.eject();
 		if (container instanceof ART.SVG.Group) container.children.push(this);
-		this.container = container;
+		this.parent.apply(this, arguments);
+		this.container = container.defs ? container : container.container;
 		this._injectGradient('fill');
 		this._injectGradient('stroke');
 		this._injectFilter('blur');
-		this.parent(container);
 		return this;
 	},
 	

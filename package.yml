@@ -8,6 +8,7 @@ authors: Yaroslaff Fedin
 sources:
   - Source/ART.js
   - Source/ART/ART.SVG.js
+  - Source/ART/ART.Element.js
   - Source/Container.js
   - Source/Document.js
   - Source/Fx.js
@@ -43,6 +44,10 @@ sources:
   - Source/Widget/Label.js
   - Source/Widget/List.js
   - Source/Widget/Menu.js
+  - Source/Widget/Menu/Context.js
+  - Source/Widget/Menu/List.js
+  - Source/Widget/Menu/Toolbar.js
+  - Source/Widget/Menu/Toolbar.Menu.js
   - Source/Widget/Module/Container.js
   - Source/Widget/Module/DOM.js
   - Source/Widget/Module/Expression.js
@@ -54,6 +59,9 @@ sources:
   - Source/Widget/Panel.js
   - Source/Widget/Scrollbar.js
   - Source/Widget/Section.js
+  - Source/Widget/Header.js
+  - Source/Widget/Footer.js
+  - Source/Widget/Nav.js
   - Source/Widget/Select.js
   - Source/Widget/Toolbar.js
   - Source/Widget/Textarea.js
@@ -62,9 +70,9 @@ sources:
   - Source/Widget/Trait/Draggable.js
   - Source/Widget/Trait/Fitting.js
   - Source/Widget/Trait/Hoverable.js
+  - Source/Widget/Trait/ProxyChildren.js
   - Source/Widget/Trait/Layers.js
   - Source/Widget/Trait/Liquid.js
-  - Source/Widget/Trait/List.js
   - Source/Widget/Trait/Menu.js
   - Source/Widget/Trait/Resizable.js
   - Source/Widget/Trait/ResizableContainer.js

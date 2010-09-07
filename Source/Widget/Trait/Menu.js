@@ -9,29 +9,32 @@ license: MIT-style license.
  
 requires:
 - ART.Widget.Base
-- ART.Widget.Menu
+- ART.Widget.Menu.Context
 - Base/Widget.Trait.OuterClick
 
-provides: [ART.Widget.Trait.Menu]
+provides: [ART.Widget.Trait.Menu, ART.Widget.Trait.Menu.Stateful]
  
 ...
 */
 
 ART.Widget.Trait.Menu = new Class({	
-  Includes: [
-    Widget.Trait.OuterClick
-  ],
-  
+  //Includes: [
+  //  Widget.Trait.OuterClick
+  //],
+    
   options: {
     menu: {
       position: 'top'
+    },
+    layout: {
+      menu: 'menu[type=context]#menu'
     }
   },
   
   events: {
     outer: {
       element: {
-        outerClick: 'collapse'
+      //  outerClick: 'collapse'
       }
     },
     menu: {
@@ -42,7 +45,8 @@ ART.Widget.Trait.Menu = new Class({
         blur: 'collapse',
         next: 'expand',
         previous: 'expand',
-        cancel: 'collapse'
+        cancel: 'collapse',
+        select: 'expand'
       }
     }
   },
@@ -85,12 +89,12 @@ ART.Widget.Trait.Menu = new Class({
     }
     this.menu.setStyle('top', top);
     this.menu.setStyle('left', this.offset.paint.left);
-    this.menu.setStyle('width', this.getStyle('width'));
+    this.menu.setWidth(this.getStyle('width'));
     //if (!once) arguments.callee.delay(30, this, true)
   },
   
   buildMenu: function() {
-    this.applyLayout('menu#menu');
+    this.applyLayout(this.options.layout.menu);
   },
   
   expand: Macro.onion(function() {
@@ -98,16 +102,23 @@ ART.Widget.Trait.Menu = new Class({
     this.repositionMenu();
     this.menu.refresh();
     this.menu.show();
-    this.attachOuterClick();
+    //this.attachEvents('outer');
   }),
   
   collapse: Macro.onion(function() {
     this.menu.hide();
     //this.repositionMenu();
-    //this.detachOuterClick();
+    //this.detachEvents('outer')
   }),
   
   getSelectedOptionPosition: $lambda(0)
 });
+
+ART.Widget.Trait.Menu.Stateful = [
+  Class.Stateful({
+    'expanded': ['expand', 'collapse']
+  }),
+  ART.Widget.Trait.Menu
+]
 
 ART.Widget.Ignore.events.push('menu');

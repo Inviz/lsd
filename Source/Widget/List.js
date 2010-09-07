@@ -8,8 +8,9 @@ description: List widget to render (and select) various items
 license: MIT-style license.
  
 requires:
-- ART.Widget.Paint
+- ART.Widget.Menu.List
 - Base/Widget.Trait.List
+- Base/Widget.Trait.Item
 - Base/Widget.Trait.Focus
 - Base/Widget.Trait.Accessibility
 
@@ -20,8 +21,7 @@ provides: [ART.Widget.List]
 
 ART.Widget.List = new Class({
   Includes: [
-    ART.Widget.Paint,
-    Widget.Trait.List,
+    ART.Widget.Menu.List,
     Widget.Trait.Focus,
     Widget.Trait.Accessibility
   ],
@@ -39,57 +39,25 @@ ART.Widget.List = new Class({
 	
 	options: {
 	  list: {
-	    item: 'list-item'
+	    item: 'menu-list-item'
 	  }
 	},
+
+  	buildItem: function(item) {
+  	  var widget = this.buildLayout(this.options.list.item, item.toString(), this, false);
+  	  widget.value = item;
+  	  widget.setList(this);
+  	  this.getContainer().append(widget); 
+  	  return widget;
+  	},
 
 	layered: {
 	  shadow:  ['shadow'],
 	  background:  ['fill', ['backgroundColor']]
 	},
 	
-	items: ["1","2","3"],
-	
-	buildItem: function(item) {
-	  var widget = this.buildLayout(this.options.list.item, item.toString(), this, false);
-	  widget.value = item;
-	  widget.listWidget = this;
-	  this.getContainer().append(widget); 
-	  return widget;
-	},
-	
 	processValue: function(item) {
 	  return item.value;
 	}
 	
-});
-
-ART.Widget.List.Item = new Class({
-  Extends: ART.Widget.Paint,
-  
-  States: {
-    selected: ['select', 'unselect']
-  },
-  
-  events: {
-    element: {
-      click: 'select'
-    }
-  },
-  
-  name: 'item',
-  
-	layered: {
-	  fill:  ['stroke'],
-	  reflection:  ['fill', ['reflectionColor']],
-	  background: ['fill', ['backgroundColor']]
-	},
-	
-  select: Macro.onion(function() {
-    this.listWidget.select(this)
-  }),
-  
-  unselect: Macro.onion(function() {
-    this.refresh();
-  })
 });
