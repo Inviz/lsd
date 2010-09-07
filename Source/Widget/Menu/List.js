@@ -41,6 +41,10 @@ ART.Widget.Menu.List = new Class({
 	  }
 	},
 
+  attributes: {
+    type: 'list'
+  },
+
 	buildItem: function(item) {
 	  var widget = this.buildLayout(this.options.list.item, item.toString(), this, false);
 	  widget.value = item;

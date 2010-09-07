@@ -42,7 +42,6 @@ sources:
   - Source/Widget/Input/Range.js
   - Source/Widget/Input/Search.js
   - Source/Widget/Label.js
-  - Source/Widget/List.js
   - Source/Widget/Menu.js
   - Source/Widget/Menu/Context.js
   - Source/Widget/Menu/List.js
@@ -63,7 +62,6 @@ sources:
   - Source/Widget/Footer.js
   - Source/Widget/Nav.js
   - Source/Widget/Select.js
-  - Source/Widget/Toolbar.js
   - Source/Widget/Textarea.js
   - Source/Widget/Trait/Aware.js
   - Source/Widget/Trait/Dimensions.js

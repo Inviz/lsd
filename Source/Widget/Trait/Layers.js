@@ -76,7 +76,7 @@ ART.Widget.Trait.Layers = new Class({
               var shape = this.lastLayer.shape;
               if (!shape.container) shape.container = this.paint;
               instance.inject(shape, 'after')
-            } else instance.inject(this.paint, 'top');
+            } else instance.inject(this.paint);
           } else {
             if (instance.update) instance.update(this.paint)
           }  

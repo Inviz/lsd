@@ -26,8 +26,19 @@ ART.Widget.Menu.Context = new Class({
       value: 0
     }
   },
+
+	layered: {
+	  shadow:  ['shadow'],
+	  stroke:  ['stroke'],
+	  background:  ['fill', ['backgroundColor']],
+	  reflection:  ['fill', ['reflectionColor']],
+	},
+	  
+  position: 'absolute',
   
-  position: 'absolute'
+  attributes: {
+    type: 'context'
+  }
 });
 
 ART.Widget.Menu.Context.Item = new Class({

@@ -18,12 +18,5 @@ provides: [ART.Widget.Menu]
 ART.Widget.Menu = new Class({
   Extends: ART.Widget.Paint,
   
-  name: 'menu',
-  
-	layered: {
-	  shadow:  ['shadow'],
-	  stroke:  ['stroke'],
-	  background:  ['fill', ['backgroundColor']],
-	  reflection:  ['fill', ['reflectionColor']],
-	}
+  name: 'menu'
 });
