@@ -14,7 +14,8 @@ Things we have
 
 * **Stylesheets** - Remember the times when you had to hardcode widget styles into javascript? I don't, because it is always a bad idea. But here you dont need anything like that anymore. Our way of styling everything is specially baked CSS (includes a cool module for guys who use ruby and sass) with special CSS properties for everything. The best thing is that for known properties Does "" look familiar to you? Exactly.
 	
-	// Input: window.sass
+**Input: window.sass**
+	
 	window.hud
 		button
 			&:active
@@ -22,10 +23,12 @@ Things we have
 				:reflection-color hsl(0, 0, 0, 0.5)
 			&:hover
 				:reflection-color hsl(0, 0, 0, 0.7)
-	// Output: window.css
+				
+**Output: window.css**
+
 	.art.window.hud .art.button.pseudo-active {
-		font-size: 110%;													 /* set by browser, usual CSS, speedy! */
-		-lsd-reflection-color: hsl(0, 0, 0, 0.5)	 /* custom property that has to be applied by LSD */
+		font-size: 110%;                           /* set by browser, usual CSS, speedy! */
+		-lsd-reflection-color: hsl(0, 0, 0, 0.5)   /* custom property that has to be applied by LSD */
 	}
 	.art.window.hud .art.button.pseudo-hover {
 		-lsd-reflection-color: hsl(0, 0, 0, 0.7)
@@ -69,7 +72,6 @@ Dependencies
 
 This is a second library in a set. It requires lsd-base to function properly. And both of them work with the latest mootools. 
 
-(all edge versions)
 * mootools-core
 * mootools-more
 * lsd-base
