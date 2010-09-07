@@ -21,9 +21,9 @@ provides: [ART.Widget.Module.LayoutEvents]
 (function() {
 ART.Widget.Module.LayoutEvents = new Class({
   
-  addEvents: Macro.onion(function(events) {
+  addEvents: function(events) {
     this.attachLayoutEvents(this.parent.apply(this, arguments));
-  }),
+  },
   
   attachLayoutEvents: function(events) {
 		var callbacks = {};
