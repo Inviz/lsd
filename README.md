@@ -1,10 +1,10 @@
-# LSD - Lovely SVG Drawings
-
-## Some things may be broken after the big split, but it is starting to get back to normal
+LSD - Lovely SVG Drawings
+=========================
 
 An interface library that blows the mind, does things that were obvious but never really done and put together: CSS-driven customizable interfaces that render into SVG/VML. The goal is to generate phat ass amount of clean, clear, reusable, lightweight, modular and powerful code to use whenever it comes to UI.
 
-## Things we have
+Things we have
+--------------
 
 * **Vector paths for widget** - Ever wanted a triangle window? A cloud for a comment? A star button for bookmark? Here it's all possible. Draw a shape in Inkscape or write a function that draws a path and have everything done for you. The widget will have the border, shadow, everything. For free.
 
@@ -22,8 +22,6 @@ An interface library that blows the mind, does things that were obvious but neve
 				:reflection-color hsl(0, 0, 0, 0.5)
 			&:hover
 				:reflection-color hsl(0, 0, 0, 0.7)
-				
-				
 	// Output: window.css
 	.art.window.hud .art.button.pseudo-active {
 		font-size: 110%;													 /* set by browser, usual CSS, speedy! */
@@ -48,7 +46,8 @@ An interface library that blows the mind, does things that were obvious but neve
 * **Laziness** - Always trying not to do something unless it is needed now. You've got that dropdown menu? We dont care until we show it.
 
 
-## Free goodies
+Free goodies
+------------
 
 These are the things that come for free (by using other libraries):
 
@@ -57,14 +56,16 @@ These are the things that come for free (by using other libraries):
 - Safari tabindex emulation
 
 		
-## Timeline
+Call for help
+-------------
 
 This is already almost an year of my time and I'm willing to spend half more year (until february-march 2011) to finish everythings. There are small bugs here and there, but that is because the foundation gets changed so hard getting better each time so it's hard to keep everything working all the time.
 
 For anyone starting a similar library I encourage you to **fork and co-work**. Dont waste your time man. You can do it, i know, but do you really want all that time to be wasted on another wheel reinvention? Trust me, together we can make better. 
 
 
-## Dependencies
+Dependencies
+------------
 
 This is a second library in a set. It requires lsd-base to function properly. And both of them work with the latest mootools. 
 
@@ -73,17 +74,34 @@ This is a second library in a set. It requires lsd-base to function properly. An
 * mootools-more
 * lsd-base
 * art
+* qfocuser
+* mootools-ext
+* mootools-color
+* cssparser
+
+Screenshots
+-----------
+
+It can do much more than this, but this is my tech demos. There are more things that is untested (like scrollbars) but is there. 
+
+[Windows demo](http://img.skitch.com/20100907-p1kmiiputsgwgbjsu8pic3txr8.png)
+[Some kind of menu bar](http://img.skitch.com/20100907-pw2scewykaiyaau2jm4jb8giwu.png)
 
 
-## Usage
 
-Only jsus (http://github.com/markiz/jsus) can save you. You need it is a gem to build the package.
+Installation
+------------
+
+Only jsus (http://github.com/markiz/jsus) can save you. You need it is a gem to build the package. Jsus is an alternative (to Packager) javascript packager written in ruby. Currently, it is possible to browse demos without using jsus, because they include generated file tree.
 	
-	sudo gem install jsus
+	# Mandatory: Get files
 	git clone git://github.com/Inviz/lsd.git
 	cd lsd
 	git submodule update --init
+	# open dependencies/lsd-examples/demos/index.html in the browser
+	
+	# Optional: Use jsus to pack files
+	sudo gem install jsus
 	cd dependencies/lsd-examples
 	jsus -i . -o Scripts -d ../..
-	open demos/index.html
 	
