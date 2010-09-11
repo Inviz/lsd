@@ -30,27 +30,27 @@ ART.Widget.Input = new Class({
   
   events: {
     element: {
-  	  mousedown: 'retain'
+      mousedown: 'retain'
     }
   },
   
   layered: {
     shadow:  ['shadow'],
     stroke: ['stroke'],
-	  background:  ['fill', ['backgroundColor']],
-	  reflection:  ['fill', ['reflectionColor']],
+    background:  ['fill', ['backgroundColor']],
+    reflection:  ['fill', ['reflectionColor']],
     glyph: ['glyph']
-	},
-	
-	focus: Macro.onion(function() {
-	  this.input.focus();
-	}),
-	
-	retain: function() {
-	  this.focus();
-	},
-	
-	applyValue: function(item) {
-	  this.input.set('value', item);
-	}
+  },
+  
+  focus: Macro.onion(function() {
+    this.input.focus();
+  }),
+  
+  retain: function() {
+    if (!this.disabled) this.focus.delay(30, this);
+  },
+  
+  applyValue: function(item) {
+    this.input.set('value', item);
+  }
 });

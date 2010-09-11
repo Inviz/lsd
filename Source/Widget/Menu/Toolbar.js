@@ -27,5 +27,12 @@ ART.Widget.Menu.Toolbar = new Class({
   
   attributes: {
     type: 'toolbar'
-  }
+  },
+
+	layered: {
+	  shadow:  ['shadow'],
+	  stroke:  ['stroke'],
+	  background:  ['fill', ['backgroundColor']],
+	  reflection:  ['fill', ['reflectionColor']],
+	}
 });
