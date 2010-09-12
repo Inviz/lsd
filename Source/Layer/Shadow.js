@@ -38,11 +38,11 @@ ART.Layer.Shadow = new Class({
 
   inject: function(node) {
     this.parent.apply(this, arguments);
-    this.update(node);
+    this.update.apply(this, arguments);
   },
   
-  update: function(node) {
-    for (var i = 0, j = this.layers.length; i < j; i++) if (this.layers[i]) this.layers[i].inject(node)
+  update: function() {
+    for (var i = 0, j = this.layers.length; i < j; i++) if (this.layers[i]) this.layers[i].inject.apply(this.layers[i], arguments);
   },
   
   eject: function() {

@@ -84,15 +84,7 @@ ART.Layer.InnerShadow = new Class({
   } 
 });
 ART.Layer.InnerShadow.Layer = new Class({
-  Extends: ART.Layer,
-	
-	inject: function(container){
-		this.eject();
-		if (container instanceof ART.SVG.Group) container.children.push(this);
-		this.container = container;
-		this.container.element.appendChild(this.shape.element);
-		return this;
-	}
+  Extends: ART.Layer
 });
 ART.Layer.InnerShadow.Layer.stack = [];
 ART.Layer.InnerShadow.Layer.getInstance = function() {
