@@ -26,7 +26,7 @@ ART.Layer.Stroke = new Class({
     this.produce(stroke / 2)
   	this.shape.stroke(strokeColor, stroke, cap);
   	this.shape.fill.apply(this.shape, color ? $splat(color) : null);
-  	//this.shape.dash(dash);
+  	this.shape.dash(dash);
   	return {
   	  translate: {
   	    x: stroke / 2, 
