@@ -65,7 +65,7 @@ ART.Widget.Select = new Class({
   	  click: 'expand'
 	  },
 	  self: {
-  	  select: 'collapse',
+  	  set: 'collapse',
   	  collapse: 'forgetChosenItem'
 	  }
 	},
