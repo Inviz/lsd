@@ -67,6 +67,16 @@ This is already almost an year of my time and I'm willing to spend half more yea
 For anyone starting a similar library I encourage you to **fork and co-work**. Dont waste your time man. You can do it, i know, but do you really want all that time to be wasted on another wheel reinvention? Trust me, together we can make better. 
 
 
+Browser Support
+---------------
+
+In the early days (I dare to call that "early") of development, I only make on Firefox/Safari compatability. But let's face it, we have all tools to make it compatible with ie7+ (art has all the vml sweetness we need) pretty fast when we need to.
+
+At the same time I try to provide quality support for nice browsers based both on gecko and webkit. I had to port Google Closure's keyboard events library to mootools custom event keypress. Why is it important? To be able to hold left button to scroll items all the way to the left. 
+
+There's also QFocuser that aims to provide the same native focusing experience in Safari too. 
+
+
 Dependencies
 ------------
 
@@ -86,8 +96,8 @@ Screenshots
 
 It can do much more than this, but this is my tech demos. There are more things that is untested (like scrollbars) but is there. 
 
-[Windows demo](http://img.skitch.com/20100907-p1kmiiputsgwgbjsu8pic3txr8.png)
-[Some kind of menu bar](http://img.skitch.com/20100907-pw2scewykaiyaau2jm4jb8giwu.png)
+* [Windows demo](http://img.skitch.com/20100912-pgxcpgxi145fhnsd1eidanie81.png)
+* [Some kind of menu bar](http://img.skitch.com/20100907-pw2scewykaiyaau2jm4jb8giwu.png)
 
 
 
