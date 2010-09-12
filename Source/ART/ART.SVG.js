@@ -67,6 +67,7 @@ ART.SVG.Base.implement({
 	},
 
 	fill: function(color){
+	  console.info('fill', color)
 	  var args = arguments;
     if ($equals(args, this.filled)) return;
     this.filled = args;

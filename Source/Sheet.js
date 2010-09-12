@@ -9,7 +9,7 @@ license: MIT-style license.
  
 requires:
 - ART
-- CSSParser/CSSParser
+- Sheet/Sheet
 - Core/Slick.Parser
 - Core/Slick.Finder
 - Core/Request
@@ -149,36 +149,44 @@ ART.Sheet = {};
         onSuccess: function(text) {
           var sheet = {}
           
-          var parsed = CSSParser.parse(text);;
-          parsed.each(function(rule) {
-            var selector = rule.selectors.map(function(selector) {
-              return selector.selector.
+          var parsed = Sheet.from(text);
+          for (var i = 0, rules = parsed.rules, rule; rule = rules[i++];) {
+            console.log(rule)
+            var selector = rule.selectorText.
                 replace(/\.is-/g, ':').
                 replace(/\.id-/g , '#').
                 replace(/\.art#/g, '#').
                 replace(/\.art\./g, '').
                 replace(/^html \> body /g, '')
-            }).join(', ');
-            if (!selector.length || (selector.match(/svg|v\\?:|:(?:before|after)|\.container/))) return;
-            
+            if (!selector.length || (selector.match(/svg|v\\?:|:(?:before|after)|\.container/))) continue;
+
             if (!sheet[selector]) sheet[selector] = {};
-            var styles = sheet[selector];
-            
-            rule.styles.each(function(style) {
-              var name = style.name.replace('-art-', '');
-              var value = style.value;
+            var hash = sheet[selector];
+
+            for (var j = 0, styles = rule.style, style; style = styles[j++];) {
+              var name = style.replace('-art-', '');
+              var value = styles[style];
               var integer = value.toInt();
               if ((integer + 'px') == value) {
-                styles[name] = integer;
+                hash[name] = integer;
               } else {
-                if ((value.indexOf('hsb') > -1)
-                 || (value.indexOf('ART') > -1) 
-                 || (value == 'false')
-                 || (integer == value) || (value == parseFloat(value))) value = eval(value.replace(/^['"]/, '').replace(/['"]$/, ''));
-                styles[name] = value;
+                if (integer == value) {
+                  value = integer;
+                } else {
+                  var flt = parseFloat(value);
+                  if (flt == value) {
+                    value = flt;
+                  } else {
+                    var substring = value.substring(0, 3);
+                    if (substring == 'hsb' || substring == 'ART') {
+                      value = eval(value)
+                    }
+                  }
+                }
+                hash[name] = value;
               }
-            })
-          });
+            }
+          }
           //console.dir(sheet)
           for (var selector in sheet) {
             ART.Sheet.define(selector, sheet[selector]);
