@@ -4,7 +4,7 @@ filename: lsd.js
 description: Psychodelically awesome library for UI in javascript and SVG
 license: MIT-Style License, http://mootools.net/license
 copyright: Yaroslaff Fedin
-authors: Yaroslaff Fedin
+author: Yaroslaff Fedin
 tags: [ui, svg, interface]
 demo: http://inviz.github.com/lsd-examples/Demos/index.html
 sources:
