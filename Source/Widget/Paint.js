@@ -6,6 +6,8 @@ script: Paint.js
 description: Base class for widgets that use SVG layers in render
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget

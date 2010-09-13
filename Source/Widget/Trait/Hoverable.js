@@ -6,6 +6,8 @@ script: Hoverable.js
 description: For the times you need to know if mouse is over or not
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

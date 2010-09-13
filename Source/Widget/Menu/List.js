@@ -6,6 +6,8 @@ script: List.js
 description: Menu widget to be used as a list of item
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Menu

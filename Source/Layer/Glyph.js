@@ -6,6 +6,8 @@ script: Glyph.js
 description: A separate layer for glyph
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Layer

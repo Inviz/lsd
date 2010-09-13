@@ -6,6 +6,8 @@ script: Document.js
 description: Provides a virtual root to all the widgets. DOM-Compatible for Slick traversals.
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Module.DOM

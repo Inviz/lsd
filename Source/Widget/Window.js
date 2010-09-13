@@ -6,6 +6,8 @@ script: Window.js
 description: Window for fun and profit
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Paint

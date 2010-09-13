@@ -6,6 +6,8 @@ script: Container.js
 description: A container class that swallows all kind of a content
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART

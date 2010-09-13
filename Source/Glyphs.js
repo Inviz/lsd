@@ -6,6 +6,8 @@ script: Glyphs.js
 description: Glyph library
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART

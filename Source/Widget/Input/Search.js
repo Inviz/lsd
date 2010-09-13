@@ -6,6 +6,8 @@ script: Search.js
 description: Search field with a dropdown
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Input

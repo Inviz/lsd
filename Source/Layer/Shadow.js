@@ -6,6 +6,8 @@ script: Shadow.js
 description: Drops outer shadow with offsets. Like a box shadow!
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Layer

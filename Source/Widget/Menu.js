@@ -6,6 +6,8 @@ script: Menu.js
 description: Menu widget base class
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Paint

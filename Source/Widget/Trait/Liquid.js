@@ -6,6 +6,8 @@ script: Liquid.js
 description: Set width and height as expressions to recalculate
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

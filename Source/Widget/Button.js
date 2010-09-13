@@ -6,6 +6,8 @@ script: Button.js
 description: A button widget. You click it, it fires the event
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Paint

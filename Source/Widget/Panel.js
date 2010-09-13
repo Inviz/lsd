@@ -6,6 +6,8 @@ script: Panel.js
 description: A fieldset like widget for various content
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Paint

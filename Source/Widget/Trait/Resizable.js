@@ -6,6 +6,8 @@ script: Resizable.js
 description: Resize widget with the mouse freely
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

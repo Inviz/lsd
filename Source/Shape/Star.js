@@ -6,6 +6,8 @@ script: Star.js
 description: A star with variable number of edges
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Shape

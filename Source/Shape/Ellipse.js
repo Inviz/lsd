@@ -6,6 +6,8 @@ script: Ellipse.js
 description: Draw ellipses and circles without a hassle
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Shape

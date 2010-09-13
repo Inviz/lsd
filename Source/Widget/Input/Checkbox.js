@@ -6,6 +6,8 @@ script: Checkbox.js
 description: Boolean checkbox type of input
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Input

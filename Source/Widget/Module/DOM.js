@@ -6,6 +6,8 @@ script: DOM.js
 description: Provides DOM-compliant interface to play around with other widgets
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

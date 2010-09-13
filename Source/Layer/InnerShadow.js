@@ -6,6 +6,8 @@ script: InnerShadow.js
 description: Dropps inner shadow with offsets 
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Layer

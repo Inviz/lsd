@@ -6,6 +6,8 @@ script: Label.js
 description: Supplementary field for any kind of widgets that take focus
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Element

@@ -6,6 +6,8 @@ script: ProxyChildren.js
 description: Dont adopt children, pass them to some other widget
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Trait.Aware

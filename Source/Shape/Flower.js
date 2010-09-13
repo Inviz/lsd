@@ -6,6 +6,8 @@ script: Flower.js
 description: Ever wanted a flower button? Here you go
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Shape

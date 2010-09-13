@@ -6,6 +6,8 @@ script: Nav.js
 description: SVG-Based nav element (like <nav> in html5)
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Section

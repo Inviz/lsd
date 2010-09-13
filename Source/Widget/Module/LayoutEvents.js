@@ -6,6 +6,8 @@ script: LayoutEvents.js
 description: Apply events on layout elements (child nodes and everything)
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

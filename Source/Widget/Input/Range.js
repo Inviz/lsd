@@ -6,6 +6,8 @@ script: Range.js
 description: Range slider input
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Input

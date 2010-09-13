@@ -6,6 +6,8 @@ script: Footer.js
 description: SVG-Based footer element (like <footer> in html5)
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Section

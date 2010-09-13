@@ -6,6 +6,8 @@ script: Element.js
 description: Lightweight base class for element-based widgets
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget

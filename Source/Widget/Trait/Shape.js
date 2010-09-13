@@ -6,6 +6,8 @@ script: Shape.js
 description: Draw a widget with any SVG path you want
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Shape

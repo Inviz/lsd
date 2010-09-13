@@ -6,6 +6,8 @@ script: Position.js
 description: Easily reposition element by positioning widget absolutely and one of the edges
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

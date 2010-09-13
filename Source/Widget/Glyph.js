@@ -6,6 +6,8 @@ script: Glyph.js
 description: Like a button with icon but without a button, actually
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Paint

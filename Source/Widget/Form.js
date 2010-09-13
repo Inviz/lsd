@@ -6,6 +6,8 @@ script: Form.js
 description: A form widgets. Intended to be submitted.
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Paint

@@ -6,6 +6,8 @@ script: Input.js
 description: A base class for all kinds of form controls
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Paint

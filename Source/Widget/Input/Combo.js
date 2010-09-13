@@ -6,6 +6,8 @@ script: Combo.js
 description: A selectbox with free-form input field. Or an input with autocompletion, if you please.
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Select

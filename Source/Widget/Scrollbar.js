@@ -6,6 +6,8 @@ script: Scrollbar.js
 description: Scrollbars for everything
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Paint

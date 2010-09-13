@@ -6,6 +6,8 @@ script: Scrollable.js
 description: For all the scrollbars you always wanted
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Scrollbar

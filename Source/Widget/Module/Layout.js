@@ -6,6 +6,8 @@ script: Expression.js
 description: Adds layout capabilities to widget (parse and render widget trees from objects)
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

@@ -6,6 +6,8 @@ script: Layer.js
 description: Adds a piece of SVG that can be drawn with widget styles
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Shape

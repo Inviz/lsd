@@ -6,6 +6,8 @@ script: Layout.js
 description: A logic to render (and nest) a few widgets out of the key-value hash
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART

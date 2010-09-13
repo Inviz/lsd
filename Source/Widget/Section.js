@@ -6,6 +6,8 @@ script: Section.js
 description: SVG-Based content element (like <section> in html5)
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Paint

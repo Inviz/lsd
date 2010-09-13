@@ -6,6 +6,8 @@ script: Radio.js
 description: A radio button, set of connected widgets that steal checkedness from each other
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Input

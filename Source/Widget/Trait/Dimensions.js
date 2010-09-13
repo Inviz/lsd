@@ -6,6 +6,8 @@ script: Dimensions.js
 description: Get and set dimensions of widget
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

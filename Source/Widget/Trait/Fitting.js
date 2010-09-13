@@ -6,6 +6,8 @@ script: Fitting.js
 description: Fit widget around its content. Useful for variable-height widgets like windows and dialogs.
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

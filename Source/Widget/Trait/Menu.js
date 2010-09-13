@@ -6,6 +6,8 @@ script: Menu.js
 description: Dropdowns should be easy to use.
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

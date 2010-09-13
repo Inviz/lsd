@@ -6,6 +6,8 @@ script: Layers.js
 description: Make widget use layers for all the SVG
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

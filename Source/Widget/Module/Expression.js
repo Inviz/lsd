@@ -6,6 +6,8 @@ script: Expression.js
 description: Parses and applied various selector strings
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

@@ -6,6 +6,8 @@ script: Textarea.js
 description: Multiline text input
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Input

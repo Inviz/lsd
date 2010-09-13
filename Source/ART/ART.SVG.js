@@ -7,6 +7,8 @@ description: Some extensions (filters, dash, shadow blur)
  
 license: MIT-style license.
 
+authors: Yaroslaff Fedin
+
 extends: ART/ART.SVG
  
 ...

@@ -6,6 +6,8 @@ script: Rectangle.js
 description: Rectangles with rounded corners
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Shape

@@ -6,6 +6,8 @@ script: Fx.js
 description: Very basic tweening for SVG
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART

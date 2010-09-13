@@ -6,6 +6,8 @@ script: Sheet.js
 description: Code to extract style rule definitions from the stylesheet
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART

@@ -6,6 +6,8 @@ script: Base.js
 description: Lightweight base widget class to inherit from.
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART

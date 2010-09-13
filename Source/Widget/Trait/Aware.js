@@ -6,6 +6,8 @@ script: Aware.js
 description: A trait that allows to wait for related widgets until they are ready
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

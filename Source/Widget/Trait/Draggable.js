@@ -6,6 +6,8 @@ script: Draggable.js
 description: Drag widget around the screen
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

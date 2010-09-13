@@ -6,6 +6,8 @@ script: Arrow.js
 description: An arrow shape. Useful for all the chat bubbles and validation errors.
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Shape

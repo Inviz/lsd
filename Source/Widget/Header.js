@@ -6,6 +6,8 @@ script: Header.js
 description: SVG-Based header element (like <header> in html5)
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Section

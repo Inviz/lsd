@@ -6,6 +6,8 @@ script: ResizableContainer.js
 description: Make container resize, not the widget itself.
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Trait.Resizable

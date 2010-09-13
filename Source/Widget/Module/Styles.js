@@ -6,6 +6,8 @@ script: Styles.js
 description: Set, get and render different kind of styles on widget
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

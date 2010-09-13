@@ -6,6 +6,8 @@ script: Toolbar.Menu.js
 description: Dropdown menu in a toolbar
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Menu.Toolbar

@@ -6,6 +6,10 @@ script: ART.js
 description: ART namespace definition
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
+
+authors: Yaroslaff Fedin
  
 requires:
 - Core/Class

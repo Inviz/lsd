@@ -6,6 +6,8 @@ script: Container.js
 description: Makes widget use container - wrapper around content setting
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

@@ -6,6 +6,8 @@ script: Select.js
 description: Basic selectbox
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Paint

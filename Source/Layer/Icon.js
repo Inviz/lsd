@@ -6,6 +6,8 @@ script: Icon.js
 description: For the times you need both icon and glyph on one widget. Ugly, I know.
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Layer

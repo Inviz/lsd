@@ -6,6 +6,8 @@ script: Stroke.js
 description: Fills shape with color and strokes with a stroke
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Layer

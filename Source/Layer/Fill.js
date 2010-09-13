@@ -6,6 +6,8 @@ script: Fill.js
 description: Fills shape with color
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Layer

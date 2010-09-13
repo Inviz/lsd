@@ -6,6 +6,8 @@ script: Widget.js
 description: Base widget with all modules included
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base

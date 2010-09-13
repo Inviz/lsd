@@ -6,6 +6,8 @@ script: Shape.js
 description: Additional methods to clone the shape
  
 license: MIT-style license.
+
+authors: Yaroslaff Fedin
  
 requires:
 - ART
