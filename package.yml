@@ -5,6 +5,7 @@ description: Psychodelically awesome library for UI in javascript and SVG
 license: MIT-Style License, http://mootools.net/license
 copyright: Yaroslaff Fedin
 author: inviz
+category: Interface
 tags: [ui, svg, interface]
 demo: http://inviz.github.com/lsd-examples/Demos/index.html
 sources:
