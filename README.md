@@ -105,6 +105,8 @@ Installation
 ------------
 
 Only jsus (http://github.com/markiz/jsus) can save you. You need it is a gem to build the package. Jsus is an alternative (to Packager) javascript packager written in ruby. Currently, it is possible to browse demos without using jsus, because they include generated file tree.
+
+Library wants the raw body of stylesheets, so it makes an ajax call to that file (making it impossible to work on local filesystem). You need to use web server like apache or nginx to host it, and then access it. Sorry for this limitation for right now.
 	
 	# Mandatory: Get files
 	git clone git://github.com/Inviz/lsd.git
@@ -115,5 +117,5 @@ Only jsus (http://github.com/markiz/jsus) can save you. You need it is a gem to 
 	# Optional: Use jsus to pack files
 	sudo gem install jsus
 	cd dependencies/lsd-examples
-	jsus -i . -o Scripts -d ../..
+	jsus -i . -o Scripts -d ../.. -g -b
 	
