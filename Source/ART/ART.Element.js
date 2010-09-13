@@ -10,6 +10,8 @@ license: MIT-style license.
 authors: Yaroslaff Fedin
 
 extends: ART/ART.Element
+
+provides: ART.Element.inserters
  
 ...
 */

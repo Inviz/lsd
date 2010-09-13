@@ -10,6 +10,8 @@ license: MIT-style license.
 authors: Yaroslaff Fedin
 
 extends: ART/ART.SVG
+
+provides: [ART.SVG.prototype.dash, ART.SVG.prototype.strokeLinear, ART.SVG.prototype.fillRadial]
  
 ...
 */
