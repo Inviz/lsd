@@ -46,6 +46,8 @@ Things we have
 		
 * **Made to be extended** - Trust me, alright? The idea is to make something that makes it a pleasure to add another widget, or set of widgets, or widget state, or one more layer of behaviour, whatever! Just do it, like i did.
 
+* **Lightweight codebase** - It's hard to believe, but when compressed and gzipped the whole library with dependencies (mootools, mootools-more) and SVG art takes less than 90 kb total. True story.
+
 * **Laziness** - Always trying not to do something unless it is needed now. You've got that dropdown menu? We dont care until we show it.
 
 
