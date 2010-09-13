@@ -101,6 +101,65 @@ It can do much more than this, but this is my tech demos. There are more things 
 * [Windows demo](http://img.skitch.com/20100912-pgxcpgxi145fhnsd1eidanie81.png)
 * [Some kind of menu bar](http://img.skitch.com/20100907-pw2scewykaiyaau2jm4jb8giwu.png)
 
+How to use
+----------
+
+Well, the framework is overwhelmingly feature rich, so it's up to you. 
+
+First, a stylesheet (example is sass, check generated css to bake it by hand):
+	
+	window
+		:width 100px
+		:height 100px
+		:background-color hsb(0, 0, 0, 0.5)
+		:stroke-width 3px
+		:stroke-color hsb(0, 0, 100, 0.3)
+		button
+			:width auto
+			:height 20px
+			:background-color gradient(hsb(0, 100, 30, 0.9), hsb(20, 30, 10, 0.2))
+			
+			&.submit
+				:color white
+
+Let's create a widget tree:
+
+	var document = new ART.Document;
+	var window = new (new Class({
+		Includes: [
+			ART.Widget.Window,
+			ART.Widget.Trait.Draggable
+		]
+	}))
+	var button = new ART.Widget.Button;
+	//here we may need a custom button
+	var submit = new Class({
+		Extends: ART.Widget.Button,
+		
+		expression: 'button.submit',
+		
+		events: {
+			element: {
+				mousedown: 'onMouseDown'
+			}
+		},
+		
+		onClick: function() {
+			alert(123);
+		},
+		
+		onMouseDown: function() {
+			console.log('test')
+		}
+	})
+	
+	button.inject(window);
+	window.inject(document);
+	window.adopt(button)
+	
+	//no, i changed my mine
+	Slick.search(document, "window button + button.submit").dispose();
+	
 
 
 Installation
