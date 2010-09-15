@@ -78,7 +78,11 @@ ART.SVG.Base.implement({
 	    if (color == 'radial') {
 	      var opts = args.length == 3 ? args[2] : {}
 	      this.fillRadial(args[1], opts.fx, opts.fy, opts.r, opts.cx, opts.cy)
-	    } else this.fillLinear(arguments);
+	    } else if ($defined(args[args.length - 1].red)) {
+	      this.fillLinear(arguments)
+	    } else {
+	      this.fillLinear.apply(this, arguments);
+	    }
 		} else if (color && !$defined(color.red)) {
 		  this.fillLinear.apply(this, arguments);
 		} else {
@@ -227,7 +231,7 @@ ART.SVG.Base.implement({
 		element.setAttribute('stroke-linecap', (cap != null) ? cap : 'round');
 		element.setAttribute('stroke-linejoin', (join != null) ? join : 'round');
 		if (color) {
-		  if (color.length > 1 || ((!'length' in color) && $defined(!color))) this.strokeLinear(color);
+		  if (color.length > 1 || ((!'length' in color) && $defined(!color.red))) this.strokeLinear(color);
 		  else if (color.length == 1) this.strokeLinear(color[0])
 		  else this._setColor('stroke', color);
 		} else this._setColor('stroke', color);
