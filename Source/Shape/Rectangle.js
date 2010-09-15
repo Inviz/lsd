@@ -80,7 +80,7 @@ ART.Shape.Rectangle = new Class({
 	},
 	
 	getOffset: function(styles, offset) {
-		var stroke = (styles.strokeWidth || 0);
+		var stroke = styles.width == 'auto' ? (styles.strokeWidth || 0) : 0
 		return {
 			left: ((styles.width == 'auto') ? Math.max(stroke - offset.left, 0) : stroke),
 			top: 0,
