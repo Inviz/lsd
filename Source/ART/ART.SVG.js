@@ -229,6 +229,7 @@ ART.SVG.Base.implement({
 		if (color) {
 		  if (color.length > 1 || ((!'length' in color) && $defined(!color))) this.strokeLinear(color);
 		  else if (color.length == 1) this.strokeLinear(color[0])
+		  else this._setColor('stroke', color);
 		} else this._setColor('stroke', color);
 		
 		return this;
