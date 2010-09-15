@@ -33,6 +33,7 @@ ART.Sheet = {};
     selector.each(function(chunk){
       if (chunk.tag && chunk.tag != '*') specificity++;
       if (chunk.id) specificity += 100;
+      for (var i in chunk.attributes) specificity++;
       specificity += (chunk.pseudos || []).length;
       specificity += (chunk.classes || []).length * 10;
     });

@@ -79,18 +79,11 @@ ART.SVG.Base.implement({
 	      var opts = args.length == 3 ? args[2] : {}
 	      this.fillRadial(args[1], opts.fx, opts.fy, opts.r, opts.cx, opts.cy)
 	    } else this.fillLinear(arguments);
-		} else this._setColor('fill', color);
-		return this;
-	},
-	
-	stroke: function(color, width, cap, join){
-		var element = this.element;
-		element.setAttribute('stroke-width', (width != null) ? width : 1);
-		element.setAttribute('stroke-linecap', (cap != null) ? cap : 'round');
-		element.setAttribute('stroke-linejoin', (join != null) ? join : 'round');
-		if (color && color.length > 1) this.strokeLinear(color);
-		else this._setColor('stroke', color);
-		
+		} else if (color && !$defined(color.red)) {
+		  this.fillLinear.apply(this, arguments);
+		} else {
+		  this._setColor('fill', color);
+		}
 		return this;
 	},
 
@@ -133,7 +126,6 @@ ART.SVG.Base.implement({
 			stop.setAttribute('stop-opacity', color[1]);
 			gradient.appendChild(stop);
 		};
-
 		// Enumerate stops, assumes offsets are enumerated in order
 		// TODO: Sort. Chrome doesn't always enumerate in expected order but requires stops to be specified in order.
 		if ('length' in stops) for (var i = 0, l = stops.length - 1; i <= l; i++) addColor(i / l, stops[i]);
@@ -228,16 +220,19 @@ ART.SVG.Base.implement({
   
   	return filter;
   },
-
+	
 	stroke: function(color, width, cap, join){
 		var element = this.element;
 		element.setAttribute('stroke-width', (width != null) ? width : 1);
 		element.setAttribute('stroke-linecap', (cap != null) ? cap : 'round');
 		element.setAttribute('stroke-linejoin', (join != null) ? join : 'round');
-
-		this._setColor('stroke', color);
+		if (color) {
+		  if (color.length > 1 || ((!'length' in color) && $defined(!color))) this.strokeLinear(color);
+		  else if (color.length == 1) this.strokeLinear(color[0])
+		} else this._setColor('stroke', color);
+		
 		return this;
-	}
+	},
 });
 
 })();

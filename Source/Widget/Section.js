@@ -29,8 +29,9 @@ ART.Widget.Section = new Class({
 	},
 	
 	layered: {
+	  shadow:  ['shadow'],
 	  fill:  ['stroke'],
-	  reflection:  ['fill', ['reflectionColor']],
-	  background: ['fill', ['backgroundColor']]
+	  background: ['fill', ['backgroundColor']],
+	  reflection:  ['fill', ['reflectionColor']]
 	}
 });
