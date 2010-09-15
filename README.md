@@ -6,6 +6,16 @@ An interface library that blows the mind, does things that were obvious but neve
 ![Screenshot](http://img.skitch.com/20100913-cddxp3qi29bphck9iuartyce8b.png)
 
 
+Pictures
+-----------
+
+It can do much more than this, but this is my tech demos. There are more things that is untested (like scrollbars) but is there. 
+
+* [Windows demo](http://img.skitch.com/20100912-pgxcpgxi145fhnsd1eidanie81.png)
+* [HUD theme](http://img.skitch.com/20100915-r5wsspyameb81mbm2mq1unyax3.png)
+* [Some kind of menu bar](http://img.skitch.com/20100907-pw2scewykaiyaau2jm4jb8giwu.png)
+
+
 Things we have
 --------------
 
@@ -95,14 +105,6 @@ This is a second library in a set. It requires lsd-base to function properly. An
 * mootools-ext
 * mootools-color
 * cssparser
-
-Screenshots
------------
-
-It can do much more than this, but this is my tech demos. There are more things that is untested (like scrollbars) but is there. 
-
-* [Windows demo](http://img.skitch.com/20100912-pgxcpgxi145fhnsd1eidanie81.png)
-* [Some kind of menu bar](http://img.skitch.com/20100907-pw2scewykaiyaau2jm4jb8giwu.png)
 
 How to use
 ----------
