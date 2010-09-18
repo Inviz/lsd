@@ -28,6 +28,9 @@
 [submodule "Dependencies/lsd-base"]
 	path = Dependencies/lsd-base
 	url = git://github.com/Inviz/lsd-base.git
+[submodule "Dependencies/lsd-specs"]
+	path = Dependencies/lsd-specs
+	url = git://github.com/Inviz/lsd-specs.git
 [submodule "dependencies/sheet"]
 	path = dependencies/sheet
 	url = git://github.com/subtleGradient/Sheet.js.git
