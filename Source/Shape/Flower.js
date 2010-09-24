@@ -18,23 +18,23 @@ provides: [ART.Shape.Flower]
 */
 
 ART.Shape.Flower = new Class({
-	
-	Extends: ART.Shape,
-	
-	properties: ['width', 'height', 'star-rays', 'star-radius'],
-	
-	initialize: function(width, height){
-		this.parent();
-		if (width != null && height != null) this.draw(width, height);
-	},
-	
-	paint: function(width, height, leaves, radius){
- 		var path = new ART.Path;
- 		outside = width / 2;
- 		var cx = width / 2;
- 		var cy = cx
- 		inside = outside * (radius || 0.5) 
- 		
+  
+  Extends: ART.Shape,
+  
+  properties: ['width', 'height', 'star-rays', 'star-radius'],
+  
+  initialize: function(width, height){
+    this.parent();
+    if (width != null && height != null) this.draw(width, height);
+  },
+  
+  paint: function(width, height, leaves, radius){
+     var path = new ART.Path;
+     outside = width / 2;
+     var cx = width / 2;
+     var cy = cx
+     inside = outside * (radius || 0.5) 
+     
     leaves = Math.max(leaves || 0, 5);
     path.move(0, inside);
     var points = ["M", cx, cy + rin, "Q"],
@@ -47,22 +47,22 @@ ART.Shape.Flower = new Class({
     return this.path(points);
     
     
-		return path.close();
-	},
+    return path.close();
+  },
 
-	change: function(delta) {
-	  return this.paint(this.style.width + delta * 2, this.style.height + delta * 2);
-	},
+  change: function(delta) {
+    return this.paint(this.style.width + delta * 2, this.style.height + delta * 2);
+  },
 
-	getOffset: function(styles, offset) {
-		var stroke = (styles.strokeWidth || 0);
-		return {
-			left: ((styles.width == 'auto') ? Math.max(stroke - offset.left, 0) : stroke),
-			top: 0,
-			right: ((styles.width == 'auto') ? Math.max(stroke - offset.right, 0) : stroke),
-			bottom: stroke
-		}
-	}
+  getOffset: function(styles, offset) {
+    var stroke = (styles.strokeWidth || 0);
+    return {
+      left: ((styles.width == 'auto') ? Math.max(stroke - offset.left, 0) : stroke),
+      top: 0,
+      right: ((styles.width == 'auto') ? Math.max(stroke - offset.right, 0) : stroke),
+      bottom: stroke
+    }
+  }
 
 });  
 

@@ -48,34 +48,34 @@ ART.Widget.Menu.Toolbar.Menu = new Class({
     }
   },
   
-	options: {
-	  menu: {
-	    position: 'bottom'
-	  },
-	  layout: {
-	    item: 'select-option'
-	  }
-	},
-	
+  options: {
+    menu: {
+      position: 'bottom'
+    },
+    layout: {
+      item: 'select-option'
+    }
+  },
+  
   render: Macro.onion(function() {
     if (this.attributes.label) this.setContent(this.attributes.label)
   }),
   
   buildItem: function(item) {
     if (!this.menu) this.buildMenu();
-	  var widget = this.buildLayout(this.options.layout.item, item.toString(), this.menu);
-	  widget.value = item;
-	  widget.selectWidget = this;
-	  return widget;
-	},
-	
-	processValue: function(item) {
-	  return item.value;
-	},
-	
-	getItemWrapper: function() {
-	  return this.menu;
-	}
+    var widget = this.buildLayout(this.options.layout.item, item.toString(), this.menu);
+    widget.value = item;
+    widget.selectWidget = this;
+    return widget;
+  },
+  
+  processValue: function(item) {
+    return item.value;
+  },
+  
+  getItemWrapper: function() {
+    return this.menu;
+  }
   
 });
 

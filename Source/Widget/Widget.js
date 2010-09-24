@@ -38,13 +38,13 @@ provides: [ART.Widget]
   ART.Widget = new Class({
 
     States: {
-  	  'hidden': ['hide', 'show'],
-  	  'active': ['activate', 'deactivate'],
-  	  'focused': ['focus', 'blur'],
-  	  'disabled': ['disable', 'enable'],
-  	  'built': ['build', 'destroy', false],
-  		'attached': ['attach', 'detach', false],
-  	  'dirty': ['update', 'render', false]
+      'hidden': ['hide', 'show'],
+      'active': ['activate', 'deactivate'],
+      'focused': ['focus', 'blur'],
+      'disabled': ['disable', 'enable'],
+      'built': ['build', 'destroy', false],
+      'attached': ['attach', 'detach', false],
+      'dirty': ['update', 'render', false]
     },
     
     Includes: [Old.Base, Widget.modules, Old.modules].flatten(),
@@ -63,8 +63,8 @@ provides: [ART.Widget]
     initialize: function(options) {
       this.setOptions(options);
       
-  		this.update();
-  	  this.offset = {
+      this.update();
+      this.offset = {
         paint: {},
         total: {},
         inside: {},
@@ -73,8 +73,8 @@ provides: [ART.Widget]
       }
       this.parent.apply(this, arguments);
       
-  		if (this.expression) this.applyExpression(this.expression);
-  		if (this.layout) this.setLayout(this.layout);
+      if (this.expression) this.applyExpression(this.expression);
+      if (this.layout) this.setLayout(this.layout);
     }
   });
     

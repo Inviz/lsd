@@ -92,7 +92,8 @@ ART.Widget.Input.Search = new Class({
       click: 'empty'
     },
     self: {
-      select: 'setIcon'
+      set: 'setIcon',
+      focus: 'expand'
     }
   },
   
@@ -100,29 +101,30 @@ ART.Widget.Input.Search = new Class({
     this.input.set('value', '');
   }),
 
-	buildItem: function(item) {
+  buildItem: function(item) {
     if (!this.menu) this.buildMenu();
-	  var widget = this.buildLayout('input-option', item.title.toString(), this.menu, $(this.menu.getContainer()));
-	  widget.value = item;
-	  widget.selectWidget = this;
-	  return widget;
-	},
+    var widget = this.buildLayout('input-option', item.title.toString(), this.menu, $(this.menu.getContainer()));
+    console.log('build item', item, item.title)
+    widget.value = item;
+    widget.selectWidget = this;
+    return widget;
+  },
 
-	processValue: function(item) {
-	  return item.value.title;
-	},
-	
-	setIcon: function(item) {
-	  if (item && item.value) item = item.value.icon;
-	  this.collapse();
-	  if (!item) {
-	    this.iconize();
-  	  this.glyph.element.setStyle('background-image', '');
-	  } else {
-	    this.uniconize();
-  	  this.glyph.element.setStyle('background', 'url(' + item + ') no-repeat ' + this.glyph.offset.paint.top + ' ' + this.glyph.offset.paint.left);
-	  }
-	}
+  processValue: function(item) {
+    return item.value.title;
+  },
+  
+  setIcon: function(item) {
+    if (item && item.value) item = item.value.icon;
+    this.collapse();
+    if (!item) {
+      this.iconize();
+      this.glyph.element.setStyle('background-image', '');
+    } else {
+      this.uniconize();
+      this.glyph.element.setStyle('background', 'url(' + item + ') no-repeat ' + this.glyph.offset.paint.top + ' ' + this.glyph.offset.paint.left);
+    }
+  }
 });
 
 ART.Widget.Input.Option = new Class({

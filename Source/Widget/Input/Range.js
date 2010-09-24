@@ -41,40 +41,40 @@ ART.Widget.Input.Range = new Class({
   stopMousedown: function(e) {
     e.stopPropagation();
   },
-	
-	layered: {
-	  shadow: ['shadow'],
+  
+  layered: {
+    shadow: ['shadow'],
     border: ['stroke'],
-	  background: ['fill', ['backgroundColor']],
-	  reflection:  ['fill', ['reflectionColor']]
-	},
-	
-	initialize: function() {
-	  this.parent.apply(this, arguments);
-	  this.addPseudo(this.options.mode);
-	  this.getSlider();
-	},
+    background: ['fill', ['backgroundColor']],
+    reflection:  ['fill', ['reflectionColor']]
+  },
+  
+  initialize: function() {
+    this.parent.apply(this, arguments);
+    this.addPseudo(this.options.mode);
+    this.getSlider();
+  },
 
-	onSet: function() {
-	  this.focus();
-	},
-	
-	layout: {
+  onSet: function() {
+    this.focus();
+  },
+  
+  layout: {
     'input-range-thumb[shape=arrow]#thumb': {}
-	},
-	
-	shortcuts: {
-	  next: 'increment',
-	  previous: 'decrement'
-	},
-	
-	increment: function() {
-	  this.slider.set(this.slider.step + 10)
-	},
-	
-	decrement: function() {
-	  this.slider.set(this.slider.step - 10)
-	}
+  },
+  
+  shortcuts: {
+    next: 'increment',
+    previous: 'decrement'
+  },
+  
+  increment: function() {
+    this.slider.set(this.slider.step + 10)
+  },
+  
+  decrement: function() {
+    this.slider.set(this.slider.step - 10)
+  }
 });
 
 ART.Widget.Input.Range.Thumb = new Class({

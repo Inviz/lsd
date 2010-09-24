@@ -22,11 +22,11 @@ ART.Widget.Form = new Class({
   
   name: 'form',
 
-	options: {
-		element: {
-			tag: 'form'
-		}
-	},
-	
-	layered: {}
+  options: {
+    element: {
+      tag: 'form'
+    }
+  },
+  
+  layered: {}
 });

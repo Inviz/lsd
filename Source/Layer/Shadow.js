@@ -70,19 +70,19 @@ ART.Layer.ShadowBlur = new Class({
 
   paint: function(stroke, shadow, color, x, y) {
     this.produce(stroke);
-  	this.shape.fill.apply(this.shape, color ? $splat(color) : null);
-  	if (shadow > 0) this.shape.blur(shadow);
-  	else this.shape.unblur();
-  	return {
-  	  translate: {
-  	    x: x + shadow, 
-  	    y: y + shadow
-  	  },
-  	  outside: {
-  	    x: Math.max(shadow - x, 0),
-  	    y: Math.max(shadow - y, 0)
-  	  }
-  	}
+    this.shape.fill.apply(this.shape, color ? $splat(color) : null);
+    if (shadow > 0) this.shape.blur(shadow);
+    else this.shape.unblur();
+    return {
+      translate: {
+        x: x + shadow, 
+        y: y + shadow
+      },
+      outside: {
+        x: Math.max(shadow - x, 0),
+        y: Math.max(shadow - y, 0)
+      }
+    }
   }
 })
 
@@ -117,32 +117,32 @@ ART.Layer.ShadowOnion = new Class({
       this.layers = [];
     }
     return {
-  	  translate: {
-  	    x: x, 
-  	    y: y
-  	  },
-  	  outside: {
-  	    x: Math.max(shadow - x, 0),
-  	    y: Math.max(shadow - y, 0)
-  	  }
-  	}
+      translate: {
+        x: x, 
+        y: y
+      },
+      outside: {
+        x: Math.max(shadow - x, 0),
+        y: Math.max(shadow - y, 0)
+      }
+    }
   }
 });
 
 ART.Layer.Shadow.Layer = new Class({
   Extends: ART.Layer,
   
-	
-	inject: function(container){
-		this.eject();
-		if (container instanceof ART.SVG.Group) container.children.push(this);
-		this.container = container;
-		//console.log('inject shadow layer', container.element);
-		var first = container.element.firstChild;
-		if (first) container.element.insertBefore(this.shape.element, first);
+  
+  inject: function(container){
+    this.eject();
+    if (container instanceof ART.SVG.Group) container.children.push(this);
+    this.container = container;
+    //console.log('inject shadow layer', container.element);
+    var first = container.element.firstChild;
+    if (first) container.element.insertBefore(this.shape.element, first);
     else container.element.appendChild(this.shape.element);
-		return this;
-	}
+    return this;
+  }
 });
 ART.Layer.Shadow.Layer.stack = [];
 ART.Layer.Shadow.Layer.getInstance = function() {

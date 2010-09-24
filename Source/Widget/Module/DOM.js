@@ -22,23 +22,23 @@ provides: [ART.Widget.Module.DOM]
   
 var inserters = {
 
-	before: function(context, element){
-		var parent = element.parentNode;
-		if (parent) return parent.insertBefore(context, element);
-	},
+  before: function(context, element){
+    var parent = element.parentNode;
+    if (parent) return parent.insertBefore(context, element);
+  },
 
-	after: function(context, element){
-		var parent = element.parentNode;
-		if (parent) return parent.insertBefore(context, element.nextSibling);
-	},
+  after: function(context, element){
+    var parent = element.parentNode;
+    if (parent) return parent.insertBefore(context, element.nextSibling);
+  },
 
-	bottom: function(context, element){
-	  return element.appendChild(context);
-	},
+  bottom: function(context, element){
+    return element.appendChild(context);
+  },
 
-	top: function(context, element){
-		return element.insertBefore(context, element.firstChild);
-	}
+  top: function(context, element){
+    return element.insertBefore(context, element.firstChild);
+  }
 
 };
 
@@ -69,9 +69,9 @@ ART.Widget.Module.DOM = new Class({
     }
   },
   
-	getChildren: function() {
-	  return this.childNodes;
-	},
+  getChildren: function() {
+    return this.childNodes;
+  },
 
   getRoot: function() {
     var widget = this;
@@ -89,98 +89,98 @@ ART.Widget.Module.DOM = new Class({
     return widgets;
   },
   
-	setParent: function(widget){
-	  var siblings = widget.childNodes;
-	  var length = siblings.length;
-	  if (length == 1) widget.firstChild = this;
-	  widget.lastChild = this;
-	  var previous = siblings[siblings.length - 2];
-	  if (previous) {
-  	  previous.nextSibling = this;
-  	  this.previousSibling = previous;
-	  }
-	  this.parentNode = widget;
-	},
-	appendChild: function(widget, adoption) {
-	  if (this.canAppendChild && !this.canAppendChild(widget)) return false;
-		if (widget.options.id) {
-			if (this[widget.options.id]) this[widget.options.id].dispose();
-			this[widget.options.id] = widget;
-		}
-		this.childNodes.push(widget);
-	  if (!(this instanceof ART.Document)) widget.setParent(this);
-	  if (!adoption) var adoption = function() {
-	    $(this).appendChild($(widget));
-	  }
-	  adoption.apply(this, arguments)
-		this.fireEvent('adopt', [widget, widget.options.id])
+  setParent: function(widget){
+    var siblings = widget.childNodes;
+    var length = siblings.length;
+    if (length == 1) widget.firstChild = this;
+    widget.lastChild = this;
+    var previous = siblings[siblings.length - 2];
+    if (previous) {
+      previous.nextSibling = this;
+      this.previousSibling = previous;
+    }
+    this.parentNode = widget;
+  },
+  appendChild: function(widget, adoption) {
+    if (this.canAppendChild && !this.canAppendChild(widget)) return false;
+    if (widget.options.id) {
+      if (this[widget.options.id]) this[widget.options.id].dispose();
+      this[widget.options.id] = widget;
+    }
+    this.childNodes.push(widget);
+    if (!(this instanceof ART.Document)) widget.setParent(this);
+    if (!adoption) var adoption = function() {
+      $(this).appendChild($(widget));
+    }
+    adoption.apply(this, arguments)
+    this.fireEvent('adopt', [widget, widget.options.id])
 
-	  var parent = widget;
-	  while (parent = parent.parentNode) parent.fireEvent('hello', widget);
-	  return true;
-	},
-	
-	insertBefore: function(insertion, element) {
-	  return this.appendChild(insertion, function(parent) {
-	    $(insertion).inject($(element), 'before')
-	  });
-	},
-	
-	grab: function(el, where){
-		inserters[where || 'bottom'](document.id(el, true), this);
-		return this;
-	},
-	
-	inject: function(widget, where, quiet) {
-		inserters[where || 'bottom'](this, widget);
-		var element = $(widget);
-		this.fireEvent('inject', arguments);
-		this.fireEvent('afterInject', arguments);
-		var isDocument = (widget instanceof ART.Document);
-		if (((element == widget) || isDocument) && (quiet !== true)) {
-		  var postponed = false
-    	this.render();
-		  this.walk(function(child) {
-		    if (child.postponed) {
-		      postponed = true;
-		      child.update();
-		    }
-		    if (isDocument) child.document = widget;
-		    child.fireEvent('dominject', element);
-		    child.dominjected = true;
-		  });
-		  if (postponed && !this.dirty) this.dirty = true;
-    	this.render();
-		}
-	},
-	
-	dispose: function() {
-	  var parent = this.parentNode;
-	  parent.childNodes.erase(this);
-	  if (parent.firstChild == this) delete parent.firstChild;
-	  if (parent.lastChild == this) delete parent.lastChild;
-	  delete this.parentNode;
-	  return this.parent.apply(this, arguments);
-	},
-	
-	walk: function(callback) {
-	  callback(this);
-	  this.childNodes.each(function(child) {
-	    child.walk(callback)
-	  });
-	},
-	
-	collect: function(callback) {
-	  var result = [];
-	  this.walk(function(child) {
-	    if (!callback || callback(child)) result.push(child);
-	  });
-	  return result;
-	},
+    var parent = widget;
+    while (parent = parent.parentNode) parent.fireEvent('hello', widget);
+    return true;
+  },
+  
+  insertBefore: function(insertion, element) {
+    return this.appendChild(insertion, function(parent) {
+      $(insertion).inject($(element), 'before')
+    });
+  },
+  
+  grab: function(el, where){
+    inserters[where || 'bottom'](document.id(el, true), this);
+    return this;
+  },
+  
+  inject: function(widget, where, quiet) {
+    inserters[where || 'bottom'](this, widget);
+    var element = $(widget);
+    this.fireEvent('inject', arguments);
+    this.fireEvent('afterInject', arguments);
+    var isDocument = (widget instanceof ART.Document);
+    if (((element == widget) || isDocument) && (quiet !== true)) {
+      var postponed = false
+      this.render();
+      this.walk(function(child) {
+        if (child.postponed) {
+          postponed = true;
+          child.update();
+        }
+        if (isDocument) child.document = widget;
+        child.fireEvent('dominject', element);
+        child.dominjected = true;
+      });
+      if (postponed && !this.dirty) this.dirty = true;
+      this.render();
+    }
+  },
+  
+  dispose: function() {
+    var parent = this.parentNode;
+    parent.childNodes.erase(this);
+    if (parent.firstChild == this) delete parent.firstChild;
+    if (parent.lastChild == this) delete parent.lastChild;
+    delete this.parentNode;
+    return this.parent.apply(this, arguments);
+  },
+  
+  walk: function(callback) {
+    callback(this);
+    this.childNodes.each(function(child) {
+      child.walk(callback)
+    });
+  },
+  
+  collect: function(callback) {
+    var result = [];
+    this.walk(function(child) {
+      if (!callback || callback(child)) result.push(child);
+    });
+    return result;
+  },
 
-	match: function(selector) {
-	  return ART.Sheet.match(selector, this.getHierarchy())
-	}
+  match: function(selector) {
+    return ART.Sheet.match(selector, this.getHierarchy())
+  }
 });
 
 Widget.Ignore.attributes.push('shy');

@@ -34,9 +34,9 @@ ART.Widget.Element = new Class({
   events: {},
   
   setStyle: function(property, value) {
-		if (!this.parent.apply(this, arguments)) return;
-		if (!this.element) return true;
-		return !this.setElementStyle(property, value);
+    if (!this.parent.apply(this, arguments)) return;
+    if (!this.element) return true;
+    return !this.setElementStyle(property, value);
   },
   
   getStyle: function(property) {

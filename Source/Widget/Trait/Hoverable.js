@@ -31,17 +31,17 @@ ART.Widget.Trait.Hoverable = new Class({
   },
   
   
-	attach: Macro.onion(function(){
-		this.addAction({
-		  enable: function() {
-      	this.addEvents(this.events.hover);
-  	  },
-  	  
-  	  disable: function() {
-    	  this.removeEvents(this.events.hover);
-  		}
-  	})
-	})
+  attach: Macro.onion(function(){
+    this.addAction({
+      enable: function() {
+        this.addEvents(this.events.hover);
+      },
+      
+      disable: function() {
+        this.removeEvents(this.events.hover);
+      }
+    })
+  })
 });
 
 ART.Widget.Ignore.events.push('hover'); 

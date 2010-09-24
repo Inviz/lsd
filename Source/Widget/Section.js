@@ -22,16 +22,16 @@ ART.Widget.Section = new Class({
   
   name: 'section',
 
-	options: {
-		element: {
-			tag: ART.html5 ? 'section' : 'div'
-		}
-	},
-	
-	layered: {
-	  shadow:  ['shadow'],
-	  fill:  ['stroke'],
-	  background: ['fill', ['backgroundColor']],
-	  reflection:  ['fill', ['reflectionColor']]
-	}
+  options: {
+    element: {
+      tag: ART.html5 ? 'section' : 'div'
+    }
+  },
+  
+  layered: {
+    shadow:  ['shadow'],
+    fill:  ['stroke'],
+    background: ['fill', ['backgroundColor']],
+    reflection:  ['fill', ['reflectionColor']]
+  }
 });

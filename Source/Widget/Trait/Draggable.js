@@ -66,40 +66,40 @@ ART.Widget.Trait.Draggable = new Class({
     return dragger;
   }),
   
-	build: Macro.onion(function() {
-		this.use('#title', '#content', function() {
-  		this.addAction({
-  		  enable: function() {
-        	this.getDragger().attach();
-    	  },
+  build: Macro.onion(function() {
+    this.use('#title', '#content', function() {
+      this.addAction({
+        enable: function() {
+          this.getDragger().attach();
+        },
 
-    	  disable: function() {
-      	  if (this.dragger) this.dragger.detach();
-    		}
-    	})
-		})
-	}),
+        disable: function() {
+          if (this.dragger) this.dragger.detach();
+        }
+      })
+    })
+  }),
 
-	onDragStart: function() {
-	  this.drag.apply(this, arguments);
-	},
-	
-	onDragComplete: function() {
-	  this.drop.apply(this, arguments);
-	},
-	
-	onDrag: function() {
-	  this.setStyle('top', this.dragger.value.now.y);
-	  this.setStyle('left', this.dragger.value.now.x);
-	},
-	
-	getDragHandle: Macro.defaults(function() {
-	  return this.header.title;
-	}),
+  onDragStart: function() {
+    this.drag.apply(this, arguments);
+  },
+  
+  onDragComplete: function() {
+    this.drop.apply(this, arguments);
+  },
+  
+  onDrag: function() {
+    this.setStyle('top', this.dragger.value.now.y);
+    this.setStyle('left', this.dragger.value.now.x);
+  },
+  
+  getDragHandle: Macro.defaults(function() {
+    return this.header.title;
+  }),
 
-	getDragged: Macro.defaults(function() {
-	  return this;
-	})
+  getDragged: Macro.defaults(function() {
+    return this;
+  })
 });
 
 ART.Widget.Ignore.events.push('dragger');

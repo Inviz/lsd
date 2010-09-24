@@ -19,7 +19,7 @@ provides: [ART.Widget.Trait.Menu, ART.Widget.Trait.Menu.Stateful]
 ...
 */
 
-ART.Widget.Trait.Menu = new Class({	
+ART.Widget.Trait.Menu = new Class({  
   //Includes: [
   //  Widget.Trait.OuterClick
   //],
@@ -41,7 +41,7 @@ ART.Widget.Trait.Menu = new Class({
     },
     menu: {
       self: {
-  	    expand: 'makeItems',
+        expand: 'makeItems',
         redraw: 'repositionMenu',
         focus: 'repositionMenu',
         blur: 'collapse',
@@ -53,18 +53,18 @@ ART.Widget.Trait.Menu = new Class({
     }
   },
 
-	shortcuts: {
-	  ok: 'set',
+  shortcuts: {
+    ok: 'set',
     cancel: 'cancel'
-	},
+  },
 
-	cancel: function() {
-	  this.collapse();
-	},
+  cancel: function() {
+    this.collapse();
+  },
 
-	set: function() {
-	  this.collapse();
-	},
+  set: function() {
+    this.collapse();
+  },
   
   attach: Macro.onion(function() {
     this.addEvents(this.events.menu);

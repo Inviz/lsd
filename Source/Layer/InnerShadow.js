@@ -32,8 +32,8 @@ ART.Layer.InnerShadow = new Class({
       var fill = new Color(color);
       fill.base = fill.alpha;
       var transition = function(p){
-    		return 1 - Math.sin((1 - p) * Math.PI / 2);
-    	};
+        return 1 - Math.sin((1 - p) * Math.PI / 2);
+      };
       var offset = Math.max(Math.abs(x), Math.abs(y));
       shadow += offset;
       //if (!shadow) shadow = 1;;

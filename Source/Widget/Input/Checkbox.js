@@ -44,11 +44,11 @@ ART.Widget.Input.Checkbox = new Class({
     space: 'toggle'
   },
 
-	layered: {
-	  shadow:  ['shadow'],
+  layered: {
+    shadow:  ['shadow'],
     stroke: ['stroke'],
-	  background:  ['fill', ['backgroundColor']],
-	  reflection:  ['fill', ['reflectionColor']],
+    background:  ['fill', ['backgroundColor']],
+    reflection:  ['fill', ['reflectionColor']],
     glyph: ['glyph']
-	}
+  }
 });

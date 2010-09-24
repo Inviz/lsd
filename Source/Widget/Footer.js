@@ -22,9 +22,9 @@ ART.Widget.Footer = new Class({
   
   name: 'footer',
 
-	options: {
-		element: {
-			tag: ART.html5 ? 'footer' : 'div'
-		}
-	}
+  options: {
+    element: {
+      tag: ART.html5 ? 'footer' : 'div'
+    }
+  }
 });

@@ -51,14 +51,14 @@ ART.Document = new Class({
     }
   },
 
-	setParent: function(widget){
-	},
-	
-	getAttribute: function(name) {
-	  return this.attributes[name]
-	},
-	
-	setAttribute: function(name, value) {
-	  return this.attributes[name] = value;
-	}
+  setParent: function(widget){
+  },
+  
+  getAttribute: function(name) {
+    return this.attributes[name]
+  },
+  
+  setAttribute: function(name, value) {
+    return this.attributes[name] = value;
+  }
 });

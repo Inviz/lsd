@@ -29,13 +29,13 @@ ART.Widget.Menu.Context = new Class({
     }
   },
 
-	layered: {
-	  shadow:  ['shadow'],
-	  stroke:  ['stroke'],
-	  background:  ['fill', ['backgroundColor']],
-	  reflection:  ['fill', ['reflectionColor']],
-	},
-	  
+  layered: {
+    shadow:  ['shadow'],
+    stroke:  ['stroke'],
+    background:  ['fill', ['backgroundColor']],
+    reflection:  ['fill', ['reflectionColor']],
+  },
+    
   position: 'absolute',
   
   attributes: {
@@ -61,9 +61,9 @@ ART.Widget.Menu.Context.Item = new Class({
   
   name: 'option',
   
-	layered: {
-	  fill:  ['stroke'],
-	  reflection:  ['fill', ['reflectionColor']],
-	  background: ['fill', ['backgroundColor']]
-	}
+  layered: {
+    fill:  ['stroke'],
+    reflection:  ['fill', ['reflectionColor']],
+    background: ['fill', ['backgroundColor']]
+  }
 });

@@ -68,25 +68,35 @@ ART.Widget.Trait.Resizable = new Class({
     return resizer;
   }),
   
-	build: Macro.onion(function() {
-		this.use('#handle', '#content', function() {
-  		this.addAction({
-  		  enable: function() {
-        	this.getResizer().attach();
-    	  },
+  setHeight: function(height) {
+    this.getResized().element.height = height;
+    return this.parent.apply(this, arguments)
+  },
+  
+  setWidth: function(width) {
+    this.getResized().element.width = width;
+    return this.parent.apply(this, arguments)
+  },
+  
+  build: Macro.onion(function() {
+    this.use('#handle', '#content', function() {
+      this.addAction({
+        enable: function() {
+          this.getResizer().attach();
+        },
 
-    	  disable: function() {
-      	  if (this.resizer) this.resizer.detach();
-    		}
-    	});
-    	
-    	if (this.options.resizer.container) this.content.addEvent('resize', this.checkOverflow.bind(this));
+        disable: function() {
+          if (this.resizer) this.resizer.detach();
+        }
+      });
+      
+      if (this.options.resizer.container) this.content.addEvent('resize', this.checkOverflow.bind(this));
       if (this.options.resizer.crop) $(this.getResized()).setStyle('overflow', 'hidden')
-		})
-	}),
-	
-	checkOverflow: function(size) {
-	  if (!this.resizer) return;
+    })
+  }),
+  
+  checkOverflow: function(size) {
+    if (!this.resizer) return;
     if (!this.resizer.container) this.resizer.container = this.element;
     var resized = this.getResized();
     if (!size) size = {width: $(resized).width}
@@ -102,42 +112,42 @@ ART.Widget.Trait.Resizable = new Class({
       }).delay(1000, this);
       return false;
     }
-	},
-	
-	onResizeStart: function() {
-	  this.transform.apply(this, arguments);
-	  
-	  if (!this.cache.dependent) this.cache.dependent = this.collect(function(child) {
-	    return child.style.current.width == 'inherit' || child.style.current.width == 'auto'
-	  }).concat(this.getResized())
+  },
+  
+  onResizeStart: function() {
+    this.transform.apply(this, arguments);
     
-	},
-	
-	onResizeComplete: function() {
-	  this.finalize.apply(this, arguments);
-	  delete this.cache.dependent
-	},
-	
-	onResize: function() {
-	  if (this.resizer.value.now.y) this.content.setStyle('height', this.resizer.value.now.y);
-	  if (this.resizer.value.now.x) this.content.setStyle('width', this.resizer.value.now.x);
-	  this.checkOverflow();
-	  //this.refresh(true);
-	  //optimization: refresh only widgets that are liquid
+    if (!this.cache.dependent) this.cache.dependent = this.collect(function(child) {
+      return child.style.current.width == 'inherit' || child.style.current.width == 'auto'
+    }).concat(this.getResized())
+    
+  },
+  
+  onResizeComplete: function() {
+    this.finalize.apply(this, arguments);
+    delete this.cache.dependent
+  },
+  
+  onResize: function() {
+    if (this.resizer.value.now.y) this.content.setStyle('height', this.resizer.value.now.y);
+    if (this.resizer.value.now.x) this.content.setStyle('width', this.resizer.value.now.x);
+    this.checkOverflow();
+    //this.refresh(true);
+    //optimization: refresh only widgets that are liquid
     if (this.cache.dependent) this.cache.dependent.each(function(child) {
       child.update();
     })
-	  
-	  this.render();
-	},
-	
-	getHandle: Macro.defaults(function() {
-	  return this.handle;
-	}),
+    
+    this.render();
+  },
+  
+  getHandle: Macro.defaults(function() {
+    return this.handle;
+  }),
 
-	getResized: Macro.defaults(function() {
-	  return this;
-	})
+  getResized: Macro.defaults(function() {
+    return this;
+  })
 });
 
 ART.Widget.Ignore.events.push('resizer');

@@ -42,50 +42,50 @@ ART.Widget.Select = new Class({
   layered: {
     shadow:  ['shadow'],
     stroke: ['stroke'],
-	  background:  ['fill', ['backgroundColor']],
-	  reflection:  ['fill', ['reflectionColor']],
+    background:  ['fill', ['backgroundColor']],
+    reflection:  ['fill', ['reflectionColor']],
     glyph: ['glyph']
-	},
-	
-	layout: {
-	  'select-button#button': {}
-	},
-	
-	options: {
-	  menu: {
-	    position: 'focus'
-	  }
-	},
-	
-	shortcuts: {
-	  'ok': 'selectChosenItem'
-	},
-	
-	events: {
-	  element: {
-  	  mousedown: 'retain',
-  	  click: 'expand'
-	  },
-	  self: {
-  	  set: 'collapse',
-  	  collapse: 'forgetChosenItem'
-	  }
-	},
-	
-	items: ["1","2","3"],
-	
-	buildItem: function(item) {
+  },
+  
+  layout: {
+    'select-button#button': {}
+  },
+  
+  options: {
+    menu: {
+      position: 'focus'
+    }
+  },
+  
+  shortcuts: {
+    'ok': 'selectChosenItem'
+  },
+  
+  events: {
+    element: {
+      mousedown: 'retain',
+      click: 'expand'
+    },
+    self: {
+      set: 'collapse',
+      collapse: 'forgetChosenItem'
+    }
+  },
+  
+  items: ["1","2","3"],
+  
+  buildItem: function(item) {
     if (!this.menu) this.buildMenu();
-	  var widget = this.buildLayout('select-option', item.toString(), this.menu);
-	  widget.value = item;
-	  widget.selectWidget = this;
-	  return widget;
-	},
-	
-	processValue: function(item) {
-	  return item.value;
-	}
-	
+    var widget = this.buildLayout('select-option', item.toString(), this.menu);
+    widget.value = item;
+    widget.selectWidget = this;
+    return widget;
+  },
+  
+  processValue: function(item) {
+    return item.value;
+  }
+  
 });
 
 ART.Widget.Select.Button = new Class({

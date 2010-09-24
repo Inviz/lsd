@@ -28,36 +28,36 @@ ART.Widget.Menu.List = new Class({
     Widget.Trait.Accessibility
   ],
   
-	events: {
-	  element: {
-  	  mousedown: 'retain'
-	  },
-	  self: {
-	    dominject: 'makeItems'
-	  }
-	},
-	
-	options: {
-	  list: {
-	    item: 'menu-list-item'
-	  }
-	},
+  events: {
+    element: {
+      mousedown: 'retain'
+    },
+    self: {
+      dominject: 'makeItems'
+    }
+  },
+  
+  options: {
+    list: {
+      item: 'menu-list-item'
+    }
+  },
 
   attributes: {
     type: 'list'
   },
 
-	buildItem: function(item) {
-	  var widget = this.buildLayout(this.options.list.item, item.toString(), this, false);
-	  widget.value = item;
-	  widget.setList(this);
-	  this.getContainer().append(widget); 
-	  return widget;
-	}
-	
+  buildItem: function(item) {
+    var widget = this.buildLayout(this.options.list.item, item.toString(), this, false);
+    widget.value = item;
+    widget.setList(this);
+    this.getContainer().append(widget); 
+    return widget;
+  }
+  
 });
-  	
-  	
+    
+    
 ART.Widget.Menu.List.Item = new Class({
   Includes: [
     ART.Widget.Paint,
@@ -72,9 +72,9 @@ ART.Widget.Menu.List.Item = new Class({
   
   name: 'item',
   
-	layered: {
-	  fill:  ['stroke'],
-	  reflection:  ['fill', ['reflectionColor']],
-	  background: ['fill', ['backgroundColor']]
-	}
+  layered: {
+    fill:  ['stroke'],
+    reflection:  ['fill', ['reflectionColor']],
+    background: ['fill', ['backgroundColor']]
+  }
 });

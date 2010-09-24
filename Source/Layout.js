@@ -23,14 +23,14 @@ ART.Layout = new Class({
   
   Implements: [Options, Logger],
   
-	ns: 'art',
-	name: 'layout',
-		
+  ns: 'art',
+  name: 'layout',
+    
   initialize: function(widget, layout, options) {
     this.widget = widget;
     this.layout = layout;
     this.setOptions(options);
-		//this.widget.log('Layout', this, 'for', widget)
+    //this.widget.log('Layout', this, 'for', widget)
     this.reset();
   }, 
   
@@ -64,9 +64,9 @@ ART.Layout = new Class({
     return widgets;
   },
 
-	getName: function() {
-		return 'Layout'
-	}
+  getName: function() {
+    return 'Layout'
+  }
 });
 
 (function(cache) {
@@ -89,10 +89,10 @@ ART.Layout.build = function(selector, layout, parent, element) {
   var tag = parsed.tag;
   var options = {};
   var attributes = {};
-	if (parsed.id) options.id = parsed.id
-	var mixins = [];
-	var styles;	
-	switch (parsed.combinator) {
+  if (parsed.id) options.id = parsed.id
+  var mixins = [];
+  var styles;  
+  switch (parsed.combinator) {
     case '^': //add full parent class path (tag, type, subclass)
       tag = parent.source + '-' + tag;
       break;
@@ -101,38 +101,38 @@ ART.Layout.build = function(selector, layout, parent, element) {
       if (type) tag = type + '-' + tag;
       var bits = parent.source.split('-');
       bits.pop();
-	    tag = bits.join('-') + '-' + tag;
-	}
-	
-	
-	if (parsed.attributes) parsed.attributes.each(function(attribute) {
-	  if (attribute.key == "style") {
-	    styles = {};
-	    attribute.value.split(';').each(function(definition) {
-	      var bits = definition.split(':');
-	      styles[bits[0]] = bits[1];
-	    })
-	  } else {
-	    var name = attribute.key;
-	    var value = attribute.value || true;
-	    if (name == 'type') tag += "-" + value;
-	    var bits = name.split('-');
-	    for (var i = bits.length - 1; i > -1; i--) {
+      tag = bits.join('-') + '-' + tag;
+  }
+  
+  
+  if (parsed.attributes) parsed.attributes.each(function(attribute) {
+    if (attribute.key == "style") {
+      styles = {};
+      attribute.value.split(';').each(function(definition) {
+        var bits = definition.split(':');
+        styles[bits[0]] = bits[1];
+      })
+    } else {
+      var name = attribute.key;
+      var value = attribute.value || true;
+      if (name == 'type') tag += "-" + value;
+      var bits = name.split('-');
+      for (var i = bits.length - 1; i > -1; i--) {
         var obj = {};
         obj[bits[i]] = value;
-	      if (i == 0) $mixin(options, obj);
-	      else value = obj;
-	    }
-			attributes[name] = attribute.value || true;
-			var trait = ART.Layout.findTraitByAttributeName(name);
-			if (trait) mixins.push(trait);
-	  }
-	});
-	mixins.unshift(tag)
-	for (var i in attributes) {
-	  options.attributes = attributes;
-	  break;
-	}
+        if (i == 0) $mixin(options, obj);
+        else value = obj;
+      }
+      attributes[name] = attribute.value || true;
+      var trait = ART.Layout.findTraitByAttributeName(name);
+      if (trait) mixins.push(trait);
+    }
+  });
+  mixins.unshift(tag)
+  for (var i in attributes) {
+    options.attributes = attributes;
+    break;
+  }
 
 
   if (parsed.classes) {
@@ -141,28 +141,28 @@ ART.Layout.build = function(selector, layout, parent, element) {
       return klass.value; 
     }));
   }
-	if (parsed.pseudos) {
-	  if (!options.pseudos) options.pseudos = [];
+  if (parsed.pseudos) {
+    if (!options.pseudos) options.pseudos = [];
     options.pseudos.push.apply(options.pseudos, parsed.pseudos.map(function(klass) { 
       return klass.key; 
     }));
-	}
-	
-	
-	var widget = ART.Widget.create(mixins, options);
-	widget.source = tag;
-	widget.build();
-	
-	if (!options.id && parent) {
-	  var property = parsed.tag + 's';
-	  if (!parent[property]) parent[property] = [];
-	  parent[property].push(widget)
-	}
-	
+  }
+  
+  
+  var widget = ART.Widget.create(mixins, options);
+  widget.source = tag;
+  widget.build();
+  
+  if (!options.id && parent) {
+    var property = parsed.tag + 's';
+    if (!parent[property]) parent[property] = [];
+    parent[property].push(widget)
+  }
+  
   if (!element) element = parent;
   if (element) widget.inject(element, 'bottom', true)
   
-	if (styles) widget.setStyles(styles);
-	if ($type(layout) == 'string') widget.setContent(layout);
-	return widget;
+  if (styles) widget.setStyles(styles);
+  if ($type(layout) == 'string') widget.setContent(layout);
+  return widget;
 };

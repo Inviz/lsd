@@ -22,9 +22,9 @@ ART.Widget.Header = new Class({
   
   name: 'header',
 
-	options: {
-		element: {
-			tag: ART.html5 ? 'header' : 'div'
-		}
-	}
+  options: {
+    element: {
+      tag: ART.html5 ? 'header' : 'div'
+    }
+  }
 });

@@ -22,9 +22,9 @@ ART.Widget.Nav = new Class({
   
   name: 'nav',
 
-	options: {
-		element: {
-			tag: ART.html5 ? 'nav' : 'div'
-		}
-	}
+  options: {
+    element: {
+      tag: ART.html5 ? 'nav' : 'div'
+    }
+  }
 });

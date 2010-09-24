@@ -36,13 +36,13 @@ ART.Widget.Trait.Scrollable = new Class({
   
   getVerticalScrollbar: Macro.setter('vertical', function() {
     this.applyLayout({
-	    'scrollbar#vertical[mode=vertical]': {}
-	  });
+      'scrollbar#vertical[mode=vertical]': {}
+    });
   }),
   
   getHorizontalScrollbar: Macro.setter('horizontal', function() {
     this.applyLayout({
-	    'scrollbar#horizontal[mode=horizontal]': {}
-	  });
+      'scrollbar#horizontal[mode=horizontal]': {}
+    });
   })
 });

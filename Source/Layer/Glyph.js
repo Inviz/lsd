@@ -28,8 +28,8 @@ ART.Layer.Glyph = new Class({
     if (!y) y = 0;
     if (!$defined(scale)) scale = 1;
     this.shape.draw(glyph);
-		this.shape.fill.apply(this.shape, $splat(color));
-	  if (scale) this.shape.scale(scale);
-	  return {translate: {x: x, y: y}}
+    this.shape.fill.apply(this.shape, $splat(color));
+    if (scale) this.shape.scale(scale);
+    return {translate: {x: x, y: y}}
   }
 });
