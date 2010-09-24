@@ -35,7 +35,8 @@ ART.Widget.Input.Checkbox = new Class({
   
   events: {
     element: {
-      click: 'retain'
+      click: 'toggle',
+      mousedown: 'retain'
     }
   },
   
@@ -49,10 +50,5 @@ ART.Widget.Input.Checkbox = new Class({
 	  background:  ['fill', ['backgroundColor']],
 	  reflection:  ['fill', ['reflectionColor']],
     glyph: ['glyph']
-	},
-
-	retain: function() {
-	  this.toggle();
-	  this.focus();
 	}
 });

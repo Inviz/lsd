@@ -46,10 +46,12 @@ ART.Widget.Input = new Class({
   
   focus: Macro.onion(function() {
     this.input.focus();
+    var parent = this;
   }),
   
-  retain: function() {
-    if (!this.disabled) this.focus.delay(30, this);
+  retain: function(e) {
+    if (!this.disabled) this.focus(false);
+    return false;
   },
   
   applyValue: function(item) {

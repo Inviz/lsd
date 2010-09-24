@@ -33,7 +33,7 @@ var inserters = {
 	},
 
 	bottom: function(context, element){
-		return element.appendChild(context);
+	  return element.appendChild(context);
 	},
 
 	top: function(context, element){
@@ -145,7 +145,7 @@ ART.Widget.Module.DOM = new Class({
 		      postponed = true;
 		      child.update();
 		    }
-		    if (isDocument) child.document = document;
+		    if (isDocument) child.document = widget;
 		    child.fireEvent('dominject', element);
 		    child.dominjected = true;
 		  });

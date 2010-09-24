@@ -50,7 +50,7 @@ ART.Widget.Module.Styles = new Class({
 		implied: {},    //styles that are assigned by environment
 		
 		element: {},    //styles that are currently assigned to element
-		paint: {},      //styles that are currently used to paint
+		paint: {}      //styles that are currently used to paint
 	},
 	
 	rules: {

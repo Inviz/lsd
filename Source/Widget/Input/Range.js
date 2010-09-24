@@ -31,6 +31,16 @@ ART.Widget.Input.Range = new Class({
   ],
   
   name: 'input',
+  
+  events: {
+    element: {
+      mousedown: 'stopMousedown'
+    }
+  },
+  
+  stopMousedown: function(e) {
+    e.stopPropagation();
+  },
 	
 	layered: {
 	  shadow: ['shadow'],
@@ -50,7 +60,7 @@ ART.Widget.Input.Range = new Class({
 	},
 	
 	layout: {
-    'input-range-thumb#thumb': {}
+    'input-range-thumb[shape=arrow]#thumb': {}
 	},
 	
 	shortcuts: {
