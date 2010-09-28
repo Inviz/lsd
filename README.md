@@ -13,6 +13,7 @@ It can do much more than this, but this is my tech demos. There are more things 
 
 * [Windows demo](http://img.skitch.com/20100912-pgxcpgxi145fhnsd1eidanie81.png)
 * [HUD theme](http://img.skitch.com/20100915-r5wsspyameb81mbm2mq1unyax3.png)
+* [Aristo theme (in two colors)](http://img.skitch.com/20100928-eas6h46ddfbe7di25qwrsrkwp5.png)
 * [Some kind of menu bar](http://img.skitch.com/20100907-pw2scewykaiyaau2jm4jb8giwu.png)
 
 
@@ -63,6 +64,7 @@ Things we have
 
 * **Laziness** - Always trying not to do something unless it is needed now. You've got that dropdown menu? We dont care until we show it.
 
+* **Themes** - There is a whole submodule full of different themes (currently 2) for your application. There is also a theme skeleton provided in sass sources for anyone to create a new one. 
 
 Free goodies
 ------------

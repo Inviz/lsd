@@ -34,12 +34,8 @@ ART.Widget.Input.Range = new Class({
   
   events: {
     element: {
-      mousedown: 'stopMousedown'
+      mousedown: 'retain'
     }
-  },
-  
-  stopMousedown: function(e) {
-    e.stopPropagation();
   },
   
   layered: {
