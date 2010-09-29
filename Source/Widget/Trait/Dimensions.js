@@ -29,7 +29,7 @@ ART.Widget.Trait.Dimensions = new Class({
   
   setHeight: function(value, light) {
     value = Math.min(this.style.current.maxHeight || 1500, Math.max(this.style.current.minHeight || 0, value));
-    if (!light && this.size.height == value) return;
+    if (!light && this.size.height == value) return false;
     this.size.height = value;
     if (!light) this.setStyle('height', value );
     return value;
@@ -37,7 +37,7 @@ ART.Widget.Trait.Dimensions = new Class({
     
   setWidth: function(value, light) {
     value = Math.min(this.style.current.maxWidth || 3500, Math.max(this.style.current.minWidth || 0, value));
-    if (this.size.width == value) return;
+    if (this.size.width == value) return false;
     this.size.width = value;
     if (!light) this.setStyle('width', value);
     return value;

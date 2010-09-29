@@ -68,16 +68,6 @@ ART.Widget.Trait.Resizable = new Class({
     return resizer;
   }),
   
-  setHeight: function(height) {
-    this.getResized().element.height = height;
-    return this.parent.apply(this, arguments)
-  },
-  
-  setWidth: function(width) {
-    this.getResized().element.width = width;
-    return this.parent.apply(this, arguments)
-  },
-  
   build: Macro.onion(function() {
     this.use('#handle', '#content', function() {
       this.addAction({
@@ -108,7 +98,7 @@ ART.Widget.Trait.Resizable = new Class({
       resized.setWidth(width);
       $clear(self.delay);
       self.delay = (function() { //reset limit options in one second
-        this.resizer.setMinX(self.limit);
+        this.resizer.setMinX(self.limit + 1);
       }).delay(1000, this);
       return false;
     }
@@ -129,8 +119,8 @@ ART.Widget.Trait.Resizable = new Class({
   },
   
   onResize: function() {
-    if (this.resizer.value.now.y) this.content.setStyle('height', this.resizer.value.now.y);
-    if (this.resizer.value.now.x) this.content.setStyle('width', this.resizer.value.now.x);
+    if (this.resizer.value.now.y) this.getResized().setStyle('height', this.resizer.value.now.y);
+    if (this.resizer.value.now.x) this.getResized().setStyle('width', this.resizer.value.now.x);
     this.checkOverflow();
     //this.refresh(true);
     //optimization: refresh only widgets that are liquid

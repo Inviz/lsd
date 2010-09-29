@@ -40,16 +40,8 @@ ART.Widget.Scrollbar = new Class({
   
   layered: {
     stroke: ['stroke'],
-    background: ['fill', ['backgroundColor'], function(width, height, cornerRadius, color) {
-      this.draw(width - 2, height - 3, cornerRadius.map(function(r) { return r - 1}));
-      if (color) this.fill.apply(this, $splat(color));
-      this.translate(1, 2);
-    }],
-    reflection:  ['fill', ['reflectionColor'], function(width, height, cornerRadius, color) {
-      this.draw(width - 2, height - 2, cornerRadius.map(function(r) { return r - 1}));
-      if (color) this.fill.apply(this, $splat(color));
-      this.translate(1, 1);
-    }]
+    background: ['fill', ['backgroundColor']],
+    reflection:  ['fill', ['reflectionColor']]
   },
   
   options: {
@@ -58,36 +50,38 @@ ART.Widget.Scrollbar = new Class({
     }
   },
   
-  events: {
-    parent: {
-      resize: 'adaptToSize'
-    }
-  },
-  
   initialize: function() {
     this.parent.apply(this, arguments);
-    this.addPseudo(this.options.mode);
+    this.setState(this.options.mode);
   },
   
-  adaptToSize: function(size){
+  adaptSize: function(size, old){
     if (!size || $chk(size.height)) size = this.parentNode.size;
-    var other = (this.options.mode == 'vertical') ? 'horizontal' : 'vertical';
-    var prop = (this.options.mode == 'vertical') ? 'height' : 'width';
-    var setter = 'set' + prop.capitalize();
+    var isVertical = (this.options.mode == 'vertical');
+    var other = isVertical ? 'horizontal' : 'vertical';
+    var prop = isVertical ? 'height' : 'width';
+    var Prop = prop.capitalize();
+    var setter = 'set' + Prop;
+    var getter = 'getClient' + Prop;
     var value = size[prop];
     if (isNaN(value) || !value) return;
     var invert = this.parentNode[other];
     var scrolled = this.getScrolled();
     $(scrolled).setStyle(prop, size[prop])
-    var ratio = size[prop] / $(scrolled).scrollWidth
+    var ratio = size[prop] / $(scrolled)['scroll' + Prop]
     var delta = (!invert || invert.hidden ? 0 : invert.getStyle(prop));
     this[setter](size[prop] - delta);
-    var trackWidth = size[prop] - 16 * 2 - delta;
-    //console.info(size[prop], ($(scrolled).offsetWidth), $(scrolled).scrollWidth, ratio, trackWidth)
-    this.track[setter](trackWidth);
-    this.track.thumb[setter](Math.ceil(trackWidth * ratio))
-    this.getSlider()
+    var offset = 0;
+    if (isVertical) {
+      offset += this.track.offset.padding.top + this.track.offset.padding.bottom
+    } else {
+      offset += this.track.offset.padding.left + this.track.offset.padding.right
+    }
+    var track = size[prop] - this.increment[getter]() - this.decrement[getter]() - delta - ((this.style.current.strokeWidth || 0) * 2) - offset * 2
+    this.track[setter](track);
+    this.track.thumb[setter](Math.ceil(track * ratio))
     this.refresh();
+    this.parent.apply(this, arguments);
   },
   
   inject: Macro.onion(function(widget) {
@@ -97,8 +91,8 @@ ART.Widget.Scrollbar = new Class({
   onSet: function(value) {
     var prop = (this.options.mode == 'vertical') ? 'height' : 'width';
     var direction = (this.options.mode == 'vertical') ? 'top' : 'left';
-    var result = value * this.parentNode.element['scroll' + prop.capitalize()];
-    $(this.getScrolled())['scroll' + direction.capitalize()] = result
+    var result = (value / 100) * this.parentNode.element['scroll' + prop.capitalize()];
+    $(this.getScrolled())['scroll' + direction.capitalize()] = result;
   },
   
   getScrolled: function() {
@@ -136,6 +130,10 @@ ART.Widget.Scrollbar = new Class({
 
 ART.Widget.Scrollbar.Track = new Class({
   Extends: ART.Widget.Section,
+  
+  layered: {
+    innerShadow:  ['inner-shadow']
+  },
   
   name: 'track',
   

@@ -66,7 +66,6 @@ provides: [ART.Widget]
       this.update();
       this.offset = {
         paint: {},
-        total: {},
         inside: {},
         padding: {},
         margin: {}

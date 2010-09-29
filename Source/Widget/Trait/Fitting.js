@@ -26,8 +26,8 @@ ART.Widget.Trait.Fitting = new Class({
     element.setStyle('display', 'inline-block');
     var width = element.offsetWidth;
     var height = element.offsetHeight;
-    this.content.setWidth(width);
-    this.content.setHeight(height);
+    this.getResized().setWidth(width);
+    this.getResized().setHeight(height);
     if (this.resizer) {
       this.resizer.setMaxX(width);
       this.resizer.setMaxY(height);
