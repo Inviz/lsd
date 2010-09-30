@@ -90,6 +90,7 @@ ART.Widget.Module.DOM = new Class({
   },
   
   setParent: function(widget){
+    this.parent.apply(this, arguments);
     var siblings = widget.childNodes;
     var length = siblings.length;
     if (length == 1) widget.firstChild = this;
@@ -99,8 +100,8 @@ ART.Widget.Module.DOM = new Class({
       previous.nextSibling = this;
       this.previousSibling = previous;
     }
-    this.parentNode = widget;
   },
+  
   appendChild: function(widget, adoption) {
     if (this.canAppendChild && !this.canAppendChild(widget)) return false;
     if (widget.options.id) {
@@ -108,7 +109,7 @@ ART.Widget.Module.DOM = new Class({
       this[widget.options.id] = widget;
     }
     this.childNodes.push(widget);
-    if (!(this instanceof ART.Document)) widget.setParent(this);
+    if (widget.nodeType != 9) widget.setParent(this);
     if (!adoption) var adoption = function() {
       $(this).appendChild($(widget));
     }
@@ -131,13 +132,11 @@ ART.Widget.Module.DOM = new Class({
     return this;
   },
   
-  inject: function(widget, where, quiet) {
-    inserters[where || 'bottom'](this, widget);
-    var element = $(widget);
-    this.fireEvent('inject', arguments);
-    this.fireEvent('afterInject', arguments);
-    var isDocument = (widget instanceof ART.Document);
-    if (((element == widget) || isDocument) && (quiet !== true)) {
+  setDocument: function(widget) {
+    var element = $(widget)
+    var isDocument = (widget.nodeType == 9)
+    var document = isDocument ? widget : element.ownerDocument.body.retrieve('widget');
+    if (isDocument || element.offsetParent) {
       var postponed = false
       this.render();
       this.walk(function(child) {
@@ -145,7 +144,7 @@ ART.Widget.Module.DOM = new Class({
           postponed = true;
           child.update();
         }
-        if (isDocument) child.document = widget;
+        child.document = document;
         child.fireEvent('dominject', element);
         child.dominjected = true;
       });
@@ -154,12 +153,21 @@ ART.Widget.Module.DOM = new Class({
     }
   },
   
+  inject: function(widget, where, quiet) {
+    inserters[where || 'bottom'](this, widget);
+    var element = $(widget);
+    this.fireEvent('inject', arguments);
+    if (quiet !== true) this.setDocument(widget);
+  },
+  
   dispose: function() {
     var parent = this.parentNode;
-    parent.childNodes.erase(this);
-    if (parent.firstChild == this) delete parent.firstChild;
-    if (parent.lastChild == this) delete parent.lastChild;
-    delete this.parentNode;
+    if (parent) {
+      parent.childNodes.erase(this);
+      if (parent.firstChild == this) delete parent.firstChild;
+      if (parent.lastChild == this) delete parent.lastChild;
+      delete this.parentNode;
+    } 
     return this.parent.apply(this, arguments);
   },
   

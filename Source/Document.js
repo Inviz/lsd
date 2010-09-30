@@ -19,26 +19,25 @@ provides: [ART.Document]
 
 
 ART.Document = new Class({
-  Includes: [
-    new Class({initialize: function() {
-      
-    }}),
-    ART.Widget.Module.DOM
-  ],
+  Extends: ART.Widget.Module.DOM,
   
   Implements: [Events, Options],
   
   options: {},
   
   initialize: function(element) {
+    if (!element) ART.document = this;
     this.element = (element || document.body);
+    this.body = this.element.store('widget', this);
     this.document = this.documentElement = this;
     
     this.xml = true;
     this.navigator = {};
     this.attributes = {};
     
-    this.parent.apply(this, arguments);
+    this.childNodes = [];
+    this.nodeType = 9;
+    this.nodeName = "#document";
   },
   
   toElement: function() {
