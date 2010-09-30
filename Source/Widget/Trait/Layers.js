@@ -31,7 +31,7 @@ ART.Widget.Trait.Layers = new Class({
   build: Macro.onion(function() {
     if (this.layered) {
       for (var name in this.layered) {
-        this.layers[name] = this.getLayer.apply(this, this.layered[name]);
+        this.layers[name] = this.buildLayer.apply(this, this.layered[name].concat([name]));
       }
     }
   }),
@@ -43,27 +43,27 @@ ART.Widget.Trait.Layers = new Class({
   }),
   
   getLayer: function() {
+    
+  },
+  
+  buildLayer: function() {
     var args = Array.link($splat(arguments), {
-      layer: String.type, 
+      layer: String.type,
+      name: String.type,
       klass: Class.type,
       draw: Function.type,
       options: Object.type, 
-      properties: Array.type,
-      render: Function.type
+      properties: Array.type
     });
     var shape = this.getShape();
     var type = (args.klass || ART.Layer[args.layer.camelCase().capitalize()]);
     var instance = new type(shape); //combine shape & layer classes
     
-    var injected = false;
+    var properties = (instance.properties || []).concat(args.properties || [])
     
-    var properties = (instance.properties || []).concat(args.properties)
-    
-    var last = this
     this.addEvent('redraw', function() {
       value = instance.value || empty;
-    
-      var styles = this.getChangedStyles.apply(this, properties);
+      var styles = this.getChangedStyles(args.name || args.layer, properties)
       //console.log('redraw', args.layer, this.selector, styles)
       if (styles) {
         instance.padding = this.inside;
@@ -78,14 +78,21 @@ ART.Widget.Trait.Layers = new Class({
               var shape = this.lastLayer.shape;
               if (!shape.container) shape.container = this.paint;
               instance.inject(shape, 'after')
-            } else instance.inject(this.paint);
+            } else {
+              for (var name in this.layers) {
+                if (this.layers[name].injected) {
+                  console.log('inject before', this.layers[name])
+                  instance.inject(this.layers[name].shape, 'before');
+                  break;
+                }
+              }
+              if (!instance.injected) instance.inject(this.paint);
+            }
           } else {
             if (instance.update) instance.update(this.paint)
           }  
         }  
         instance.value = value;
-      } else {
-        //this.log('unchanged')
       }   
       
       if (instance.injected) {

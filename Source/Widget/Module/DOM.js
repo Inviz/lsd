@@ -109,11 +109,11 @@ ART.Widget.Module.DOM = new Class({
       this[widget.options.id] = widget;
     }
     this.childNodes.push(widget);
-    if (widget.nodeType != 9) widget.setParent(this);
-    if (!adoption) var adoption = function() {
+    if (this.nodeType != 9) widget.setParent(this);
+    (adoption || function() {
       $(this).appendChild($(widget));
-    }
-    adoption.apply(this, arguments)
+    }).apply(this, arguments);
+    
     this.fireEvent('adopt', [widget, widget.options.id])
 
     var parent = widget;

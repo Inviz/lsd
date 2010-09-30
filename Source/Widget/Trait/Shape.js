@@ -26,7 +26,7 @@ ART.Widget.Trait.Shape = new Class({
     if (!this.shape) {
       this.shape = new ART.Shape[(name || this.options.shape).camelCase().capitalize()];
       this.addEvent('redraw', function() {
-        var style = this.getChangedStyles.apply(this, this.shape.properties);
+        var style = this.getChangedStyles('shape', this.shape.properties);
         if (style) this.shape.style = style;
       }.bind(this))
     }

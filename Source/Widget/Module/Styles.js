@@ -148,17 +148,11 @@ ART.Widget.Module.Styles = new Class({
     return result;
   },
 
-  getChangedStyles: function() {
-    var styles = this.getStyles.apply(this, arguments);
-    var hash = $A(arguments).join('')  
-    var last = $extend({}, this.style.last[hash]);
-    if (!this.style.last[hash]) this.style.last[hash] = {};
-    if (this.size.height) {
-      var size = $merge(this.size);
-      //if (this.style.current.height != 'auto') size.height += (this.style.current.paddingTop || 0) + (this.style.current.paddingBottom || 0)      
-      $extend(styles, this.size);
-      //return styles;
-    }
+  getChangedStyles: function(key, properties) {
+    var styles = this.getStyles.apply(this, properties);
+    var last = $extend({}, this.style.last[key]);
+    if (!this.style.last[key]) this.style.last[key] = {};
+    if (this.size.height) $extend(styles, this.size);
     
     var changed = false;
     for (var property in styles) {
@@ -166,7 +160,7 @@ ART.Widget.Module.Styles = new Class({
       if (!$equals(last[property], value)) {
         //console.error('update', this.selector, property, value, last[property])
         changed = true;
-        this.style.last[hash][property] = value;
+        this.style.last[key][property] = value;
       }
       delete last[property];
     };
