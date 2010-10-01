@@ -54,6 +54,9 @@ ART.Widget.Select = new Class({
   options: {
     menu: {
       position: 'focus'
+    },
+    layout: {
+      item: 'select-option'
     }
   },
   
@@ -73,14 +76,6 @@ ART.Widget.Select = new Class({
   },
   
   items: ["1","2","3"],
-  
-  buildItem: function(item) {
-    if (!this.menu) this.buildMenu();
-    var widget = this.buildLayout('select-option', item.toString(), this.menu);
-    widget.value = item;
-    widget.selectWidget = this;
-    return widget;
-  },
   
   processValue: function(item) {
     return item.value;
@@ -109,10 +104,10 @@ ART.Widget.Select.Option = new Class({
   name: 'option',
   
   select: function() {
-    this.selectWidget.selectItem.delay(20, this.selectWidget, [this]);
+    this.listWidget.selectItem.delay(20, this.listWidget, [this]);
   },
   
   chooseOnHover: function() {
-    this.selectWidget.selectItem(this, true)
+    this.listWidget.selectItem(this, true)
   }
 });

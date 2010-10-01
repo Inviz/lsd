@@ -53,6 +53,9 @@ ART.Widget.Input.Search = new Class({
   options: {
     menu: {
       position: 'bottom'
+    },
+    layout: {
+      item: 'input-option'
     }
   },
   
@@ -100,19 +103,12 @@ ART.Widget.Input.Search = new Class({
   empty: Macro.onion(function() {
     this.input.set('value', '');
   }),
-
-  buildItem: function(item) {
-    if (!this.menu) this.buildMenu();
-    var widget = this.buildLayout('input-option', item.title.toString(), this.menu, $(this.menu.getContainer()));
-    console.log('build item', item, item.title)
-    widget.value = item;
-    widget.selectWidget = this;
-    return widget;
-  },
-
+	
   processValue: function(item) {
     return item.value.title;
   },
+  
+  applyValue: $lambda(true),
   
   setIcon: function(item) {
     if (item && item.value) item = item.value.icon;
@@ -153,12 +149,16 @@ ART.Widget.Input.Option = new Class({
     this.element.setStyle('padding-left', 15)
   }),
   
+  setContent: function(item) {
+    this.parent(item.title || item);
+  },
+  
   select: function() {
-    this.selectWidget.select.delay(50, this.selectWidget, [this]);
+    this.listWidget.selectItem.delay(50, this.listWidget, [this]);
   },
   
   chooseOnHover: function() {
-    this.selectWidget.select(this, true)
+    this.listWidget.selectItem(this, true)
   }
 });
 

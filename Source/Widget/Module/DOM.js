@@ -154,7 +154,7 @@ ART.Widget.Module.DOM = new Class({
   },
   
   inject: function(widget, where, quiet) {
-    inserters[where || 'bottom'](this, widget);
+    inserters[where || 'bottom'](Element.type(widget) ? $(this) : this, widget);
     var element = $(widget);
     this.fireEvent('inject', arguments);
     if (quiet !== true) this.setDocument(widget);

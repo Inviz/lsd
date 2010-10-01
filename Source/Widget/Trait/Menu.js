@@ -19,11 +19,7 @@ provides: [ART.Widget.Trait.Menu, ART.Widget.Trait.Menu.Stateful]
 ...
 */
 
-ART.Widget.Trait.Menu = new Class({  
-  //Includes: [
-  //  Widget.Trait.OuterClick
-  //],
-    
+ART.Widget.Trait.Menu = new Class({      
   options: {
     menu: {
       position: 'top'
@@ -34,11 +30,6 @@ ART.Widget.Trait.Menu = new Class({
   },
   
   events: {
-    outer: {
-      element: {
-      //  outerClick: 'collapse'
-      }
-    },
     menu: {
       self: {
         expand: 'makeItems',
@@ -99,18 +90,21 @@ ART.Widget.Trait.Menu = new Class({
     this.applyLayout(this.options.layout.menu);
   },
   
-  expand: Macro.onion(function() {
+  getItemWrapper: function() {
     if (!this.menu) this.buildMenu();
+    return this.menu;
+  },
+  
+  expand: Macro.onion(function() {
+    //if (!this.menu) this.buildMenu();
     this.repositionMenu();
     this.menu.refresh();
     this.menu.show();
-    //this.attachEvents('outer');
   }),
   
   collapse: Macro.onion(function() {
     this.menu.hide();
     //this.repositionMenu();
-    //this.detachEvents('outer')
   }),
   
   getSelectedOptionPosition: $lambda(0)

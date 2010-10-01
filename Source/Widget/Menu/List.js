@@ -38,21 +38,13 @@ ART.Widget.Menu.List = new Class({
   },
   
   options: {
-    list: {
+    layout: {
       item: 'menu-list-item'
     }
   },
 
   attributes: {
     type: 'list'
-  },
-
-  buildItem: function(item) {
-    var widget = this.buildLayout(this.options.list.item, item.toString(), this, false);
-    widget.value = item;
-    widget.setList(this);
-    this.getContainer().append(widget); 
-    return widget;
   }
   
 });
