@@ -39,7 +39,6 @@ ART.Widget.Trait.Layers = new Class({
   update: Macro.onion(function() {
     this.outside = {x: 0, y: 0};
     this.inside = {x: 0, y: 0};
-    delete this.lastLayer;
   }),
   
   getLayer: function() {
@@ -74,38 +73,24 @@ ART.Widget.Trait.Layers = new Class({
         } else {  
           value = $merge(empty, value);
           if (!instance.injected) {
-            if (this.lastLayer) {
-              var shape = this.lastLayer.shape;
-              if (!shape.container) shape.container = this.paint;
-              instance.inject(shape, 'after')
-            } else {
-              for (var name in this.layers) {
-                if (this.layers[name].injected) {
-                  console.log('inject before', this.layers[name])
-                  instance.inject(this.layers[name].shape, 'before');
-                  break;
-                }
+            var found = false;
+            for (var name in this.layers) {
+              var layer = this.layers[name];
+              if (layer == instance) found = true;
+              if (!found || layer == instance) continue;
+              if (layer.injected && layer.shape) {
+                instance.inject(layer.shape, 'before');
+                break;
               }
-              if (!instance.injected) instance.inject(this.paint);
-            }
+            }  
+            if (!instance.injected) instance.inject(this.paint);
           } else {
             if (instance.update) instance.update(this.paint)
           }  
         }  
         instance.value = value;
-      }   
-      
-      if (instance.injected) {
-        var layers = instance.layers
-        if (layers) {
-          for (var i = 0, j = layers.length; i < j; i++) {
-            if (layers[i]) {
-              this.lastLayer = layers[i];
-              break;
-            }
-          }
-        } else this.lastLayer = instance;
       }
+      
       instance.translate(value.translate.x + this.outside.x, value.translate.y + this.outside.y);
       this.outside.x += value.outside.x;
       this.outside.y += value.outside.y;
