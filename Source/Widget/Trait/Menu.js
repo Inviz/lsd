@@ -96,9 +96,8 @@ ART.Widget.Trait.Menu = new Class({
   },
   
   expand: Macro.onion(function() {
-    //if (!this.menu) this.buildMenu();
+    if (!this.menu) this.buildMenu();
     this.repositionMenu();
-    this.menu.refresh();
     this.menu.show();
   }),
   
