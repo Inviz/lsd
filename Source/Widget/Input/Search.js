@@ -118,7 +118,7 @@ ART.Widget.Input.Search = new Class({
       this.glyph.element.setStyle('background-image', '');
     } else {
       this.uniconize();
-      this.glyph.element.setStyle('background', 'url(' + item + ') no-repeat ' + this.glyph.offset.paint.top + ' ' + this.glyph.offset.paint.left);
+      this.glyph.element.setStyle('background', 'url(' + item + ') no-repeat ' + (this.glyph.offset.paint.left + 4) + 'px ' + this.glyph.offset.paint.left + 'px');
     }
   }
 });
