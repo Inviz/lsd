@@ -133,7 +133,7 @@ ART.Widget.Input.Option = new Class({
   events: {
     element: {
       click: 'select',
-      mouseenter: 'chooseOnHover'
+      mousemove: 'chooseOnHover'
     }
   },
   

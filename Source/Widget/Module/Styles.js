@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base
+- ART.Expression
 - Core/Element.Style
 - Ext/FastArray
 
@@ -19,22 +20,22 @@ provides: [ART.Widget.Module.Styles, ART.Styles]
 ...
 */
 
-(function() {
-  
-  ART.Styles = new FastArray(
-    'glyphColor', 'glyphShadow', 'glyphSize', 'glyphStroke', 'glyph', 'glyphColor', 'glyphColor', 'glyphHeight', 'glyphWidth', 'glyphTop', 'glyphLeft',     
-    'cornerRadius', 'cornerRadiusTopLeft', 'cornerRadiusBottomLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight',    
-    'reflectionColor',  'backgroundColor', 'strokeColor', 'fillColor', 'starRays',
-    'shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY', 'userSelect'
-  )
-  
-  ART.ComplexStyles = {
-    'cornerRadius': {
-      set: ['cornerRadiusTopLeft', 'cornerRadiusBottomLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight'],
-      get: ['cornerRadiusTopLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight', 'cornerRadiusBottomLeft']
-    }
+
+ART.Styles = {}
+ART.Styles.Paint = new FastArray(
+  'glyphColor', 'glyphShadow', 'glyphSize', 'glyphStroke', 'glyph', 'glyphColor', 'glyphColor', 'glyphHeight', 'glyphWidth', 'glyphTop', 'glyphLeft',     
+  'cornerRadius', 'cornerRadiusTopLeft', 'cornerRadiusBottomLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight',    
+  'reflectionColor',  'backgroundColor', 'strokeColor', 'fillColor', 'starRays',
+  'shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY', 'userSelect'
+);
+ART.Styles.Element = FastArray.from(Hash.getKeys(Element.Styles).concat('float', 'display', 'clear', 'cursor', 'verticalAlign', 'textAlign'));
+
+ART.Styles.Complex = {
+  'cornerRadius': {
+    set: ['cornerRadiusTopLeft', 'cornerRadiusBottomLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight'],
+    get: ['cornerRadiusTopLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight', 'cornerRadiusBottomLeft']
   }
-})();
+}
 
 
 ART.Widget.Module.Styles = new Class({
@@ -47,6 +48,7 @@ ART.Widget.Module.Styles = new Class({
     
     calculated: {}, //styles that are calculated in runtime
     computed: {},   //styles that are already getStyled
+    expressed: {},  //styles that are expressed through function
     implied: {},    //styles that are assigned by environment
     
     element: {},    //styles that are currently assigned to element
@@ -115,6 +117,10 @@ ART.Widget.Module.Styles = new Class({
   
   setStyle: function(property, value, type) {
     if ($equals(this.style.current[property], value)) return;
+    if (value.call) {
+      this.style.expressed[property] = value;
+      value = value.call(this);
+    }
     this.style.current[property] = value;
     switch (type) {
       case undefined:
@@ -126,17 +132,22 @@ ART.Widget.Module.Styles = new Class({
         break;
     } 
     
-    return true;
+    return value;
   },
   
   getStyle: function(property) {
     if (this.style.computed[property]) return this.style.computed[property];
-    var value = this.style.current[property];
-    if (property == 'height') {
-      value = this.getClientHeight();
+    var expression = this.style.expressed[property];
+    if (expression) {
+      value = this.style.current[property] = this.calculateStyle(property, expression);
     } else {
-      if (value == "inherit") value = this.inheritStyle(property);
-      if (value == "auto") value = this.calculateStyle(property);
+      if (property == 'height') {
+        value = this.getClientHeight();
+      } else {
+        value = this.style.current[property];
+        if (value == "inherit") value = this.inheritStyle(property);
+        if (value == "auto") value = this.calculateStyle(property);
+      }
     }
     this.style.computed[property] = value;
     return value;
@@ -158,7 +169,6 @@ ART.Widget.Module.Styles = new Class({
     for (var property in styles) {
       var value = styles[property];
       if (!$equals(last[property], value)) {
-        //console.error('update', this.selector, property, value, last[property])
         changed = true;
         this.style.last[key][property] = value;
       }
@@ -172,44 +182,44 @@ ART.Widget.Module.Styles = new Class({
   },
   
   setElementStyle: function(property, value) {
-    if (Element.Styles[property] || Element.Styles.More[property]) {
+    if (ART.Styles.Element[property]) {
       if (this.style.element[property] !== value) this.element.setStyle(property, value);
       this.style.element[property] = value;
-      return true;
+      return value;
     }  
-    return false;
+    return;
   },
   
   resetElementStyle: function(property) {
     this.element.setStyle(property, '');
     delete this.style.element[property]
-    return true;
   },
 
   inheritStyle: function(property) {
     var node = this;
     var style = node.style.current[property];
-    while ((style == 'inherit' || !style) && node.parentNode) {
-      node = node.parentNode;
-      style = node.style.current[property];
-    }
+    while ((style == 'inherit' || !style) && (node = node.parentNode)) style = node.style.current[property];
     return style;
   },
   
-  calculateStyle: function(property) {
+  calculateStyle: function(property, expression) {
     if (this.style.calculated[property]) return this.style.calculated[property];
     var value;
-    switch (property) {
-      case "height":
-        value = this.getClientHeight();
-        if (value == 0) this.postpone()
-        break;
-      case "width":
-        value = this.inheritStyle(property);
-        if (value == "auto") value = this.getClientWidth();
-        //if scrollWidth value is zero, then the widget is not in DOM yet
-        //so we wait until the root widget is injected, and then try to repeat
-        if (value == 0 || (this.redraws == 0)) this.postpone()
+    if (expression) {
+      value = expression.call(this);
+    } else {
+      switch (property) {
+        case "height":
+          value = this.getClientHeight();
+          if (value == 0) this.postpone()
+          break;
+        case "width":
+          value = this.inheritStyle(property);
+          if (value == "auto") value = this.getClientWidth();
+          //if scrollWidth value is zero, then the widget is not in DOM yet
+          //so we wait until the root widget is injected, and then try to repeat
+          if (value == 0 && (this.redraws == 0)) this.postpone()
+      }
     }
     this.style.calculated[property] = value;
     return value;
@@ -219,7 +229,15 @@ ART.Widget.Module.Styles = new Class({
     if (!this.halt('postponed')) return;
     this.postponed = true;
     return true;
-  }
+  },
+  
+  update: Macro.onion(function() {
+    this.style.calculated = {};
+    this.style.computed = {};
+  })
 });
 
-Element.Styles.More = new FastArray('float', 'display', 'clear', 'cursor', 'verticalAlign', 'textAlign');
+
+ART.Styles.calculate = function() {
+  return ART.Expression.get.apply(ART.Expression, arguments)
+}

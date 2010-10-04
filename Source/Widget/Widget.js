@@ -71,8 +71,6 @@ provides: [ART.Widget]
         margin: {}
       }
       this.parent.apply(this, arguments);
-      
-      if (this.expression) this.applyExpression(this.expression);
       if (this.layout) this.setLayout(this.layout);
     }
   });

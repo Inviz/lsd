@@ -96,10 +96,7 @@ ART.Widget.Base = new Class({
         widget.update();
       });
     }
-    if (!this.parent.apply(this, arguments)) return;
-    this.style.calculated = {};
-    this.style.computed = {};
-    return true;
+    return this.parent.apply(this, arguments);
   },
 
   refresh: function(recursive) {

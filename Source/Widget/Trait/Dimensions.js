@@ -31,7 +31,7 @@ ART.Widget.Trait.Dimensions = new Class({
     value = Math.min(this.style.current.maxHeight || 1500, Math.max(this.style.current.minHeight || 0, value));
     if (this.size.height == value) return false;
     this.size.height = value;
-    if (!light) this.setStyle('height', value );
+    if (!light) this.setStyle('height', value);
     return value;
   },
     
@@ -59,7 +59,6 @@ ART.Widget.Trait.Dimensions = new Class({
     var width = this.element.offsetWidth;
     if (width > 0) {
       var styles = this.style.current;
-      var parent = this.parentNode;
       if (styles.width == "auto" && styles.display != "block") width -= ((this.offset.inside.left || 0) + (this.offset.inside.right || 0)) 
       width -= ((this.offset.paint.left || 0) + (this.offset.paint.right || 0)) 
     }

@@ -61,7 +61,7 @@ ART.Widget.Trait.Layers = new Class({
     var properties = (instance.properties || []).concat(args.properties || [])
     
     this.addEvent('redraw', function() {
-      value = instance.value || empty;
+      var value = instance.value || empty;
       var styles = this.getChangedStyles(args.name || args.layer, properties)
       //console.log('redraw', args.layer, this.selector, styles)
       if (styles) {

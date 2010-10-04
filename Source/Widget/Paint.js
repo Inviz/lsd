@@ -32,7 +32,6 @@ ART.Widget.Paint = new Class({
     'outdated': ['outdate', 'actualize']
   },
   
-  properties: [],
   redraws: 0,
   
   build: Macro.onion(function() {
@@ -73,7 +72,6 @@ ART.Widget.Paint = new Class({
     if (!this.parent.apply(this, arguments)) return;
     if (!this.paint) return;
     if (!this.outdated) return;
-    
     this.outdated = false;
     
     if (!this.halted) this.fireEvent('redraw');
@@ -143,18 +141,52 @@ ART.Widget.Paint = new Class({
     return this.parent.apply(this, arguments);
   },
   
-  setStyle: function(property, value) {
-    if (!this.parent.apply(this, arguments)) return;
-    switch(property) {
-      case "height": case "width":
-        this.outdated = true;
+  setHeight: function() {
+    var value = this.parent.apply(this, arguments);
+    if (value) {
+      this.outdated = true;
+      if (this.style.expressed.height) this.setElementStyle('height', value - (this.style.current.paddingTop || 0) - (this.style.current.paddingBottom || 0))
     }
+    return value;
+  },
+  
+  setWidth: function() {
+    var value = this.parent.apply(this, arguments);
+    if (value) {
+      this.outdated = true;
+      if (this.style.expressed.width) this.setElementStyle('width', value - (this.style.current.paddingLeft || 0) - (this.style.current.paddingRight || 0))
+    }
+    return value;
+  },
+  
+  //getClientWidth: function() {
+  //  var expression = this.style.expressed.width;
+  //  if (expression) {
+  //    console.log('width difference', [expression.call(this), this.parent.apply(this, arguments)])
+  //    return expression.call(this);
+  //  } else {
+  //    return this.parent.apply(this, arguments);
+  //  }
+  //},
+  //
+  //getClientHeight: function() {
+  //  var expression = this.style.expressed.height;
+  //  if (expression) {
+  //    return expression.call(this);
+  //  } else {
+  //    return this.parent.apply(this, arguments);
+  //  }
+  //},
+  
+  setStyle: function(property, value) {
+    var value = this.parent.apply(this, arguments);
+    if (!$defined(value)) return;
     return (this.setPaintStyle(property, value) || this.setElementStyle(property, value));
   },
   
   getStyle: function(property, value) {
     if (this.style.computed[property]) return this.style.computed[property]; 
-    var properties = ART.ComplexStyles[property];
+    var properties = ART.Styles.Complex[property];
     if (properties) {
       if (properties.set) properties = properties.get;
       var current = this.style.current;
@@ -172,26 +204,24 @@ ART.Widget.Paint = new Class({
   },
   
   setPaintStyle: function(property, value) {
-    if (ART.Styles[property] || this.properties.contains[property]) {
-      this.style.paint[property] = value;
-      var properties = ART.ComplexStyles[property];
-      if (properties) {
-        if (properties.set) properties = properties.set;
-        if (!(value instanceof Array)) {
-          var array = [];
-          for (var i = 0, j = properties.length; i < j; i++) array.push(value); 
-          value = array;
-        }
-        var count = value.length;
-        
-        properties.each(function(property, i) {
-          this.setStyle(property, value[i % count])
-        }, this);
+    if (!ART.Styles.Paint[property]) return false;
+    this.style.paint[property] = value;
+    var properties = ART.Styles.Complex[property];
+    if (properties) {
+      if (properties.set) properties = properties.set;
+      if (!(value instanceof Array)) {
+        var array = [];
+        for (var i = 0, j = properties.length; i < j; i++) array.push(value); 
+        value = array;
       }
-      this.outdated = true;
-      return true;
-    }  
-    return false;
+      var count = value.length;
+      
+      properties.each(function(property, i) {
+        this.setStyle(property, value[i % count])
+      }, this);
+    }
+    this.outdated = true;
+    return true;
   },
   
   tween: function(property, from, to) {

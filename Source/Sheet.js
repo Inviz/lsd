@@ -110,10 +110,10 @@ ART.Sheet = {};
     }).join(' ');
   }
   
-  Element.Styles.Except = new FastArray('backgroundColor', 'width', 'height', 'minWidth');
+  ART.Styles.Except = new FastArray('backgroundColor', 'width', 'height', 'minWidth', 'minHeight', 'maxWidth', 'maxHeight');
   
   ART.Sheet.isElementStyle = function(cc) {
-    return ((Element.Styles[cc] || Element.Styles.More[cc]) && !Element.Styles.Except[cc]);
+    return ART.Styles.Element[cc] && !ART.Styles.Except[cc];
   }
   ART.Sheet.define = function(selectors, style){
     Slick.parse(selectors).expressions.each(function(selector){

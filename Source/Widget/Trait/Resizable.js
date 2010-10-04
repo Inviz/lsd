@@ -108,7 +108,7 @@ ART.Widget.Trait.Resizable = new Class({
     this.transform.apply(this, arguments);
     
     if (!this.cache.dependent) this.cache.dependent = this.collect(function(child) {
-      return child.style.current.width == 'inherit' || child.style.current.width == 'auto'
+      return (child.style.current.width == 'inherit') || (child.style.current.width == 'auto') || child.style.expressed.width
     }).concat(this.getResized())
     
   },

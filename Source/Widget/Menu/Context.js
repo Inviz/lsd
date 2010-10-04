@@ -11,17 +11,16 @@ authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Menu
-
 provides: [ART.Widget.Menu.Context]
  
 ...
 */
 ART.Widget.Menu.Context = new Class({
-  Implements: [
+  Includes: [
     ART.Widget.Menu,
-    Widget.Trait.Animation
+    Widget.Trait.Animation.Instant
   ],
-
+  
   options: {
     animation: {
       duration: 0,

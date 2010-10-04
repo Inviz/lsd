@@ -31,6 +31,7 @@ sources:
   - Source/Shape/Rectangle.js
   - Source/Shape/Star.js
   - Source/Sheet.js
+  - Source/Expression.js
   - Source/Widget/Base.js
   - Source/Widget/Button.js
   - Source/Widget/Container.js
@@ -52,7 +53,6 @@ sources:
   - Source/Widget/Menu/Toolbar.Menu.js
   - Source/Widget/Module/Container.js
   - Source/Widget/Module/DOM.js
-  - Source/Widget/Module/Expression.js
   - Source/Widget/Module/Layout.js
   - Source/Widget/Module/LayoutEvents.js
   - Source/Widget/Module/Position.js
@@ -73,7 +73,6 @@ sources:
   - Source/Widget/Trait/Hoverable.js
   - Source/Widget/Trait/ProxyChildren.js
   - Source/Widget/Trait/Layers.js
-  - Source/Widget/Trait/Liquid.js
   - Source/Widget/Trait/Menu.js
   - Source/Widget/Trait/Resizable.js
   - Source/Widget/Trait/ResizableContainer.js

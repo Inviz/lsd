@@ -65,7 +65,7 @@ ART.Widget.Trait.Menu = new Class({
     this.removeEvents(this.events.menu);
   }),
   
-  repositionMenu: function(once) {
+  repositionMenu: function() {
     if (!this.menu || this.collapsed) return;
     var top = 0;
     switch (this.options.menu.position) {
@@ -83,7 +83,6 @@ ART.Widget.Trait.Menu = new Class({
     this.menu.setStyle('top', top);
     this.menu.setStyle('left', this.offset.paint.left);
     this.menu.setWidth(this.getStyle('width'));
-    //if (!once) arguments.callee.delay(30, this, true)
   },
   
   buildMenu: function() {
@@ -92,12 +91,13 @@ ART.Widget.Trait.Menu = new Class({
   
   getItemWrapper: function() {
     if (!this.menu) this.buildMenu();
+    this.repositionMenu();
     return this.menu;
   },
   
   expand: Macro.onion(function() {
     if (!this.menu) this.buildMenu();
-    this.repositionMenu();
+    else this.repositionMenu();
     this.menu.show();
   }),
   
