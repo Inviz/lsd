@@ -187,3 +187,13 @@ Library wants the raw body of stylesheets, so it makes an ajax call to that file
 	cd dependencies/lsd-examples
 	jsus -i . -o Scripts -d ../.. -g -b
 	
+	
+Changelog
+---------
+	0.21 Expressions support, focus propagation, bugfixes & speedups
+		
+	0.2 Themes release
+
+	0.11 First public demo
+	
+	0.1 Initial public release
