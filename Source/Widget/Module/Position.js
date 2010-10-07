@@ -33,4 +33,4 @@ ART.Widget.Module.Position = new Class({
   
 });
 
-ART.Widget.Ignore.attributes.push('at');
+Widget.Attributes.Ignore.push('at');

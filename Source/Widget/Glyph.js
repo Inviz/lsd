@@ -21,7 +21,7 @@ provides: [ART.Widget.Glyph]
 ART.Widget.Glyph = new Class({
   Includes: [
     ART.Widget.Paint,
-    Widget.Trait.Touchable
+    Widget.Trait.Touchable.Stateful
   ],
   
   name: 'glyph',

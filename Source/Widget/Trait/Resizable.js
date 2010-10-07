@@ -47,6 +47,25 @@ ART.Widget.Trait.Resizable = new Class({
   
   cache: {},
   
+  actions: {
+    resizer: {
+      uses: ['#handle', '#content'],
+      
+      initialize: function() {
+        if (this.options.resizer.container) this.content.addEvent('resize', this.checkOverflow.bind(this));
+        if (this.options.resizer.crop) $(this.getResized()).setStyle('overflow', 'hidden')
+      },
+      
+      enable: function() {
+        this.getResizer().attach();
+      },
+
+      disable: function() {
+        if (this.resizer) this.resizer.detach();
+      }
+    }
+  },
+  
   getResizer: Macro.setter('resizer', function() {
     var resized = this.getResized();
     var element = $(resized)//.setStyle('overflow', 'hidden');
@@ -66,23 +85,6 @@ ART.Widget.Trait.Resizable = new Class({
       'drag': this.onResize.bind(this)
     }, true);
     return resizer;
-  }),
-  
-  build: Macro.onion(function() {
-    this.use('#handle', '#content', function() {
-      this.addAction({
-        enable: function() {
-          this.getResizer().attach();
-        },
-
-        disable: function() {
-          if (this.resizer) this.resizer.detach();
-        }
-      });
-      
-      if (this.options.resizer.container) this.content.addEvent('resize', this.checkOverflow.bind(this));
-      if (this.options.resizer.crop) $(this.getResized()).setStyle('overflow', 'hidden')
-    })
   }),
   
   checkOverflow: function(size) {
@@ -140,4 +142,4 @@ ART.Widget.Trait.Resizable = new Class({
   })
 });
 
-ART.Widget.Ignore.events.push('resizer');
+Widget.Events.Ignore.push('resizer');

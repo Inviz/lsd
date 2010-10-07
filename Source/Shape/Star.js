@@ -72,7 +72,7 @@ ART.Shape.Star = new Class({
 
 });  
 
-ART.Styles.Paint.push('starRays', 'starRadius', 'starOffset');
+Widget.Styles.Paint.push('starRays', 'starRadius', 'starOffset');
 //
 //Raphael.fn.star = function (cx, cy, r, r2, rays) 
 //{ 

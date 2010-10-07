@@ -62,6 +62,14 @@ ART.Widget.Module.DOM = new Class({
     return found;
   },
   
+  getElements: function(selector) {
+    return Slick.search(this, selector)
+  },
+  
+  getElement: function(selector) {
+    return Slick.find(this, selector)
+  },
+  
   getAttributeNode: function(attribute) {
     return {
       nodeName: attribute,
@@ -191,6 +199,6 @@ ART.Widget.Module.DOM = new Class({
   }
 });
 
-Widget.Ignore.attributes.push('shy');
+Widget.Attributes.Ignore.push('shy');
 
 })();

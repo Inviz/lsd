@@ -26,17 +26,11 @@ ART.Widget.Input.Range = new Class({
   Includes: [
     ART.Widget.Paint,
     Widget.Trait.Slider,
-    Widget.Trait.Focus,
+    Widget.Trait.Focus.Stateful,
     Widget.Trait.Accessibility
   ],
   
   name: 'input',
-  
-  events: {
-    element: {
-      mousedown: 'retain'
-    }
-  },
   
   layered: {
     shadow: ['shadow'],
@@ -44,24 +38,23 @@ ART.Widget.Input.Range = new Class({
     background: ['fill', ['backgroundColor']],
     reflection:  ['fill', ['reflectionColor']]
   },
-  
-  initialize: function() {
-    this.parent.apply(this, arguments);
-    this.addPseudo(this.options.mode);
-    this.getSlider();
+
+  shortcuts: {
+    next: 'increment',
+    previous: 'decrement'
   },
 
-  onSet: function() {
-    this.focus();
-  },
-  
   layout: {
     'input-range-thumb[shape=arrow]#thumb': {}
   },
   
-  shortcuts: {
-    next: 'increment',
-    previous: 'decrement'
+  initialize: function() {
+    this.parent.apply(this, arguments);
+    this.addPseudo(this.options.mode);
+  },
+
+  onSet: function() {
+    this.focus();
   },
   
   increment: function() {

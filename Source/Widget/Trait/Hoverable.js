@@ -11,38 +11,29 @@ authors: Yaroslaff Fedin
  
 requires:
 - ART.Widget.Base
-provides: [ART.Widget.Trait.Hoverable]
+provides: [ART.Widget.Trait.Hoverable, ART.Widget.Trait.Hoverable.State, ART.Widget.Trait.Hoverable.Stateful]
  
 ...
 */
 
 ART.Widget.Trait.Hoverable = new Class({
-  States: {
-    'hover': ['mouseenter', 'mouseleave']
-  },
-  
   events: {
-    hover: {
+    enabled: {
       element: {
         mouseenter: 'mouseenter',
         mouseleave: 'mouseleave'
       }
     }
-  },
-  
-  
-  attach: Macro.onion(function(){
-    this.addAction({
-      enable: function() {
-        this.addEvents(this.events.hover);
-      },
-      
-      disable: function() {
-        this.removeEvents(this.events.hover);
-      }
-    })
-  })
+  }
 });
 
-ART.Widget.Ignore.events.push('hover'); 
-//ART.Widget.Ignore.attributes.push('hoverable');
+Widget.Events.Ignore.push('hover'); 
+
+ART.Widget.Trait.Hoverable.State = Class.Stateful({
+  'hover': ['mouseenter', 'mouseleave']
+});
+ART.Widget.Trait.Hoverable.Stateful = [
+  ART.Widget.Trait.Hoverable.State,
+  ART.Widget.Trait.Hoverable
+]
+Widget.Attributes.Ignore.push('hoverable');

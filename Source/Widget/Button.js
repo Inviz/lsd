@@ -22,7 +22,7 @@ ART.Widget.Button = new Class({
 
   Includes: [
     ART.Widget.Paint,
-    Widget.Trait.Touchable
+    Widget.Trait.Touchable.Stateful
   ],
 
   name: 'button',
@@ -32,8 +32,10 @@ ART.Widget.Button = new Class({
   },
   
   events: {
-    element: {
-      click: 'onClick'
+    enabled: {
+      element: {
+        click: 'onClick'
+      }
     }
   },
   

@@ -67,7 +67,7 @@ ART.Widget.Menu.Toolbar.Menu = new Class({
   
 });
 
-Widget.Ignore.events.push('target');
+Widget.Events.Ignore.push('target');
 
 ART.Widget.Menu.Toolbar.Menu.Label = new Class({
   Extends: ART.Widget.Button

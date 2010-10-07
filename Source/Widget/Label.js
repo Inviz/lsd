@@ -54,4 +54,4 @@ ART.Widget.Label = new Class({
   }
 });
 
-ART.Widget.Ignore.attributes.push('container');
+Widget.Attributes.Ignore.push('container');

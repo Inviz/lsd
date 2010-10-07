@@ -77,7 +77,8 @@ ART.Layout = new Class({
           name = 'liquid';
           break;
       }
-      cache[name] = ART.Widget.Trait[name.capitalize()] || null;
+      var klass = cache[name] = ART.Widget.Trait[name.capitalize()] || null;
+      if (klass && klass.Stateful) cache[name] = klass.Stateful;
     }
     return cache[name];
   }

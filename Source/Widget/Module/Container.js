@@ -33,4 +33,4 @@ ART.Widget.Module.Container = new Class({
   }
 });
 
-ART.Widget.Ignore.attributes.push('container');
+Widget.Attributes.Ignore.push('container');

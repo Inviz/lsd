@@ -29,7 +29,7 @@ ART.Widget.Trait.Draggable = new Class({
         x: 'left',
         y: 'top'
       },
-      snap: false,
+      snap: 5,
       style: false,
       container: true,
       limit: {
@@ -43,6 +43,21 @@ ART.Widget.Trait.Draggable = new Class({
   
   events: {
     dragger: {}
+  },
+  
+  actions: {
+    dragger: {
+      uses: ['#title', '#content'], 
+      
+      enable: function() {
+        if (this.dragger) this.dragger.attach();
+        else this.getDragger();
+      },
+
+      disable: function() {
+        if (this.dragger) this.dragger.detach();
+      }
+    }
   },
   
   getDragger: Macro.setter('dragger', function() {
@@ -64,20 +79,6 @@ ART.Widget.Trait.Draggable = new Class({
       'drag': this.onDrag.bind(this)
     }, true);
     return dragger;
-  }),
-  
-  build: Macro.onion(function() {
-    this.use('#title', '#content', function() {
-      this.addAction({
-        enable: function() {
-          this.getDragger().attach();
-        },
-
-        disable: function() {
-          if (this.dragger) this.dragger.detach();
-        }
-      })
-    })
   }),
 
   onDragStart: function() {
@@ -102,4 +103,4 @@ ART.Widget.Trait.Draggable = new Class({
   })
 });
 
-ART.Widget.Ignore.events.push('dragger');
+Widget.Events.Ignore.push('dragger');

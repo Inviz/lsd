@@ -33,7 +33,7 @@ ART.Widget.Module.LayoutEvents = new Class({
       if (!prefix) prefix = '';
       for (var type in tree) {
         var event = tree[type];
-        if (ART.Widget.Ignore.events.contains(type)) continue;
+        if (Widget.Events.Ignore.contains(type)) continue;
         if (event.call) {
           if (!prefix) continue;
           if (!callbacks[prefix]) callbacks[prefix] = {};
@@ -55,4 +55,4 @@ ART.Widget.Module.LayoutEvents = new Class({
 
 })();
 
-ART.Widget.Ignore.events.push('self', 'internal', 'element', 'parent');
+Widget.Events.Ignore.push('self', 'internal', 'element', 'parent', 'run');

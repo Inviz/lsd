@@ -22,8 +22,8 @@ provides: [ART.Widget.Input.Checkbox]
 ART.Widget.Input.Checkbox = new Class({
   Includes: [
     ART.Widget.Paint,
-    Widget.Trait.Touchable,
-    Widget.Trait.Focus,
+    Widget.Trait.Touchable.Stateful,
+    Widget.Trait.Focus.Stateful,
     Widget.Trait.Accessibility
   ],
   
@@ -34,9 +34,10 @@ ART.Widget.Input.Checkbox = new Class({
   name: 'input',
   
   events: {
-    element: {
-      click: 'toggle',
-      mousedown: 'retain'
+    enabled: {
+      element: {
+        click: 'toggle'
+      }
     }
   },
   
@@ -50,5 +51,10 @@ ART.Widget.Input.Checkbox = new Class({
     background:  ['fill', ['backgroundColor']],
     reflection:  ['fill', ['reflectionColor']],
     glyph: ['glyph']
+  },
+  
+  retain: function() {
+    this.toggle();
+    return this.parent.apply(this, arguments);
   }
 });

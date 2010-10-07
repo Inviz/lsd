@@ -22,7 +22,7 @@ provides: [ART.Widget.Menu.Toolbar]
 ART.Widget.Menu.Toolbar = new Class({
   Includes: [
     ART.Widget.Menu,
-    Widget.Trait.Focus,
+    Widget.Trait.Focus.Stateful,
     Widget.Trait.List,
     Widget.Trait.Accessibility
   ],

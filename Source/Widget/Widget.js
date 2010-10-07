@@ -39,8 +39,6 @@ provides: [ART.Widget]
 
     States: {
       'hidden': ['hide', 'show'],
-      'active': ['activate', 'deactivate'],
-      'focused': ['focus', 'blur'],
       'disabled': ['disable', 'enable'],
       'built': ['build', 'destroy', false],
       'attached': ['attach', 'detach', false],
@@ -80,6 +78,6 @@ provides: [ART.Widget]
   });
   ART.Widget.Base = Old.Base;
   
-  ART.Widget.Ignore.states.push('dirty');
+  Widget.States.Ignore.push('dirty');
 
 })(ART.Widget);

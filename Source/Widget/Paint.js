@@ -186,7 +186,7 @@ ART.Widget.Paint = new Class({
   
   getStyle: function(property, value) {
     if (this.style.computed[property]) return this.style.computed[property]; 
-    var properties = ART.Styles.Complex[property];
+    var properties = Widget.Styles.Complex[property];
     if (properties) {
       if (properties.set) properties = properties.get;
       var current = this.style.current;
@@ -204,9 +204,9 @@ ART.Widget.Paint = new Class({
   },
   
   setPaintStyle: function(property, value) {
-    if (!ART.Styles.Paint[property]) return false;
+    if (!Widget.Styles.Paint[property]) return false;
     this.style.paint[property] = value;
-    var properties = ART.Styles.Complex[property];
+    var properties = Widget.Styles.Complex[property];
     if (properties) {
       if (properties.set) properties = properties.set;
       if (!(value instanceof Array)) {

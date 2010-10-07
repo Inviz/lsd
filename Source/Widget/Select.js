@@ -33,7 +33,7 @@ ART.Widget.Select = new Class({
     Widget.Trait.List,
     Widget.Trait.Choice,
     Widget.Trait.Value,
-    Widget.Trait.Focus,
+    Widget.Trait.Focus.Stateful,
     Widget.Trait.Accessibility
   ],
   
@@ -66,7 +66,6 @@ ART.Widget.Select = new Class({
   
   events: {
     element: {
-      mousedown: 'retain',
       click: 'expand'
     },
     self: {

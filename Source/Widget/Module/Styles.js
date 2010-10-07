@@ -22,15 +22,15 @@ provides: [ART.Widget.Module.Styles, ART.Styles]
 
 
 ART.Styles = {}
-ART.Styles.Paint = new FastArray(
+Widget.Styles.Paint = new FastArray(
   'glyphColor', 'glyphShadow', 'glyphSize', 'glyphStroke', 'glyph', 'glyphColor', 'glyphColor', 'glyphHeight', 'glyphWidth', 'glyphTop', 'glyphLeft',     
   'cornerRadius', 'cornerRadiusTopLeft', 'cornerRadiusBottomLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight',    
   'reflectionColor',  'backgroundColor', 'strokeColor', 'fillColor', 'starRays',
   'shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY', 'userSelect'
 );
-ART.Styles.Element = FastArray.from(Hash.getKeys(Element.Styles).concat('float', 'display', 'clear', 'cursor', 'verticalAlign', 'textAlign'));
+Widget.Styles.Element = FastArray.from(Hash.getKeys(Element.Styles).concat('float', 'display', 'clear', 'cursor', 'verticalAlign', 'textAlign'));
 
-ART.Styles.Complex = {
+Widget.Styles.Complex = {
   'cornerRadius': {
     set: ['cornerRadiusTopLeft', 'cornerRadiusBottomLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight'],
     get: ['cornerRadiusTopLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight', 'cornerRadiusBottomLeft']
@@ -182,7 +182,7 @@ ART.Widget.Module.Styles = new Class({
   },
   
   setElementStyle: function(property, value) {
-    if (ART.Styles.Element[property]) {
+    if (Widget.Styles.Element[property]) {
       if (this.style.element[property] !== value) this.element.setStyle(property, value);
       this.style.element[property] = value;
       return value;

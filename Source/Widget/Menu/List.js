@@ -24,14 +24,11 @@ ART.Widget.Menu.List = new Class({
   Includes: [
     ART.Widget.Menu,
     Widget.Trait.List,
-    Widget.Trait.Focus,
+    Widget.Trait.Focus.Stateful,
     Widget.Trait.Accessibility
   ],
   
   events: {
-    element: {
-      mousedown: 'retain'
-    },
     self: {
       dominject: 'makeItems'
     }

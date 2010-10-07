@@ -12,9 +12,8 @@ authors: Yaroslaff Fedin
 requires:
 - ART.Widget.Base
 - ART.Widget.Menu.Context
-- Base/Widget.Trait.OuterClick
 
-provides: [ART.Widget.Trait.Menu, ART.Widget.Trait.Menu.Stateful]
+provides: [ART.Widget.Trait.Menu, ART.Widget.Trait.Menu.States, ART.Widget.Trait.Menu.Stateful]
  
 ...
 */
@@ -41,7 +40,12 @@ ART.Widget.Trait.Menu = new Class({
         cancel: 'collapse',
         select: 'expand'
       }
-    }
+    },
+    focus: {
+  	  element: {
+  	    mousedown: null //nullify retain
+  	  }
+	  },
   },
 
   shortcuts: {
@@ -109,11 +113,12 @@ ART.Widget.Trait.Menu = new Class({
   getSelectedOptionPosition: $lambda(0)
 });
 
+ART.Widget.Trait.Menu.State = Class.Stateful({
+  'expanded': ['expand', 'collapse']
+});
 ART.Widget.Trait.Menu.Stateful = [
-  Class.Stateful({
-    'expanded': ['expand', 'collapse']
-  }),
+  ART.Widget.Trait.Menu.State,
   ART.Widget.Trait.Menu
 ]
 
-ART.Widget.Ignore.events.push('menu');
+Widget.Events.Ignore.push('menu');

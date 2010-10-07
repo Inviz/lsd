@@ -12,15 +12,16 @@ authors: Yaroslaff Fedin
 requires:
 - ART.Widget.Paint
 - Base/Widget.Trait.Input
+- Base/Widget.Trait.Focus.State
 
 provides: [ART.Widget.Input]
  
 ...
 */
-
 ART.Widget.Input = new Class({
   Includes: [
     ART.Widget.Paint,
+    Widget.Trait.Focus.State,
     Widget.Trait.Input
   ],
   
@@ -28,12 +29,6 @@ ART.Widget.Input = new Class({
   
   attributes: {
     type: 'text'
-  },
-  
-  events: {
-    element: {
-      mousedown: 'retain'
-    }
   },
   
   layered: {
@@ -46,11 +41,10 @@ ART.Widget.Input = new Class({
   
   focus: Macro.onion(function() {
     this.input.focus();
-    var parent = this;
   }),
   
-  retain: function(e) {
-    if (!this.disabled) this.focus(false);
+  retain: function() {
+    this.focus(false);
     return false;
   },
   

@@ -104,13 +104,6 @@ ART.Widget.Scrollbar = new Class({
     return this.scrolled;
   },
   
-  dispose: function() {
-    var parent = this.parentNode;
-    if (!this.parent.apply(this, arguments)) return;
-    parent.removeEvents(this.events.parent);
-    return true;
-  },
-  
   getTrack: function() {
     return $(this.track)
   },

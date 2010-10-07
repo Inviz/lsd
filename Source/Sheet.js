@@ -113,7 +113,7 @@ ART.Sheet = {};
   ART.Styles.Except = new FastArray('backgroundColor', 'width', 'height', 'minWidth', 'minHeight', 'maxWidth', 'maxHeight');
   
   ART.Sheet.isElementStyle = function(cc) {
-    return ART.Styles.Element[cc] && !ART.Styles.Except[cc];
+    return Widget.Styles.Element[cc] && !ART.Styles.Except[cc];
   }
   ART.Sheet.define = function(selectors, style){
     Slick.parse(selectors).expressions.each(function(selector){
@@ -242,7 +242,6 @@ ART.Sheet = {};
       } else { //dry run, get some more info
         var walk = function(k, l, m) {
           if (k < 0 || l < 0) return;
-          //debugger
           if (match.structure(hierarchy[k], selector[l])) {
             if (m > -1) {
               if (match.state(hierarchy[k], selector[l])) {
