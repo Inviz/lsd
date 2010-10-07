@@ -6,6 +6,7 @@ license: Public domain, http://unlicense.org
 copyright: Yaroslaff Fedin
 author: inviz
 category: Interface
+current: 0.2.2
 tags: [ui, svg, interface]
 demo: http://inviz.github.com/lsd-examples/Demos/index.html
 sources:
