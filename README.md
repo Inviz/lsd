@@ -28,23 +28,23 @@ Things we have
   
 **Input: window.sass**
   
-  window.hud
-    button
-      &:active
-        :font-size 110%
-        :reflection-color hsl(0, 0, 0, 0.5)
-      &:hover
-        :reflection-color hsl(0, 0, 0, 0.7)
-        
+    window.hud
+      button
+        &:active
+          :font-size 110%
+          :reflection-color hsl(0, 0, 0, 0.5)
+        &:hover
+          :reflection-color hsl(0, 0, 0, 0.7)
+          
 **Output: window.css**
 
-  .art.window.hud .art.button.pseudo-active {
-    font-size: 110%;                           /* set by browser, usual CSS, speedy! */
-    -lsd-reflection-color: hsl(0, 0, 0, 0.5)   /* custom property that has to be applied by LSD */
-  }
-  .art.window.hud .art.button.pseudo-hover {
-    -lsd-reflection-color: hsl(0, 0, 0, 0.7)
-  }
+    .art.window.hud .art.button.pseudo-active {
+      font-size: 110%;                           /* set by browser, usual CSS, speedy! */
+      -lsd-reflection-color: hsl(0, 0, 0, 0.5)   /* custom property that has to be applied by LSD */
+    }
+    .art.window.hud .art.button.pseudo-hover {
+      -lsd-reflection-color: hsl(0, 0, 0, 0.7)
+    }
   
 * **Document** - The single most useful thing in mootools 1.3 for me was Slick. The engine that blazingly fast retrieves elements from the DOM using selectors. Our widget trees are partially DOM-compatible, so Slick can just walk through widgets like if they were regular elements. 
 
@@ -95,16 +95,22 @@ There's also QFocuser that aims to provide the same native focusing experience i
 Dependencies
 ------------
 
-This is a second library in a set. It requires lsd-base to function properly. And both of them work with the latest mootools. 
+This is a second library in a set. It requires lsd-base to function properly. And both of them work with the latest (1.3) mootools. 
 
-* mootools-core
-* mootools-more
-* lsd-base
-* art
-* qfocuser
-* mootools-ext
-* mootools-color
-* cssparser
+* [lsd-base](http://github.com/inviz/lsd-base) (Public domain)
+* [art](http://github.com/inviz/mootools-ext) mootools-ext (Public domain)
+* [art](http://github.com/mootools/mootools-core) mootools-core (MIT Licesnse)
+* [art](http://github.com/mootools/mootools-more) mootools-more (MIT Licesnse)
+* [art](http://github.com/kamicane/art) (MIT Licesnse)
+* [qfocuser](http://github.com/inviz/qfocuser) (MIT Licesnse)
+* [mootools-color](http://github.com/kamicane/mootools-color) (MIT Licesnse)
+* [cssparser](http://github.com/inviz/cssparser) (MIT Licesnse)
+
+Extras:
+
+* [lsd-examples](http://github.com/inviz/lsd-examples) (Public domain)
+* [lsd-themes](http://github.com/inviz/lsd-themes) (Public domain)
+* [lsd-specs](http://github.com/inviz/lsd-specs) (Public domain)
 
 How to use
 ----------
@@ -113,19 +119,19 @@ Well, the framework is overwhelmingly feature rich, so it's up to you.
 
 First, a stylesheet (example is sass, check generated css to bake it by hand):
   
-  window
-    :width 100px
-    :height 100px
-    :background-color hsb(0, 0, 0, 0.5)
-    :stroke-width 3px
-    :stroke-color hsb(0, 0, 100, 0.3)
-    button
-      :width auto
-      :height 20px
-      :background-color gradient(hsb(0, 100, 30, 0.9), hsb(20, 30, 10, 0.2))
-      
-      &.submit
-        :color white
+    window
+      :width 100px
+      :height 100px
+      :background-color hsb(0, 0, 0, 0.5)
+      :stroke-width 3px
+      :stroke-color hsb(0, 0, 100, 0.3)
+      button
+        :width auto
+        :height 20px
+        :background-color gradient(hsb(0, 100, 30, 0.9), hsb(20, 30, 10, 0.2))
+        
+        &.submit
+          :color white
 
 
 Example
@@ -133,75 +139,75 @@ Example
 
 Ok, here is an example of everyday coolness that i'm exposed to, because I'm working with LSD (this library). Let's create a widget tree:
 
-  var document = new ART.Document;
-  var window = new (new Class({
-    Includes: [
-      ART.Widget.Window,
-      ART.Widget.Trait.Draggable
-    ]
-  }))
-  
-  ART.Widget.Button = new Class({
-
-    Includes: [
-      ART.Widget.Paint,
-      Widget.Trait.Touchable.Stateful //adds logic to handle press, a state (this.hover) and two methods (this.mousedown & this.mouseup)
-    ],
-
-    name: 'button',
-
-    options: {
-      label: ''
-    },
-
-    events: {
-      enabled: { //events only added when widget is enabled
-        element: {
-          click: 'onClick' //maps to this.onClick.bind(this)
+    var document = new ART.Document;
+    var window = new (new Class({
+      Includes: [
+        ART.Widget.Window,
+        ART.Widget.Trait.Draggable
+      ]
+    }))
+    
+    ART.Widget.Button = new Class({
+    
+      Includes: [
+        ART.Widget.Paint,
+        Widget.Trait.Touchable.Stateful //adds logic to handle press, a state (this.hover) and two methods (this.mousedown & this.mouseup)
+      ],
+    
+      name: 'button',
+    
+      options: {
+        label: ''
+      },
+    
+      events: {
+        enabled: { //events only added when widget is enabled
+          element: {
+            click: 'onClick' //maps to this.onClick.bind(this)
+          }
         }
+      },
+    
+      layered: {
+        shadow:  ['shadow'],                         //add shadow capabilities to widget
+        stroke: ['stroke'],                          //add stroke layers. Also handles fill-color
+        background:  ['fill', ['backgroundColor']], //two rectangle layers
+        reflection:  ['fill', ['reflectionColor']],
+        glyph: ['glyph']                            //icon glyph
+      },
+    
+      onClick: function() {   //main action method
+        this.fireEvent('click', arguments);
+      },
+    
+      setContent: Macro.onion(function(content) {
+        this.setState('text') //add pseudo-class if the button has text to make special style in css like button:text { padding: 2px 3px}
+      })
+    
+    });
+    
+    ART.Widget.Button.Submit = new Class({
+      Extends: ART.Widget.Button,
+      
+      expression: 'button.submit',
+      
+      onClick: function() {
+        if (this.condition()) this.parent.apply(this, arguments);
+      },
+      
+      condition: function() {
+        return this.getForm().validate() //only submit if the form is valid
       }
-    },
-
-    layered: {
-      shadow:  ['shadow'],                         //add shadow capabilities to widget
-      stroke: ['stroke'],                          //add stroke layers. Also handles fill-color
-      background:  ['fill', ['backgroundColor']], //two rectangle layers
-      reflection:  ['fill', ['reflectionColor']],
-      glyph: ['glyph']                            //icon glyph
-    },
-
-    onClick: function() {   //main action method
-      this.fireEvent('click', arguments);
-    },
-
-    setContent: Macro.onion(function(content) {
-      this.setState('text') //add pseudo-class if the button has text to make special style in css like button:text { padding: 2px 3px}
-    })
-
-  });
-  
-  ART.Widget.Button.Submit = new Class({
-    Extends: ART.Widget.Button,
+    });
     
-    expression: 'button.submit',
+    var button = new ART.Widget.Button;
+    var submit = new ART.Widget.Button.Submit;  
+    window.inject(document);
+    window.adopt(button)
+    submit.inject(window);
     
-    onClick: function() {
-      if (this.condition()) this.parent.apply(this, arguments);
-    },
-    
-    condition: function() {
-      return this.getForm().validate() //only submit if the form is valid
-    }
-  });
-  
-  var button = new ART.Widget.Button;
-  var submit = new ART.Widget.Button.Submit;  
-  window.inject(document);
-  window.adopt(button)
-  submit.inject(window);
-  
-  //no, i changed my mine
-  Slick.search(document, "window button + button.submit").dispose();
+    //no, i changed my mine
+    Slick.search(document, "window button + button.submit").dispose();
   
 
 
@@ -212,24 +218,25 @@ Only jsus (http://github.com/markiz/jsus) can save you. You need it is a gem to 
 
 Library wants the raw body of stylesheets, so it makes an ajax call to that file (making it impossible to work on local filesystem). You need to use web server like apache or nginx to host it, and then access it. Sorry for this limitation for right now.
   
-  # Mandatory: Get files
-  git clone git://github.com/Inviz/lsd.git
-  cd lsd
-  git submodule update --init
-  # open dependencies/lsd-examples/demos/index.html in the browser
-  
-  # Optional: Use jsus to pack files
-  sudo gem install jsus
-  cd dependencies/lsd-examples
-  jsus -i . -o Scripts -d ../.. -g -b
-  
-  
-Changelog
----------
-  0.21 Expressions support, focus propagation, bugfixes & speedups
+    # Mandatory: Get files
+    git clone git://github.com/Inviz/lsd.git
+    cd lsd
+    git submodule update --init
+    # open dependencies/lsd-examples/demos/index.html in the browser
     
-  0.2 Themes release
-
-  0.11 First public demo
+    # Optional: Use jsus to pack files
+    sudo gem install jsus
+    cd dependencies/lsd-examples
+    jsus -i . -o Scripts -d ../.. -g -b
   
-  0.1 Initial public release
+  
+[Changelog](http://github.com/Inviz/lsd/blob/master/CHANGELOG)
+---------
+    0.21 Expressions support, focus propagation, bugfixes & speedups
+      
+    0.2 Themes release
+    
+    0.11 First public demo
+    
+    0.1 Initial public release
+    
