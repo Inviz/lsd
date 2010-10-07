@@ -146,48 +146,39 @@ Ok, here is an example of everyday coolness that i'm exposed to, because I'm wor
     }))
     
     ART.Widget.Button = new Class({
-    
+
       Includes: [
         ART.Widget.Paint,
-        Widget.Trait.Touchable.Stateful //adds logic to handle press, a state (this.hover) and two methods (this.mousedown & this.mouseup)
+        Widget.Trait.Touchable.Stateful
       ],
-    
-      name: 'button',
-    
+
       options: {
+        tag: 'button',
+        layers: {
+          shadow:  ['shadow'],
+          stroke: ['stroke'],
+          background:  [ART.Layer.Fill.Background.Offset],
+          reflection:  [ART.Layer.Fill.Reflection.Offset],
+          glyph: ['glyph']
+        },
         label: ''
       },
-    
-      events: {
-        enabled: { //events only added when widget is enabled
-          element: {
-            click: 'onClick' //maps to this.onClick.bind(this)
-          }
-        }
-      },
-    
-      layered: {
-        shadow:  ['shadow'],                         //add shadow capabilities to widget
-        stroke: ['stroke'],                          //add stroke layers. Also handles fill-color
-        background:  ['fill', ['backgroundColor']], //two rectangle layers
-        reflection:  ['fill', ['reflectionColor']],
-        glyph: ['glyph']                            //icon glyph
-      },
-    
-      onClick: function() {   //main action method
-        this.fireEvent('click', arguments);
-      },
-    
-      setContent: Macro.onion(function(content) {
-        this.setState('text') //add pseudo-class if the button has text to make special style in css like button:text { padding: 2px 3px}
-      })
-    
+
+      setContent: function(content) {
+        this.setState('text');
+        return this.parent.apply(this, arguments);
+      }
+
     });
     
     ART.Widget.Button.Submit = new Class({
       Extends: ART.Widget.Button,
       
-      expression: 'button.submit',
+      options: {
+        layout: {
+          self: 'button.submit'
+        }
+      },
       
       onClick: function() {
         if (this.condition()) this.parent.apply(this, arguments);
