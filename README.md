@@ -230,6 +230,8 @@ Library wants the raw body of stylesheets, so it makes an ajax call to that file
   
 [Changelog](http://github.com/Inviz/lsd/blob/master/CHANGELOG)
 ---------
+		0.22 Actions revamp. Disabled attribute support. Cleaning.
+		
     0.21 Expressions support, focus propagation, bugfixes & speedups
       
     0.2 Themes release
