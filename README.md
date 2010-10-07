@@ -11,11 +11,9 @@ Pictures
 
 It can do much more than this, but this is my tech demos. There are more things that is untested (like scrollbars) but is there. 
 
-* [Windows demo](http://img.skitch.com/20100912-pgxcpgxi145fhnsd1eidanie81.png)
+* [Desktop demo](http://img.skitch.com/20101007-mkm3th7j29ikjhhi7ah816n19s.png)
 * [HUD theme](http://img.skitch.com/20100915-r5wsspyameb81mbm2mq1unyax3.png)
 * [Aristo theme (in two colors)](http://img.skitch.com/20100928-eas6h46ddfbe7di25qwrsrkwp5.png)
-* [Some kind of menu bar](http://img.skitch.com/20100907-pw2scewykaiyaau2jm4jb8giwu.png)
-
 
 Things we have
 --------------
