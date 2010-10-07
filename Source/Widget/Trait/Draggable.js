@@ -13,16 +13,12 @@ requires:
 - ART.Widget.Base
 - More/Drag
 
-provides: [ART.Widget.Trait.Draggable]
+provides: [ART.Widget.Trait.Draggable, ART.Widget.Trait.Draggable.Stateful, ART.Widget.Trait.Draggable.State]
  
 ...
 */
 
 ART.Widget.Trait.Draggable = new Class({
-  States: {
-    'dragged': ['drag', 'drop']
-  },
-  
   options: {
     dragger: {
       modifiers: {
@@ -103,4 +99,11 @@ ART.Widget.Trait.Draggable = new Class({
   })
 });
 
+ART.Widget.Trait.Draggable.State = Class.Stateful({
+  'dragged': ['drag', 'drop']
+});
+ART.Widget.Trait.Draggable.Stateful = [
+  ART.Widget.Trait.Draggable.State,
+  ART.Widget.Trait.Draggable
+];
 Widget.Events.Ignore.push('dragger');

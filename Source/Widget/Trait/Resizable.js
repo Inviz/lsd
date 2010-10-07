@@ -13,17 +13,13 @@ requires:
 - ART.Widget.Base
 - More/Drag
 
-provides: [ART.Widget.Trait.Resizable]
+provides: [ART.Widget.Trait.Resizable, ART.Widget.Trait.Resizable.Container]
  
 ...
 */
 
 
 ART.Widget.Trait.Resizable = new Class({
-  States: {
-    'resized': ['transform', 'finalize']
-  },
-
   options: {
     resizer: {
       modifiers: {
@@ -142,4 +138,22 @@ ART.Widget.Trait.Resizable = new Class({
   })
 });
 
+ART.Widget.Trait.Resizable.State = Class.Stateful({
+  'resized': ['transform', 'finalize']
+});
+ART.Widget.Trait.Resizable.Stateful = [
+  ART.Widget.Trait.Resizable.State,
+  ART.Widget.Trait.Resizable
+];
 Widget.Events.Ignore.push('resizer');
+
+//Make container resize, not the widget itself.
+ART.Widget.Trait.Resizable.Container = new Class({
+  getResized: function() {
+    return this.content;
+  },
+  
+  getScrolled: function() {
+    return this.content.wrapper || this.content
+  }
+});

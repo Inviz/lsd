@@ -141,7 +141,7 @@ Ok, here is an example of everyday coolness that i'm exposed to, because I'm wor
     var window = new (new Class({
       Includes: [
         ART.Widget.Window,
-        ART.Widget.Trait.Draggable
+        ART.Widget.Trait.Draggable.Stateful //adds Draggable trait & a state (this.dragged) and two methods (this.drag & this.drop)
       ]
     }))
     
