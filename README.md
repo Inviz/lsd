@@ -129,7 +129,11 @@ First, a stylesheet (example is sass, check generated css to bake it by hand):
 			&.submit
 				:color white
 
-Let's create a widget tree:
+
+Example
+-------
+
+Ok, here is an example of everyday coolness that i'm exposed to, because I'm working with LSD (this library). Let's create a widget tree:
 
 	var document = new ART.Document;
 	var window = new (new Class({
@@ -138,31 +142,65 @@ Let's create a widget tree:
 			ART.Widget.Trait.Draggable
 		]
 	}))
-	var button = new ART.Widget.Button;
-	//here we may need a custom button
-	var submit = new Class({
+	
+	ART.Widget.Button = new Class({
+
+	  Includes: [
+	    ART.Widget.Paint,
+	    Widget.Trait.Touchable.Stateful //adds logic to handle press, a state (this.hover) and two methods (this.mousedown & this.mouseup)
+	  ],
+
+	  name: 'button',
+
+	  options: {
+	    label: ''
+	  },
+
+	  events: {
+	    enabled: { //events only added when widget is enabled
+	      element: {
+	        click: 'onClick' //maps to this.onClick.bind(this)
+	      }
+	    }
+	  },
+
+	  layered: {
+	    shadow:  ['shadow'], 												//add shadow capabilities to widget
+	    stroke: ['stroke'],													//add stroke layers. Also handles fill-color
+	    background:  ['fill', ['backgroundColor']], //two rectangle layers
+	    reflection:  ['fill', ['reflectionColor']],
+	    glyph: ['glyph']                            //icon glyph
+	  },
+
+	  onClick: function() {   //main action method
+	    this.fireEvent('click', arguments);
+	  },
+
+	  setContent: Macro.onion(function(content) {
+	    this.setState('text') //add pseudo-class if the button has text to make special style in css like button:text { padding: 2px 3px}
+	  })
+
+	});
+	
+	ART.Widget.Button.Submit = new Class({
 		Extends: ART.Widget.Button,
 		
 		expression: 'button.submit',
 		
-		events: {
-			element: {
-				mousedown: 'onMouseDown'
-			}
-		},
-		
 		onClick: function() {
-			alert(123);
+			if (this.condition()) this.parent.apply(this, arguments);
 		},
 		
-		onMouseDown: function() {
-			console.log('test')
+		condition: function() {
+			return this.getForm().validate() //only submit if the form is valid
 		}
-	})
+	});
 	
-	button.inject(window);
+	var button = new ART.Widget.Button;
+	var submit = new ART.Widget.Button.Submit;	
 	window.inject(document);
 	window.adopt(button)
+	submit.inject(window);
 	
 	//no, i changed my mine
 	Slick.search(document, "window button + button.submit").dispose();
