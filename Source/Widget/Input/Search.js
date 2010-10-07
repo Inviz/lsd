@@ -34,7 +34,7 @@ ART.Widget.Input.Search = new Class({
     Widget.Trait.List,
     Widget.Trait.Choice,
     Widget.Trait.Value,
-    Widget.Trait.Observer,
+    Widget.Trait.Observer.Stateful,
     Widget.Trait.Accessibility
   ],
   
@@ -99,10 +99,6 @@ ART.Widget.Input.Search = new Class({
       focus: 'expand'
     }
   },
-  
-  empty: Macro.onion(function() {
-    this.input.set('value', '');
-  }),
 	
   processValue: function(item) {
     return item.value.title;
