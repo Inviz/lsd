@@ -112,8 +112,9 @@ Extras:
 * [lsd-themes](http://github.com/inviz/lsd-themes) (Public domain)
 * [lsd-specs](http://github.com/inviz/lsd-specs) (Public domain)
 
-How to use
-----------
+
+Realworld example
+-----------------
 
 Well, the framework is overwhelmingly feature rich, so it's up to you. 
 
@@ -133,9 +134,6 @@ First, a stylesheet (example is sass, check generated css to bake it by hand):
         &.submit
           :color white
 
-
-Example
--------
 
 Ok, here is an example of everyday coolness that i'm exposed to, because I'm working with LSD (this library). Let's create a widget tree:
 
