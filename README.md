@@ -98,9 +98,9 @@ Dependencies
 This is a second library in a set. It requires lsd-base to function properly. And both of them work with the latest (1.3) mootools. 
 
 * [lsd-base](http://github.com/inviz/lsd-base) (Public domain)
-* [art](http://github.com/inviz/mootools-ext) mootools-ext (Public domain)
-* [art](http://github.com/mootools/mootools-core) mootools-core (MIT Licesnse)
-* [art](http://github.com/mootools/mootools-more) mootools-more (MIT Licesnse)
+* [mootools-ext](http://github.com/inviz/mootools-ext) (Public domain)
+* [mootools-core](http://github.com/mootools/mootools-core) (MIT Licesnse)
+* [mootools-more](http://github.com/mootools/mootools-more) (MIT Licesnse)
 * [art](http://github.com/kamicane/art) (MIT Licesnse)
 * [qfocuser](http://github.com/inviz/qfocuser) (MIT Licesnse)
 * [mootools-color](http://github.com/kamicane/mootools-color) (MIT Licesnse)
