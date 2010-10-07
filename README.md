@@ -113,8 +113,8 @@ Extras:
 * [lsd-specs](http://github.com/inviz/lsd-specs) (Public domain)
 
 
-Realworld example
------------------
+How to Use
+----------
 
 Well, the framework is overwhelmingly feature rich, so it's up to you. 
 
