@@ -27,37 +27,37 @@ Things we have
 * **Layers** - Each widget consist of a few SVG paths. You can add as many of them as you want, we have presets (stroke layer, shadow layer, fill layer). Just provide the name of a layer and CSS properties it works with.
 
 * **Stylesheets** - Remember the times when you had to hardcode widget styles into javascript? I don't, because it is always a bad idea. But here you dont need anything like that anymore. Our way of styling everything is specially baked CSS (includes a cool module for guys who use ruby and sass) with special CSS properties for everything. The best thing is that for known properties Does "" look familiar to you? Exactly.
-	
+  
 **Input: window.sass**
-	
-	window.hud
-		button
-			&:active
-				:font-size 110%
-				:reflection-color hsl(0, 0, 0, 0.5)
-			&:hover
-				:reflection-color hsl(0, 0, 0, 0.7)
-				
+  
+  window.hud
+    button
+      &:active
+        :font-size 110%
+        :reflection-color hsl(0, 0, 0, 0.5)
+      &:hover
+        :reflection-color hsl(0, 0, 0, 0.7)
+        
 **Output: window.css**
 
-	.art.window.hud .art.button.pseudo-active {
-		font-size: 110%;                           /* set by browser, usual CSS, speedy! */
-		-lsd-reflection-color: hsl(0, 0, 0, 0.5)   /* custom property that has to be applied by LSD */
-	}
-	.art.window.hud .art.button.pseudo-hover {
-		-lsd-reflection-color: hsl(0, 0, 0, 0.7)
-	}
-	
+  .art.window.hud .art.button.pseudo-active {
+    font-size: 110%;                           /* set by browser, usual CSS, speedy! */
+    -lsd-reflection-color: hsl(0, 0, 0, 0.5)   /* custom property that has to be applied by LSD */
+  }
+  .art.window.hud .art.button.pseudo-hover {
+    -lsd-reflection-color: hsl(0, 0, 0, 0.7)
+  }
+  
 * **Document** - The single most useful thing in mootools 1.3 for me was Slick. The engine that blazingly fast retrieves elements from the DOM using selectors. Our widget trees are partially DOM-compatible, so Slick can just walk through widgets like if they were regular elements. 
 
-		var button = Slick.search($d, "button + button")[0]
-		var previous = Slick.search(button, "! + button");
-		var nextWindow = Slick.search(button, "! window + window"); //finds button's window and the next window after that
-		
+    var button = Slick.search($d, "button + button")[0]
+    var previous = Slick.search(button, "! + button");
+    var nextWindow = Slick.search(button, "! window + window"); //finds button's window and the next window after that
+    
 * **Modularity** - I believe that there is not enough multiple inheritance in javascript world, so I'd like to change that. We have our own special class mutator and all the code split to small modules (One window widget consists of 20+ modules all chainted together). I believe common things like Lists, Grids, Resizing and things like that can be done one time and used everywhere. It's just a shame to copy and paste tons of crap to create a new widget. No more!
-		
+    
 * **Best practices** - There are a lot of things that are (or to be) done right in this library. Focus handling, keyboard access, events DSL, Dropdown menus, dialogs, overlays, etc. 
-		
+    
 * **Made to be extended** - Trust me, alright? The idea is to make something that makes it a pleasure to add another widget, or set of widgets, or widget state, or one more layer of behaviour, whatever! Just do it, like i did.
 
 * **Lightweight codebase** - It's hard to believe, but when compressed and gzipped the whole library with dependencies (mootools, mootools-more) and SVG art takes less than 90 kb total. True story.
@@ -75,7 +75,7 @@ These are the things that come for free (by using other libraries):
 - Multiple inheritance (that adds a whole lot of fun into creating of new mutators)
 - Safari tabindex emulation
 
-		
+    
 Call for help
 -------------
 
@@ -114,20 +114,20 @@ How to use
 Well, the framework is overwhelmingly feature rich, so it's up to you. 
 
 First, a stylesheet (example is sass, check generated css to bake it by hand):
-	
-	window
-		:width 100px
-		:height 100px
-		:background-color hsb(0, 0, 0, 0.5)
-		:stroke-width 3px
-		:stroke-color hsb(0, 0, 100, 0.3)
-		button
-			:width auto
-			:height 20px
-			:background-color gradient(hsb(0, 100, 30, 0.9), hsb(20, 30, 10, 0.2))
-			
-			&.submit
-				:color white
+  
+  window
+    :width 100px
+    :height 100px
+    :background-color hsb(0, 0, 0, 0.5)
+    :stroke-width 3px
+    :stroke-color hsb(0, 0, 100, 0.3)
+    button
+      :width auto
+      :height 20px
+      :background-color gradient(hsb(0, 100, 30, 0.9), hsb(20, 30, 10, 0.2))
+      
+      &.submit
+        :color white
 
 
 Example
@@ -135,76 +135,76 @@ Example
 
 Ok, here is an example of everyday coolness that i'm exposed to, because I'm working with LSD (this library). Let's create a widget tree:
 
-	var document = new ART.Document;
-	var window = new (new Class({
-		Includes: [
-			ART.Widget.Window,
-			ART.Widget.Trait.Draggable
-		]
-	}))
-	
-	ART.Widget.Button = new Class({
+  var document = new ART.Document;
+  var window = new (new Class({
+    Includes: [
+      ART.Widget.Window,
+      ART.Widget.Trait.Draggable
+    ]
+  }))
+  
+  ART.Widget.Button = new Class({
 
-	  Includes: [
-	    ART.Widget.Paint,
-	    Widget.Trait.Touchable.Stateful //adds logic to handle press, a state (this.hover) and two methods (this.mousedown & this.mouseup)
-	  ],
+    Includes: [
+      ART.Widget.Paint,
+      Widget.Trait.Touchable.Stateful //adds logic to handle press, a state (this.hover) and two methods (this.mousedown & this.mouseup)
+    ],
 
-	  name: 'button',
+    name: 'button',
 
-	  options: {
-	    label: ''
-	  },
+    options: {
+      label: ''
+    },
 
-	  events: {
-	    enabled: { //events only added when widget is enabled
-	      element: {
-	        click: 'onClick' //maps to this.onClick.bind(this)
-	      }
-	    }
-	  },
+    events: {
+      enabled: { //events only added when widget is enabled
+        element: {
+          click: 'onClick' //maps to this.onClick.bind(this)
+        }
+      }
+    },
 
-	  layered: {
-	    shadow:  ['shadow'], 												//add shadow capabilities to widget
-	    stroke: ['stroke'],													//add stroke layers. Also handles fill-color
-	    background:  ['fill', ['backgroundColor']], //two rectangle layers
-	    reflection:  ['fill', ['reflectionColor']],
-	    glyph: ['glyph']                            //icon glyph
-	  },
+    layered: {
+      shadow:  ['shadow'],                         //add shadow capabilities to widget
+      stroke: ['stroke'],                          //add stroke layers. Also handles fill-color
+      background:  ['fill', ['backgroundColor']], //two rectangle layers
+      reflection:  ['fill', ['reflectionColor']],
+      glyph: ['glyph']                            //icon glyph
+    },
 
-	  onClick: function() {   //main action method
-	    this.fireEvent('click', arguments);
-	  },
+    onClick: function() {   //main action method
+      this.fireEvent('click', arguments);
+    },
 
-	  setContent: Macro.onion(function(content) {
-	    this.setState('text') //add pseudo-class if the button has text to make special style in css like button:text { padding: 2px 3px}
-	  })
+    setContent: Macro.onion(function(content) {
+      this.setState('text') //add pseudo-class if the button has text to make special style in css like button:text { padding: 2px 3px}
+    })
 
-	});
-	
-	ART.Widget.Button.Submit = new Class({
-		Extends: ART.Widget.Button,
-		
-		expression: 'button.submit',
-		
-		onClick: function() {
-			if (this.condition()) this.parent.apply(this, arguments);
-		},
-		
-		condition: function() {
-			return this.getForm().validate() //only submit if the form is valid
-		}
-	});
-	
-	var button = new ART.Widget.Button;
-	var submit = new ART.Widget.Button.Submit;	
-	window.inject(document);
-	window.adopt(button)
-	submit.inject(window);
-	
-	//no, i changed my mine
-	Slick.search(document, "window button + button.submit").dispose();
-	
+  });
+  
+  ART.Widget.Button.Submit = new Class({
+    Extends: ART.Widget.Button,
+    
+    expression: 'button.submit',
+    
+    onClick: function() {
+      if (this.condition()) this.parent.apply(this, arguments);
+    },
+    
+    condition: function() {
+      return this.getForm().validate() //only submit if the form is valid
+    }
+  });
+  
+  var button = new ART.Widget.Button;
+  var submit = new ART.Widget.Button.Submit;  
+  window.inject(document);
+  window.adopt(button)
+  submit.inject(window);
+  
+  //no, i changed my mine
+  Slick.search(document, "window button + button.submit").dispose();
+  
 
 
 Installation
@@ -213,25 +213,25 @@ Installation
 Only jsus (http://github.com/markiz/jsus) can save you. You need it is a gem to build the package. Jsus is an alternative (to Packager) javascript packager written in ruby. Currently, it is possible to browse demos without using jsus, because they include generated file tree.
 
 Library wants the raw body of stylesheets, so it makes an ajax call to that file (making it impossible to work on local filesystem). You need to use web server like apache or nginx to host it, and then access it. Sorry for this limitation for right now.
-	
-	# Mandatory: Get files
-	git clone git://github.com/Inviz/lsd.git
-	cd lsd
-	git submodule update --init
-	# open dependencies/lsd-examples/demos/index.html in the browser
-	
-	# Optional: Use jsus to pack files
-	sudo gem install jsus
-	cd dependencies/lsd-examples
-	jsus -i . -o Scripts -d ../.. -g -b
-	
-	
+  
+  # Mandatory: Get files
+  git clone git://github.com/Inviz/lsd.git
+  cd lsd
+  git submodule update --init
+  # open dependencies/lsd-examples/demos/index.html in the browser
+  
+  # Optional: Use jsus to pack files
+  sudo gem install jsus
+  cd dependencies/lsd-examples
+  jsus -i . -o Scripts -d ../.. -g -b
+  
+  
 Changelog
 ---------
-	0.21 Expressions support, focus propagation, bugfixes & speedups
-		
-	0.2 Themes release
+  0.21 Expressions support, focus propagation, bugfixes & speedups
+    
+  0.2 Themes release
 
-	0.11 First public demo
-	
-	0.1 Initial public release
+  0.11 First public demo
+  
+  0.1 Initial public release
