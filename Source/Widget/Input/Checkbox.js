@@ -33,14 +33,6 @@ ART.Widget.Input.Checkbox = new Class({
   
   name: 'input',
   
-  events: {
-    enabled: {
-      element: {
-        click: 'toggle'
-      }
-    }
-  },
-  
   shortcuts: {
     space: 'toggle'
   },
