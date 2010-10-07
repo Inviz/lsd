@@ -2,7 +2,7 @@ name: LSD
 fullname: Lovely SVG Drawings
 filename: lsd.js
 description: Psychodelically awesome library for UI in javascript and SVG
-license: MIT-Style License, http://mootools.net/license
+license: Public domain, http://unlicense.org
 copyright: Yaroslaff Fedin
 author: inviz
 category: Interface

@@ -1,0 +1,126 @@
+0.2.2, 7.10.2010 
+=======
+
+LSD-BASE 
+--------
+
+* Fully remanaged fast arrays of various styles and properties. All things ART.ComplexStyles, ART.Styles.Element, ART.Styles.More, Widget.Ignore.Events and other guys become Widget.[Styles|Events|Attributes|States].[Ignore|Paint|Complex].
+
+* Added a way to set events for specific value of state :) And a whole new cool way of stacking event definitions together. Here is a not very useful example to get the idea:
+
+new Class({
+  Includes: [
+    ART.Widget,
+    Widget.Trait.Hoverable
+  ],
+
+  events: {
+    enabled: { //only applied when the widget is enabled, removed when disabled
+      element: {
+        click: 'execute' //do action
+      },
+      hovered: { //nesting in action. only applied when element is enabled and hovered
+        mousemove: 'releaseUnicorns'
+      }
+    },
+    disabled: {
+      element: {
+        click: 'pulsate' //friendly way to show that the thing is disabled
+      }
+    }
+  },
+
+  pulsate: function() {},
+
+  releaseUnicorns: function() {}
+});
+
+You can make your own state-specific event groups by extending Widget.States.Evevnts.[Positive|Negative]
+
+* Added a way to make state set real attribute on change instead of only pseudo class with emulation. Used for disabled state to set a corresponding attribute for element to stop taking focus and other things
+
+* Made actions into class definition. Now you can add your own actions just like events or layers:
+
+new Class({
+  Extends: ART.Widget,
+
+  actions: {
+    explode: {
+      enable: function() {
+        //will fire when widget is enabled and in dom
+      },
+
+      disable: function() {
+        //will fire when element is disabled, sometimes before enable
+        //if widget is disabled from the start. so if you want to detach
+        //events on some objects, make sure it exists in the first time
+        if (this.drag) this.drag.detach() //not this.getDrag().detach()
+      },
+      //optional below
+      uses: ['#handle'], //wait for widget (any selectors in array) before enable 
+      lazy: true//an option to not enable/disable from the start,
+                //means you have to manually this.addAction(this.events.explode)
+                //anyways.
+      events: 'explode' //will [add|remove]Events(this.events.explode)
+    }
+  }
+})
+
+* Removed outerclick from the codebase for good. Goodbye, buggy friend.
+
+* Removed retain event definition from all the widgets and put into a focus trait. Because almost everything needs it. Still, the power of event stacks gives you an ability to overwrite focus event definition and have no retain event set like this:
+
+events: {
+  focus: {
+    element: {
+      mousedown: null
+    }
+  }
+}
+
+The above code is actually used in Menu trait.
+
+* Going further splitting states and traits. Now State goes into its own object, then Stateful array then is [State, Trait], like this:
+
+Widget.Trait.Item.State = Class.Stateful({
+  selected: ['select', 'unselect']
+});
+Widget.Trait.Item.Stateful = [
+  Widget.Trait.Item.State,
+  Widget.Trait.Item
+]
+
+Gives ability to include state only. Useful for including focus/blur state without focus trait logic.
+
+* Revamped slider and touchable trait so they get disabled correctly. Right now, if the slider starts disabled, nothing gets attached at all. Thanks to new action system.
+
+* Widget now fires enable event by default on initialization
+
+* Relicensed under Public domain (http://unlicense.org)
+
+
+
+LSD
+===
+
+* When trying to initialize a trait from class tag, try to use .Stateful sub-class first.
+
+* Use the new object storages
+
+* Use new enabled event subgroups
+
+* Use new Widget.Trait.Focus.State, Widget.Trait.Touchable.Stateful, Widget.Trait.Focus.Stateful
+
+* Add getElements/getElement methods to DOM trait that use Slick. Use those methods in Radio widget to locate widgets with the same name
+
+* Rewor input range to avoid creating slider object on initialization. Saves a few extra function calls for disabled ranges. Need a way to set value when its disabled though and position the thumb.
+
+* Remove all retain event definitions from widget. They are now inherited from Focus trait
+
+* Make Draggable and Resizable trait use new actions with 'uses' calls to wait for handles. Very handy and cool.
+
+* Hoverable got greatly simplified because of action system.
+
+* Active & Focused states are no longer in a base widget! :) Built ins right now are: hidden, disabled, built & attached. Two latter are internal and are not reflected with changing class or adding pseudo
+
+* Relicensed under Public domain (http://unlicense.org)
