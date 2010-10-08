@@ -47,12 +47,11 @@ ART.Widget.Trait.Resizable = new Class({
     resizer: {
       uses: ['#handle', '#content'],
       
-      initialize: function() {
-        if (this.options.resizer.container) this.content.addEvent('resize', this.checkOverflow.bind(this));
-        if (this.options.resizer.crop) $(this.getResized()).setStyle('overflow', 'hidden')
-      },
-      
       enable: function() {
+        if (!this.resizer) {
+          if (this.options.resizer.container) this.getResized().addEvent('resize', this.checkOverflow.bind(this));
+          if (this.options.resizer.crop) $(this.getResized()).setStyle('overflow', 'hidden')
+        }
         this.getResizer().attach();
       },
 
