@@ -49,7 +49,7 @@ ART.Widget.Base = new Class({
     var args = $A(arguments);
     args.splice(1, 2); //state + args
     this[value ? "setState" : "unsetState"].apply(this, args);
-    if (this.redraws !== 0) this.refresh();
+    if (this.redraws !== 0) this.refresh(true);
     return true;
   },
     
@@ -74,7 +74,7 @@ ART.Widget.Base = new Class({
     var size = this.size;
     if (this.findStyles() || style) this.renderStyles(style);
     this.childNodes.each(function(child){
-      child.refresh();
+      child.render();
     });
     if (size) {
       var newSize = {height: this.getStyle('height'), width: this.getStyle('width')};
