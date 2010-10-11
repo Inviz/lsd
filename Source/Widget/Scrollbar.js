@@ -110,15 +110,7 @@ ART.Widget.Scrollbar = new Class({
   
   getTrackThumb: function() {
     return $(this.track.thumb);
-  },
-  
-  hide: Macro.onion(function() {
-    this.element.setStyle('display', 'none');
-  }),
-  
-  show: Macro.onion(function() {
-    this.element.setStyle('display', 'block');
-  })
+  }
 })
 
 ART.Widget.Scrollbar.Track = new Class({

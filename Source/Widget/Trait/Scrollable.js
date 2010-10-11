@@ -37,11 +37,11 @@ ART.Widget.Trait.Scrollable = new Class({
   showScrollbars: function(size) {
     if (!size) size = this.size;
     var scrolled = this.getScrolled ? $(this.getScrolled()) : this.element.getFirst();
-    if (size.width < scrolled.scrollWidth) this.getHorizontalScrollbar().show();
-    else if (this.horizontal) this.horizontal.hide();
+    if (size.width < scrolled.scrollWidth) this.getHorizontalScrollbar().inject(this);
+    else if (this.horizontal) this.horizontal.dispose();
     
-    if (size.height < scrolled.scrollHeight) this.getVerticalScrollbar().show();
-    else if (this.vertical) this.vertical.hide();
+    if (size.height < scrolled.scrollHeight) this.getVerticalScrollbar().inject(this);
+    else if (this.vertical) this.vertical.dispose();
   },
   
   build: Macro.onion(function() {
@@ -50,17 +50,11 @@ ART.Widget.Trait.Scrollable = new Class({
   }),
   
   getVerticalScrollbar: Macro.setter('vertical', function() {
-    this.applyLayout({
-      'scrollbar#vertical[mode=vertical]': {}
-    });
-    return this.vertical;
+    return this.buildLayout('scrollbar#vertical[mode=vertical]')
   }),
   
   getHorizontalScrollbar: Macro.setter('horizontal', function() {
-    this.applyLayout({
-      'scrollbar#horizontal[mode=horizontal]': {}
-    });
-    return this.horizontal;
+    return this.buildLayout('scrollbar#horizontal[mode=horizontal]')
   }),
   
   getScrolled: Macro.defaults(function() {
