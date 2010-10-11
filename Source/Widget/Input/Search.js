@@ -92,7 +92,7 @@ ART.Widget.Input.Search = new Class({
       click: 'expand'
     },
     canceller: {
-      click: 'empty'
+      click: 'clear'
     },
     self: {
       set: 'setIcon',
@@ -102,6 +102,11 @@ ART.Widget.Input.Search = new Class({
 	
   processValue: function(item) {
     return item.value.title;
+  },
+  
+  clear: function() {
+    this.empty();
+    this.focus();
   },
   
   applyValue: $lambda(true),
