@@ -49,6 +49,7 @@ ART.Widget.Input.Range = new Class({
   },
   
   initialize: function() {
+    delete this.events.focus.element.mousedown;
     this.parent.apply(this, arguments);
     this.addPseudo(this.options.mode);
   },

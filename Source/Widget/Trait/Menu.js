@@ -40,12 +40,12 @@ ART.Widget.Trait.Menu = new Class({
         cancel: 'collapse',
         select: 'expand'
       }
-    },
-    focus: {
-  	  element: {
-  	    mousedown: null //nullify retain
-  	  }
-	  },
+    }
+  },
+  
+  initialize: function() {
+    if (this.events.focus) delete this.events.focus.element.mousedown //nullify retain
+    this.parent.apply(this, arguments);
   },
 
   shortcuts: {
