@@ -118,13 +118,9 @@ ART.Widget.Trait.Resizable = new Class({
   onResize: function() {
     if (this.resizer.value.now.y) this.getResized().setStyle('height', this.resizer.value.now.y);
     if (this.resizer.value.now.x) this.getResized().setStyle('width', this.resizer.value.now.x);
-    this.checkOverflow();
-    //this.refresh(true);
-    //optimization: refresh only widgets that are liquid
     if (this.cache.dependent) this.cache.dependent.each(function(child) {
       child.update();
     })
-    
     this.render();
   },
   
