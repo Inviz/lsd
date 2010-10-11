@@ -58,9 +58,10 @@ new Class({
       },
       //optional below
       uses: ['#handle'], //wait for widget (any selectors in array) before enable 
-      lazy: true//an option to not enable/disable from the start,
-                //means you have to manually this.addAction(this.events.explode)
-                //anyways.
+      lazy: false, //an option to not enable/disable from the start,
+                   //when true, means you have to manually 
+									 // this.addAction(this.actions.explode) 
+      run: false, //when true doesnt wait for widget to be injected into dom. enables right away.
       events: 'explode' //will [add|remove]Events(this.events.explode)
     }
   }
@@ -68,15 +69,7 @@ new Class({
 
 * Removed outerclick from the codebase for good. Goodbye, buggy friend.
 
-* Removed retain event definition from all the widgets and put into a focus trait. Because almost everything needs it. Still, the power of event stacks gives you an ability to overwrite focus event definition and have no retain event set like this:
-
-events: {
-  focus: {
-    element: {
-      mousedown: null
-    }
-  }
-}
+* Removed retain event definition from all the widgets and put into a focus trait. Because almost everything needs it. For the cases when you dont need it, just put a "delete this.events.focus.element.mousedown" on top of the initialize function. 
 
 The above code is actually used in Menu trait.
 
