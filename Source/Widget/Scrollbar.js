@@ -80,7 +80,7 @@ ART.Widget.Scrollbar = new Class({
     var track = size[prop] - this.increment[getter]() - this.decrement[getter]() - delta - ((this.style.current.strokeWidth || 0) * 2) - offset * 2
     this.track[setter](track);
     this.track.thumb[setter](Math.ceil(track * ratio))
-    this.refresh();
+    this.refresh(true);
     this.parent.apply(this, arguments);
   },
   
