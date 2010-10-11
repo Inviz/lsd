@@ -101,7 +101,6 @@ ART.Layer.ShadowOnion = new Class({
         } else {
           fill.alpha = fill.base / 2 * (i == shadow ? .29 : (.2 - shadow * 0.017) + Math.sqrt(i / 100));
         }
-        if (fill.alpha < 0.02) continue;
         var rectangle = this.layers[i];
         if (!rectangle) rectangle = this.layers[i] = ART.Layer.Shadow.Layer.getInstance(this);
         rectangle.base = this.base;
