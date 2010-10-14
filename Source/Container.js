@@ -152,7 +152,7 @@ Moo.Container = new Class({
   initialize: function(widget, options) {
     this.widget = widget;
     //TODO: Remove the need for this container
-    this.container = new Element('div', {'class': 'container'}).inject(this.widget.getWrapper());
+    this.container = new Element('div', {'class': 'container'}).inject($(this.widget));
     this.parent(this.container, options);
   },
   

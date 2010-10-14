@@ -41,7 +41,7 @@ ART.Widget.Paint = new Class({
       'position': 'absolute',
       'top': 0,
       'left': 0
-    }).inject(this.getWrapper(), 'top');
+    }).inject($(this), 'top');
   }),
   
   renderStyles: function(style) {
