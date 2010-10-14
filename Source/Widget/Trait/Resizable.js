@@ -13,7 +13,7 @@ requires:
 - ART.Widget.Base
 - More/Drag
 
-provides: [ART.Widget.Trait.Resizable, ART.Widget.Trait.Resizable.Container]
+provides: [ART.Widget.Trait.Resizable, ART.Widget.Trait.Resizable.Content]
  
 ...
 */
@@ -143,7 +143,7 @@ ART.Widget.Trait.Resizable.Stateful = [
 Widget.Events.Ignore.push('resizer');
 
 //Make container resize, not the widget itself.
-ART.Widget.Trait.Resizable.Container = new Class({
+ART.Widget.Trait.Resizable.Content = new Class({
   getResized: function() {
     return this.content;
   },

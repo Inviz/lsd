@@ -76,7 +76,6 @@ sources:
   - Source/Widget/Trait/Layers.js
   - Source/Widget/Trait/Menu.js
   - Source/Widget/Trait/Resizable.js
-  - Source/Widget/Trait/ResizableContainer.js
   - Source/Widget/Trait/Scrollable.js
   - Source/Widget/Trait/Shape.js
   - Source/Widget/Widget.js
