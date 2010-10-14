@@ -24,27 +24,27 @@ Things we have
 
 * **Layers** - Each widget consist of a few SVG paths. You can add as many of them as you want, we have presets (stroke layer, shadow layer, fill layer). Just provide the name of a layer and CSS properties it works with.
 
-* **Stylesheets** - Remember the times when you had to hardcode widget styles into javascript? I don't, because it is always a bad idea. But here you dont need anything like that anymore. Our way of styling everything is specially baked CSS (includes a cool module for guys who use ruby and sass) with special CSS properties for everything. The best thing is that for known properties Does "" look familiar to you? Exactly.
+* **Stylesheets** - Remember the times when you had to hardcode widget styles into javascript? I don't, because it is always a bad idea. But here you dont need anything like that anymore. Our way of styling everything is specially baked CSS (includes a cool module for guys who use ruby and sass) with special CSS properties for everything. 
   
 **Input: window.sass**
   
-    window.hud
-      button
-        &:active
-          :font-size 110%
-          :reflection-color hsl(0, 0, 0, 0.5)
-        &:hover
-          :reflection-color hsl(0, 0, 0, 0.7)
-          
+  window.hud
+    button
+      &:active
+        :font-size 110%
+        :reflection-color hsl(0, 0, 0, 0.5)
+      &:hover
+        :reflection-color hsl(0, 0, 0, 0.7)
+        
 **Output: window.css**
 
-    .art.window.hud .art.button.pseudo-active {
-      font-size: 110%;                           /* set by browser, usual CSS, speedy! */
-      -lsd-reflection-color: hsl(0, 0, 0, 0.5)   /* custom property that has to be applied by LSD */
-    }
-    .art.window.hud .art.button.pseudo-hover {
-      -lsd-reflection-color: hsl(0, 0, 0, 0.7)
-    }
+  .art.window.hud .art.button.pseudo-active {
+    font-size: 110%;                           /* set by browser, usual CSS, speedy! */
+    -lsd-reflection-color: hsl(0, 0, 0, 0.5)   /* custom property that has to be applied by LSD */
+  }
+  .art.window.hud .art.button.pseudo-hover {
+    -lsd-reflection-color: hsl(0, 0, 0, 0.7)
+  }
   
 * **Document** - The single most useful thing in mootools 1.3 for me was Slick. The engine that blazingly fast retrieves elements from the DOM using selectors. Our widget trees are partially DOM-compatible, so Slick can just walk through widgets like if they were regular elements. 
 
@@ -204,9 +204,8 @@ Ok, here is an example of everyday coolness that i'm exposed to, because I'm wor
     window.adopt(button)
     submit.inject(window);
     
-    //no, i changed my mine
+    //no, i changed my mind
     Slick.search(document, "window button + button.submit").dispose();
-  
 
 
 Installation
@@ -230,8 +229,10 @@ Library wants the raw body of stylesheets, so it makes an ajax call to that file
   
 [Changelog](http://github.com/Inviz/lsd/blob/master/CHANGELOG)
 ---------
-		0.22 Actions revamp. Disabled attribute support. Cleaning.
-		
+    0.23 Layer offsets, Resizing/Scrolling. Cleaning.
+
+    0.22 Actions revamp. Disabled attribute support. Cleaning.
+    
     0.21 Expressions support, focus propagation, bugfixes & speedups
       
     0.2 Themes release
@@ -239,4 +240,3 @@ Library wants the raw body of stylesheets, so it makes an ajax call to that file
     0.11 First public demo
     
     0.1 Initial public release
-    
