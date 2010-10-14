@@ -1,3 +1,32 @@
+0.2.3, 14.10.2010
+
+LSD-BASE
+--------
+
+* Add a dispose event. Injecting into another parent triggers disposal first.
+
+* Make it really remove nested events.
+
+* Dont use wrapper anymore
+
+* Add increment/decrement methods to slider
+
+
+LSD
+---
+
+* Sane scrollbars & resizable and them working together. Todo: Hold scrollbar increment button to repeadetly scroll the content. For fucks sake, it's been a long time.
+
+  Good things here is that we try not to double-render the widget when hitting boundaries, rather than we try to precalculate values and render the ones already affected by limits.
+
+* New cool drawing feature: Layer offsets. You can specify now any layer on the widget to have offsets in pixels or percents (calculated from widgets height & widget). Small but VERY expressive feature.
+
+* New layer presets like ART.Layer.Fill.Background && ART.Layer.Fill.Background.Offset.
+
+* Widget can now build layout without parent assigned. Used for building scrollbars at the moment
+
+* Cleanups
+
 0.2.2, 7.10.2010 
 =======
 
