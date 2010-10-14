@@ -143,8 +143,8 @@ ART.Widget.Module.DOM = new Class({
   setDocument: function(widget) {
     var element = $(widget)
     var isDocument = (widget.nodeType == 9)
-    var document = isDocument ? widget : element.ownerDocument.body.retrieve('widget');
     if (isDocument || element.offsetParent) {
+      var document = isDocument ? widget : element.ownerDocument.body.retrieve('widget');
       var postponed = false
       this.render();
       this.walk(function(child) {
@@ -174,7 +174,6 @@ ART.Widget.Module.DOM = new Class({
       parent.childNodes.erase(this);
       if (parent.firstChild == this) delete parent.firstChild;
       if (parent.lastChild == this) delete parent.lastChild;
-      delete this.parentNode;
     } 
     return this.parent.apply(this, arguments);
   },

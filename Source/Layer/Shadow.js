@@ -136,7 +136,6 @@ ART.Layer.Shadow.Layer = new Class({
     this.eject();
     if (container instanceof ART.SVG.Group) container.children.push(this);
     this.container = container;
-    //console.log('inject shadow layer', container.element);
     var first = container.element.firstChild;
     if (first) container.element.insertBefore(this.shape.element, first);
     else container.element.appendChild(this.shape.element);

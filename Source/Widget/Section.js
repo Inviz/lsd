@@ -31,7 +31,7 @@ ART.Widget.Section = new Class({
   layered: {
     shadow:  ['shadow'],
     fill:  ['stroke'],
-    background: ['fill', ['backgroundColor']],
-    reflection:  ['fill', ['reflectionColor']]
+    reflection:  [ART.Layer.Fill.Reflection.Offset],
+    background: [ART.Layer.Fill.Background.Offset]
   }
 });

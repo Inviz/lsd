@@ -28,6 +28,7 @@ ART.Widget.Trait.Scrollable = new Class({
   
   attach: Macro.onion(function() {
     this.addEvents(this.events.scrollbar);
+    $(this.getScrolled()).setStyle('overflow', 'hidden');
   }),
   
   detach: Macro.onion(function() {
@@ -36,21 +37,26 @@ ART.Widget.Trait.Scrollable = new Class({
   
   showScrollbars: function(size) {
     if (!size) size = this.size;
-    var scrolled = this.getScrolled ? $(this.getScrolled()) : this.element.getFirst();
-    if (size.width < scrolled.scrollWidth) this.getHorizontalScrollbar().inject(this);
-    else if (this.horizontal) this.horizontal.dispose();
+    $(this.getContainer()).setStyles(size)
+    var scrolled = $(this.getScrolled());
+    if (size.width < scrolled.scrollWidth) {
+      if (this.getHorizontalScrollbar().parentNode != this) this.horizontal.inject(this);
+      this.horizontal.slider.set(this.horizontal.now)
+    } else if (this.horizontal) this.horizontal.dispose();
     
-    if (size.height < scrolled.scrollHeight) this.getVerticalScrollbar().inject(this);
-    else if (this.vertical) this.vertical.dispose();
+    if (size.height < scrolled.scrollHeight) {
+      if (this.getVerticalScrollbar().parentNode != this) this.vertical.inject(this);
+        this.vertical.slider.set(this.vertical.now)
+    } else if (this.vertical) this.vertical.dispose();
   },
   
-  build: Macro.onion(function() {
-    if (!this.wrapper) this.wrapper = new Element('div', {'class': 'wrapper'}).setStyle('position', 'relative').setStyle('overflow', 'hidden')
-    this.wrapper.inject(this.element);
-  }),
+  //build: Macro.onion(function() {
+  //  if (!this.wrapper) this.wrapper = new Element('div', {'class': 'wrapper'}).setStyle('position', 'relative').setStyle('overflow', 'hidden')
+  //  this.wrapper.inject(this.element);
+  //}),
   
   getVerticalScrollbar: Macro.setter('vertical', function() {
-    return this.buildLayout('scrollbar#vertical[mode=vertical]')
+    return this.buildLayout('scrollbar#vertical[mode=vertical]', null, null)
   }),
   
   getHorizontalScrollbar: Macro.setter('horizontal', function() {
@@ -58,6 +64,6 @@ ART.Widget.Trait.Scrollable = new Class({
   }),
   
   getScrolled: Macro.defaults(function() {
-    return this.getWrapper()
+    return this.getContainer()
   })
 });

@@ -56,14 +56,6 @@ ART.Widget.Input.Range = new Class({
 
   onSet: function() {
     this.focus();
-  },
-  
-  increment: function() {
-    this.slider.set(this.slider.step + 10)
-  },
-  
-  decrement: function() {
-    this.slider.set(this.slider.step - 10)
   }
 });
 

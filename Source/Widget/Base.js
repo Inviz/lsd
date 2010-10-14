@@ -77,15 +77,15 @@ ART.Widget.Base = new Class({
       child.render();
     });
     if (size) {
-      var newSize = {height: this.getStyle('height'), width: this.getStyle('width')};
-      if (this.setHeight(newSize.height, true) + this.setWidth(newSize.width, true)) this.fireEvent('resize', [newSize, size])
+      var updated = {height: this.getStyle('height'), width: this.getStyle('width')};
+      if (this.setHeight(updated.height, true) + this.setWidth(updated.width, true)) this.fireEvent('resize', [updated, size])
     }
   }),
 
   //halt render process  
   halt: function() {
     if (this.halted) return false;
-    //console.info('halted', this.getSelector(), $A(arguments))
+    console.info('halted', this.getSelector(), $A(arguments))
     this.halted = true;
     return true;
   },

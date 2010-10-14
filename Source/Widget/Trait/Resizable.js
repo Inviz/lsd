@@ -49,10 +49,9 @@ ART.Widget.Trait.Resizable = new Class({
       
       enable: function() {
         if (!this.resizer) {
-          if (this.options.resizer.container) this.getResized().addEvent('resize', this.checkOverflow.bind(this));
-          if (this.options.resizer.crop) $(this.getResized()).setStyle('overflow', 'hidden')
-        }
-        this.getResizer().attach();
+          if (this.options.resizer.crop) $(this.getResized()).setStyle('overflow', 'hidden');
+          this.getResizer();
+        } else this.resizer.attach();
       },
 
       disable: function() {
@@ -63,17 +62,13 @@ ART.Widget.Trait.Resizable = new Class({
   
   getResizer: Macro.setter('resizer', function() {
     var resized = this.getResized();
-    var element = $(resized)//.setStyle('overflow', 'hidden');
-    resized.addEvent('resize', function(size) {
-      $extend(element, size);
-    });
-    element.width  = resized.getStyle('width');
-    element.height = resized.getStyle('height');
+    var element = $(resized)
     var resizer = new Drag(element, $extend({
       handle: $(this.getHandle())
     }, this.options.resizer));
     resizer.addEvents(this.events.resizer);
     resizer.addEvents({
+      'beforeStart': this.onBeforeResize.bind(this),
       'start': this.onResizeStart.bind(this),
       'complete': this.onResizeComplete.bind(this),
       'cancel': this.onResizeComplete.bind(this),
@@ -84,30 +79,31 @@ ART.Widget.Trait.Resizable = new Class({
   
   checkOverflow: function(size) {
     if (!this.resizer) return;
-    if (!this.resizer.container) this.resizer.container = this.element;
-    var resized = this.getResized();
+    var resized = this.getResized();  
+    var width = $(this).offsetWidth - this.offset.padding.left - this.offset.padding.right;
     if (!size) size = {width: $(resized).width}
-    var width = this.resizer.container.offsetWidth - this.offset.padding.left - this.offset.padding.right;
-    var self = arguments.callee;  
     if (size.width < width) {
-      if (!$chk(self.limit)) self.limit = this.resizer.options.limit.x[0];
-      this.resizer.setMinX(width);
-      resized.setWidth(width);
+      if (!$chk(self.limit)) self.limit = this.getResized().getStyle('minWidth') || 1
+      this.getResized().setStyle('minWidth', width);
       $clear(self.delay);
       self.delay = (function() { //reset limit options in one second
-        this.resizer.setMinX(self.limit + 1);
-      }).delay(1000, this);
-      return false;
+        this.getResized().setStyle('minWidth', self.limit);
+      }).delay(1000, this); 
+      size.width = width;
     }
+    return size;
+  },
+  
+  onBeforeResize: function() {
+    var resized = this.getResized();
+    $extend($(resized), resized.size)
   },
   
   onResizeStart: function() {
     this.transform.apply(this, arguments);
-    
     if (!this.cache.dependent) this.cache.dependent = this.collect(function(child) {
       return (child.style.current.width == 'inherit') || (child.style.current.width == 'auto') || child.style.expressed.width
     }).concat(this.getResized())
-    
   },
   
   onResizeComplete: function() {
@@ -116,12 +112,16 @@ ART.Widget.Trait.Resizable = new Class({
   },
   
   onResize: function() {
-    if (this.resizer.value.now.y) this.getResized().setStyle('height', this.resizer.value.now.y);
-    if (this.resizer.value.now.x) this.getResized().setStyle('width', this.resizer.value.now.x);
-    if (this.cache.dependent) this.cache.dependent.each(function(child) {
-      child.update();
-    })
-    this.render();
+    var now = this.resizer.value.now;
+    var resized = this.getResized();
+    if (!now.x) now.x = resized.size.width;
+    if (!now.y) now.y = resized.size.height;
+    var size = this.checkOverflow({width: resized.setWidth(now.x) || now.x, height: resized.setHeight(now.y) || now.y});
+    resized.setStyles(size);
+    if (this.cache.dependent) this.cache.dependent.each(Macro.proc('update'));
+    this.refresh();
+    resized.fireEvent('resize', [size, resized.size])
+    resized.size = size;
   },
   
   getHandle: Macro.defaults(function() {

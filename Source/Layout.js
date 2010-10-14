@@ -160,7 +160,7 @@ ART.Layout.build = function(selector, layout, parent, element) {
     parent[property].push(widget)
   }
   
-  if (element !== false) widget.inject(element || parent, 'bottom', true)
+  if (element !== false && (element || parent)) widget.inject(element || parent, 'bottom', true)
   
   if (styles) widget.setStyles(styles);
   if ($type(layout) == 'string') widget.setContent(layout);

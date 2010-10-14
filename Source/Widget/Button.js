@@ -42,8 +42,8 @@ ART.Widget.Button = new Class({
   layered: {
     shadow:  ['shadow'],
     stroke: ['stroke'],
-    background:  ['fill', ['backgroundColor']],
-    reflection:  ['fill', ['reflectionColor']],
+    background:  [ART.Layer.Fill.Background.Offset],
+    reflection:  [ART.Layer.Fill.Reflection.Offset],
     glyph: ['glyph']
   },
   

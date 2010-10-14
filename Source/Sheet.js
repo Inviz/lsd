@@ -176,6 +176,7 @@ ART.Sheet = {};
               } else {
                 if ((value.indexOf('hsb') > -1)
                  || (value.indexOf('ART') > -1) 
+                 || (value.charAt(0) == '"')
                  || (value == 'false')
                  || (integer == value) || (value == parseFloat(value))) value = eval(value.replace(/^['"]/, '').replace(/['"]$/, ''));
                 styles[name] = value;

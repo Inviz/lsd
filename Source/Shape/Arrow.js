@@ -97,12 +97,14 @@ ART.Shape.Arrow = new Class({
     return this.draw(this.paint.apply(this, arguments));
   },
 
-  change: function(delta) {
-    return this.paint(this.style.width + delta * 2, this.style.height + delta * 2, this.style.cornerRadius.map(function(r) {
-      return r + delta
+  change: function(x, y, r) {
+    if (!$defined(y)) y = x;
+    if (!$defined(r)) r = x;
+    return this.paint(this.style.width + x * 2, this.style.height + y * 2, this.style.cornerRadius.map(function(radius, i) {
+      return (r.push ? r[i] : r) + radius;
     }), this.style.arrowWidth, this.style.arrowHeight, this.style.arrowSide, this.style.arrowPosition)
   },
-
+  
   getOffset: function(styles, offset) {
     var stroke = (styles.strokeWidth || 0);
     return {

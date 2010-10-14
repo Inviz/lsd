@@ -23,7 +23,8 @@ provides: [ART.Widget.Scrollbar]
 ART.Widget.Scrollbar = new Class({
   Includes: [
     ART.Widget.Paint,
-    Widget.Trait.Slider
+    Widget.Trait.Slider,
+    ART.Widget.Trait.Aware
   ],
   
   name: 'scrollbar',
@@ -34,8 +35,8 @@ ART.Widget.Scrollbar = new Class({
     'scrollbar-track#track': {
       'scrollbar-thumb#thumb': {},
     },
-    'scrollbar-button#decrement': {},
-    'scrollbar-button#increment': {}
+    'scrollbar-button#decrementor': {},
+    'scrollbar-button#incrementor': {}
   },
   
   layered: {
@@ -47,6 +48,15 @@ ART.Widget.Scrollbar = new Class({
   options: {
     slider: {
       wheel: true
+    }
+  },
+  
+  events: {
+    incrementor: {
+      click: 'increment'
+    },
+    decrementor: {
+      click: 'decrement'
     }
   },
   
@@ -69,7 +79,7 @@ ART.Widget.Scrollbar = new Class({
     var scrolled = this.getScrolled();
     $(scrolled).setStyle(prop, size[prop])
     var ratio = size[prop] / $(scrolled)['scroll' + Prop]
-    var delta = (!invert || invert.hidden ? 0 : invert.getStyle(prop));
+    var delta = (!invert || !invert.parentNode ? 0 : invert.getStyle(prop));
     this[setter](size[prop] - delta);
     var offset = 0;
     if (isVertical) {
@@ -77,32 +87,34 @@ ART.Widget.Scrollbar = new Class({
     } else {
       offset += this.track.offset.padding.left + this.track.offset.padding.right
     }
-    var track = size[prop] - this.increment[getter]() - this.decrement[getter]() - delta - ((this.style.current.strokeWidth || 0) * 2) - offset * 2
+    var track = size[prop] - this.incrementor[getter]() - this.decrementor[getter]() - delta - ((this.style.current.strokeWidth || 0) * 2) - offset * 2
     this.track[setter](track);
     this.track.thumb[setter](Math.ceil(track * ratio))
     this.refresh(true);
     this.parent.apply(this, arguments);
   },
   
-  inject: Macro.onion(function(widget) {
-    this.adaptToSize(widget.size);
-  }),
+  inject: function(widget) {
+    var result = this.parent.apply(this, arguments);
+    this.adaptSize(widget.size, { });
+    this.actions.slider.enable.call(this);
+    return result
+  },
   
   onSet: function(value) {
     var prop = (this.options.mode == 'vertical') ? 'height' : 'width';
     var direction = (this.options.mode == 'vertical') ? 'top' : 'left';
-    var result = (value / 100) * this.parentNode.element['scroll' + prop.capitalize()];
-    $(this.getScrolled())['scroll' + direction.capitalize()] = result;
+    var element = $(this.getScrolled());
+    var result = (value / 100) * (element['scroll' + prop.capitalize()] - element['offset' + prop.capitalize()]);
+    element['scroll' + direction.capitalize()] = result;
+    this.now = value;
   },
   
-  getScrolled: function() {
-    if (!this.scrolled) {
-      var parent = this;
-      while ((parent = parent.parentNode) && !parent.getScrolled);
-      this.scrolled = parent.getScrolled ? parent.getScrolled() : this.parentNode.element;
-    }
-    return this.scrolled;
-  },
+  getScrolled: Macro.setter('scrolled', function() {
+    var parent = this;
+    while ((parent = parent.parentNode) && !parent.getScrolled);
+    return parent.getScrolled ? parent.getScrolled() : this.parentNode.element;
+  }),
   
   getTrack: function() {
     return $(this.track)

@@ -36,7 +36,7 @@ ART.Widget.Module.Layout = new Class({
   },
   
   buildLayout: function(selector, layout, parent) {
-    return ART.Layout.build(selector, layout, parent || this)
+    return ART.Layout.build(selector, layout, (parent === null) ? null : (parent || this))
   },
   
   buildItem: function() {

@@ -159,25 +159,6 @@ ART.Widget.Paint = new Class({
     return value;
   },
   
-  //getClientWidth: function() {
-  //  var expression = this.style.expressed.width;
-  //  if (expression) {
-  //    console.log('width difference', [expression.call(this), this.parent.apply(this, arguments)])
-  //    return expression.call(this);
-  //  } else {
-  //    return this.parent.apply(this, arguments);
-  //  }
-  //},
-  //
-  //getClientHeight: function() {
-  //  var expression = this.style.expressed.height;
-  //  if (expression) {
-  //    return expression.call(this);
-  //  } else {
-  //    return this.parent.apply(this, arguments);
-  //  }
-  //},
-  
   setStyle: function(property, value) {
     var value = this.parent.apply(this, arguments);
     if (!$defined(value)) return;
@@ -191,7 +172,6 @@ ART.Widget.Paint = new Class({
       if (properties.set) properties = properties.get;
       var current = this.style.current;
       var result = [];
-      var property;
       var i = 0;
       while (property = properties[i++]) {
         var value = current[property];

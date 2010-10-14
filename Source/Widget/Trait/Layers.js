@@ -55,6 +55,16 @@ ART.Widget.Trait.Layers = new Class({
       properties: Array.type
     });
     var shape = this.getShape();
+    
+    
+    //if (!args.klass) {
+    //  var base = ART.Layer;
+    //  var bits = args.layer.split('-');
+    //  while (bits.length > 0) base = base[bits.shift().camelCase().capitalize()];
+    //  args.klass = base;
+    //}  
+    //var instance = new args.klass(shape); //combine shape & layer classes
+    
     var type = (args.klass || ART.Layer[args.layer.camelCase().capitalize()]);
     var instance = new type(shape); //combine shape & layer classes
     
@@ -63,7 +73,6 @@ ART.Widget.Trait.Layers = new Class({
     this.addEvent('redraw', function() {
       var value = instance.value || empty;
       var styles = this.getChangedStyles(args.name || args.layer, properties)
-      //console.log('redraw', args.layer, this.selector, styles)
       if (styles) {
         instance.padding = this.inside;
         value = (args.draw || instance.paint).apply(instance, Hash.getValues(styles))
