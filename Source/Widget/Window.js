@@ -19,7 +19,6 @@ provides: [ART.Widget.Window]
 ...
 */
 
-// Window Widget. Work in progress.
 ART.Widget.Window = new Class({
   
   Includes: [
@@ -30,12 +29,11 @@ ART.Widget.Window = new Class({
   
   States: {
     'closed': ['close', 'open'],
-    'collapsed': ['collapse', 'expand']
+    'collapsed': ['collapse', 'expand'],
+    'minified': ['minify', 'enlarge', 'mutate']
   },
   
   name: 'window',
-  
-  layout: {},
   
   events: {
     buttons: {
@@ -48,19 +46,23 @@ ART.Widget.Window = new Class({
       expand: {
         click: 'expand'
       }
-    }
+    },
+	  header: {
+	    toggler: {
+        click: 'mutate'
+	    }
+	  },
+	  self: {
+	    close: 'hide'
+	  }
   },
   
   layered: {
     shadow:  ['shadow'],
     stroke:  ['stroke'],
     reflection: ['fill', ['reflectionColor']],
-    background: ['fill', ['backgroundColor']],
+    background: ['fill', ['backgroundColor']]
   },
-  
-  close: Macro.onion(function() {
-    this.hide();
-  }),
   
   getResized: function() {
     return this.content;

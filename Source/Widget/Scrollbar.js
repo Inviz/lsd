@@ -29,8 +29,6 @@ ART.Widget.Scrollbar = new Class({
   
   name: 'scrollbar',
   
-  position: 'absolute',
-  
   layout: {
     'scrollbar-track#track': {
       'scrollbar-thumb#thumb': {},
@@ -132,9 +130,7 @@ ART.Widget.Scrollbar.Track = new Class({
     innerShadow:  ['inner-shadow']
   },
   
-  name: 'track',
-  
-  position: 'absolute'
+  name: 'track'
 });
 
 ART.Widget.Scrollbar.Thumb = new Class({
@@ -144,7 +140,5 @@ ART.Widget.Scrollbar.Thumb = new Class({
 });
 
 ART.Widget.Scrollbar.Button = new Class({
-  Extends: ART.Widget.Button,
-  
-  position: 'absolute'
+  Extends: ART.Widget.Button
 });

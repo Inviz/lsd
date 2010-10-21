@@ -70,6 +70,11 @@ ART.Widget.Module.DOM = new Class({
     return Slick.find(this, selector)
   },
   
+  contains: function(element) {
+    while (element = element.parentNode) if (element == this) return true;
+    return false;
+  },
+  
   getAttributeNode: function(attribute) {
     return {
       nodeName: attribute,
@@ -99,6 +104,7 @@ ART.Widget.Module.DOM = new Class({
   
   setParent: function(widget){
     this.parent.apply(this, arguments);
+    this.fireEvent('setParent', [widget, widget.document])
     var siblings = widget.childNodes;
     var length = siblings.length;
     if (length == 1) widget.firstChild = this;
@@ -111,7 +117,7 @@ ART.Widget.Module.DOM = new Class({
   },
   
   appendChild: function(widget, adoption) {
-    if (this.canAppendChild && !this.canAppendChild(widget)) return false;
+    if (!adoption && this.canAppendChild && !this.canAppendChild(widget)) return false;
     if (widget.options.id) {
       if (this[widget.options.id]) this[widget.options.id].dispose();
       this[widget.options.id] = widget;
@@ -141,10 +147,15 @@ ART.Widget.Module.DOM = new Class({
   },
   
   setDocument: function(widget) {
-    var element = $(widget)
-    var isDocument = (widget.nodeType == 9)
-    if (isDocument || element.offsetParent) {
-      var document = isDocument ? widget : element.ownerDocument.body.retrieve('widget');
+    var element = $(widget);
+    var document;
+    var isDocument = (widget.nodeType == 9);
+    var isBody = element.get('tag') == 'body';
+    if (isDocument || isBody || element.offsetParent) {
+      if (!isDocument) {
+        var body = (isBody ? element : element.ownerDocument.body);
+        document = body.retrieve('widget') || new ART.Document(body);
+      } else document = widget;
       var postponed = false
       this.render();
       this.walk(function(child) {
@@ -156,16 +167,19 @@ ART.Widget.Module.DOM = new Class({
         child.fireEvent('dominject', element);
         child.dominjected = true;
       });
+      //if (isBody && this.parentNode == doc || (!this.parentNode && (element != widget))) doc.appendChild(widget);
       if (postponed && !this.dirty) this.dirty = true;
       this.render();
     }
   },
   
   inject: function(widget, where, quiet) {
-    inserters[where || 'bottom'](Element.type(widget) ? $(this) : this, widget);
+    var self = Element.type(widget) ? this.element : this;
+    if (!inserters[where || 'bottom'](self, widget) && !quiet) return false;
     var element = $(widget);
     this.fireEvent('inject', arguments);
     if (quiet !== true) this.setDocument(widget);
+    return true;
   },
   
   dispose: function() {
@@ -195,7 +209,14 @@ ART.Widget.Module.DOM = new Class({
 
   match: function(selector) {
     return ART.Sheet.match(selector, this.getHierarchy())
-  }
+  },
+  
+  compareDocumentPosition: function(context, node) {
+		if (node) do {
+			if (node === context) return true;
+		} while ((node = node.parentNode));
+		return false;
+	}
 });
 
 Widget.Attributes.Ignore.push('shy');

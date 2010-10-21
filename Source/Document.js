@@ -59,5 +59,10 @@ ART.Document = new Class({
   
   setAttribute: function(name, value) {
     return this.attributes[name] = value;
+  },
+  
+  id: function(item) {
+    if (item.render) return item;
+    
   }
 });

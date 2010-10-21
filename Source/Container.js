@@ -118,13 +118,13 @@ ART.Container = new Class({
   },
   
   render: function(html) {
-    if ($type(html) != 'string' || !html.length) return false;
+    if (!String.type(html) || !html.length) return false;
     this.empty().set('html', html);
-    return true;
+    return html;
   },
   
   build: function(attributes) {
-    if ($type(attributes) != 'object') return false;
+    if (!Object.type(attributes)) return false;
     return this.element.adopt(new Element(attributes.tag || 'div', attributes));
   },
   

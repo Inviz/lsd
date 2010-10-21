@@ -35,14 +35,12 @@ ART.Widget.Trait.Draggable = new Class({
     }
   },
   
-  position: 'absolute',
-  
   events: {
     dragger: {}
   },
   
   actions: {
-    dragger: {
+    draggable: {
       uses: ['#title', '#content'], 
       
       enable: function() {
@@ -100,10 +98,12 @@ ART.Widget.Trait.Draggable = new Class({
 });
 
 ART.Widget.Trait.Draggable.State = Class.Stateful({
-  'dragged': ['drag', 'drop']
+  'dragged': ['drag', 'drop'],
+  'draggable': ['mobilize', 'immobilize']
 });
 ART.Widget.Trait.Draggable.Stateful = [
   ART.Widget.Trait.Draggable.State,
   ART.Widget.Trait.Draggable
 ];
 Widget.Events.Ignore.push('dragger');
+Widget.States.Attributes.push('draggable');

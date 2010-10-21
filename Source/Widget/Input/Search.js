@@ -29,8 +29,9 @@ provides: [ART.Widget.Input.Search]
 ART.Widget.Input.Search = new Class({
   Includes: [
     ART.Widget.Input,
-    ART.Widget.Trait.Menu.Stateful,
     ART.Widget.Trait.Aware,
+    ART.Widget.Trait.Proxies,
+    ART.Widget.Trait.Menu.Stateful,
     Widget.Trait.List,
     Widget.Trait.Choice,
     Widget.Trait.Value,
@@ -58,17 +59,6 @@ ART.Widget.Input.Search = new Class({
       item: 'input-option'
     }
   },
-  
-  items: [
-    {
-      title: 'Google', 
-      icon: 'http://www.kew.org/ucm/resources/kew/images/css-images/content/google-icon.gif'
-    },
-    {
-      title: 'Bing',
-      icon: 'http://www.microsoft.com/canada/msn/bing/images/bing_icon.png'
-    }
-  ],
   
   attach: Macro.onion(function() {
     if (this.hasItems()) {
@@ -149,10 +139,6 @@ ART.Widget.Input.Option = new Class({
     this.element.setStyle('background-position', ((this.offset.paint.left || 0) + 4) + 'px  center');
     this.element.setStyle('padding-left', 15)
   }),
-  
-  setContent: function(item) {
-    this.parent(item.title || item);
-  },
   
   select: function() {
     this.listWidget.selectItem.delay(50, this.listWidget, [this]);

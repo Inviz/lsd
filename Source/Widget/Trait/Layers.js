@@ -41,10 +41,6 @@ ART.Widget.Trait.Layers = new Class({
     this.inside = {x: 0, y: 0};
   }),
   
-  getLayer: function() {
-    
-  },
-  
   buildLayer: function() {
     var args = Array.link($splat(arguments), {
       layer: String.type,

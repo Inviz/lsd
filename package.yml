@@ -72,7 +72,7 @@ sources:
   - Source/Widget/Trait/Draggable.js
   - Source/Widget/Trait/Fitting.js
   - Source/Widget/Trait/Hoverable.js
-  - Source/Widget/Trait/ProxyChildren.js
+  - Source/Widget/Trait/Proxies.js
   - Source/Widget/Trait/Layers.js
   - Source/Widget/Trait/Menu.js
   - Source/Widget/Trait/Resizable.js

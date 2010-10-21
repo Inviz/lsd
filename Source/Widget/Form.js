@@ -28,5 +28,11 @@ ART.Widget.Form = new Class({
     }
   },
   
-  layered: {}
+  layered: {},
+  
+  events: {
+    element: {
+      submit: $lambda(false)
+    }
+  }
 });

@@ -40,24 +40,27 @@ Widget.Styles.Complex = {
 
 ART.Widget.Module.Styles = new Class({
   
-  style: {
-    current: {},    //styles that widget currently has
-    last: {},       //styles that were rendered last frame
-    found: {},      //styles that were found in stylesheets
-    given: {},      //styles that were manually assigned
-    
-    calculated: {}, //styles that are calculated in runtime
-    computed: {},   //styles that are already getStyled
-    expressed: {},  //styles that are expressed through function
-    implied: {},    //styles that are assigned by environment
-    
-    element: {},    //styles that are currently assigned to element
-    paint: {}      //styles that are currently used to paint
-  },
-  
-  rules: {
-    current: [],
-    possible: null
+  initialize: function() {
+    this.style = {
+      current: {},    //styles that widget currently has
+      last: {},       //styles that were rendered last frame
+      found: {},      //styles that were found in stylesheets
+      given: {},      //styles that were manually assigned
+
+      calculated: {}, //styles that are calculated in runtime
+      computed: {},   //styles that are already getStyled
+      expressed: {},  //styles that are expressed through function
+      implied: {},    //styles that are assigned by environment
+
+      element: {},    //styles that are currently assigned to element
+      paint: {}       //styles that are currently used to paint
+    };
+    this.rules = {
+      current: [],
+      possible: null
+    };    
+    this.parent.apply(this, arguments);
+    for (var property in this.style.current) this.setStyle(property, this.style.current[property])
   },
   
   findStyles: function() {
@@ -183,8 +186,10 @@ ART.Widget.Module.Styles = new Class({
   
   setElementStyle: function(property, value) {
     if (Widget.Styles.Element[property]) {
-      if (this.style.element[property] !== value) this.element.setStyle(property, value);
-      this.style.element[property] = value;
+      if (this.style.element[property] !== value) {
+        if (this.element) this.element.setStyle(property, value);
+        this.style.element[property] = value;
+      }
       return value;
     }  
     return;
@@ -232,6 +237,7 @@ ART.Widget.Module.Styles = new Class({
   },
   
   update: Macro.onion(function() {
+    if (!this.style) return;
     this.style.calculated = {};
     this.style.computed = {};
   })

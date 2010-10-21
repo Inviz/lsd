@@ -25,6 +25,22 @@ ART.Widget.Module.Layout = new Class({
     layout: {}
   },
   
+  initialize: function(options) {
+    if (options && ART.Layout.isConvertable(options)) options = ART.Layout.convert(options);
+    this.parent.apply(this, arguments);
+    var origin = options && options.origin;
+    var layout = this.layout ? [this.layout] : [];
+    if (origin && !options.source) {
+      var children = origin.getChildren();
+      if (children.length) layout.push.apply(layout, $A(children));
+      else {
+        var text = origin.get('html').trim();
+        if (text.length) this.setContent(text)
+      }
+    }
+    if (layout.length) this.setLayout(layout);
+  },
+  
   setLayout: function(layout) {
     this.layout = layout;
     this.tree = this.applyLayout(layout);
@@ -41,10 +57,6 @@ ART.Widget.Module.Layout = new Class({
   
   buildItem: function() {
     if (!this.options.layout.item) return this.parent.apply(this, arguments);
-    var wrapper = this.getItemWrapper();
-    var widget = this.buildLayout(this.options.layout.item, null, this.getItemWrapper(), false);
-    var container = wrapper.getContainer ? $(wrapper.getContainer()) : wrapper;
-    widget.inject(container, 'bottom', true);
-    return widget;
+    return this.buildLayout(this.options.layout.item, null, this)
   }
 });

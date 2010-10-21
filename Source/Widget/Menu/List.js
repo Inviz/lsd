@@ -25,7 +25,8 @@ ART.Widget.Menu.List = new Class({
     ART.Widget.Menu,
     Widget.Trait.List,
     Widget.Trait.Focus.Stateful,
-    Widget.Trait.Accessibility
+    Widget.Trait.Accessibility,
+    ART.Widget.Trait.Proxies
   ],
   
   events: {
@@ -46,7 +47,7 @@ ART.Widget.Menu.List = new Class({
   
 });
     
-    
+
 ART.Widget.Menu.List.Item = new Class({
   Includes: [
     ART.Widget.Paint,

@@ -114,6 +114,13 @@ ART.Widget.Trait.Resizable = new Class({
   onResize: function() {
     var now = this.resizer.value.now;
     var resized = this.getResized();
+    if (!resized.style.dimensions) {
+      resized.style.dimensions = {};
+      var width = resized.style.current.width
+      if (width == 'auto') resized.style.dimensions.width = 'auto';
+      var height = $(resized).getStyle('height');
+      if (height == 'auto') resized.style.dimensions.height = 'auto';
+    }
     if (!now.x) now.x = resized.size.width;
     if (!now.y) now.y = resized.size.height;
     var size = this.checkOverflow({width: resized.setWidth(now.x) || now.x, height: resized.setHeight(now.y) || now.y});
@@ -122,6 +129,7 @@ ART.Widget.Trait.Resizable = new Class({
     this.refresh();
     resized.fireEvent('resize', [size, resized.size])
     resized.size = size;
+    resized.setStyles(resized.style.dimensions);
   },
   
   getHandle: Macro.defaults(function() {
@@ -150,5 +158,9 @@ ART.Widget.Trait.Resizable.Content = new Class({
   
   getScrolled: function() {
     return this.content.wrapper || this.content
-  }
+  },
+
+	getHandle: function() {
+	  for (var parents = [this.content, this.footer, this], parent, i = 0 ; parent = parents[i++];) if (parent && parent.handle) return parent.handle;
+	}
 });

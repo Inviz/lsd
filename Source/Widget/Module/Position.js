@@ -27,7 +27,7 @@ ART.Widget.Module.Position = new Class({
     position.split(/\s+/).each(function(property) {
       this.element.setStyle(property, 0)
     }, this);
-    this.position = 'absolute';
+    this.element.setStyle('position', 'absolute');
     return true;
   }
   

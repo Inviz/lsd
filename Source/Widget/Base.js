@@ -39,9 +39,12 @@ ART.Widget.Base = new Class({
     
     if (this.attributes) 
       for (var name in this.attributes) 
-        if (name != 'width' && name != 'height') 
-          this.element.setAttribute(name, this.attributes[name]);
-          
+        if (name != 'width' && name != 'height') this.element.setAttribute(name, this.attributes[name]);
+        
+    for (var property in this.style.element) {
+      this.element.setStyles(this.style.element);
+      break;
+    }
     this.attach()
   }),
   
@@ -118,7 +121,7 @@ ART.Widget.create = function(klasses, a, b, c, d) {
     while (bits.length > 1) base = base[bits.shift().camelCase().capitalize()];
     klass = bits.join('-');
   }
-  klass = klass.camelCase().capitalize()
+  klass = klass.camelCase().capitalize();
   if (!base[klass]) {
     original = original.replace(/-(.)/g, function(whole, bit) {
       return '.' + bit.toUpperCase();
@@ -138,5 +141,3 @@ ART.Widget.create = function(klasses, a, b, c, d) {
 
 ART.Widget.Module = {};
 ART.Widget.Trait = $mixin(Widget.Trait);
-
-ART.Widget.Ignore = $mixin(Widget.Ignore);

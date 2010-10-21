@@ -20,13 +20,6 @@ ART.Widget.Menu.Context = new Class({
     ART.Widget.Menu,
     Widget.Trait.Animation.Instant
   ],
-  
-  options: {
-    animation: {
-      duration: 0,
-      value: 0
-    }
-  },
 
   layered: {
     shadow:  ['shadow'],
@@ -34,8 +27,6 @@ ART.Widget.Menu.Context = new Class({
     background:  ['fill', ['backgroundColor']],
     reflection:  ['fill', ['reflectionColor']],
   },
-    
-  position: 'absolute',
   
   attributes: {
     type: 'context'
@@ -52,9 +43,6 @@ ART.Widget.Menu.Context.Item = new Class({
     element: {
       mouseenter: 'select',
       mousedown: 'select'
-    },
-    self: {
-      inject: 'setList'
     }
   },
   

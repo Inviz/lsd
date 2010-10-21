@@ -69,7 +69,6 @@ provides: [ART.Widget]
         margin: {}
       }
       this.parent.apply(this, arguments);
-      if (this.layout) this.setLayout(this.layout);
     }
   });
     

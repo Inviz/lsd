@@ -51,8 +51,9 @@ ART.Widget.Button = new Class({
     this.fireEvent('click', arguments);
   },
 
-  setContent: Macro.onion(function(content) {
-    this.setState('text')
-  })
+  setContent: function(content) {
+    this.setState('text');
+    return this.parent.apply(this, arguments);
+  }
 
 });

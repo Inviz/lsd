@@ -25,6 +25,16 @@ ART.Widget.Trait.Menu = new Class({
     },
     layout: {
       menu: 'menu[type=context]#menu'
+    },
+    proxies: {
+      menu: {
+        container: function() {
+          return this.menu
+        },
+        condition: function(widget) {
+          return !!widget.setList
+        }
+      }
     }
   },
   
@@ -37,8 +47,7 @@ ART.Widget.Trait.Menu = new Class({
         blur: 'collapse',
         next: 'expand',
         previous: 'expand',
-        cancel: 'collapse',
-        select: 'expand'
+        cancel: 'collapse'
       }
     }
   },
@@ -89,24 +98,24 @@ ART.Widget.Trait.Menu = new Class({
     this.menu.setWidth(this.getStyle('width'));
   },
   
-  buildMenu: function() {
-    this.applyLayout(this.options.layout.menu);
-  },
-  
-  getItemWrapper: function() {
-    if (!this.menu) this.buildMenu();
-    this.repositionMenu();
-    return this.menu;
-  },
+  getMenu: Macro.setter('menu', function() {
+    return this.buildLayout(this.options.layout.menu);
+  }),
   
   expand: Macro.onion(function() {
-    if (!this.menu) this.buildMenu();
-    else this.repositionMenu();
-    this.menu.show();
+    if (!this.menu) {
+      this.getMenu();
+      this.repositionMenu();
+      if (this.hasItems()) this.refresh();
+    } else {  
+      this.repositionMenu();
+    }
+    if (this.hasItems()) this.menu.show();
+    else this.menu.hide();
   }),
   
   collapse: Macro.onion(function() {
-    this.menu.hide();
+    if (this.menu) this.menu.hide();
     //this.repositionMenu();
   }),
   

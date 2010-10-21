@@ -36,12 +36,7 @@ ART.Widget.Paint = new Class({
   
   build: Macro.onion(function() {
     this.paint = new ART();
-    this.element.setStyle('position', this.style.current.position || this.position || 'relative');
-    $(this.paint).setStyles({
-      'position': 'absolute',
-      'top': 0,
-      'left': 0
-    }).inject($(this), 'top');
+    $(this.paint).inject($(this), 'top');
   }),
   
   renderStyles: function(style) {

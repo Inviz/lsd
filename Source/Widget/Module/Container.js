@@ -20,17 +20,28 @@ provides: [ART.Widget.Module.Container]
 
 ART.Widget.Module.Container = new Class({
   options: {
-    container: false
+    container: false,
+    
+    proxies: {
+      container: {
+        container: function() {
+          return $(this.getContainer()) //creates container, once condition is true
+        },
+        condition: $lambda(false),      //turned off by default
+        priority: -1,                   //lowest priority
+        rewrite: false                  //does not rewrite parent
+      }
+    }
   },
   
-  setContent: function() {
+  setContent: function(item) {
+    if (item.title) item = item.title;
     return this.getContainer().set.apply(this.container, arguments);
   },
   
-  getContainer: function() {
-    if (!this.container) this.container = new Moo.Container(this, this.options.container);
-    return this.container;
-  }
+  getContainer: Macro.setter('container', function() {
+    return new Moo.Container(this, this.options.container);
+  })
 });
 
 Widget.Attributes.Ignore.push('container');

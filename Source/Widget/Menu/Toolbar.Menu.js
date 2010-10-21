@@ -24,6 +24,7 @@ ART.Widget.Menu.Toolbar.Menu = new Class({
   Includes: [
     ART.Widget.Button,
     ART.Widget.Trait.Menu.Stateful,
+    Widget.Trait.Focus.Stateful,
     Widget.Trait.List, //Look ma, list and item at once!
     Widget.Trait.Item.Stateful,
     Widget.Trait.Accessibility
@@ -31,7 +32,7 @@ ART.Widget.Menu.Toolbar.Menu = new Class({
   
   events: {
     element: {
-      mousedown: 'select'
+      mousedown: 'retain'
     },
     parent: {
       blur: ['detachEvents', 'target'],
@@ -39,11 +40,10 @@ ART.Widget.Menu.Toolbar.Menu = new Class({
     },
     target: {
       element: {
-        mousemove: 'select'
+        mouseenter: 'retain'
       }
     },
     self: {
-      inject: 'setList',
       expand: 'unselectItem'
     }
   },
@@ -57,8 +57,16 @@ ART.Widget.Menu.Toolbar.Menu = new Class({
     }
   },
   
+  retain: function() {
+    this.select();
+    return this.parent.apply(this, arguments);
+  },
+  
   render: Macro.onion(function() {
-    if (this.attributes.label) this.setContent(this.attributes.label)
+    if (this.attributes.label && this.attributes.label != this.label) {
+      this.label = this.attributes.label;
+      this.setContent(this.label)
+    }
   }),
   
   processValue: function(item) {

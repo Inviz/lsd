@@ -40,17 +40,15 @@ ART.Widget.Label = new Class({
   },
   
   focusRelatedWidget: function() {
-    var hook = $(this.element);
-    switch(this.attributes['for']) {
-      case "previous":
-        hook = hook.getPrevious();
-        break;
-      case "next":
-      default:
-        hook = hook.getNext();
-        break;
-    }
-    hook.retrieve('widget').retain();
+    var parent = this;
+    var target = this.attributes['for'];
+    if (!target || target.match(/\^s*$/)) return;
+    
+    while (parent.parentNode && parent.parentNode != this.document) parent = parent.parentNode; //search by id in topmost widget
+    var element = Slick.find(parent, "#" + target)
+    console.log(target, element, "#" + target, this.document)
+    if (!element) return;
+    element.retain();
   }
 });
 

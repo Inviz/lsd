@@ -34,7 +34,8 @@ ART.Widget.Select = new Class({
     Widget.Trait.Choice,
     Widget.Trait.Value,
     Widget.Trait.Focus.Stateful,
-    Widget.Trait.Accessibility
+    Widget.Trait.Accessibility,
+    ART.Widget.Trait.Proxies
   ],
   
   name: 'select',
@@ -72,12 +73,6 @@ ART.Widget.Select = new Class({
       set: 'collapse',
       collapse: 'forgetChosenItem'
     }
-  },
-  
-  items: ["1","2","3"],
-  
-  processValue: function(item) {
-    return item.value;
   }
   
 });
@@ -87,7 +82,11 @@ ART.Widget.Select.Button = new Class({
 });
 
 ART.Widget.Select.Option = new Class({
-  Extends: ART.Widget.Container,
+  Includes: [
+    ART.Widget.Paint,
+    Widget.Trait.Value,
+    Widget.Trait.Item.Stateful
+  ],
   
   States: {
     chosen: ['choose', 'forget']
@@ -108,5 +107,13 @@ ART.Widget.Select.Option = new Class({
   
   chooseOnHover: function() {
     this.listWidget.selectItem(this, true)
+  },
+  
+  getValue: function() {
+    return this.attributes.value || this.content || this.parent.apply(this, arguments);
+  },
+  
+  setContent: function() {
+    return (this.content = this.parent.apply(this, arguments));
   }
 });
