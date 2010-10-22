@@ -150,48 +150,53 @@ ART.Sheet = {};
       new Request({
         url: stylesheet.get('href'),
         onSuccess: function(text) {
-          var sheet = {}
-          
-          var parsed = CSSParser.parse(text);;
-          parsed.each(function(rule) {
-            var selector = rule.selectors.map(function(selector) {
-              return selector.selector.
-                replace(/\.is-/g, ':').
-                replace(/\.id-/g , '#').
-                replace(/\.art#/g, '#').
-                replace(/\.art\./g, '').
-                replace(/^html \> body /g, '')
-            }).join(', ');
-            if (!selector.length || (selector.match(/svg|v\\?:|:(?:before|after)|\.container/))) return;
-            
-            if (!sheet[selector]) sheet[selector] = {};
-            var styles = sheet[selector];
-            
-            rule.styles.each(function(style) {
-              var name = style.name.replace('-art-', '');
-              var value = style.value;
-              var integer = value.toInt();
-              if ((integer + 'px') == value) {
-                styles[name] = integer;
-              } else {
-                if ((value.indexOf('hsb') > -1)
-                 || (value.indexOf('ART') > -1) 
-                 || (value.charAt(0) == '"')
-                 || (value == 'false')
-                 || (integer == value) || (value == parseFloat(value))) value = eval(value.replace(/^['"]/, '').replace(/['"]$/, ''));
-                styles[name] = value;
-              }
-            })
-          });
-          //console.dir(sheet)
-          for (var selector in sheet) {
-            ART.Sheet.define(selector, sheet[selector]);
-          }
+          ART.Sheet.parse(text)
           if (callback) callback();
         }
       }).get();
     });
   };
+  
+  ART.Sheet.parse = function(text) {
+    var sheet = {}
+    
+    var parsed = CSSParser.parse(text);;
+    parsed.each(function(rule) {
+      var selector = rule.selectors.map(function(selector) {
+        return selector.selector.
+          replace(/\.is-/g, ':').
+          replace(/\.id-/g , '#').
+          replace(/\.art#/g, '#').
+          replace(/\.art\./g, '').
+          replace(/^html \> body /g, '')
+      }).join(', ');
+      if (!selector.length || (selector.match(/svg|v\\?:|:(?:before|after)|\.container/))) return;
+      
+      if (!sheet[selector]) sheet[selector] = {};
+      var styles = sheet[selector];
+      
+      rule.styles.each(function(style) {
+        var name = style.name.replace('-art-', '');
+        var value = style.value;
+        var integer = value.toInt();
+        if ((integer + 'px') == value) {
+          styles[name] = integer;
+        } else {
+          if ((value.indexOf('hsb') > -1)
+           || (value.indexOf('ART') > -1) 
+           || (value.charAt(0) == '"')
+           || (value == 'false')
+           || (integer == value) || (value == parseFloat(value))) value = eval(value.replace(/^['"]/, '').replace(/['"]$/, ''));
+          styles[name] = value;
+        }
+      })
+    });
+    //console.dir(sheet)
+    for (var selector in sheet) {
+      ART.Sheet.define(selector, sheet[selector]);
+    }
+    return sheet;
+  }
   
   //compile ART-defined stylesheets to css
   ART.Sheet.compile = function() {
