@@ -32,12 +32,10 @@ LSD.Widget.Trait.Dimensions = new Class({
   },
   
   setSize: function(size) {
-    if (this.setHeight(size.height, true) + this.setWidth(size.width, true)) {
-      var element = this.element, padding = this.offset.padding;
-      if (size.height && this.style.expressed.height) element.style.height = size.height - padding.top - padding.bottom + 'px'
-      if (size.width && this.style.expressed.width) element.style.width = size.width - padding.left - padding.right + 'px';
-      return !!this.fireEvent('resize', arguments);
-    }
+    if (!(this.setHeight(size.height, true) + this.setWidth(size.width, true))) return false;
+    var element = this.element, padding = this.offset.padding;
+    if (size.height && this.style.expressed.height) element.style.height = size.height - padding.top - padding.bottom + 'px'
+    if (size.width && this.style.expressed.width) element.style.width = size.width - padding.left - padding.right + 'px';
   },
   
   setHeight: function(value, light) {

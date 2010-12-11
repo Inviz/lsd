@@ -51,10 +51,6 @@ LSD.Widget.Base = new Class({
     return true;
   },
   
-  addClass: function(name) {
-    this.parent(name);
-  },
-  
   getSelector: function(){
     var parent = this.parentNode;
     var selector = (parent && parent.getSelector) ? parent.getSelector() + ' ' : '';
@@ -66,16 +62,20 @@ LSD.Widget.Base = new Class({
     return selector;
   },
   
-  render: Macro.onion(function(style){
+  render: Macro.onion(function(){
     if (!this.built) this.build();
     delete this.halted;
     this.redraws++;
+    this.repaint.apply(this, arguments);
+  }),
+  
+  repaint: function(style) {
     this.findStyles();
     this.childNodes.each(function(child){
       child.render();
     });
     this.renderStyles(style);
-  }),
+  },
 
   /*
     Halt marks widget as failed to render.

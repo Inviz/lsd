@@ -100,31 +100,36 @@ LSD.Widget.Trait.Layers = new Class({
     }
   },
   
-  renderStyles: function() {
-    var old = $unlink(this.size);
+  repaint: function() {
+    var dirty, style = this.style, last = style.last, old = style.size, paint = style.paint, dirty = paint
     this.parent.apply(this, arguments);
-    var offset = this.offset, 
-        style = this.style, 
-        current = style.current, 
-        paint = style.paint, 
-        dirty = paint,
-        last = style.last; 
-    offset.padding = {left: current.paddingLeft || 0, right: current.paddingRight || 0, top: current.paddingTop || 0, bottom: current.paddingBottom || 0};
-    offset.margin = {left: current.marginLeft || 0, right: current.marginRight || 0, top: current.marginTop || 0, bottom: current.marginBottom || 0};
-    var resized = this.setSize(this.getStyles('height', 'width'), old);
-    if (last && !resized) {
-      last = Object.append({}, style.last);
-      dirty = style.dirty = {};
-      for (var property in paint) {
-        var value = paint[property];
-        if (!$equals(value, last[property])) dirty[property] = paint[property];
-        delete last[property];
-      }
-      for (var property in last) dirty[property] = window.undefined;
+    this.setSize(this.getStyles('height', 'width'));
+    var size = this.size;
+    if (old) {
+      if (old.width == size.width && old.height == size.height) {
+        last = Object.append({}, style.last);
+        dirty = style.dirty = {};
+        for (var property in paint) {
+          var value = paint[property];
+          if (!$equals(value, last[property])) dirty[property] = paint[property];
+          delete last[property];
+        }
+        for (var property in last) dirty[property] = window.undefined;
+      } else this.fireEvent('resize', [size, old]);
     }
     if (Object.getLength(dirty) > 0) this.renderLayers(dirty);
+    style.last = Object.append({}, paint);
+    style.size = Object.append({}, size);
     this.renderOffsets();
-    style.last = Object.append({}, paint)
+  },
+  
+  renderStyles: function() {
+    this.parent.apply(this, arguments);
+    var style = this.style, current = style.current;
+    Object.append(this.offset, {
+      padding: {left: current.paddingLeft || 0, right: current.paddingRight || 0, top: current.paddingTop || 0, bottom: current.paddingBottom || 0},
+      margin: {left: current.marginLeft || 0, right: current.marginRight || 0, top: current.marginTop || 0, bottom: current.marginBottom || 0}
+    });
   },
   
   renderOffsets: function() {
