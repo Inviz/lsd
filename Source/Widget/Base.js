@@ -71,10 +71,10 @@ LSD.Widget.Base = new Class({
     delete this.halted;
     this.redraws++;
     this.findStyles();
-    this.renderStyles(style);
     this.childNodes.each(function(child){
       child.render();
     });
+    this.renderStyles(style);
   }),
 
   /*

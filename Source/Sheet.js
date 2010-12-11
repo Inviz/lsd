@@ -89,7 +89,6 @@ LSD.Sheet = {};
       return match.structure(self, other) && match.state(self, other)
     }
   }
-  $m = match;
   
   //static css compilation
   var css = {
