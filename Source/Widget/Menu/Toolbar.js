@@ -5,36 +5,39 @@ script: Toolbar.js
  
 description: Menu widget to be used as a drop down
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Menu
-- ART.Widget.Button
+- LSD.Widget.Menu
+- LSD.Widget.Button
 - Base/Widget.Trait.Focus
 - Base/Widget.Trait.List
 
-provides: [ART.Widget.Menu.Toolbar]
+provides:
+- LSD.Widget.Menu.Toolbar
+
  
 ...
 */
-ART.Widget.Menu.Toolbar = new Class({
+LSD.Widget.Menu.Toolbar = new Class({
   Includes: [
-    ART.Widget.Menu,
+    LSD.Widget.Menu,
     Widget.Trait.Focus.Stateful,
     Widget.Trait.List,
     Widget.Trait.Accessibility
   ],
   
-  attributes: {
-    type: 'toolbar'
-  },
-
-  layered: {
-    shadow:  ['shadow'],
-    stroke:  ['stroke'],
-    background:  ['fill', ['backgroundColor']],
-    reflection:  ['fill', ['reflectionColor']],
+  options: {
+    attributes: {
+      type: 'toolbar'
+    },
+    layers: {
+      shadow:  ['shadow'],
+      stroke:  ['stroke'],
+      background:  [LSD.Layer.Fill.Background],
+      reflection:  [LSD.Layer.Fill.Reflection],
+    }
   }
 });

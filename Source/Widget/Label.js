@@ -5,33 +5,31 @@ script: Label.js
  
 description: Supplementary field for any kind of widgets that take focus
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Element
+- LSD.Widget.Element
 
-provides: [ART.Widget.Label]
+provides: [LSD.Widget.Label]
  
 ...
 */
 
-ART.Widget.Label = new Class({
-  Extends: ART.Widget.Element,
-  
-  name: 'label',
+LSD.Widget.Label = new Class({
+  Extends: LSD.Widget.Element,
   
   options: {
+    tag: 'label',
     element: {
       tag: 'label'
-    }
-  },
-  
-  events: {
-    element: {
-      click: 'focusRelatedWidget'
-    }
+    },
+    events: {
+      element: {
+        click: 'focusRelatedWidget'
+      }
+    },
   },
   
   getInput: function() {
@@ -45,11 +43,8 @@ ART.Widget.Label = new Class({
     if (!target || target.match(/\^s*$/)) return;
     
     while (parent.parentNode && parent.parentNode != this.document) parent = parent.parentNode; //search by id in topmost widget
-    var element = Slick.find(parent, "#" + target)
-    console.log(target, element, "#" + target, this.document)
+    var element = parent.getElement("#" + target);
     if (!element) return;
     element.retain();
   }
 });
-
-Widget.Attributes.Ignore.push('container');

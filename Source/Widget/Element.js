@@ -5,33 +5,32 @@ script: Element.js
  
 description: Lightweight base class for element-based widgets
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget
+- LSD.Widget
 
-provides: [ART.Widget.Element]
+provides: [LSD.Widget.Element]
  
 ...
 */
 
-ART.Widget.Element = new Class({
+LSD.Widget.Element = new Class({
 
-  Extends: ART.Widget,
+  Extends: LSD.Widget,
 
   options: {
     element: {
       tag: 'div'
-    }
+    },
+    events: {}
   },
   
   style: {
-    current: {
-    }
+    current: {}
   },
-  events: {},
   
   setStyle: function(property, value) {
     if (!this.parent.apply(this, arguments)) return;

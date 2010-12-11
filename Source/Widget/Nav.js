@@ -5,26 +5,25 @@ script: Nav.js
  
 description: SVG-Based nav element (like <nav> in html5)
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Section
+- LSD.Widget.Section
 
-provides: [ART.Widget.Nav]
+provides: [LSD.Widget.Nav]
  
 ...
 */
 
-ART.Widget.Nav = new Class({
-  Extends: ART.Widget.Section,
+LSD.Widget.Nav = new Class({
+  Extends: LSD.Widget.Section,
   
-  name: 'nav',
-
   options: {
+    tag: 'nav',
     element: {
-      tag: ART.html5 ? 'nav' : 'div'
+      tag: 'nav'
     }
   }
 });

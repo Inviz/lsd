@@ -5,61 +5,61 @@ script: Menu.js
  
 description: Dropdowns should be easy to use.
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Base
-- ART.Widget.Menu.Context
+- LSD.Widget.Base
+- LSD.Widget.Menu.Context
 
-provides: [ART.Widget.Trait.Menu, ART.Widget.Trait.Menu.States, ART.Widget.Trait.Menu.Stateful]
+provides:
+- LSD.Widget.Trait.Menu
+- LSD.Widget.Trait.Menu.States
+- LSD.Widget.Trait.Menu.Stateful
  
 ...
 */
 
-ART.Widget.Trait.Menu = new Class({      
+LSD.Widget.Trait.Menu = new Class({      
   options: {
-    menu: {
-      position: 'top'
-    },
     layout: {
       menu: 'menu[type=context]#menu'
     },
+    shortcuts: {
+      ok: 'set',
+      cancel: 'cancel'
+    },
+    events: {
+      menu: {
+        self: {
+          expand: 'makeItems',
+          redraw: 'repositionMenu',
+          focus: 'repositionMenu',
+          blur: 'collapse',
+          next: 'expand',
+          previous: 'expand',
+          cancel: 'collapse'
+        }
+      }
+    },
     proxies: {
       menu: {
-        container: function() {
-          return this.menu
-        },
+        container: 'menu',
         condition: function(widget) {
           return !!widget.setList
         }
       }
-    }
-  },
-  
-  events: {
+    },
     menu: {
-      self: {
-        expand: 'makeItems',
-        redraw: 'repositionMenu',
-        focus: 'repositionMenu',
-        blur: 'collapse',
-        next: 'expand',
-        previous: 'expand',
-        cancel: 'collapse'
-      }
+      position: 'top',
+      width: 'auto'
     }
   },
   
   initialize: function() {
-    if (this.events.focus) delete this.events.focus.element.mousedown //nullify retain
+    if (this.options.events.focus) delete this.options.events.focus.element.mousedown //nullify retain
     this.parent.apply(this, arguments);
-  },
-
-  shortcuts: {
-    ok: 'set',
-    cancel: 'cancel'
   },
 
   cancel: function() {
@@ -94,11 +94,17 @@ ART.Widget.Trait.Menu = new Class({
       default:
     }
     this.menu.setStyle('top', top);
-    this.menu.setStyle('left', this.offset.paint.left);
-    this.menu.setWidth(this.getStyle('width'));
+    this.menu.setStyle('left', this.offset.outside.left);
+    switch (this.options.menu.width) {
+      case "adapt": 
+        this.menu.setWidth(this.getStyle('width'));
+        break;
+      case "auto":
+        break;
+    }
   },
   
-  getMenu: Macro.setter('menu', function() {
+  getMenu: Macro.getter('menu', function() {
     return this.buildLayout(this.options.layout.menu);
   }),
   
@@ -122,12 +128,12 @@ ART.Widget.Trait.Menu = new Class({
   getSelectedOptionPosition: $lambda(0)
 });
 
-ART.Widget.Trait.Menu.State = Class.Stateful({
+LSD.Widget.Trait.Menu.State = Class.Stateful({
   'expanded': ['expand', 'collapse']
 });
-ART.Widget.Trait.Menu.Stateful = [
-  ART.Widget.Trait.Menu.State,
-  ART.Widget.Trait.Menu
+LSD.Widget.Trait.Menu.Stateful = [
+  LSD.Widget.Trait.Menu.State,
+  LSD.Widget.Trait.Menu
 ]
 
 Widget.Events.Ignore.push('menu');

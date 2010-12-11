@@ -5,28 +5,28 @@ script: Icon.js
  
 description: For the times you need both icon and glyph on one widget. Ugly, I know.
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Layer
+- LSD.Layer
  
-provides: [ART.Layer.Icon]
+provides: [LSD.Layer.Icon]
  
 ...
 */
 
 
-ART.Layer.Icon = new Class({
-  Extends: ART.Layer.Shaped,
+LSD.Layer.Icon = new Class({
+  Extends: LSD.Layer.Shaped,
   
-  properties: ['icon', 'iconColor', 'iconLeft', 'iconTop', 'iconScale'],
+  properties: {
+    required: ['icon', 'iconColor'],
+    optional: ['iconLeft', 'iconTop', 'iconScale']
+  },
   
   paint: function(icon, color, x, y, scale) {
-    if (!icon || !color) return false;
-    if (!x) x = 0;
-    if (!y) y = 0;
     if (!$defined(scale)) scale = 1;
     this.shape.draw(icon);
     this.shape.fill.apply(this.shape, $splat(color));

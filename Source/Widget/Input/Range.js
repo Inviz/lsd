@@ -5,51 +5,52 @@ script: Range.js
  
 description: Range slider input
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Input
-- ART.Widget.Button
-- ART.Widget.Paint
+- LSD.Widget.Input
+- LSD.Widget.Button
+- LSD.Widget.Paint
 - Base/Widget.Trait.Slider
 - Base/Widget.Trait.Focus
 - Base/Widget.Trait.Accessibility
 
-provides: [ART.Widget.Input.Range]
+provides: [LSD.Widget.Input.Range]
  
 ...
 */
 
-ART.Widget.Input.Range = new Class({
+LSD.Widget.Input.Range = new Class({
   Includes: [
-    ART.Widget.Paint,
+    LSD.Widget.Paint,
     Widget.Trait.Slider,
     Widget.Trait.Focus.Stateful,
     Widget.Trait.Accessibility
   ],
   
-  name: 'input',
-  
-  layered: {
-    shadow: ['shadow'],
-    border: ['stroke'],
-    background: ['fill', ['backgroundColor']],
-    reflection:  ['fill', ['reflectionColor']]
-  },
-
-  shortcuts: {
-    next: 'increment',
-    previous: 'decrement'
-  },
-
-  layout: {
-    'input-range-thumb[shape=arrow]#thumb': {}
+  options: {
+    tag: 'input',
+    layers: {
+      shadow: ['shadow'],
+      border: ['stroke'],
+      background: [LSD.Layer.Fill.Background],
+      reflection:  [LSD.Layer.Fill.Reflection]
+    },
+    shortcuts: {
+      next: 'increment',
+      previous: 'decrement'
+    },
+    layout: {
+      children: {
+        '>thumb[shape=arrow]#thumb': {}
+      }
+    },
   },
   
   initialize: function() {
-    delete this.events.focus.element.mousedown;
+    delete this.options.events.focus.element.mousedown;
     this.parent.apply(this, arguments);
     this.addPseudo(this.options.mode);
   },
@@ -59,10 +60,12 @@ ART.Widget.Input.Range = new Class({
   }
 });
 
-ART.Widget.Input.Range.Thumb = new Class({
+LSD.Widget.Input.Range.Thumb = new Class({
   Includes: [
-    ART.Widget.Button
+    LSD.Widget.Button
   ],
   
-  name: 'thumb'
+  options: {
+    tag: 'thumb'
+  }
 });

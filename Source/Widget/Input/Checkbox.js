@@ -5,44 +5,42 @@ script: Checkbox.js
  
 description: Boolean checkbox type of input
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Input
+- LSD.Widget.Input
+- LSD.Widget.Module.Command.Checkbox
 - Base/Widget.Trait.Touchable
 - Base/Widget.Trait.Focus
 - Base/Widget.Trait.Accessibility
 
-provides: [ART.Widget.Input.Checkbox]
+provides: [LSD.Widget.Input.Checkbox]
  
 ...
 */
-ART.Widget.Input.Checkbox = new Class({
+LSD.Widget.Input.Checkbox = new Class({
   Includes: [
-    ART.Widget.Paint,
+    LSD.Widget.Paint,
+    LSD.Widget.Module.Command.Checkbox,
     Widget.Trait.Touchable.Stateful,
     Widget.Trait.Focus.Stateful,
     Widget.Trait.Accessibility
   ],
   
-  States: {
-    'checked': ['check', 'uncheck', 'toggle']
-  },
-  
-  name: 'input',
-  
-  shortcuts: {
-    space: 'toggle'
-  },
-
-  layered: {
-    shadow:  ['shadow'],
-    stroke: ['stroke'],
-    background:  ['fill', ['backgroundColor']],
-    reflection:  ['fill', ['reflectionColor']],
-    glyph: ['glyph']
+  options: {
+    tag: 'input',
+    layers: {
+      shadow:  ['shadow'],
+      stroke: ['stroke'],
+      background:  [LSD.Layer.Fill.Background],
+      reflection:  [LSD.Layer.Fill.Reflection],
+      glyph: ['glyph']
+    },
+    shortcuts: {
+      space: 'toggle'
+    }
   },
   
   retain: function() {

@@ -5,22 +5,24 @@ script: Date.js
  
 description: Date picker
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Input
+- LSD.Widget.Input
 
-provides: [ART.Widget.Input.Date]
+provides: [LSD.Widget.Input.Date]
  
 ...
 */
 
-ART.Widget.Input.Date = new Class({
+LSD.Widget.Input.Date = new Class({
   Includes: [
     Widget.Trait.Input
   ],
   
-  name: 'input'
+  options: {
+    tag: 'input'
+  }
 });

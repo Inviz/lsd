@@ -5,35 +5,34 @@ script: Panel.js
  
 description: A fieldset like widget for various content
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Paint
+- LSD.Widget.Paint
 
-provides: [ART.Widget.Panel]
+provides: [LSD.Widget.Panel]
  
 ...
 */
 
-ART.Widget.Panel = new Class({
-  Extends: ART.Widget.Paint,
+LSD.Widget.Panel = new Class({
+  Extends: LSD.Widget.Paint,
   
   States: {
     'collapsed': ['collapse', 'expand']
   },
   
-  name: 'panel',
-  
-  layout: {},
-  
-  layered: {
-    shadow:  ['shadow'],
-    stroke:  ['stroke'],
-    reflection: ['fill', ['reflectionColor']],
-    background: ['fill', ['backgroundColor']],
-    innerShadow:  ['inner-shadow']
+  options: {
+    tag: 'panel',
+    layers: {
+      shadow:  ['shadow'],
+      stroke:  ['stroke'],
+      reflection: [LSD.Layer.Fill.Reflection],
+      background: [LSD.Layer.Fill.Background],
+      innerShadow:  ['inner-shadow']
+    }
   }
   
 });

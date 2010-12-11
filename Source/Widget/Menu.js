@@ -5,20 +5,50 @@ script: Menu.js
  
 description: Menu widget base class
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Paint
-- Base/Widget.Trait.Animation
+  - LSD.Widget.Paint
+  - LSD.Widget.Command
 
-provides: [ART.Widget.Menu]
+provides: 
+  - LSD.Widget.Menu
  
 ...
 */
-ART.Widget.Menu = new Class({
-  Extends: ART.Widget.Paint,
+LSD.Widget.Menu = new Class({
+  Extends: LSD.Widget.Paint,
   
-  name: 'menu'
+  options: {
+    tag: 'menu',
+    element: {
+      tag: 'menu'
+    }
+  }
+});
+
+LSD.Widget.Menu.Command = new Class({
+  Extends: LSD.Widget.Paint,
+  
+  options: {
+    tag: 'command',
+    element: {
+      tag: 'command'
+    }
+  }
+});
+LSD.Widget.Menu.Command.Command = LSD.Widget.Menu.Command
+LSD.Widget.Menu.Command.Checkbox = new Class({
+  Includes: [
+    LSD.Widget.Menu.Command,
+    LSD.Widget.Module.Command.Checkbox
+  ]
+});
+LSD.Widget.Menu.Command.Radio = new Class({
+  Includes: [
+    LSD.Widget.Menu.Command,
+    LSD.Widget.Module.Command.Radio
+  ]
 });

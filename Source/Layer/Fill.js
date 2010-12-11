@@ -5,36 +5,35 @@ script: Fill.js
  
 description: Fills shape with color
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Layer
+- LSD.Layer
  
-provides: [ART.Layer.Fill]
+provides: [LSD.Layer.Fill]
  
 ...
 */
 
-ART.Layer.Fill = new Class({
-  Extends: ART.Layer,
+LSD.Layer.Fill = new Class({
+  Extends: LSD.Layer,
   
   paint: function(color) {
-    if (!color) return false;
     this.produce();
     this.shape.fill.apply(this.shape, $splat(color));
   }
 
 });
 
-ART.Layer.Fill.Offset = new Class({
-  Extends: ART.Layer.Fill,
+LSD.Layer.Fill.Offset = new Class({
+  Extends: LSD.Layer.Fill,
 
   paint: function(color, offset, radius) {
     if (!color) return false;
     var top = offset[0], right = offset[1], bottom = offset[2], left = offset[3];
-    if (!(top || right || bottom || left)) return ART.Layer.Fill.prototype.paint.call(this, color);
+    if (!(top || right || bottom || left)) return LSD.Layer.Fill.prototype.paint.call(this, color);
     var style = this.base.style;
     top = (top && top.toString().indexOf('%') > -1) ? (style.height / 100 * top.toInt()) : (top || 0).toInt();
     bottom = (bottom && bottom.toString().indexOf('%') > -1) ? (style.height / 100 * bottom.toInt()) : (bottom || 0).toInt();
@@ -61,12 +60,22 @@ ART.Layer.Fill.Offset = new Class({
 
 ['reflection', 'background'].each(function(type) {
   var camel = type.capitalize();
-  ART.Layer.Fill[camel] = ['fill', type + 'Color'];
+  LSD.Layer.Fill[camel] = new Class({
+    Extends: LSD.Layer.Fill,
+    
+    properties: {
+      required: [type + 'Color'],
+      optional: [type + 'CornerRadius']
+    }
+  })
   
-  ART.Layer.Fill[camel].Offset = new Class({
-    Extends: ART.Layer.Fill.Offset,
+  LSD.Layer.Fill[camel].Offset = new Class({
+    Extends: LSD.Layer.Fill.Offset,
 
-    properties: [type + 'Color', type + 'Offset', type + 'CornerRadius']
+    properties: {
+      required: [type + 'Color'],
+      optional: [type + 'Offset', type + 'CornerRadius']
+    }
   });
   Widget.Styles.Paint.push(type + 'Offset', type + 'Color', type + 'OffsetTop', type + 'OffsetRight', type + 'OffsetBottom', type + 'OffsetLeft', type + 'CornerRadius')
   

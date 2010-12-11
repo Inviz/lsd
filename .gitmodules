@@ -1,9 +1,6 @@
 [submodule "Dependencies/mootools-ext"]
 	path = Dependencies/mootools-ext
 	url = git://github.com/Inviz/mootools-ext.git
-[submodule "Dependencies/mootools-touch"]
-	path = Dependencies/mootools-touch
-	url = git://github.com/kamicane/mootools-touch.git
 [submodule "Dependencies/qfocuser"]
 	path = Dependencies/qfocuser
 	url = git://github.com/Inviz/qfocuser.git
@@ -25,12 +22,18 @@
 [submodule "Dependencies/lsd-examples"]
 	path = Dependencies/lsd-examples
 	url = git://github.com/Inviz/lsd-examples.git
+[submodule "Dependencies/lsd-themes"]
+	path = Dependencies/lsd-themes
+	url = git://github.com/Inviz/lsd-themes.git
 [submodule "Dependencies/lsd-base"]
 	path = Dependencies/lsd-base
 	url = git://github.com/Inviz/lsd-base.git
 [submodule "Dependencies/lsd-specs"]
 	path = Dependencies/lsd-specs
 	url = git://github.com/Inviz/lsd-specs.git
-[submodule "dependencies/sheet"]
-	path = dependencies/sheet
-	url = git://github.com/subtleGradient/Sheet.js.git
+[submodule "Dependencies/mootools-mobile"]
+	path = Dependencies/mootools-mobile
+	url = git://github.com/cpojer/mootools-mobile.git
+[submodule "Dependencies/mootools-custom-event"]
+	path = Dependencies/mootools-custom-event
+	url = git://github.com/cpojer/mootools-custom-event.git

@@ -5,23 +5,23 @@ script: Fitting.js
  
 description: Fit widget around its content. Useful for variable-height widgets like windows and dialogs.
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Base
+- LSD.Widget.Base
 - Ext/Drag.Limits
 
-provides: [ART.Widget.Trait.Fitting]
+provides: [LSD.Widget.Trait.Fitting]
  
 ...
 */
 
 
-ART.Widget.Trait.Fitting = new Class({
+LSD.Widget.Trait.Fitting = new Class({
   fit: function() {
-    var element = $(this.content.getContainer());
+    var element = this.content.getContainer().toElement();
     var styles = element.getStyles('display', 'width', 'height');
     element.setStyles({display: 'inline-block', width: 'auto', height: 'auto'});
     var width = element.offsetWidth;
@@ -33,10 +33,9 @@ ART.Widget.Trait.Fitting = new Class({
     
     this.collect(function(child) {
       return (child.style.current.width == 'inherit') || (child.style.current.width == 'auto') || child.style.expressed.width
-    }).concat(this.getResized()).each(function(child) {
-      child.update();
-    });
-    
+    }).concat(this.getResized()).each(Macro.proc('update'));
     this.refresh()
   }
 });
+
+Widget.Attributes.Ignore.push('fitting')

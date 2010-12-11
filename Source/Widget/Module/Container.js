@@ -5,20 +5,21 @@ script: Container.js
  
 description: Makes widget use container - wrapper around content setting
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Base
-- ART.Container
+  - LSD.Widget.Base
+  - LSD.Container
 
-provides: [ART.Widget.Module.Container]
+provides:
+  - LSD.Widget.Module.Container
  
 ...
 */
 
-ART.Widget.Module.Container = new Class({
+LSD.Widget.Module.Container = new Class({
   options: {
     container: false,
     
@@ -39,7 +40,7 @@ ART.Widget.Module.Container = new Class({
     return this.getContainer().set.apply(this.container, arguments);
   },
   
-  getContainer: Macro.setter('container', function() {
+  getContainer: Macro.getter('container', function() {
     return new Moo.Container(this, this.options.container);
   })
 });

@@ -5,38 +5,40 @@ script: Input.js
  
 description: A base class for all kinds of form controls
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Paint
+- LSD.Widget.Paint
 - Base/Widget.Trait.Input
 - Base/Widget.Trait.Focus.State
 
-provides: [ART.Widget.Input]
+provides: [LSD.Widget.Input]
  
 ...
 */
-ART.Widget.Input = new Class({
+LSD.Widget.Input = new Class({
   Includes: [
-    ART.Widget.Paint,
+    LSD.Widget.Paint,
     Widget.Trait.Focus.State,
     Widget.Trait.Input
   ],
   
-  name: 'input',
-  
-  attributes: {
-    type: 'text'
-  },
-  
-  layered: {
-    shadow:  ['shadow'],
-    stroke: ['stroke'],
-    background:  ['fill', ['backgroundColor']],
-    reflection:  ['fill', ['reflectionColor']],
-    glyph: ['glyph']
+  options: {
+    tag: 'input',
+
+    attributes: {
+      type: 'text'
+    },
+
+    layers: {
+      shadow:  ['shadow'],
+      stroke: ['stroke'],
+      background:  [LSD.Layer.Fill.Background],
+      reflection:  [LSD.Layer.Fill.Reflection],
+      glyph: ['glyph']
+    }
   },
   
   focus: Macro.onion(function() {

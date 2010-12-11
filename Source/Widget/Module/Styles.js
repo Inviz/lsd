@@ -5,17 +5,17 @@ script: Styles.js
  
 description: Set, get and render different kind of styles on widget
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Base
-- ART.Expression
+- LSD.Widget.Base
+- LSD.Expression
 - Core/Element.Style
 - Ext/FastArray
 
-provides: [ART.Widget.Module.Styles, ART.Styles]
+provides: [LSD.Widget.Module.Styles, ART.Styles]
  
 ...
 */
@@ -38,12 +38,15 @@ Widget.Styles.Complex = {
 }
 
 
-ART.Widget.Module.Styles = new Class({
+LSD.Widget.Module.Styles = new Class({
+  
+  options: {
+    styles: {}
+  },
   
   initialize: function() {
     this.style = {
       current: {},    //styles that widget currently has
-      last: {},       //styles that were rendered last frame
       found: {},      //styles that were found in stylesheets
       given: {},      //styles that were manually assigned
 
@@ -58,8 +61,9 @@ ART.Widget.Module.Styles = new Class({
     this.rules = {
       current: [],
       possible: null
-    };    
+    };
     this.parent.apply(this, arguments);
+    $extend(this.style.current, this.options.styles);
     for (var property in this.style.current) this.setStyle(property, this.style.current[property])
   },
   
@@ -89,7 +93,7 @@ ART.Widget.Module.Styles = new Class({
   },
 
   lookupStyles: function() {
-    var result = ART.Sheet.lookup(this.getHierarchy(), this.rules.possible);
+    var result = LSD.Sheet.lookup(this.getHierarchy(), this.rules.possible);
     if (!$equals(result.rules, this.rules.current)) {
       this.rules.current = result.rules;
       if (!this.rules.possible) this.rules.possible = result.possible;
@@ -101,15 +105,24 @@ ART.Widget.Module.Styles = new Class({
   renderStyles: function(style) {
     $extend(this.style.given, style);
     this.setStyles(this.style.given)
-    for (var property in this.style.element)  {
-      if (!(property in this.style.given) && !(property in this.style.found) && !(property in this.style.calculated) && !(property in this.style.implied)) {
-        this.resetElementStyle(property);
+    var style = this.style, 
+        current = style.current,
+        paint = style.paint, 
+        element = style.element, 
+        given = style.given, 
+        found = style.found,
+        calculated = style.calculated,
+        implied = style.implied
+    for (var property in element)  {
+      if (!(property in given) && !(property in found) && !(property in calculated) && !(property in implied)) {
+        this.element.style[property] = '';
+        delete element[property]
       }
     }
-    for (var property in this.style.current)  {
-      if (!(property in this.style.given) && !(property in this.style.found) && !(property in this.style.calculated) && !(property in this.style.implied)) {
-        delete this.style.current[property];
-        delete this.style.paint[property];
+    for (var property in current)  {
+      if (!(property in given) && !(property in found) && !(property in calculated) && !(property in implied)) {
+        delete current[property];
+        delete paint[property];
       }
     }
   },
@@ -133,24 +146,36 @@ ART.Widget.Module.Styles = new Class({
       case "given": 
         this.styles[type][property] = value;
         break;
-    } 
-    
+    }
     return value;
   },
-  
+   
   getStyle: function(property) {
     if (this.style.computed[property]) return this.style.computed[property];
-    var expression = this.style.expressed[property];
-    if (expression) {
-      value = this.style.current[property] = this.calculateStyle(property, expression);
-    } else {
-      if (property == 'height') {
-        value = this.getClientHeight();
-      } else {
-        value = this.style.current[property];
-        if (value == "inherit") value = this.inheritStyle(property);
-        if (value == "auto") value = this.calculateStyle(property);
+    var value;
+    var properties = Widget.Styles.Complex[property];
+    if (properties) {
+      if (properties.set) properties = properties.get;
+      var current = this.style.current;
+      value = [];
+      var i = 0;
+      while (property = properties[i++]) {
+        var part = current[property];
+        value.push(((isFinite(part)) ? part : this.getStyle(property)) || 0)
       }
+    } else {
+      var expression = this.style.expressed[property];
+      if (expression) {
+        value = this.style.current[property] = this.calculateStyle(property, expression);
+      } else {
+        if (property == 'height') {
+          value = this.getClientHeight();
+        } else {
+          value = this.style.current[property];
+          if (value == "inherit") value = this.inheritStyle(property);
+          if (value == "auto") value = this.calculateStyle(property);
+        }
+      }  
     }
     this.style.computed[property] = value;
     return value;
@@ -162,28 +187,6 @@ ART.Widget.Module.Styles = new Class({
     return result;
   },
 
-  getChangedStyles: function(key, properties) {
-    var styles = this.getStyles.apply(this, properties);
-    var last = $extend({}, this.style.last[key]);
-    if (!this.style.last[key]) this.style.last[key] = {};
-    if (this.size.height) $extend(styles, this.size);
-    
-    var changed = false;
-    for (var property in styles) {
-      var value = styles[property];
-      if (!$equals(last[property], value)) {
-        changed = true;
-        this.style.last[key][property] = value;
-      }
-      delete last[property];
-    };
-    if (!changed) for (var property in last) {
-      changed = true;
-      break;
-    }
-    return changed ? styles : false;
-  },
-  
   setElementStyle: function(property, value) {
     if (Widget.Styles.Element[property]) {
       if (this.style.element[property] !== value) {
@@ -195,11 +198,6 @@ ART.Widget.Module.Styles = new Class({
     return;
   },
   
-  resetElementStyle: function(property) {
-    this.element.setStyle(property, '');
-    delete this.style.element[property]
-  },
-
   inheritStyle: function(property) {
     var node = this;
     var style = node.style.current[property];
@@ -216,28 +214,20 @@ ART.Widget.Module.Styles = new Class({
       switch (property) {
         case "height":
           value = this.getClientHeight();
-          if (value == 0) this.postpone()
-          break;
         case "width":
           value = this.inheritStyle(property);
           if (value == "auto") value = this.getClientWidth();
-          //if scrollWidth value is zero, then the widget is not in DOM yet
+        case "height": case "width":  
+          //if dimension size is zero, then the widget is not in DOM yet
           //so we wait until the root widget is injected, and then try to repeat
-          if (value == 0 && (this.redraws == 0)) this.postpone()
+          if (value == 0 && (this.redraws == 0)) this.halt();
       }
     }
     this.style.calculated[property] = value;
     return value;
   },
   
-  postpone: function() {
-    if (!this.halt('postponed')) return;
-    this.postponed = true;
-    return true;
-  },
-  
   update: Macro.onion(function() {
-    if (!this.style) return;
     this.style.calculated = {};
     this.style.computed = {};
   })
@@ -245,5 +235,5 @@ ART.Widget.Module.Styles = new Class({
 
 
 ART.Styles.calculate = function() {
-  return ART.Expression.get.apply(ART.Expression, arguments)
+  return LSD.Expression.get.apply(LSD.Expression, arguments)
 }

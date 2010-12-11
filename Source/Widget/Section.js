@@ -5,33 +5,31 @@ script: Section.js
  
 description: SVG-Based content element (like <section> in html5)
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Paint
+- LSD.Widget.Paint
 
-provides: [ART.Widget.Section]
+provides: [LSD.Widget.Section]
  
 ...
 */
 
-ART.Widget.Section = new Class({
-  Extends: ART.Widget.Paint,
+LSD.Widget.Section = new Class({
+  Extends: LSD.Widget.Paint,
   
-  name: 'section',
-
   options: {
+    tag: 'section',
+    layers: {
+      shadow:  ['shadow'],
+      fill:  ['stroke'],
+      reflection:  [LSD.Layer.Fill.Reflection.Offset],
+      background: [LSD.Layer.Fill.Background.Offset]
+    },
     element: {
-      tag: ART.html5 ? 'section' : 'div'
+      tag: 'section'
     }
-  },
-  
-  layered: {
-    shadow:  ['shadow'],
-    fill:  ['stroke'],
-    reflection:  [ART.Layer.Fill.Reflection.Offset],
-    background: [ART.Layer.Fill.Background.Offset]
   }
 });

@@ -5,33 +5,32 @@ script: Search.js
  
 description: Search field with a dropdown
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Input
-- ART.Widget.Container
-- ART.Widget.Button
-- ART.Widget.Trait.Menu
-- ART.Widget.Trait.Aware
+- LSD.Widget.Input
+- LSD.Widget.Container
+- LSD.Widget.Button
+- LSD.Widget.Trait.Menu
 - Base/Widget.Trait.List
 - Base/Widget.Trait.Choice
 - Base/Widget.Trait.Value
 - Base/Widget.Trait.Observer
 - Base/Widget.Trait.Accessibility
 
-provides: [ART.Widget.Input.Search]
+provides: [LSD.Widget.Input.Search]
  
 ...
 */
 
-ART.Widget.Input.Search = new Class({
+LSD.Widget.Input.Search = new Class({
   Includes: [
-    ART.Widget.Input,
-    ART.Widget.Trait.Aware,
-    ART.Widget.Trait.Proxies,
-    ART.Widget.Trait.Menu.Stateful,
+    LSD.Widget.Input,
+    LSD.Widget.Trait.Expectations,
+    LSD.Widget.Trait.Proxies,
+    LSD.Widget.Trait.Menu.Stateful,
     Widget.Trait.List,
     Widget.Trait.Choice,
     Widget.Trait.Value,
@@ -44,19 +43,29 @@ ART.Widget.Input.Search = new Class({
     'uniconed': ['uniconize', 'iconize']
   },
   
-  layout: {
-    'input-icon#glyph': {},
-    'button#canceller': {}
-  },
-  
-  name: 'input',
-  
   options: {
+    tag: 'input',
+    layout: {
+      item: 'input-option',
+      children: {
+        '>icon#glyph': {},
+        '>button#canceller': {}
+      }
+    },
+    events: {
+      glyph: {
+        click: 'expand'
+      },
+      canceller: {
+        click: 'clear'
+      },
+      self: {
+        set: 'setIcon',
+        focus: 'expand'
+      }
+    },
     menu: {
       position: 'bottom'
-    },
-    layout: {
-      item: 'input-option'
     }
   },
   
@@ -76,19 +85,6 @@ ART.Widget.Input.Search = new Class({
     if (this.canceller) this.canceller.refresh();
     this.input.setStyle('width', this.size.width - this.canceller.getLayoutWidth(this.canceller.size.width) - this.glyph.getLayoutWidth() - 1)
   }),
-  
-  events: {
-    glyph: {
-      click: 'expand'
-    },
-    canceller: {
-      click: 'clear'
-    },
-    self: {
-      set: 'setIcon',
-      focus: 'expand'
-    }
-  },
 	
   processValue: function(item) {
     return item.value.title;
@@ -109,26 +105,27 @@ ART.Widget.Input.Search = new Class({
       this.glyph.element.setStyle('background-image', '');
     } else {
       this.uniconize();
-      this.glyph.element.setStyle('background', 'url(' + item + ') no-repeat ' + (this.glyph.offset.paint.left + 4) + 'px ' + this.glyph.offset.paint.left + 'px');
+      this.glyph.element.setStyle('background', 'url(' + item + ') no-repeat ' + (this.glyph.offset.outside.left + 4) + 'px ' + this.glyph.offset.outside.left + 'px');
     }
   }
 });
 
-ART.Widget.Input.Option = new Class({
-  Extends: ART.Widget.Container,
+LSD.Widget.Input.Option = LSD.Widget.Input.Search.Option = new Class({
+  Extends: LSD.Widget.Container,
     
   States: {
     chosen: ['choose', 'forget']
   },
   
-  events: {
-    element: {
-      click: 'select',
-      mousemove: 'chooseOnHover'
+  options: {
+    tag: 'option',
+    events: {
+      element: {
+        click: 'select',
+        mousemove: 'chooseOnHover'
+      }
     }
   },
-  
-  name: 'option',
   
   render: Macro.onion(function() {
     var icon = this.value ? this.value.icon : false;
@@ -136,7 +133,7 @@ ART.Widget.Input.Option = new Class({
     this.icon = icon;
     this.element.setStyle('background-image', 'url(' + icon + ')');
     this.element.setStyle('background-repeat', 'no-repeat');
-    this.element.setStyle('background-position', ((this.offset.paint.left || 0) + 4) + 'px  center');
+    this.element.setStyle('background-position', ((this.offset.outside.left || 0) + 4) + 'px  center');
     this.element.setStyle('padding-left', 15)
   }),
   
@@ -150,14 +147,19 @@ ART.Widget.Input.Option = new Class({
 });
 
 
-ART.Widget.Input.Icon = new Class({
-  name: 'button', 
+LSD.Widget.Input.Icon = LSD.Widget.Input.Search.Icon = new Class({
   
   Includes: [
-    ART.Widget.Button
+    LSD.Widget.Button
   ],
   
-  layered: {
-    icon: ['icon']
+  options: {
+    tag: 'button',
+    layers: {
+      icon: ['icon']
+    }
   }
+  
 });
+
+LSD.Widget.Input.Search.Button = LSD.Widget.Button;

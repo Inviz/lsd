@@ -5,20 +5,22 @@ script: Container.js
  
 description: Container widget to wrap around the content
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Element
+- LSD.Widget.Element
 
-provides: [ART.Widget.Container]
+provides: [LSD.Widget.Container]
  
 ...
 */
 
-ART.Widget.Container = new Class({
-  Extends: ART.Widget.Element,
+LSD.Widget.Container = new Class({
+  Extends: LSD.Widget.Element,
   
-  name: 'container'
+  options: {
+    tag: 'container'
+  }
 });

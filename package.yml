@@ -10,13 +10,25 @@ current: 0.2.2
 tags: [ui, svg, interface]
 demo: http://inviz.github.com/lsd-examples/Demos/index.html
 sources:
-  - Source/ART.js
+  - Source/ART/ART.js
   - Source/ART/ART.SVG.js
   - Source/ART/ART.Element.js
+  - Source/ART/ART.Glyphs.js
+  - Source/ART/ART.Shape.js
+  - Source/ART/ART.Shape.Arrow.js
+  - Source/ART/ART.Shape.Ellipse.js
+  - Source/ART/ART.Shape.Flower.js
+  - Source/ART/ART.Shape.Rectangle.js
+  - Source/ART/ART.Shape.Star.js
   - Source/Container.js
+  - Source/Command.js
+  - Source/Command/Command.js
+  - Source/Command/Checkbox.js
+  - Source/Command/Radio.js
   - Source/Document.js
+  - Source/Document/Resizable.js
   - Source/Fx.js
-  - Source/Glyphs.js
+  - Source/LSD.js
   - Source/Layout.js
   - Source/Layer.js
   - Source/Layer/Fill.js
@@ -25,15 +37,11 @@ sources:
   - Source/Layer/InnerShadow.js
   - Source/Layer/Shadow.js
   - Source/Layer/Stroke.js
-  - Source/Shape.js
-  - Source/Shape/Arrow.js
-  - Source/Shape/Ellipse.js
-  - Source/Shape/Flower.js
-  - Source/Shape/Rectangle.js
-  - Source/Shape/Star.js
+  - Source/Node.js
   - Source/Sheet.js
   - Source/Expression.js
   - Source/Widget/Base.js
+  - Source/Widget/Body.js
   - Source/Widget/Button.js
   - Source/Widget/Container.js
   - Source/Widget/Element.js
@@ -52,11 +60,12 @@ sources:
   - Source/Widget/Menu/List.js
   - Source/Widget/Menu/Toolbar.js
   - Source/Widget/Menu/Toolbar.Menu.js
+  - Source/Widget/Module/Behaviours.js
   - Source/Widget/Module/Container.js
+  - Source/Widget/Module/Command.js
   - Source/Widget/Module/DOM.js
+  - Source/Widget/Module/Expectations.js
   - Source/Widget/Module/Layout.js
-  - Source/Widget/Module/LayoutEvents.js
-  - Source/Widget/Module/Position.js
   - Source/Widget/Module/Styles.js
   - Source/Widget/Paint.js
   - Source/Widget/Panel.js
@@ -64,15 +73,16 @@ sources:
   - Source/Widget/Section.js
   - Source/Widget/Header.js
   - Source/Widget/Footer.js
+  - Source/Widget/Command.js
   - Source/Widget/Nav.js
   - Source/Widget/Select.js
   - Source/Widget/Textarea.js
-  - Source/Widget/Trait/Aware.js
   - Source/Widget/Trait/Dimensions.js
   - Source/Widget/Trait/Draggable.js
   - Source/Widget/Trait/Fitting.js
   - Source/Widget/Trait/Hoverable.js
   - Source/Widget/Trait/Proxies.js
+  - Source/Widget/Trait/Position.js
   - Source/Widget/Trait/Layers.js
   - Source/Widget/Trait/Menu.js
   - Source/Widget/Trait/Resizable.js

@@ -5,20 +5,20 @@ script: Fx.js
  
 description: Very basic tweening for SVG
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART
+- LSD
 - Fx.CSS
  
-provides: [ART.Fx ]
+provides: [LSD.Fx ]
  
 ...
 */
 
-ART.Fx = new Class({
+LSD.Fx = new Class({
 
   Extends: Fx.CSS,
 

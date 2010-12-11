@@ -5,37 +5,43 @@ script: Widget.js
  
 description: Base widget with all modules included
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Base
-- Base/Widget.Base
-- Base/Widget
-- Base/Widget.Module.Attributes
-- Base/Widget.Module.Events
-- ART.Widget.Module.Container
-- ART.Widget.Module.DOM
-- ART.Widget.Module.Expression
-- ART.Widget.Module.Layout
-- ART.Widget.Module.LayoutEvents
-- ART.Widget.Module.Position
-- ART.Widget.Module.Styles
+  - LSD.Widget.Base
+  - Base/Widget.Base
+  - Base/Widget
+  - Base/Widget.Module.Attributes
+  - Base/Widget.Module.Events
+  - LSD.Widget.Module.Behaviours
+  - LSD.Widget.Module.Container
+  - LSD.Widget.Module.DOM
+  - LSD.Widget.Module.Layout
+  - LSD.Widget.Module.Styles
 
-provides: [ART.Widget]
+provides: 
+  - LSD.Widget
  
 ...
 */
 
 (function(Old) {
-  // you can specify ART.Widget.modules as an array of classes to disable autoloading
+  /*
+    LSD.Widget autoloads all of the modules that are defined in Old.Module namespace
+    unless LSD.Widget.modules array is provided.
+    
+    So if a new module needs to be included into the base class, then it only needs
+    to be *require*d.
+  */
+  
   if (!Old.modules) {
     Old.modules = []
     for (var name in Old.Module) Old.modules.push(Old.Module[name]);
   }
 
-  ART.Widget = new Class({
+  LSD.Widget = new Class({
 
     States: {
       'hidden': ['hide', 'show'],
@@ -47,36 +53,22 @@ provides: [ART.Widget]
     
     Includes: [Old.Base, Widget.modules, Old.modules].flatten(),
     
-    ns: 'art',
-    name: 'widget',
-    
     options: {
-      classes: [],
       element: {
         tag: 'div'
       }
     },
-    
 
     initialize: function(options) {
       this.setOptions(options);
-      
-      this.update();
-      this.offset = {
-        paint: {},
-        inside: {},
-        padding: {},
-        margin: {}
-      }
+      this.dirty = true;
       this.parent.apply(this, arguments);
     }
   });
-    
-  ['Ignore', 'Module', 'Trait', 'modules', 'create', 'count'].each(function(property) { 
-    ART.Widget[property] = Old[property]
-  });
-  ART.Widget.Base = Old.Base;
-  
-  Widget.States.Ignore.push('dirty');
 
-})(ART.Widget);
+  ['Ignore', 'Module', 'Trait', 'modules', 'create', 'count'].each(function(property) { 
+    LSD.Widget[property] = Old[property]
+  });
+  LSD.Widget.Base = Old.Base;
+
+})(LSD.Widget);

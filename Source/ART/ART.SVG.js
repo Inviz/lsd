@@ -5,7 +5,7 @@ script: ART.SVG.js
  
 description: Some extensions (filters, dash, shadow blur)
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
 
@@ -79,12 +79,12 @@ ART.SVG.Base.implement({
         var opts = args.length == 3 ? args[2] : {}
         this.fillRadial(args[1], opts.fx, opts.fy, opts.r, opts.cx, opts.cy)
       } else if ($defined(args[args.length - 1].red)) {
-        this.fillLinear(arguments)
+        this.fillLinear(args)
       } else {
-        this.fillLinear.apply(this, arguments);
+        this.fillLinear.apply(this, args);
       }
     } else if (color && !$defined(color.red)) {
-      this.fillLinear.apply(this, arguments);
+      this.fillLinear.apply(this, args);
     } else {
       this._setColor('fill', color);
     }
@@ -135,7 +135,7 @@ ART.SVG.Base.implement({
     if ('length' in stops) for (var i = 0, l = stops.length - 1; i <= l; i++) addColor(i / l, stops[i]);
     else for (var offset in stops) addColor(offset, stops[offset]);
 
-    var id = 'g' + ART.uniqueID();
+    var id = 'g' + String.uniqueID();
     gradient.setAttribute('id', id);
 
     this._injectGradient(type);

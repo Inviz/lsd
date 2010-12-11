@@ -5,33 +5,25 @@ script: Proxies.js
  
 description: Dont adopt children, pass them to some other widget
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Trait.Aware
+- LSD.Widget.Module.Expectations
 
-provides: [ART.Widget.Trait.Proxies]
+provides: [LSD.Widget.Trait.Proxies]
  
 ...
 */
 
-ART.Widget.Trait.Proxies = new Class({
+LSD.Widget.Trait.Proxies = new Class({
   
   options: {
     proxies: {}
   },
   
-  events: {
-    proxies: {
-      self: {
-        hello: 'populateProxyTarget'
-      }
-    }
-  },
-  
-  getProxies: Macro.setter('proxies', function() {
+  getProxies: Macro.getter('proxies', function() {
     var options = this.options.proxies;
     var proxies = []
     for (var name in options) proxies.push(options[name]);
@@ -40,44 +32,23 @@ ART.Widget.Trait.Proxies = new Class({
     })
   }),
   
-  populateProxyTarget: function(widget) {
-    for (var i = 0, proxies = this.getProxies(), proxy; proxy = proxies[i++];) {
-      if (!proxy.queue) return;
-      var container = proxy.container.call(this);
-      if (widget ? (widget == container) : container) { 
-        for (var queue = proxy.queue, child; child = queue.shift();) this.proxyChild(child, proxy);
-      }
-      delete proxy.queue;
-    }
-  },
-  
   proxyChild: function(child, proxy) {
-    if (proxy.indexOf) proxy = this.options.proxies[proxy];
+    if (typeof proxy == 'string') proxy = this.options.proxies[proxy];
     if (!proxy.condition.call(this, child)) return false;
-    var container = proxy.container.call(this);
-    if (!container) {
-      if (!proxy.queue) proxy.queue = [];
-      proxy.queue.push(child);
-      var events = this.events.proxies;
-      if (!events.attached) {
-        this.addEvents(events);
-        events.attached = true;
-      }
-    } else {
+    var reinject = function(target) {
       if (proxy.rewrite === false) {
         this.appendChild(child, function() {
-          container.adopt(child);
+          target.adopt(child);
         });
-        //child.fireEvent('inject', this);
       } else {
-        child.inject(container);
-      } 
-      
-      var events = this.events.proxies;
-      if (events.attached) {
-        delete events.attached;
-        this.removeEvents(events);
+        child.inject(target);
       }
+    };
+    var container = proxy.container;
+    if (container.call) {
+      reinject.call(this, container.call(this));
+    } else {
+      this.use(container, reinject.bind(this))
     }
     return true;
   },
@@ -85,13 +56,6 @@ ART.Widget.Trait.Proxies = new Class({
   canAppendChild: function(child) {
     for (var i = 0, proxies = this.getProxies(), proxy; proxy = proxies[i++];) if (this.proxyChild(child, proxy)) return false;
     return true;
-  },
-  
-  render: function() {
-    //this.populateProxyTarget(); //do it before everything else
-    return this.parent.apply(this, arguments);  
   }
   
 });
-
-Widget.Events.Ignore.push('proxy')

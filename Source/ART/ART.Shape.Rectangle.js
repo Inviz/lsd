@@ -5,7 +5,7 @@ script: Rectangle.js
  
 description: Rectangles with rounded corners
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
@@ -30,7 +30,6 @@ ART.Shape.Rectangle = new Class({
   
   paint: function(width, height, radius) {
     var path = new ART.Path;
-
     if (!radius){
 
       path.move(0, 0).line(width, 0).line(0, height).line(-width, 0).line(0, -height);
@@ -77,15 +76,5 @@ ART.Shape.Rectangle = new Class({
     return this.paint(this.style.width + x * 2, this.style.height + y * 2, this.style.cornerRadius.map(function(radius, i) {
       return (r.push ? r[i] : r) + radius;
     }))
-  },
-  
-  getOffset: function(styles, offset) {
-    var stroke = styles.width == 'auto' ? (styles.strokeWidth || 0) : 0
-    return {
-      left: ((styles.width == 'auto') ? Math.max(stroke - offset.left, 0) : stroke),
-      top: 0,
-      right: ((styles.width == 'auto') ? Math.max(stroke - offset.right, 0) : stroke),
-      bottom: stroke
-    }
   }
 });

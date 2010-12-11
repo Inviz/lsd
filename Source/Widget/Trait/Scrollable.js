@@ -5,30 +5,32 @@ script: Scrollable.js
  
 description: For all the scrollbars you always wanted
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Scrollbar
+- LSD.Widget.Scrollbar
 
-provides: [ART.Widget.Trait.Scrollable]
+provides: [LSD.Widget.Trait.Scrollable]
  
 ...
 */
 
-ART.Widget.Trait.Scrollable = new Class({
-  events: {
-    scrollbar: {
-      self: {
-        resize: 'showScrollbars'
+LSD.Widget.Trait.Scrollable = new Class({
+  options: {
+    events: {
+      scrollbar: {
+        self: {
+          resize: 'showScrollbars'
+        }
       }
     }
   },
   
   attach: Macro.onion(function() {
     this.addEvents(this.events.scrollbar);
-    $(this.getScrolled()).setStyle('overflow', 'hidden');
+    this.element.setStyle('overflow', 'hidden');
   }),
   
   detach: Macro.onion(function() {
@@ -37,8 +39,9 @@ ART.Widget.Trait.Scrollable = new Class({
   
   showScrollbars: function(size) {
     if (!size) size = this.size;
-    $(this.getContainer()).setStyles(size)
-    var scrolled = $(this.getScrolled());
+    console.log('showScrollbars', document.id(this.getScrolled()))
+    var scrolled = document.id(this.getScrolled());
+    scrolled.setStyles(size)
     if (size.width < scrolled.scrollWidth) {
       if (this.getHorizontalScrollbar().parentNode != this) this.horizontal.inject(this);
       this.horizontal.slider.set(this.horizontal.now)
@@ -55,11 +58,11 @@ ART.Widget.Trait.Scrollable = new Class({
   //  this.wrapper.inject(this.element);
   //}),
   
-  getVerticalScrollbar: Macro.setter('vertical', function() {
+  getVerticalScrollbar: Macro.getter('vertical', function() {
     return this.buildLayout('scrollbar#vertical[mode=vertical]', null, null)
   }),
   
-  getHorizontalScrollbar: Macro.setter('horizontal', function() {
+  getHorizontalScrollbar: Macro.getter('horizontal', function() {
     return this.buildLayout('scrollbar#horizontal[mode=horizontal]')
   }),
   

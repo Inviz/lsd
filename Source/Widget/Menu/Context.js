@@ -5,52 +5,86 @@ script: Context.js
  
 description: Menu widget to be used as a drop down
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Menu
-provides: [ART.Widget.Menu.Context]
+  - LSD.Widget.Menu
+  - Base/Widget.Trait.Animation
+  - LSD.Widget.Module.Command.Checkbox
+  - LSD.Widget.Module.Command.Radio
+
+provides:
+  - LSD.Widget.Menu.Context
+  - LSD.Widget.Menu.Context.Command
+  - LSD.Widget.Menu.Context.Command.Command
+  - LSD.Widget.Menu.Context.Command.Checkbox
+  - LSD.Widget.Menu.Context.Command.Radio
  
 ...
 */
-ART.Widget.Menu.Context = new Class({
+LSD.Widget.Menu.Context = new Class({
   Includes: [
-    ART.Widget.Menu,
-    Widget.Trait.Animation.Instant
+    LSD.Widget.Menu,
+    Widget.Trait.Animation
   ],
 
-  layered: {
-    shadow:  ['shadow'],
-    stroke:  ['stroke'],
-    background:  ['fill', ['backgroundColor']],
-    reflection:  ['fill', ['reflectionColor']],
-  },
-  
-  attributes: {
-    type: 'context'
+  options: {    
+    layers: {
+      shadow:  ['shadow'],
+      stroke:  ['stroke'],
+      background:  [LSD.Layer.Fill.Background],
+      reflection:  [LSD.Layer.Fill.Reflection],
+    },
+
+    attributes: {
+      type: 'context'
+    },
+    
+    animation: {
+      duration: 200
+    }
   }
 });
 
-ART.Widget.Menu.Context.Item = new Class({
+LSD.Widget.Menu.Context.Command = new Class({
   Includes: [
-    ART.Widget.Paint,
+    LSD.Widget.Menu.Command,
     Widget.Trait.Item.Stateful
   ],
   
-  events: {
-    element: {
-      mouseenter: 'select',
-      mousedown: 'select'
+  options: {
+    events: {
+      element: {
+        mouseenter: 'select',
+        mousedown: 'select'
+      }
+    },
+    layers: {
+      fill:  ['stroke'],
+      reflection:  [LSD.Layer.Fill.Reflection],
+      background: [LSD.Layer.Fill.Background],
+      glyph: ['glyph']
     }
-  },
-  
-  name: 'option',
-  
-  layered: {
-    fill:  ['stroke'],
-    reflection:  ['fill', ['reflectionColor']],
-    background: ['fill', ['backgroundColor']]
   }
 });
+
+LSD.Widget.Menu.Context.Command.Command = LSD.Widget.Menu.Context.Command;
+
+LSD.Widget.Menu.Context.Command.Checkbox = new Class({
+  Includes: [
+    LSD.Widget.Menu.Context.Command,
+    LSD.Widget.Module.Command.Checkbox
+  ]
+});
+
+LSD.Widget.Menu.Context.Command.Radio = new Class({
+  Includes: [
+    LSD.Widget.Menu.Context.Command,
+    LSD.Widget.Module.Command.Radio
+  ]
+});
+
+LSD.Widget.Menu.Button = LSD.Widget.Menu.Context.Command
+

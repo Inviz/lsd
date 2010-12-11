@@ -5,19 +5,19 @@ script: Position.js
  
 description: Easily reposition element by positioning widget absolutely and one of the edges
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Base
+- LSD.Widget.Base
 
-provides: [ART.Widget.Module.Position]
+provides: [LSD.Widget.Trait.Position]
  
 ...
 */
 
-ART.Widget.Module.Position = new Class({
+LSD.Widget.Trait.Position = new Class({
   
   attach: Macro.onion(function() {
     if (this.options.at) this.positionAt(this.options.at)

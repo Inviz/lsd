@@ -5,26 +5,25 @@ script: Header.js
  
 description: SVG-Based header element (like <header> in html5)
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Section
+- LSD.Widget.Section
 
-provides: [ART.Widget.Header]
+provides: [LSD.Widget.Header]
  
 ...
 */
 
-ART.Widget.Header = new Class({
-  Extends: ART.Widget.Section,
+LSD.Widget.Header = new Class({
+  Extends: LSD.Widget.Section,
   
-  name: 'header',
-
   options: {
+    tag: 'header',
     element: {
-      tag: ART.html5 ? 'header' : 'div'
+      tag: 'header'
     }
   }
 });

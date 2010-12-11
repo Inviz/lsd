@@ -5,27 +5,30 @@ script: Stroke.js
  
 description: Fills shape with color and strokes with a stroke
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Layer
+- LSD.Layer
  
-provides: [ART.Layer.Stroke]
+provides: [LSD.Layer.Stroke]
  
 ...
 */
 
-ART.Layer.Stroke = new Class({
-  Extends: ART.Layer,
+LSD.Layer.Stroke = new Class({
+  Extends: LSD.Layer,
   
-  properties: ['strokeColor', 'strokeWidth', 'strokeCap', 'strokeDash', 'fillColor'],
+  properties: {
+    required: ['strokeColor'],
+    numerical: ['strokeWidth'],
+    alternative: ['fillColor'],
+    optional: ['strokeColor', 'strokeDash']
+  },
   
-  paint: function(strokeColor, stroke, cap, dash, color) {
-    if (!color && (!stroke || !strokeColor)) return false;
-    if (!stroke) stroke = 0;
-    this.produce(stroke / 2)
+  paint: function(strokeColor, stroke, color, cap, dash) {
+    this.produce(stroke / 2);
     this.shape.stroke(strokeColor, stroke, cap);
     this.shape.fill.apply(this.shape, color ? $splat(color) : null);
     this.shape.dash(dash);
@@ -34,14 +37,12 @@ ART.Layer.Stroke = new Class({
         x: stroke / 2, 
         y: stroke / 2
       },
-      outside: {
-        x: stroke,
-        y: stroke
-      },
       inside: {
-        x: stroke,
-        y: stroke
+        left: stroke,
+        top: stroke,
+        right: stroke,
+        bottom: stroke
       }
-    }
+    };
   }
 });

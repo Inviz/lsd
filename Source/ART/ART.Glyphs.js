@@ -5,12 +5,12 @@ script: Glyphs.js
  
 description: Glyph library
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART
+- ART/ART
  
 provides: [ART.Glyphs]
  

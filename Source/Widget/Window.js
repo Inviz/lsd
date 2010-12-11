@@ -5,25 +5,23 @@ script: Window.js
  
 description: Window for fun and profit
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Paint
-- ART.Widget.Trait.Aware
+- LSD.Widget.Paint
 - Base/Widget.Trait.Animation
  
-provides: [ART.Widget.Window]
+provides: [LSD.Widget.Window]
  
 ...
 */
 
-ART.Widget.Window = new Class({
+LSD.Widget.Window = new Class({
   
   Includes: [
-    ART.Widget.Paint,
-    ART.Widget.Trait.Aware,
+    LSD.Widget.Paint,
     Widget.Trait.Animation
   ],
   
@@ -33,35 +31,35 @@ ART.Widget.Window = new Class({
     'minified': ['minify', 'enlarge', 'mutate']
   },
   
-  name: 'window',
-  
-  events: {
-    buttons: {
-      close: {
-        click: 'close'
-      },
-      collapse: {
-        click: 'collapse'
-      },
-      expand: {
-        click: 'expand'
-      }
+  options: {
+    tag: 'window',
+    layers: {
+      shadow:  ['shadow'],
+      stroke:  ['stroke'],
+      reflection: [LSD.Layer.Fill.Reflection],
+      background: [LSD.Layer.Fill.Background]
     },
-	  header: {
-	    toggler: {
-        click: 'mutate'
-	    }
-	  },
-	  self: {
-	    close: 'hide'
-	  }
-  },
-  
-  layered: {
-    shadow:  ['shadow'],
-    stroke:  ['stroke'],
-    reflection: ['fill', ['reflectionColor']],
-    background: ['fill', ['backgroundColor']]
+    events: {
+      buttons: {
+        close: {
+          click: 'close'
+        },
+        collapse: {
+          click: 'collapse'
+        },
+        expand: {
+          click: 'expand'
+        }
+      },
+      header: {
+        toggler: {
+          click: 'mutate'
+        }
+      },
+      self: {
+        close: 'hide'
+      }
+    }
   },
   
   getResized: function() {

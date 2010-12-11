@@ -1,11 +1,11 @@
 /*
 ---
  
-script: ART.js
+script: LSD.js
  
-description: ART namespace definition
+description: LSD namespace definition
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
@@ -16,16 +16,15 @@ requires:
 - Core/Browser
 - Ext/Macro
 - Ext/Class.Stateful
-- ART/ART
-- ART/ART.Path
-- ART/ART.SVG
-- ART/ART.VML
-- ART/ART.Base
+- ART
  
-provides: [Exception, $equals, ART]
+provides: [Exception, $equals, LSD]
  
 ...
 */
+
+if (!window.console) window.console = {};
+if (!window.console.log) window.console.log = function() {};
 
 (function() {
   
@@ -107,23 +106,6 @@ $equals = function(one, another) {
     return true;
   }
   return false;
-}
+};
 
-ART.implement({
-
-  setHeight: function(height) {
-    this.element.setAttribute('height', height);
-    return this;
-  },
-
-  setWidth: function(width) {
-    this.element.setAttribute('width', width);
-    return this;
-  }
-
-});
-
-
-
-ART.Features = {};
-ART.Features.Blur = Browser.Engine.gecko; //TODO: Figure it out
+var LSD = {};

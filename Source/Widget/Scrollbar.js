@@ -5,56 +5,53 @@ script: Scrollbar.js
  
 description: Scrollbars for everything
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Paint
-- ART.Widget.Section
-- ART.Widget.Button
+- LSD.Widget.Paint
+- LSD.Widget.Section
+- LSD.Widget.Button
 - Base/Widget.Trait.Slider
 
-provides: [ART.Widget.Scrollbar]
+provides: [LSD.Widget.Scrollbar]
  
 ...
 */
 
-ART.Widget.Scrollbar = new Class({
+LSD.Widget.Scrollbar = new Class({
   Includes: [
-    ART.Widget.Paint,
-    Widget.Trait.Slider,
-    ART.Widget.Trait.Aware
+    LSD.Widget.Paint,
+    Widget.Trait.Slider
   ],
   
-  name: 'scrollbar',
-  
-  layout: {
-    'scrollbar-track#track': {
-      'scrollbar-thumb#thumb': {},
-    },
-    'scrollbar-button#decrementor': {},
-    'scrollbar-button#incrementor': {}
-  },
-  
-  layered: {
-    stroke: ['stroke'],
-    background: ['fill', ['backgroundColor']],
-    reflection:  ['fill', ['reflectionColor']]
-  },
-  
   options: {
+    tag: 'scrollbar',
+    layers: {
+      stroke: ['stroke'],
+      background: [LSD.Layer.Fill.Background],
+      reflection:  [LSD.Layer.Fill.Reflection]
+    },
+    events: {
+      incrementor: {
+        click: 'increment'
+      },
+      decrementor: {
+        click: 'decrement'
+      }
+    },
+    layout: {
+      children: {
+        'scrollbar-track#track': {
+          'scrollbar-thumb#thumb': {},
+        },
+        'scrollbar-button#decrementor': {},
+        'scrollbar-button#incrementor': {}
+      }
+    },
     slider: {
       wheel: true
-    }
-  },
-  
-  events: {
-    incrementor: {
-      click: 'increment'
-    },
-    decrementor: {
-      click: 'decrement'
     }
   },
   
@@ -63,7 +60,7 @@ ART.Widget.Scrollbar = new Class({
     this.setState(this.options.mode);
   },
   
-  adaptSize: function(size, old){
+  onParentResize: function(size, old){
     if (!size || $chk(size.height)) size = this.parentNode.size;
     var isVertical = (this.options.mode == 'vertical');
     var other = isVertical ? 'horizontal' : 'vertical';
@@ -81,9 +78,9 @@ ART.Widget.Scrollbar = new Class({
     this[setter](size[prop] - delta);
     var offset = 0;
     if (isVertical) {
-      offset += this.track.offset.padding.top + this.track.offset.padding.bottom
+      offset += this.track.offset.inner.top + this.track.offset.inner.bottom
     } else {
-      offset += this.track.offset.padding.left + this.track.offset.padding.right
+      offset += this.track.offset.inner.left + this.track.offset.inner.right
     }
     var track = size[prop] - this.incrementor[getter]() - this.decrementor[getter]() - delta - ((this.style.current.strokeWidth || 0) * 2) - offset * 2
     this.track[setter](track);
@@ -94,8 +91,7 @@ ART.Widget.Scrollbar = new Class({
   
   inject: function(widget) {
     var result = this.parent.apply(this, arguments);
-    this.adaptSize(widget.size, { });
-    this.actions.slider.enable.call(this);
+    this.options.actions.slider.enable.call(this);
     return result
   },
   
@@ -108,7 +104,7 @@ ART.Widget.Scrollbar = new Class({
     this.now = value;
   },
   
-  getScrolled: Macro.setter('scrolled', function() {
+  getScrolled: Macro.getter('scrolled', function() {
     var parent = this;
     while ((parent = parent.parentNode) && !parent.getScrolled);
     return parent.getScrolled ? parent.getScrolled() : this.parentNode.element;
@@ -123,22 +119,25 @@ ART.Widget.Scrollbar = new Class({
   }
 })
 
-ART.Widget.Scrollbar.Track = new Class({
-  Extends: ART.Widget.Section,
+LSD.Widget.Scrollbar.Track = new Class({
+  Extends: LSD.Widget.Section,
   
-  layered: {
-    innerShadow:  ['inner-shadow']
-  },
-  
-  name: 'track'
+  options: {
+    tag: 'track',
+    layers: {
+      innerShadow:  ['inner-shadow']
+    }
+  }
 });
 
-ART.Widget.Scrollbar.Thumb = new Class({
-  Extends: ART.Widget.Button,
+LSD.Widget.Scrollbar.Thumb = new Class({
+  Extends: LSD.Widget.Button,
   
-  name: 'thumb'
+  options: {
+    tag: 'thumb'
+  }
 });
 
-ART.Widget.Scrollbar.Button = new Class({
-  Extends: ART.Widget.Button
+LSD.Widget.Scrollbar.Button = new Class({
+  Extends: LSD.Widget.Button
 });

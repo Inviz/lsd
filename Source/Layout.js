@@ -5,33 +5,29 @@ script: Layout.js
  
 description: A logic to render (and nest) a few widgets out of the key-value hash
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART
-- ART.Widget.Base
+- LSD
+- LSD.Widget.Base
 - Ext/Logger
  
-provides: [ART.Layout]
+provides: [LSD.Layout]
  
 ...
 */
 
-ART.Layout = new Class({
+LSD.Layout = new Class({
   
   Implements: [Options, Logger],
-  
-  ns: 'art',
-  name: 'layout',
     
   initialize: function(widget, layout, options) {
-    if (ART.Layout.isConvertable(widget)) widget = ART.Layout.build(widget)
+    if (LSD.Layout.isConvertable(widget)) widget = LSD.Layout.build(widget)
     this.widget = widget;
     this.layout = layout;
     this.setOptions(options);
-    //this.widget.log('Layout', this, 'for', widget)
     this.reset();
   }, 
   
@@ -40,7 +36,7 @@ ART.Layout = new Class({
   },
   
   materialize: function(selector, layout, parent) {
-    var widget = ART.Layout.build(selector, parent);
+    var widget = LSD.Layout.build(selector, parent);
     if (!Element.type(widget)) {
       if (!String.type(layout)) this.render(layout, widget);
       else widget.setContent(layout)
@@ -60,57 +56,56 @@ ART.Layout = new Class({
         }, this)
         break;
       case "element":
-        widgets.push(this.materialize(layout, ART.Layout.getFromElement(layout), parent));
+        widgets.push(this.materialize(layout, LSD.Layout.getFromElement(layout), parent));
         break;
       case "object":
         for (var selector in layout) widgets.push(this.materialize(selector, layout[selector], parent));
         break;
     }
     return widgets;
-  },
-
-  getName: function() {
-    return 'Layout'
   }
 });
 
 (function(cache) {
-  ART.Layout.findTraitByAttributeName = function(name) {
+  LSD.Layout.findTraitByAttributeName = function(name) {
     if (!$defined(cache[name])) {
       switch (name) {
-        case "tabindex":
+        case 'tabindex':
           name = 'Focus';
           break;
+        case 'at':
+          name = 'Position';
+          break;
       };
-      var base = ART.Widget.Trait;
+      var base = LSD.Widget.Trait;
       for (var bits = name.split('-'), bit, i = 0; (bit = bits[i++]) && (base = base[bit.capitalize()]););
       var klass = cache[name] = base || null;
       if (klass && klass.Stateful) cache[name] = klass.Stateful;
     }
     return cache[name];
   }
-})(ART.Layout.traitByAttribute = {});
+})(LSD.Layout.traitByAttribute = {});
 
-ART.Layout.getFromElement = function(element) {
+LSD.Layout.getFromElement = function(element) {
   var children = element.getChildren();
   if (children.length) return children;
   var text = element.get('text');
   if (text.length) return text;
 }
 
-ART.Layout.Plain = new FastArray('h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'strong', 'i', 'em', 'ul', 'ol', 'li', 'span', 'table', 'thead', 'tfoot', 'tbody', 'tr', 'td', 'colgroup')
+LSD.Layout.Plain = new FastArray('h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'strong', 'i', 'em', 'ul', 'ol', 'li', 'span', 'table', 'thead', 'tfoot', 'tbody', 'tr', 'td', 'colgroup')
 
-ART.Layout.isConvertable = function(element) {
-  return Element.type(element) && !ART.Layout.Plain[element.get('tag')];
+LSD.Layout.isConvertable = function(element) {
+  return Element.type(element) && !LSD.Layout.Plain[element.get('tag')];
 }
 
-ART.Layout.convert = function(element) {
+LSD.Layout.convert = function(element) {
   var options = {
     attributes: {},
-    tag: element.get('tag'),
     origin: element
   };
-  if (options.tag == 'div') options.tag = 'container';
+  var tag = element.get('tag');
+  if (tag != 'div') options.source = tag;
   if (element.id) options.id = element.id;
   for (var i = 0, attribute; attribute = element.attributes[i++];) {
     options.attributes[attribute.name] = ((attribute.value != attribute.name) && attribute.value) || true;
@@ -139,21 +134,20 @@ ART.Layout.convert = function(element) {
   return options;
 }
 
-ART.Layout.replace = function(element) {
-  var layout = new ART.Layout(element, element.getChildren());
+LSD.Layout.replace = function(element) {
+  var layout = new LSD.Layout(element, element.getChildren());
   if (element.parentNode) {
-    layout.widget.inject(element.ownerDocument.body);
-    $(layout.widget).inject(element, 'after');
+    layout.widget.inject(element.parentNode);
+    if (layout.widget.element.previousSibling != element) $(layout.widget).inject(element, 'after');
     element.dispose();
   }
   return layout.widget;
 }
 
-ART.Layout.parse = function(selector) {
+LSD.Layout.parse = function(selector) {
   var parsed = Slick.parse(selector).expressions[0][0]
-  var options = {
-    tag: parsed.tag == '*' ? 'container' : parsed.tag
-  };
+  var options = {}
+  if (parsed.tag != '*') options.source = parsed.tag;
   if (parsed.id) options.id = parsed.id
   if (parsed.attributes) parsed.attributes.each(function(attribute) {
     if (!options.attributes) options.attributes = {};
@@ -165,36 +159,25 @@ ART.Layout.parse = function(selector) {
     case '^':
       options.inherit = 'full';
       break;
-    case ">":
+    case '>':
       options.inherit = 'partial';
   }
   return options;
 }
 
-ART.Layout.build = function(item, parent, element) {
+LSD.Layout.build = function(item, parent, element) {
   var options;
   if (Element.type(item)) {
-    if (ART.Layout.isConvertable(item)) {
-      options = ART.Layout.convert(item);
+    if (LSD.Layout.isConvertable(item)) {
+      options = LSD.Layout.convert(item);
     } else {
       var result = item.inject(parent);
       if (result && parent.getContainer) $(item).inject(parent.getContainer());
       return result;
     }
-  } else options = ART.Layout.parse(item);
+  } else options = LSD.Layout.parse(item);
   var mixins = [];
-  var tag = options.tag;
-  switch (options.inherit) {
-    case 'full': //add full parent class path (tag, type, subclass)
-      tag = (parent.options.source || parent.name) + '-' + tag;
-      break;
-    case 'partial': //add partial parent class path (tag and type)
-      var type = parent.getAttribute('type');
-      if (type) tag = type + '-' + tag;
-      var bits = (parent.options.source || parent.name).split('-');
-      if (bits.length > 1) bits.pop();
-      tag = bits.join('-') + '-' + tag;
-  }
+  var tag = options.source || options.tag || 'container'
   if (options.attributes) {
     if ('type' in options.attributes) tag += "-" + options.attributes.type;
     if ('kind' in options.attributes) tag += "-" + options.attributes.kind;
@@ -207,24 +190,26 @@ ART.Layout.build = function(item, parent, element) {
         if (i == 0) $mixin(options, obj);
         else value = obj;
       }
-      var trait = ART.Layout.findTraitByAttributeName(name);
+      var trait = LSD.Layout.findTraitByAttributeName(name);
       if (trait) mixins.push(trait);
     }
+  }
+  if (options.inherit) {
+    var source = parent.options.source;
+    if (!source) {
+      var bits = [parent.options.tag, parent.getAttribute('type')]
+      if (options.inherit == 'full') bits.push(parent.getAttribute('kind'))
+      source = bits.filter($defined).join('-');
+    }
+    tag = source + '-' + tag
   }
   
   mixins.unshift(tag);
   
-  //console.info(options)
-  
   options.source = tag;
-  var widget = ART.Widget.create(mixins, options);
+  var widget = LSD.Widget.create(mixins, options);
   widget.build();
   
-  if (!options.id && parent) {
-    var property = tag + 's';
-    if (!parent[property]) parent[property] = [];
-    parent[property].push(widget)
-  }
   if (element !== false && (element || parent)) widget.inject(element || parent, 'bottom', true)
   
   return widget;

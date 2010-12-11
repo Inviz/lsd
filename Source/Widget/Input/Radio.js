@@ -5,56 +5,44 @@ script: Radio.js
  
 description: A radio button, set of connected widgets that steal checkedness from each other
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Input
-- ART.Widget.Paint
+- LSD.Widget.Input
+- LSD.Widget.Paint
+- LSD.Widget.Module.Command.Radio
 - Base/Widget.Trait.Touchable
 - Base/Widget.Trait.Focus
 - Base/Widget.Trait.Accessibility
 
-provides: [ART.Widget.Input.Radio]
+provides: [LSD.Widget.Input.Radio]
  
 ...
 */
 
-ART.Widget.Input.Radio = new Class({
+LSD.Widget.Input.Radio = new Class({
   Includes: [
-    ART.Widget.Paint,
+    LSD.Widget.Paint,
+    LSD.Widget.Module.Command.Radio,
     Widget.Trait.Touchable.Stateful,
     Widget.Trait.Focus.Stateful,
     Widget.Trait.Accessibility
   ],
   
-  States: {
-    'checked': ['check', 'uncheck']
-  },
-  
-  name: 'input',
-  
-  shortcuts: {
-    space: 'check'
-  },
-
-  layered: {
-    shadow:  ['shadow'],
-    stroke: ['stroke'],
-    background:  ['fill', ['backgroundColor']],
-    reflection:  ['fill', ['reflectionColor']],
-    glyph: ['glyph']
-  },
-  
-  check: Macro.onion(function() {
-    this.getGroup().each(function(element) {
-      if (element != this && element.getAttribute('type') == 'radio') element.uncheck();
-    }, this)
-  }),
-  
-  getGroup: function() {
-    return (this.attributes.name) ? this.document.getElements('[name="' + this.attributes.name + '"]') : []
+  options: {
+    tag: 'input',
+    layers: {
+      shadow:  ['shadow'],
+      stroke: ['stroke'],
+      background:  [LSD.Layer.Fill.Background],
+      reflection:  [LSD.Layer.Fill.Reflection],
+      glyph: ['glyph']
+    },
+    shortcuts: {
+      space: 'check'
+    }
   },
   
   retain: function() {

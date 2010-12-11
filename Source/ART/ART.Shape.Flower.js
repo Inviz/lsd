@@ -5,7 +5,7 @@ script: Flower.js
  
 description: Ever wanted a flower button? Here you go
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
@@ -29,11 +29,11 @@ ART.Shape.Flower = new Class({
   },
   
   paint: function(width, height, leaves, radius){
-     var path = new ART.Path;
-     outside = width / 2;
-     var cx = width / 2;
-     var cy = cx
-     inside = outside * (radius || 0.5) 
+     var path = new ART.Path,
+         outside = width / 2,
+         cx = width / 2,
+         cy = cx,
+         inside = outside * (radius || 0.5);
      
     leaves = Math.max(leaves || 0, 5);
     path.move(0, inside);

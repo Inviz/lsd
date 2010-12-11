@@ -5,26 +5,39 @@ script: Dimensions.js
  
 description: Get and set dimensions of widget
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Base
+- LSD.Widget.Base
 
-provides: [ART.Widget.Trait.Dimensions]
+provides: [LSD.Widget.Trait.Dimensions]
  
 ...
 */
 
 
-ART.Widget.Trait.Dimensions = new Class({
-  size: {},
+LSD.Widget.Trait.Dimensions = new Class({
+  initialize: function() {
+    this.size = {};
+    this.parent.apply(this, arguments);
+  },
   
-  setSize: function(width, height) {
-    var size = {width: width,  height: height};
-    $extend(this.options, size);
-    this.refresh(size);
+  render: function() {
+    var old = $unlink(this.size);
+    if (!this.parent.apply(this, arguments)) return false;
+    this.setSize({height: this.getStyle('height'), width: this.getStyle('width')}, old);
+    return true;
+  },
+  
+  setSize: function(size) {
+    if (this.setHeight(size.height, true) + this.setWidth(size.width, true)) {
+      var element = this.element, padding = this.offset.padding;
+      if (size.height && this.style.expressed.height) element.style.height = size.height - padding.top - padding.bottom + 'px'
+      if (size.width && this.style.expressed.width) element.style.width = size.width - padding.left - padding.right + 'px';
+      return !!this.fireEvent('resize', arguments);
+    }
   },
   
   setHeight: function(value, light) {
@@ -44,56 +57,60 @@ ART.Widget.Trait.Dimensions = new Class({
   },
   
   getClientHeight: function() {
-    var styles = this.style.current;
-    var height = styles.height;
+    var style = this.style.current, height = style.height, offset = this.offset, padding = offset.padding;
     if (!height || (height == "auto")) {
-      height = this.element.offsetHeight;
-      if (height > 0) height -= ((this.offset.padding.top || 0) + (this.offset.padding.bottom || 0))
+      height = this.element.clientHeight;
+      var inner = offset.inner || padding;
+      if (height > 0 && inner) height -= inner.top + inner.bottom;
     }
-    height += styles.paddingTop || 0;
-    height += styles.paddingBottom || 0;
+    if (height != 'auto' && padding) height += padding.top + padding.bottom;
     return height;
   },
   
   getClientWidth: function() {
-    var width = this.element.offsetWidth;
-    if (width > 0) {
-      var styles = this.style.current;
-      if (styles.width == "auto" && styles.display != "block") width -= ((this.offset.inside.left || 0) + (this.offset.inside.right || 0)) 
-      width -= ((this.offset.paint.left || 0) + (this.offset.paint.right || 0)) 
+    var style = this.style.current, offset = this.offset, padding = offset.padding, width = style.width;
+    if (typeof width != 'number') { //auto, inherit, undefined
+      var inside = offset.inside, outside = offset.outside, shape = offset.shape;
+      width = this.element.clientWidth;
+      if (width > 0) {
+        if (shape) width -= shape.left + shape.right;
+        if (inside) width -= inside.left + inside.right;
+        if (outside) width -= outside.left + outside.right;
+      }
     }
+    if (style.display != 'block' && padding && inside) width += padding.left + padding.right;
     return width;
   },
   
-  getOffsetHeight: function(height) {;
-    var styles = this.style.current;
-    if (!height) height = this.getClientHeight();
-    height += (styles.strokeWidth || 0) * 2
-    height += styles.borderBottomWidth || 0;
-    height += styles.borderTopWidth || 0;
+  getOffsetHeight: function(height) {
+    var style = this.style.current, inside = this.offset.inside, bottom = style.borderBottomWidth, top = style.borderTopWidth;
+    if (!height) height =  this.getClientHeight();
+    if (inside)  height += inside.top + inside.bottom;
+    if (top)     height += top;
+    if (bottom)  height += bottom;
     return height;
   },
   
   getOffsetWidth: function(width) {
-    var styles = this.style.current;
-    if (!width) width = this.getClientWidth();
-    width += (styles.strokeWidth || 0) * 2
-    width += styles.borderLeftWidth || 0;
-    width += styles.borderBottomWidth || 0;
+    var style = this.style.current, inside = this.offset.inside, left = style.borderLeftWidth, right = style.borderRightWidth;
+    if (!width) width =  this.getClientWidth();
+    if (inside) width += inside.left + inside.right;
+    if (left)   width += left;
+    if (right)  width += right
     return width;
   },
   
   getLayoutHeight: function(height) {
     height = this.getOffsetHeight(height);
-    height += ((this.offset.padding.top || 0) - (this.offset.inside.top || 0));
-    height += ((this.offset.padding.bottom || 0) - (this.offset.inside.bottom || 0));
+    if (this.offset.margin)  height += this.offset.margin.top + this.offset.margin.bottom;
+    if (this.offset.outside) height += this.offset.outside.top + this.offset.outside.bottom;
     return height;
   },
 
   getLayoutWidth: function(width) {
-    width = this.getOffsetWidth(width);
-    width += ((this.offset.inside.left || 0) + (this.style.current.marginLeft || 0));
-    width += ((this.offset.inside.right || 0) + (this.style.current.marginRight || 0));
+    var width = this.getOffsetWidth(width), offset = this.offset, margin = offset.margin, outside = offset.outside
+    if (margin)  width += margin.right + margin.left;
+    if (outside) width += outside.right + outside.left;
     return width;
   }
   

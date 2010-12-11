@@ -5,31 +5,31 @@ script: Glyph.js
  
 description: A separate layer for glyph
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Layer
+- LSD.Layer
  
-provides: [ART.Layer.Glyph]
+provides: [LSD.Layer.Glyph]
  
 ...
 */
 
-ART.Layer.Glyph = new Class({
-  Extends: ART.Layer.Shaped,
+LSD.Layer.Glyph = new Class({
+  Extends: LSD.Layer.Shaped,
   
-  properties: ['glyph', 'glyphColor', 'glyphLeft', 'glyphTop', 'glyphScale'],
+  properties: {
+    required: ['glyph', 'glyphColor'],
+    optional: ['glyphLeft', 'glyphTop', 'glyphScale']
+  },
   
   paint: function(glyph, color, x, y, scale) {
-    if (!glyph || !color) return false
-    if (!x) x = 0;
-    if (!y) y = 0;
     if (!$defined(scale)) scale = 1;
     this.shape.draw(glyph);
     this.shape.fill.apply(this.shape, $splat(color));
     if (scale) this.shape.scale(scale);
-    return {translate: {x: x, y: y}}
+    return {translate: {x: x || 0, y: y || 0}}
   }
 });

@@ -5,14 +5,15 @@ script: DOM.js
  
 description: Provides DOM-compliant interface to play around with other widgets
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
-requires:
-- ART.Widget.Base
 
-provides: [ART.Widget.Module.DOM]
+requires:
+  - LSD.Widget.Base
+
+provides:
+  - LSD.Widget.Module.DOM
  
 ...
 */
@@ -43,13 +44,13 @@ var inserters = {
 };
 
 
-ART.Widget.Module.DOM = new Class({
+LSD.Widget.Module.DOM = new Class({
   initialize: function() {
     this.childNodes = [];
     this.nodeType = 1;
     this.parentNode = this.nextSibling = this.previousSibling = null;
     this.parent.apply(this, arguments);
-    this.nodeName = this.name;
+    this.nodeName = this.options.tag;
   },
   
   getElementsByTagName: function(tagName) {
@@ -109,35 +110,63 @@ ART.Widget.Module.DOM = new Class({
     var length = siblings.length;
     if (length == 1) widget.firstChild = this;
     widget.lastChild = this;
-    var previous = siblings[siblings.length - 2];
+    var previous = siblings[length - 2];
     if (previous) {
       previous.nextSibling = this;
       this.previousSibling = previous;
     }
   },
   
+  /*
+    
+    %header
+      %section#top
+      %button
+      %button
+      %section Title
+    
+    var header = LSD.document.getElement('header');
+    header.top     //=> section#top
+    header.buttons //=> [button, button]
+    header.section //=> section 
+    
+    When widget is appended as child the semantic to that widget
+    is set. The name of the link is determined by these rules:
+    
+    - If widget has id, use id
+    - Use tag name
+      - If the link is not taken, write tag name link
+      - If the link is taken, append widget to a pluralized array link
+        - When pluralized link is added, original link is not removed
+  */
+  
   appendChild: function(widget, adoption) {
     if (!adoption && this.canAppendChild && !this.canAppendChild(widget)) return false;
-    if (widget.options.id) {
-      if (this[widget.options.id]) this[widget.options.id].dispose();
-      this[widget.options.id] = widget;
-    }
+    var options = widget.options, id = options.id, tag = options.tag, tags = tag + 's', kind = widget.attributes['kind']
+    widget.identifier = id || tag;
+    if (id) {
+      if (this[id]) this[id].dispose();
+      this[id] = widget;
+    } else if (!this[tag]) this[tag] = widget;
+    else if (!this[tags]) this[tags] = [widget];
+    else if (typeof this[tags] == 'array') this[tags].push(widget);
+    else if (!this['_' + tags]) this['_' + tags] = [widget];
+    else this['_' + tags].push(widget);
+        
     this.childNodes.push(widget);
     if (this.nodeType != 9) widget.setParent(this);
     (adoption || function() {
-      $(this).appendChild($(widget));
+      this.toElement().appendChild(document.id(widget));
     }).apply(this, arguments);
     
-    this.fireEvent('adopt', [widget, widget.options.id])
-
-    var parent = widget;
-    while (parent = parent.parentNode) parent.fireEvent('hello', widget);
+    this.fireEvent('adopt', [widget, id])
+    this[this.dispatchEvent ? "dispatchEvent" : "fireEvent"]('nodeInserted', widget);
     return true;
   },
   
   insertBefore: function(insertion, element) {
-    return this.appendChild(insertion, function(parent) {
-      $(insertion).inject($(element), 'before')
+    return this.appendChild(insertion, function() {
+      document.id(insertion).inject(document.id(element), 'before')
     });
   },
   
@@ -147,36 +176,40 @@ ART.Widget.Module.DOM = new Class({
   },
   
   setDocument: function(widget) {
-    var element = $(widget);
-    var document;
+    var element = document.id(widget);
+    var doc;
     var isDocument = (widget.nodeType == 9);
     var isBody = element.get('tag') == 'body';
     if (isDocument || isBody || element.offsetParent) {
       if (!isDocument) {
         var body = (isBody ? element : element.ownerDocument.body);
-        document = body.retrieve('widget') || new ART.Document(body);
-      } else document = widget;
-      var postponed = false
+        doc = body.retrieve('widget') || new LSD.Document(body);
+      } else doc = widget;
+      var halted = [];
       this.render();
       this.walk(function(child) {
-        if (child.postponed) {
-          postponed = true;
-          child.update();
-        }
-        child.document = document;
+        if (child.halted) halted.push(child);
+        child.ownerDocument = child.document = doc;
         child.fireEvent('dominject', element);
         child.dominjected = true;
       });
-      //if (isBody && this.parentNode == doc || (!this.parentNode && (element != widget))) doc.appendChild(widget);
-      if (postponed && !this.dirty) this.dirty = true;
-      this.render();
+      halted.each(function(child) {
+        child.refresh();
+      })
     }
   },
   
   inject: function(widget, where, quiet) {
-    var self = Element.type(widget) ? this.element : this;
+    var isElement = 'tagName' in widget;
+    if (isElement) {
+      var instance = widget.retrieve('widget');
+      if (instance) {
+        widget = instance;
+        isElement = false;
+      }
+    }
+    var self = isElement ? this.toElement() : this;
     if (!inserters[where || 'bottom'](self, widget) && !quiet) return false;
-    var element = $(widget);
     this.fireEvent('inject', arguments);
     if (quiet !== true) this.setDocument(widget);
     return true;
@@ -206,19 +239,14 @@ ART.Widget.Module.DOM = new Class({
     });
     return result;
   },
-
-  match: function(selector) {
-    return ART.Sheet.match(selector, this.getHierarchy())
-  },
   
-  compareDocumentPosition: function(context, node) {
+  compareDocumentPosition: function(node) {
+    var context =  (Element.type(node)) ? this.toElement() : this;
 		if (node) do {
 			if (node === context) return true;
 		} while ((node = node.parentNode));
 		return false;
 	}
 });
-
-Widget.Attributes.Ignore.push('shy');
 
 })();

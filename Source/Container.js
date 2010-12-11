@@ -5,19 +5,19 @@ script: Container.js
  
 description: A container class that swallows all kind of a content
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART
+  - LSD
  
-provides: [ART.Container]
+provides: [LSD.Container]
  
 ...
 */
 
-ART.Container = new Class({
+LSD.Container = new Class({
   
   Implements: [Events, Options],
   
@@ -147,7 +147,7 @@ ART.Container = new Class({
 
 Moo = {};
 Moo.Container = new Class({
-  Extends: ART.Container,
+  Extends: LSD.Container,
   
   initialize: function(widget, options) {
     this.widget = widget;
@@ -156,7 +156,7 @@ Moo.Container = new Class({
     this.parent(this.container, options);
   },
   
-  empty: function() { //skip ART widgets
+  empty: function() { //skip LSD widgets
     this.element.getChildren().each(function(child) {
       if (!child.retrieve('widget')) child.destroy();
     });

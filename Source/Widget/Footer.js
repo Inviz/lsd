@@ -5,26 +5,25 @@ script: Footer.js
  
 description: SVG-Based footer element (like <footer> in html5)
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Section
+- LSD.Widget.Section
 
-provides: [ART.Widget.Footer]
+provides: [LSD.Widget.Footer]
  
 ...
 */
 
-ART.Widget.Footer = new Class({
-  Extends: ART.Widget.Section,
-  
-  name: 'footer',
+LSD.Widget.Footer = new Class({
+  Extends: LSD.Widget.Section,
 
   options: {
+    tag: 'footer',
     element: {
-      tag: ART.html5 ? 'footer' : 'div'
+      tag: 'footer'
     }
   }
 });

@@ -5,7 +5,7 @@ script: Star.js
  
 description: A star with variable number of edges
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  

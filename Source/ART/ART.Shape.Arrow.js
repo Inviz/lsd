@@ -5,7 +5,7 @@ script: Arrow.js
  
 description: An arrow shape. Useful for all the chat bubbles and validation errors.
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
@@ -105,13 +105,12 @@ ART.Shape.Arrow = new Class({
     }), this.style.arrowWidth, this.style.arrowHeight, this.style.arrowSide, this.style.arrowPosition)
   },
   
-  getOffset: function(styles, offset) {
-    var stroke = (styles.strokeWidth || 0);
+  getOffset: function(styles) {
     return {
-      left: ((styles.width == 'auto') ? Math.max(stroke - offset.left, 0) : stroke) + ((styles.arrowSide == 'left') ? styles.arrowWidth : 0),
-      right: stroke + ((styles.arrowSide == 'right') ? styles.arrowWidth : 0),
-      top: ((styles.arrowSide == 'top') ? styles.arrowHeight : 0),
-      bottom: stroke + ((styles.arrowSide == 'bottom') ? styles.arrowHeight : 0)
+      left: (styles.arrowSide == 'left') ? styles.arrowWidth : 0,
+      right: (styles.arrowSide == 'right') ? styles.arrowWidth : 0,
+      top: (styles.arrowSide == 'top') ? styles.arrowHeight : 0,
+      bottom: (styles.arrowSide == 'bottom') ? styles.arrowHeight : 0
     }
   }
 

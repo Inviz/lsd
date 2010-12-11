@@ -5,16 +5,17 @@ script: Layers.js
  
 description: Make widget use layers for all the SVG
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Base
-- ART.Layer
+- LSD.Widget.Base
+- LSD.Layer
 - ART.Shape
+- LSD.Widget.Module.Styles
 
-provides: [ART.Widget.Trait.Layers]
+provides: [LSD.Widget.Trait.Layers]
  
 ...
 */
@@ -22,87 +23,132 @@ provides: [ART.Widget.Trait.Layers]
 
 (function() {
 
-var empty = {translate: {x: 0, y: 0}, outside: {x: 0, y: 0}, inside: {x: 0, y: 0}};
+LSD.Widget.Trait.Layers = new Class({
+  options: {
+    layers: {}
+  },
+  
+  initialize: function() {
+    this.offset = {};
+    this.layers = {};
+    this.parent.apply(this, arguments);
+  },
+  
+  attach: Macro.onion(function() {
+    this.style.layers = {};
+    var layers = this.options.layers;
+    for (var name in layers) layers[name] = this.addLayer.apply(this, Array.from(layers[name]).concat(name));
+  }),
 
-ART.Widget.Trait.Layers = new Class({
-
-  layers: {},
-
-  build: Macro.onion(function() {
-    if (this.layered) {
-      for (var name in this.layered) {
-        this.layers[name] = this.buildLayer.apply(this, this.layered[name].concat([name]));
+  addLayer: function() {
+    var options = LSD.Layer.prepare.apply(this, arguments);
+    var slots = this.style.layers, properties = options.properties;
+    for (var type in properties) {
+      for (var group = properties[type], i = 0, property; property = group[i++];) {
+        if (!slots[property]) slots[property] = [];
+        slots[property].push(options.name);
       }
     }
-  }),
+    return options;
+  },
   
-  update: Macro.onion(function() {
-    this.outside = {x: 0, y: 0};
-    this.inside = {x: 0, y: 0};
-  }),
+  getLayer: function(name) {
+    if (this.layers[name]) return this.layers[name];
+    var options = this.options.layers[name];
+    var layer = this.layers[name] = new options.klass;
+    layer.name = options.name;
+    layer.properties = options.properties;
+    if (options.paint) instance.paint = options.paint;
+    return layer
+  },
   
-  buildLayer: function() {
-    var args = Array.link($splat(arguments), {
-      layer: String.type,
-      name: String.type,
-      klass: Class.type,
-      draw: Function.type,
-      options: Object.type, 
-      properties: Array.type
-    });
-    var shape = this.getShape();
-    
-    
-    //if (!args.klass) {
-    //  var base = ART.Layer;
-    //  var bits = args.layer.split('-');
-    //  while (bits.length > 0) base = base[bits.shift().camelCase().capitalize()];
-    //  args.klass = base;
-    //}  
-    //var instance = new args.klass(shape); //combine shape & layer classes
-    
-    var type = (args.klass || ART.Layer[args.layer.camelCase().capitalize()]);
-    var instance = new type(shape); //combine shape & layer classes
-    
-    var properties = (instance.properties || []).concat(args.properties || [])
-    
-    this.addEvent('redraw', function() {
-      var value = instance.value || empty;
-      var styles = this.getChangedStyles(args.name || args.layer, properties)
-      if (styles) {
-        instance.padding = this.inside;
-        value = (args.draw || instance.paint).apply(instance, Hash.getValues(styles))
-        if (value === false) {
-          value = empty;
-          if (instance.injected) instance.eject();
-        } else {  
-          value = $merge(empty, value);
-          if (!instance.injected) {
-            var found = false;
-            for (var name in this.layers) {
-              var layer = this.layers[name];
-              if (layer == instance) found = true;
-              if (!found || layer == instance) continue;
-              if (layer.injected && layer.shape) {
-                instance.inject(layer.shape, 'before');
-                break;
-              }
-            }  
-            if (!instance.injected) instance.inject(this.paint);
-          } else {
-            if (instance.update) instance.update(this.paint)
-          }  
-        }  
-        instance.value = value;
+  renderLayers: function(dirty) {
+    var style = this.style, layers = style.layers, offset = this.offset;
+    var updated = new FastArray, definitions = this.options.layers;
+    this.getShape().setStyles(this.getStyles.apply(this, this.getShape().properties));
+    offset.outside = {left: 0, right: 0, top: 0, bottom: 0};
+    offset.inside = {left: 0, right: 0, top: 0, bottom: 0};
+    offset.shape = this.shape.getOffset ? this.shape.getOffset(style.current) : {left: 0, right: 0, top: 0, bottom: 0};
+    for (var property in dirty) if (layers[property]) updated.push.apply(updated, layers[property]);
+    var outside = offset.outside, inside = offset.inside;
+    for (var name in definitions) {
+      var value = updated[name] ? LSD.Layer.render(definitions[name], this) : null;
+      var layer = this.layers[name];
+      if (!layer) continue;
+      if (value === false) {
+        if (layer.injected) layer.eject();
+      } else {
+        if (!layer.injected) {
+          for (var layers = Object.keys(definitions), i = layers.indexOf(layer.name), key, next; key = layers[++i];) {
+            if ((next = this.layers[key]) && next.injected && next.shape) {
+              layer.inject(next.shape, 'before');
+              break;
+            }
+          }
+          if (!layer.injected) layer.inject(this.getCanvas());
+        } else {
+          if (layer.update) layer.update(this.getCanvas())
+        }
+        if (!value) value = layer.value;
+        layer.value = value;
+        layer.translate(value.translate.x + outside.left + inside.left, value.translate.y + outside.top + inside.top);
+        for (side in value.inside) {  
+          outside[side] += value.outside[side];
+          inside[side] += value.inside[side]
+        }
       }
-      
-      instance.translate(value.translate.x + this.outside.x, value.translate.y + this.outside.y);
-      this.outside.x += value.outside.x;
-      this.outside.y += value.outside.y;
-      //this.inside.x += value.inside.x;
-      //this.inside.y += value.inside.y;
-    });
-    return instance;  
+    }
+  },
+  
+  renderStyles: function() {
+    var old = $unlink(this.size);
+    this.parent.apply(this, arguments);
+    var offset = this.offset, 
+        style = this.style, 
+        current = style.current, 
+        paint = style.paint, 
+        dirty = paint,
+        last = style.last; 
+    offset.padding = {left: current.paddingLeft || 0, right: current.paddingRight || 0, top: current.paddingTop || 0, bottom: current.paddingBottom || 0};
+    offset.margin = {left: current.marginLeft || 0, right: current.marginRight || 0, top: current.marginTop || 0, bottom: current.marginBottom || 0};
+    var resized = this.setSize(this.getStyles('height', 'width'), old);
+    if (last && !resized) {
+      last = Object.append({}, style.last);
+      dirty = style.dirty = {};
+      for (var property in paint) {
+        var value = paint[property];
+        if (!$equals(value, last[property])) dirty[property] = paint[property];
+        delete last[property];
+      }
+      for (var property in last) dirty[property] = window.undefined;
+    }
+    if (Object.getLength(dirty) > 0) this.renderLayers(dirty);
+    this.renderOffsets();
+    style.last = Object.append({}, paint)
+  },
+  
+  renderOffsets: function() {
+    var element = this.element,
+        current = this.style.current, 
+        offset  = this.offset,         // Offset that is provided by:
+        inside  = offset.inside,       // layers, inside the widget
+        outside = offset.outside,      // layers, outside of the widget
+        shape   = offset.shape,        // shape
+        padding = offset.padding,      // padding style declarations
+        margin  = offset.margin,       // margin style declarations
+        inner   = {},                  // all inside offsets above, converted to padding
+        outer   = {};                  // all outside offsets above, converted to margin
+        
+    for (var property in inside) {
+      var cc = property.capitalize();
+      if (offset.inner) var last = offset.inner[property];
+      inner[property] = padding[property] + inside[property] + shape[property] + outside[property];
+      if ($defined(last) ? last != inner[property] : inner[property]) element.style['padding' + cc] = inner[property] + 'px';
+      if (offset.outer) last = offset.outer[property];
+      outer[property] = margin[property] - outside[property];
+      if ($defined(last) ? last != outer[property] : outer[property]) element.style['margin' + cc] = outer[property] + 'px';
+    }
+    $extend(offset, {inner: inner, outer: outer});
   }
 });
 

@@ -5,25 +5,27 @@ script: Combo.js
  
 description: A selectbox with free-form input field. Or an input with autocompletion, if you please.
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Select
-- ART.Widget.Input
+- LSD.Widget.Select
+- LSD.Widget.Input
 - Base/Widget.Trait.Input
 
-provides: [ART.Widget.Input.Combo]
+provides: [LSD.Widget.Input.Combo]
  
 ...
 */
 
-ART.Widget.Input.Combo = new Class({
+LSD.Widget.Input.Combo = new Class({
   Includes: [
-    ART.Widget.Select,
+    LSD.Widget.Select,
     Widget.Trait.Input
   ],
   
-  name: 'input'
+  options: {
+    tag: 'input'
+  }
 });

@@ -5,32 +5,34 @@ script: Shape.js
  
 description: Draw a widget with any SVG path you want
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
 - ART.Shape
-- ART.Widget.Base
-provides: [ART.Widget.Trait.Shape]
+- LSD.Widget.Base
+provides: [LSD.Widget.Trait.Shape]
  
 ...
 */
 
-ART.Widget.Trait.Shape = new Class({
+LSD.Widget.Trait.Shape = new Class({
   options: {
     shape: 'rectangle'
   },
   
-  getShape: function(name) {
-    if (!this.shape) {
-      this.shape = new ART.Shape[(name || this.options.shape).camelCase().capitalize()];
-      this.addEvent('redraw', function() {
-        var style = this.getChangedStyles('shape', this.shape.properties);
-        if (style) this.shape.style = style;
-      }.bind(this))
-    }
-    return this.shape;
-  }  
+  getShape: Macro.getter('shape', function(name) {
+    return this.setShape(name);
+  }),
+  
+  setShape: function(name) {    
+    if (!name) name = this.options.shape;
+    var shape = new ART.Shape[name.camelCase().capitalize()];
+    shape.name = name;
+    shape.widget = this;
+    this.shape = shape;
+    return shape;
+  }
   
 });

@@ -5,66 +5,67 @@ script: List.js
  
 description: Menu widget to be used as a list of item
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Menu
+- LSD.Widget.Menu
 - Base/Widget.Trait.Item
 - Base/Widget.Trait.List
 - Base/Widget.Trait.Focus
 - Base/Widget.Trait.Accessibility
 
-provides: [ART.Widget.Menu.List, ART.Widget.Menu.List.Item]
+provides:
+- LSD.Widget.Menu.List
+- LSD.Widget.Menu.List.Item
  
 ...
 */
-ART.Widget.Menu.List = new Class({
+LSD.Widget.Menu.List = new Class({
   Includes: [
-    ART.Widget.Menu,
+    LSD.Widget.Menu,
     Widget.Trait.List,
     Widget.Trait.Focus.Stateful,
     Widget.Trait.Accessibility,
-    ART.Widget.Trait.Proxies
+    LSD.Widget.Trait.Proxies
   ],
   
-  events: {
-    self: {
-      dominject: 'makeItems'
-    }
-  },
-  
   options: {
+    attributes: {
+      type: 'list'
+    },
     layout: {
       item: 'menu-list-item'
+    },
+    events: {
+      self: {
+        dominject: 'makeItems'
+      },
+      element: {
+        'click:on(option)': function() {
+          this.listWidget.selectItem(this)
+        }
+      }
     }
-  },
-
-  attributes: {
-    type: 'list'
   }
-  
 });
     
 
-ART.Widget.Menu.List.Item = new Class({
+LSD.Widget.Menu.List.Option = new Class({
   Includes: [
-    ART.Widget.Paint,
+    LSD.Widget.Paint,
     Widget.Trait.Item.Stateful
   ],
   
-  events: {
-    element: {
-      mousedown: 'select'
+  options: {
+    tag: 'option',
+    layers: {
+      fill:  ['stroke'],
+      reflection:  [LSD.Layer.Fill.Reflection],
+      background: [LSD.Layer.Fill.Background]
     }
-  },
-  
-  name: 'item',
-  
-  layered: {
-    fill:  ['stroke'],
-    reflection:  ['fill', ['reflectionColor']],
-    background: ['fill', ['backgroundColor']]
   }
 });
+
+LSD.Widget.Menu.List.Button = LSD.Widget.Menu.List.Li = LSD.Widget.Menu.List.Command = LSD.Widget.Menu.List.Option;

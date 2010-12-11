@@ -5,22 +5,24 @@ script: Textarea.js
  
 description: Multiline text input
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Input
+- LSD.Widget.Input
 
-provides: [ART.Widget.Textarea]
+provides: [LSD.Widget.Textarea]
  
 ...
 */
 
-ART.Widget.Textarea = new Class({
-  Extends: ART.Widget.Input,
+LSD.Widget.Textarea = new Class({
+  Extends: LSD.Widget.Input,
   
-  name: 'textarea',
+  options: {
+    tag: 'textarea',
+  },
   
   getInput: function() {
     if (!this.input) this.input = new Element('textarea');

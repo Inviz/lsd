@@ -5,12 +5,11 @@ script: Shape.js
  
 description: Additional methods to clone the shape
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART
 - ART/ART.Shape
 - ART.Styles
  
@@ -24,5 +23,9 @@ ART.Shape.implement({
     if (!shape) shape = new this.$constructor;
     if (this.style) shape.draw(delta.push ? this.change.apply(this, delta) : this.change(delta))
     return shape;
+  },
+  
+  setStyles: function(style) {
+    this.style = style;
   }
 });

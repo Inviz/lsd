@@ -5,19 +5,19 @@ script: Expression.js
  
 description: Compiled functions for user-defined style logic
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART
+- LSD
  
-provides: [ART.Expression]
+provides: [LSD.Expression]
  
 ...
 */
 
-ART.Expression = new Class({
+LSD.Expression = new Class({
   
   initialize: function(property, expression) {
     this.property = property;
@@ -26,14 +26,15 @@ ART.Expression = new Class({
     this.environments = [];
   },
   
-  convert: Macro.setter('converted', function() {
+  convert: Macro.getter('converted', function() {
     return this.expression.replace(/([a-z]+)(?:\)|$|\s)/g, function(whole, name) {
       this.environment.push(name);
       var self = "environment." + name;
       switch (this.property) {
         case "height": case "width":
-          // parent.getLayoutHeight(parent.style.expressed.height && parent.style.calculateProperty(height, parent.style.expressed.height))
-          return self + ".getLayout" + this.property.capitalize() + "(" + 
+          // parent.getOffsetHeight(parent.style.expressed.height && parent.style.calculateProperty(height, parent.style.expressed.height))
+          var method = 'get' + (name == 'parent' ? 'Offset' : 'Layout') + this.property.capitalize()
+          return self + "." + method + "(" + 
             self + ".style.expressed." + this.property + " && " + 
             self + ".calculateStyle('" + this.property + "', " + self + ".style.expressed." + this.property + ")" +
           ")";
@@ -43,7 +44,7 @@ ART.Expression = new Class({
     }.bind(this));
   }),
   
-  compile: Macro.setter('compiled', function() {
+  compile: Macro.getter('compiled', function() {
     return new Function("environment", "/*console.log('"+this.converted+"'," +this.converted+");*/return " + this.converted);
   }),
   
@@ -75,11 +76,11 @@ ART.Expression = new Class({
     }
   }
 });
-ART.Expression.compiled = {};
-ART.Expression.get = function(property, expression) {
+LSD.Expression.compiled = {};
+LSD.Expression.get = function(property, expression) {
   var key = property + expression;
   var compiled = this.compiled[key];
   if (compiled) return compiled
-  this.compiled[key] = new ART.Expression(property, expression)
+  this.compiled[key] = new LSD.Expression(property, expression)
   return this.compiled[key];
 };

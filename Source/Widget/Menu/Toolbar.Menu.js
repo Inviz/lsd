@@ -5,55 +5,62 @@ script: Toolbar.Menu.js
  
 description: Dropdown menu in a toolbar
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Menu.Toolbar
-- ART.Widget.Trait.Menu.Stateful
+- LSD.Widget.Menu.Toolbar
+- LSD.Widget.Trait.Menu.Stateful
 - Base/Widget.Trait.List
 - Base/Widget.Trait.Item.Stateful
 - Base/Widget.Trait.Accessibility
 
-provides: [ART.Widget.Menu.Toolbar.Menu, ART.Widget.Menu.Toolbar.Menu.Label]
+provides:
+- LSD.Widget.Menu.Toolbar.Menu
+- LSD.Widget.Menu.Toolbar.Menu.Label
  
 ...
 */
-ART.Widget.Menu.Toolbar.Menu = new Class({
+LSD.Widget.Menu.Toolbar.Menu = new Class({
   Includes: [
-    ART.Widget.Button,
-    ART.Widget.Trait.Menu.Stateful,
+    LSD.Widget.Button,
+    LSD.Widget.Trait.Menu.Stateful,
     Widget.Trait.Focus.Stateful,
     Widget.Trait.List, //Look ma, list and item at once!
     Widget.Trait.Item.Stateful,
-    Widget.Trait.Accessibility
+    Widget.Trait.Accessibility,
+    LSD.Widget.Trait.Proxies
   ],
   
-  events: {
-    element: {
-      mousedown: 'retain'
+  options: {
+    layout: {
+      item: 'menu-context-item'
     },
-    parent: {
-      blur: ['detachEvents', 'target'],
-      focus: ['attachEvents', 'target']
-    },
-    target: {
+    events: {
       element: {
-        mouseenter: 'retain'
+        mousedown: 'retain'
+      },
+      parent: {
+        blur: function() {
+          this.removeEvents(this.events );
+        },
+        focus: function() {
+          this.addEvents(this.events.target);
+        }
+      },
+      target: {
+        element: {
+          mouseenter: 'retain'
+        }
+      },
+      self: {
+        click: 'expand',
+        expand: 'unselectItem'
       }
     },
-    self: {
-      expand: 'unselectItem'
-    }
-  },
-  
-  options: {
     menu: {
       position: 'bottom'
-    },
-    layout: {
-      item: 'select-option'
     }
   },
   
@@ -77,6 +84,11 @@ ART.Widget.Menu.Toolbar.Menu = new Class({
 
 Widget.Events.Ignore.push('target');
 
-ART.Widget.Menu.Toolbar.Menu.Label = new Class({
-  Extends: ART.Widget.Button
-})
+LSD.Widget.Menu.Toolbar.Menu.Label = new Class({
+  Extends: LSD.Widget.Button
+});
+
+LSD.Widget.Menu.Toolbar.Menu.Command = LSD.Widget.Menu.Context.Command;
+LSD.Widget.Menu.Toolbar.Menu.Command.Command = LSD.Widget.Menu.Context.Command;
+LSD.Widget.Menu.Toolbar.Menu.Command.Checkbox = LSD.Widget.Menu.Context.Checkbox
+LSD.Widget.Menu.Toolbar.Menu.Command.Radio = LSD.Widget.Menu.Context.Radio;

@@ -5,45 +5,35 @@ script: Glyph.js
  
 description: Like a button with icon but without a button, actually
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Widget.Paint
+- LSD.Widget.Paint
 - Base/Widget.Trait.Touchable
 
-provides: [ART.Widget.Glyph]
+provides: [LSD.Widget.Glyph]
  
 ...
 */
 
-ART.Widget.Glyph = new Class({
+LSD.Widget.Glyph = new Class({
   Includes: [
-    ART.Widget.Paint,
+    LSD.Widget.Paint,
     Widget.Trait.Touchable.Stateful
   ],
   
-  name: 'glyph',
-  
   options: {
-    name: null
-  },
-
-  layered: {
-    glyph: ['glyph']
+    name: null,
+    tag: 'glyph',
+    layers: {
+      glyph: ['glyph']
+    }
   },
   
   initialize: function() {
     this.parent.apply(this, arguments);
     if (this.options.name) this.style.current.glyphName = this.options.name;
-  },
-  
-  build: function() {
-    if (!this.parent.apply(this, arguments)) return
-    this.layers = {
-      glyph: new ART.Shape
-    }
-    return true;
   }
 });

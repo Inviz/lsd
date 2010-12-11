@@ -5,7 +5,7 @@ script: ART.Element.js
  
 description: Smarter injection methods
  
-license: MIT-style license.
+license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
 
