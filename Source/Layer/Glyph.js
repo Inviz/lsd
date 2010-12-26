@@ -26,7 +26,7 @@ LSD.Layer.Glyph = new Class({
   },
   
   paint: function(glyph, color, x, y, scale) {
-    if (!$defined(scale)) scale = 1;
+    if (scale == null) scale = 1;
     this.shape.draw(glyph);
     this.shape.fill.apply(this.shape, $splat(color));
     if (scale) this.shape.scale(scale);

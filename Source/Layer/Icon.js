@@ -27,7 +27,7 @@ LSD.Layer.Icon = new Class({
   },
   
   paint: function(icon, color, x, y, scale) {
-    if (!$defined(scale)) scale = 1;
+    if (scale == null) scale = 1;
     this.shape.draw(icon);
     this.shape.fill.apply(this.shape, $splat(color));
     return {translate: {x: x, y: y}}

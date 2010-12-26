@@ -21,20 +21,20 @@ provides: [LSD.Widget.Trait.Fitting]
 
 LSD.Widget.Trait.Fitting = new Class({
   fit: function() {
-    var element = this.content.getContainer().toElement();
-    var styles = element.getStyles('display', 'width', 'height');
-    element.setStyles({display: 'inline-block', width: 'auto', height: 'auto'});
-    var width = element.offsetWidth;
-    var height = element.offsetHeight;
-    this.getResized().setWidth(width);
-    this.getResized().setHeight(height);
-    this.getResized().setStyles({maxWidth: width, maxHeight: height});
-    element.setStyles(styles)
-    
-    this.collect(function(child) {
-      return (child.style.current.width == 'inherit') || (child.style.current.width == 'auto') || child.style.expressed.width
-    }).concat(this.getResized()).each(Macro.proc('update'));
-    this.refresh()
+    //var element = this.content.getContainer().toElement();
+    //var styles = element.getStyles('display', 'width', 'height');
+    //element.setStyles({display: 'inline-block', width: 'auto', height: 'auto'});
+    //var width = element.offsetWidth;
+    //var height = element.offsetHeight;
+    //this.resizable.setWidth(width);
+    //this.resizable.setHeight(height);
+    //this.resizable.setStyles({maxWidth: width, maxHeight: height});
+    //element.setStyles(styles)
+    //
+    //this.collect(function(child) {
+    //  return (child.style.current.width == 'inherit') || (child.style.current.width == 'auto') || child.style.expressed.width
+    //}).concat(this.resizable).each(Macro.proc('update'));
+    //this.refresh()
   }
 });
 

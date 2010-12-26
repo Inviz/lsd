@@ -43,11 +43,13 @@ LSD.Document = new Class({
   },
   
   options: {
+    tag: '#document',
+    selector: ':not(.lsd)', //convert unconvered elements
     root: false // topmost widget's parentNode is the document if set to true
   },
   
   initialize: function(options) {
-    if (!LSD.document) LSD.document = this;
+    if (!LSD.document.body) LSD.document = Object.append(this, LSD.document);
     this.parent.apply(this, Element.type(options) ? [options] : [options.origin, options]);
     this.body = this.element.store('widget', this);
     this.document = this.documentElement = this;
@@ -58,11 +60,12 @@ LSD.Document = new Class({
     
     this.childNodes = [];
     this.nodeType = 9;
-    this.nodeName = "#document";
+    this.events = this.options.events;
   },
   
   build: Macro.onion(function() {
-    this.element.getChildren(':not(.art)').each(LSD.Layout.replace)
+    this.element.getChildren(this.options.selector).each(LSD.Layout.replace);
+    if (this.stylesheets) this.stylesheets.each(this.addStylesheet.bind(this))
   }),
   
   /*
@@ -110,5 +113,28 @@ LSD.Document = new Class({
   
   id: function(item) {
     if (item.render) return item;
+  },
+  
+  addStylesheet: function(sheet) {
+    if (!this.stylesheets) this.stylesheets = [];
+    this.stylesheets.include(sheet);
+    sheet.attach(this);
+  },
+  
+  removeStylesheet: function(sheet) {
+    if (!this.stylesheets) return;
+    this.stylesheets.erase(sheet);
+    sheet.detach(this);
   }
 });
+
+// Properties set here will be picked up by first document
+LSD.document = {}; 
+
+// Queue up stylesheets before document is loaded
+LSD.Document.addStylesheet = function(sheet) {
+  var instance = LSD.document, stylesheets = instance.stylesheets
+  if (instance.addStylesheet) return instance.addStylesheet(sheet)
+  if (!stylesheets) stylesheets = instance.stylesheets = [];
+  instance.stylesheets.push(sheet);
+}

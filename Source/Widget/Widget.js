@@ -15,11 +15,11 @@ requires:
   - Base/Widget
   - Base/Widget.Module.Attributes
   - Base/Widget.Module.Events
-  - LSD.Widget.Module.Behaviours
   - LSD.Widget.Module.Container
   - LSD.Widget.Module.DOM
   - LSD.Widget.Module.Layout
   - LSD.Widget.Module.Styles
+  - LSD.Widget.Module.Commands
 
 provides: 
   - LSD.Widget

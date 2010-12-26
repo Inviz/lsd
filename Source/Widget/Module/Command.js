@@ -10,12 +10,16 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- LSD.Widget.Base
+  - LSD.Widget.Base
+  - LSD.Command
+  - LSD.Command.Command
+  - LSD.Command.Radio
+  - LSD.Command.Checkbox
 
 provides:
-- LSD.Widget.Module.Command
-- LSD.Widget.Module.Command.Checkbox
-- LSD.Widget.Module.Command.Radio
+  - LSD.Widget.Module.Command
+  - LSD.Widget.Module.Command.Checkbox
+  - LSD.Widget.Module.Command.Radio
  
 ...
 */
@@ -45,9 +49,13 @@ LSD.Widget.Module.Command = new Class({
 
   getCommand: Macro.getter('command', function() {
     var type = this.options.command.type.capitalize();
-    var options = $extend({id: this.options.id}, this.options.command);
+    var options = Object.append({id: this.options.id}, this.options.command);
     return new LSD.Command[type](options).addEvents(this.events.command)
-  })
+  }),
+  
+  click: function() {
+    return this.getCommand().click();
+  }
   
 });
 

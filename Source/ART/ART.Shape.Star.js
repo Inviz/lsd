@@ -10,9 +10,10 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Shape
+  - ART.Shape
  
-provides: [ART.Shape.Star]
+provides: 
+  - ART.Shape.Star
  
 ...
 */
@@ -29,12 +30,12 @@ ART.Shape.Star = new Class({
   },
   
   paint: function(width, height, rays, radius, offset){
-    if (!$defined(rays)) rays = 5;
+    if (rays == null) rays = 5;
      var path = new ART.Path;
      var outer = width / 2;
      var angle = Math.PI / rays;
      offset = angle / (offset || 2.1);
-    if (!$defined(radius)) radius = outer *.582;
+    if (radius == null) radius = outer *.582;
     var lx = 0, ly = 0;
     for (var i = 0; i < rays * 2; i++) { 
         var r = i % 2 ? outer : radius; 
@@ -70,20 +71,4 @@ ART.Shape.Star = new Class({
     }
   }
 
-});  
-
-Widget.Styles.Paint.push('starRays', 'starRadius', 'starOffset');
-//
-//Raphael.fn.star = function (cx, cy, r, r2, rays) 
-//{ 
-//    r2 = r2 || r * .382; 
-//    rays = rays || 5; 
-//    var points = ["M", cx, cy + r2, "L"],R; 
-//    for (var i = 1; i < rays * 2; i++) 
-//    { 
-//        R = i % 2 ? r : r2; 
-//        points = points.concat([(cx + R * Math.sin(i * Math.PI / rays)), (cy + R * Math.cos(i * Math.PI / rays))]); 
-//    } 
-//    points.push("z"); 
-//    return this.path(points.join()); 
-//};
+});

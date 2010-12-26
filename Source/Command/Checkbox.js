@@ -10,9 +10,10 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- LSD
+  - LSD.Command
  
-provides: [LSD.Command.Checkbox]
+provides: 
+  - LSD.Command.Checkbox
  
 ...
 */

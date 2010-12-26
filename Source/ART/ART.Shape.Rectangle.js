@@ -71,8 +71,8 @@ ART.Shape.Rectangle = new Class({
   },
   
   change: function(x, y, r) {
-    if (!$defined(y)) y = x;
-    if (!$defined(r)) r = x;
+    if (y == null) y = x;
+    if (r == null) r = x;
     return this.paint(this.style.width + x * 2, this.style.height + y * 2, this.style.cornerRadius.map(function(radius, i) {
       return (r.push ? r[i] : r) + radius;
     }))

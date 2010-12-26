@@ -50,18 +50,19 @@ LSD.Widget.Module.DOM = new Class({
     this.nodeType = 1;
     this.parentNode = this.nextSibling = this.previousSibling = null;
     this.parent.apply(this, arguments);
-    this.nodeName = this.options.tag;
+    this.nodeName = this.options.tag//.toUpperCase(); //Make slick happy
+    this.tagName = this.options.tag;
   },
   
-  getElementsByTagName: function(tagName) {
-    var found = [];
-    var all = tagName == "*";
-    for (var i = 0, child; child = this.childNodes[i]; i++) {
-      if (all || tagName == child.nodeName) found.push(child);
-      found.push.apply(found, child.getElementsByTagName(tagName))
-    }
-    return found;
-  },
+  //getElementsByTagName: function(tagName) {
+  //  var found = [];
+  //  var all = tagName == "*";
+  //  for (var i = 0, child; child = this.childNodes[i]; i++) {
+  //    if (all || tagName == child.tagName) found.push(child);
+  //    found.push.apply(found, child.getElementsByTagName(tagName))
+  //  }
+  //  return found;
+  //},
   
   getElements: function(selector) {
     return Slick.search(this, selector)
@@ -79,7 +80,7 @@ LSD.Widget.Module.DOM = new Class({
   getAttributeNode: function(attribute) {
     return {
       nodeName: attribute,
-      nodeValue: this.getAttribute(attribute)
+      nodeValue: (attribute in this.options.states) ? this.pseudos[attribute] : this.getAttribute(attribute)
     }
   },
   
@@ -115,6 +116,7 @@ LSD.Widget.Module.DOM = new Class({
       previous.nextSibling = this;
       this.previousSibling = previous;
     }
+    widget.dispatchEvent('nodeInserted', this)
   },
   
   /*
@@ -160,7 +162,9 @@ LSD.Widget.Module.DOM = new Class({
     }).apply(this, arguments);
     
     this.fireEvent('adopt', [widget, id])
-    this[this.dispatchEvent ? "dispatchEvent" : "fireEvent"]('nodeInserted', widget);
+    widget.walk(function(node) {
+      this.dispatchEvent('nodeInserted', node);
+    }.bind(this));
     return true;
   },
   
@@ -186,21 +190,21 @@ LSD.Widget.Module.DOM = new Class({
         doc = body.retrieve('widget') || new LSD.Document(body);
       } else doc = widget;
       var halted = [];
-      this.render();
+      //this.render();
       this.walk(function(child) {
-        if (child.halted) halted.push(child);
+        //if (child.halted) halted.push(child);
         child.ownerDocument = child.document = doc;
         child.fireEvent('dominject', element);
         child.dominjected = true;
       });
-      halted.each(function(child) {
-        child.refresh();
-      })
+      //halted.each(function(child) {
+      //  child.refresh();
+      //})
     }
   },
   
   inject: function(widget, where, quiet) {
-    var isElement = 'tagName' in widget;
+    var isElement = 'localName' in widget;
     if (isElement) {
       var instance = widget.retrieve('widget');
       if (instance) {
@@ -221,8 +225,25 @@ LSD.Widget.Module.DOM = new Class({
       parent.childNodes.erase(this);
       if (parent.firstChild == this) delete parent.firstChild;
       if (parent.lastChild == this) delete parent.lastChild;
-    } 
+    }
     return this.parent.apply(this, arguments);
+  },
+  
+  dispatchEvent: function(type, args){
+    args = Array.from(args);
+    var node = this;
+    type = type.replace(/^on([A-Z])/, function(match, letter) {
+      return letter.toLowerCase();
+    });
+    while (node) {
+      var events = node.$events;
+      // console.log('dispatch event', type, node, [this.getSelector && this.getSelector(), node.getSelector && node.getSelector()])
+      if (events && events[type]) events[type].each(function(fn){
+        return fn.apply(node, args);
+      }, node);
+      node = node.parentNode;
+    }
+    return this;
   },
   
   walk: function(callback) {

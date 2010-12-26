@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires: 
   - LSD.Document.Resizable
   - LSD.Widget
+  - LSD.Widget.Module.Expectations
 provides:
   - LSD.Widget.Body
 
@@ -19,5 +20,5 @@ provides:
 */
 
 LSD.Widget.Body = new Class({
-  Extends: LSD.Document.Resizable
+  Includes: [LSD.Document.Resizable, LSD.Widget.Module.Expectations]
 });

@@ -27,7 +27,6 @@ LSD.Node = new Class({
   options: {},
 
   initialize: function(element, options) {
-    console.log('node', element, options)
     this.element = document.id(element);
     this.setOptions(options);
     var attributes = this.options.element;

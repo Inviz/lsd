@@ -49,6 +49,17 @@ LSD.Widget.Menu.Toolbar.Menu = new Class({
           this.addEvents(this.events.target);
         }
       },
+      menu: {
+        element: {
+          'mousemove:on(command)': function() {
+            if (!this.chosen) this.listWidget.selectItem(this)
+          },
+          'click:on(command)': function() {
+            if (!this.selected) this.listWidget.selectItem(this)
+            this.listWidget.collapse();
+          }
+        }
+      },
       target: {
         element: {
           mouseenter: 'retain'

@@ -57,7 +57,7 @@ LSD.Widget.Base = new Class({
     selector += this.options.tag;
     if (this.options.id) selector += '#' + this.options.id;
     for (var klass in this.classes)  if (this.classes.hasOwnProperty(klass))  selector += '.' + klass;
-    for (var pseudo in this.pseudos) if (this.classes.hasOwnProperty(pseudo)) selector += '.' + pseudo;
+    for (var pseudo in this.pseudos) if (this.pseudos.hasOwnProperty(pseudo)) selector += ':' + pseudo;
     if (this.attributes) for (var name in this.attributes) selector += '[' + name + '=' + this.attributes[name] + ']';
     return selector;
   },
@@ -70,11 +70,10 @@ LSD.Widget.Base = new Class({
   }),
   
   repaint: function(style) {
-    this.findStyles();
+  this.renderStyles(style);
     this.childNodes.each(function(child){
       child.render();
     });
-    this.renderStyles(style);
   },
 
   /*
@@ -152,7 +151,7 @@ LSD.Widget.create = function(klasses, a, b, c, d) {
   var widget = base[klass];
   if (klasses.length) {
     klasses = klasses.map(function(name) {
-      return $type(name) == 'string' ? LSD.Widget.Trait[name.camelCase().capitalize()] : name;
+      return name.camelCase ? LSD.Widget.Trait[name.camelCase().capitalize()] : name;
     });
     widget = Class.include(widget, klasses)
   }

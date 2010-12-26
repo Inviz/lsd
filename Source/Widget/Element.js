@@ -58,6 +58,5 @@ LSD.Widget.Element = new Class({
     return true;
   },
   
-  findStyles: $lambda(false),
   renderStyles: $lambda(false)
 });

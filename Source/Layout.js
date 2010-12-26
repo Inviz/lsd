@@ -46,11 +46,11 @@ LSD.Layout = new Class({
   
   render: function(layout, parent) {
     var widgets = [];
-    switch ($type(layout)) {
+    switch (typeOf(layout)) {
       case "string": 
         widgets.push(this.materialize(layout, {}, parent));
         break;
-      case "array": 
+      case "array": case "elements":
         layout.each(function(widget) {
           widgets.push.apply(widgets, this.render(widget, parent))
         }, this)
@@ -68,7 +68,7 @@ LSD.Layout = new Class({
 
 (function(cache) {
   LSD.Layout.findTraitByAttributeName = function(name) {
-    if (!$defined(cache[name])) {
+    if (typeof cache[name] == 'undefined') {
       switch (name) {
         case 'tabindex':
           name = 'Focus';
@@ -114,13 +114,18 @@ LSD.Layout.convert = function(element) {
     options.inherit = options.attributes.inherit;
     delete options.attributes.inherit;
   }
-  if (options.attributes['class']) {
-    options.classes = options.attributes['class'].split(' ').filter(function(name) {
+  var klass = options.attributes['class'];
+  if (klass) {
+    klass = klass.replace(/^lsd (?:tag-)?([a-zA-Z0-9-_]+)\s?/, function(m, tag) {
+      options.source = tag;
+      return '';
+    })
+    options.classes = klass.split(' ').filter(function(name) {
       var match = /^(is|id)-(.*?)$/.exec(name)
       if (match) {
-        if (!options.pseudos) options.pseudos = [];
         switch (match[1]) {
           case "is":
+            if (!options.pseudos) options.pseudos = [];
             options.pseudos.push(match[2]);
             break;
           case "id":
@@ -199,7 +204,7 @@ LSD.Layout.build = function(item, parent, element) {
     if (!source) {
       var bits = [parent.options.tag, parent.getAttribute('type')]
       if (options.inherit == 'full') bits.push(parent.getAttribute('kind'))
-      source = bits.filter($defined).join('-');
+      source = bits.filter(function(bit) { return bit }).join('-');
     }
     tag = source + '-' + tag
   }

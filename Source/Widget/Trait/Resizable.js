@@ -27,17 +27,18 @@ LSD.Widget.Trait.Resizable = new Class({
   options: {
     actions: {
       resizer: {
-        uses: ['handle', 'content'],
-      
-        enable: function() {
-          if (!this.resizer) {
-            if (this.options.resizer.crop) document.id(this.getResized()).setStyle('overflow', 'hidden');
-            this.getResizer();
-          } else this.resizer.attach();
+        enable: function(handle, resizable) {
+          this.handle = handle;
+          this.resizable = resizable || this;
+          var resizer = this.resizer;
+          if (resizer == this.getResizer(document.id(this.resizable))) resizer.attach();
+          if (handle) document.id(handle).addEvent('mousedown', this.resizer.bound.start);
         },
 
-        disable: function() {
+        disable: function(handle, content) {
           if (this.resizer) this.resizer.detach();
+          if (handle) document.id(handle).removeEvent('mousedown', this.resizer.bound.start);
+          delete this.resizable, this.handle;
         }
       }
     },
@@ -52,6 +53,7 @@ LSD.Widget.Trait.Resizable = new Class({
       snap: false,
       style: false,
       crop: false,
+      handle: [],
       container: true,
       limit: {
         x: [0, 3000],
@@ -60,12 +62,13 @@ LSD.Widget.Trait.Resizable = new Class({
     }
   },
   
-  getResizer: Macro.getter('resizer', function() {
-    var resized = this.getResized();
-    var element = document.id(resized)
-    var resizer = new Drag(element, $extend({
-      handle: document.id(this.getHandle())
-    }, this.options.resizer));
+  getResizer: function(resized) {
+    var element = resized;
+    if (this.resizer) {
+      if (this.resizer.element == element) return this.resizer;
+      return this.resizable.element = element;
+    }
+    var resizer = this.resizer = new Drag(element, this.options.resizer);
     resizer.addEvents(this.events.resizer);
     resizer.addEvents({
       'beforeStart': this.onBeforeResize.bind(this),
@@ -75,19 +78,18 @@ LSD.Widget.Trait.Resizable = new Class({
       'drag': this.onResize.bind(this)
     }, true);
     return resizer;
-  }),
+  },
   
   checkOverflow: function(size) {
     if (!this.resizer) return;
-    var resized = this.getResized();  
     var width = this.element.offsetWidth - this.offset.inner.left - this.offset.inner.right;
-    if (!size) size = {width: resized.toElement().width}
+    if (!size) size = {width: this.resizable.toElement().width}
     if (size.width < width) {
-      if (!$chk(self.limit)) self.limit = this.getResized().getStyle('minWidth') || 1
-      this.getResized().setStyle('minWidth', width);
-      $clear(self.delay);
-      self.delay = (function() { //reset limit options in one second
-        this.getResized().setStyle('minWidth', self.limit);
+      if (!$chk(this.limit)) this.limit = this.resizable.getStyle('minWidth') || 1
+      this.resizable.setStyle('minWidth', width);
+      $clear(this.delay);
+      this.delay = (function() { //reset limit options in one second
+        this.resizable.setStyle('minWidth', this.limit);
       }).delay(1000, this); 
       size.width = width;
     }
@@ -95,15 +97,14 @@ LSD.Widget.Trait.Resizable = new Class({
   },
   
   onBeforeResize: function() {
-    var resized = this.getResized();
-    $extend(resized.toElement(), resized.size)
+    Object.append(this.resizable.toElement(), this.resizable.size)
   },
   
   onResizeStart: function() {
     this.transform.apply(this, arguments);
     if (!this.liquid) this.liquid = this.collect(function(child) {
       return (child.style.current.width == 'inherit') || (child.style.current.width == 'auto') || child.style.expressed.width
-    }).concat(this.getResized())
+    }).concat(this.resizable)
   },
   
   onResizeComplete: function() {
@@ -113,7 +114,7 @@ LSD.Widget.Trait.Resizable = new Class({
   
   onResize: function() {
     var now = this.resizer.value.now;
-    var resized = this.getResized();
+    var resized = this.resizable;
     if (!resized.style.dimensions) {
       resized.style.dimensions = {};
       var width = resized.style.current.width
@@ -131,15 +132,7 @@ LSD.Widget.Trait.Resizable = new Class({
       })
     }
     this.refresh();
-  },
-  
-  getHandle: Macro.defaults(function() {
-    return this.handle;
-  }),
-
-  getResized: Macro.defaults(function() {
-    return this;
-  })
+  }
 });
 
 LSD.Widget.Trait.Resizable.State = Class.Stateful({
@@ -154,15 +147,7 @@ Widget.Attributes.Ignore.push('resizable-content', 'resizable');
 
 //Make container resize, not the widget itself.
 LSD.Widget.Trait.Resizable.Content = new Class({
-  getResized: function() {
-    return this.content;
-  },
-  
   getScrolled: function() {
     return this.content.wrapper || this.content
-  },
-
-	getHandle: function() {
-	  for (var parents = [this.content, this.footer, this], parent, i = 0 ; parent = parents[i++];) if (parent && parent.handle) return parent.handle;
-	}
+  }
 });

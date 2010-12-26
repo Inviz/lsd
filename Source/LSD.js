@@ -31,7 +31,7 @@ if (!window.console.log) window.console.log = function() {};
   var toArgs = function(args, strings) {
     var results = [];
     for (var i = 0, arg; arg = args[i++];) {
-      switch($type(arg)) {
+      switch(typeOf(arg)) {
         case "hash":
           if (strings) arg = JSON.encode(arg);
           break;
@@ -45,13 +45,13 @@ if (!window.console.log) window.console.log = function() {};
           break;
         default: 
           if (strings) {
-            if (!$defined(arg)) arg = 'undefined';
+            if (typeof arg == 'undefined') arg = 'undefined';
             else if (!arg) arg = 'false';
             else if (arg.name) arg = arg.name;
         
-            if ($type(arg) != "string") {
+            if (typeOf(arg) != "string") {
               if (arg.toString) arg = arg.toString();
-              if ($type(arg) != "string") arg = '[Object]'
+              if (typeOf(arg) != "string") arg = '[Object]'
             }
           }
       }
@@ -91,7 +91,7 @@ if (!window.console.log) window.console.log = function() {};
 $equals = function(one, another) {
   if (one == another) return true;
   if ((!one) ^ (!another)) return false;
-  if (!$defined(one)) return false;
+  if (typeof one == 'undefined') return false;
   
   if ((one instanceof Array) || one.callee) {
     var j = one.length;
@@ -107,5 +107,6 @@ $equals = function(one, another) {
   }
   return false;
 };
+
 
 var LSD = {};

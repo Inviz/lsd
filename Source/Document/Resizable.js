@@ -44,7 +44,7 @@ LSD.Document.Resizable = new Class({
 	  };
 	  this.parent.apply(this, arguments);
 	  this.attach();
-	  this.onResize();
+	 // this.onResize();
 	  this.element.set('userSelect', false)
 	},
 	
@@ -53,7 +53,7 @@ LSD.Document.Resizable = new Class({
 	detach: $lambda(true),
 	
 	onResize: function() {
-	  $extend(this.style.current, document.getCoordinates());
+	  Object.append(this.style.current, document.getCoordinates());
 	  this.render()
 	},
 	

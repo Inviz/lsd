@@ -32,6 +32,7 @@ LSD.Widget.Button = new Class({
       stroke: ['stroke'],
       background:  [LSD.Layer.Fill.Background.Offset],
       reflection:  [LSD.Layer.Fill.Reflection.Offset],
+      glyphShadow: ['glyph-shadow'],
       glyph: ['glyph']
     },
     label: ''

@@ -11,7 +11,6 @@ authors: Yaroslaff Fedin
  
 requires:
 - ART/ART.Shape
-- ART.Styles
  
 provides: [ART.Shape]
  

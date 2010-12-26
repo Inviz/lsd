@@ -77,7 +77,7 @@ LSD.Container = new Class({
   
   browse: function(iframe) {
     if (!iframe) return false;
-    switch($type(this.options.iframe)) {
+    switch(typeOf(this.options.iframe)) {
       case "string": 
         this.options.iframe = {src: this.options.iframe};
       case "element":

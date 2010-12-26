@@ -49,9 +49,9 @@ LSD.Widget.Select = new Class({
       glyph: ['glyph']
     },
     layout: {
-      item: 'select-option',
+      item: '^option',
       children: {
-        'select-button#button': {}
+        '^button': {}
       }
     },
     events: {
@@ -59,20 +59,23 @@ LSD.Widget.Select = new Class({
         click: 'expand'
       },
       self: {
-        set: 'collapse',
+        set: function(item) {
+          console.error('set', item)
+          this.setValue(item.getValue());
+          this.collapse();
+        },
         collapse: 'forgetChosenItem'
       },
-      expanded: {
-        focused: {
-          menu: {
-            element: {
-              'mousemove:on(:item:not(:chosen))': function() {
-                this.listWidget.selectItem(this, true)
-              },
-              'click:on(option)': function() {
-                this.listWidget.selectItem(this)
-              }
-            }
+      menu: {
+        element: {
+          'mouseover:on(option)': function() {
+            if (!this.chosen) this.listWidget.selectItem(this, true)
+          },
+          'click:on(option)': function(e) {
+            if (!this.selected) {
+              this.listWidget.selectItem(this);
+              e.stop()
+            } else this.listWidget.collapse();
           }
         }
       }
@@ -84,7 +87,7 @@ LSD.Widget.Select = new Class({
       position: 'focus',
       width: 'adapt'
     }
-  }  
+  }
 });
 
 LSD.Widget.Select.Button = new Class({
@@ -105,12 +108,16 @@ LSD.Widget.Select.Option = new Class({
   options: {
     tag: 'option',
     layers: {
-      background: LSD.Layer.Fill.Background
+      fill:  ['stroke'],
+      reflection:  [LSD.Layer.Fill.Reflection],
+      background: [LSD.Layer.Fill.Background],
+      glyph: ['glyph']
     }
   },
   
   getValue: function() {
-    return this.attributes.value || this.value || this.parent.apply(this, arguments);
+    if (this.attributes && this.attributes.value) this.value = this.attributes.value;
+    return this.parent.apply(this, arguments);
   },
   
   setContent: function() {

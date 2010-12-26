@@ -55,12 +55,6 @@ LSD.Widget.Menu.Context.Command = new Class({
   ],
   
   options: {
-    events: {
-      element: {
-        mouseenter: 'select',
-        mousedown: 'select'
-      }
-    },
     layers: {
       fill:  ['stroke'],
       reflection:  [LSD.Layer.Fill.Reflection],

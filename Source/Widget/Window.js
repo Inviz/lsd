@@ -39,31 +39,33 @@ LSD.Widget.Window = new Class({
       reflection: [LSD.Layer.Fill.Reflection],
       background: [LSD.Layer.Fill.Background]
     },
+    actions: {
+      draggable: {
+        watches: "#title"
+      },
+      resizer: {
+        uses: ["#handle", "#content"]
+      }
+    },
     events: {
-      buttons: {
-        close: {
+      '#buttons': {
+        '#close': {
           click: 'close'
         },
-        collapse: {
+        '#minimize': {
           click: 'collapse'
         },
-        expand: {
+        '#maximizer': {
           click: 'expand'
         }
       },
-      header: {
-        toggler: {
-          click: 'mutate'
-        }
+      'header #toggler': {
+        click: 'mutate'
       },
       self: {
         close: 'hide'
       }
     }
-  },
-  
-  getResized: function() {
-    return this.content;
   }
   
 });

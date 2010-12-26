@@ -10,9 +10,12 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Shape
+  - ART.Shape
+  - LSD.Widget.Module.Styles
  
-provides: [LSD.Layer, LSD.Layer.Shaped]
+provides: 
+  - LSD.Layer
+  - LSD.Layer.Shaped
  
 ...
 */
@@ -74,7 +77,7 @@ LSD.Layer.prepare = function() {
     properties: Array.type
   });
   if (options.options) {
-    $extend(options, options.options);
+    Object.append(options, options.options);
     delete options.options;
   }
   if (!options.name) options.name = options.layer;

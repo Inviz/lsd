@@ -15,20 +15,20 @@ requires:
 - Core/Element.Style
 - Ext/FastArray
 
-provides: [LSD.Widget.Module.Styles, ART.Styles]
+provides: [LSD.Widget.Module.Styles]
  
 ...
 */
 
 
-ART.Styles = {}
 Widget.Styles.Paint = new FastArray(
   'glyphColor', 'glyphShadow', 'glyphSize', 'glyphStroke', 'glyph', 'glyphColor', 'glyphColor', 'glyphHeight', 'glyphWidth', 'glyphTop', 'glyphLeft',     
   'cornerRadius', 'cornerRadiusTopLeft', 'cornerRadiusBottomLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight',    
   'reflectionColor',  'backgroundColor', 'strokeColor', 'fillColor', 'starRays',
   'shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY', 'userSelect'
 );
-Widget.Styles.Element = FastArray.from(Hash.getKeys(Element.Styles).concat('float', 'display', 'clear', 'cursor', 'verticalAlign', 'textAlign'));
+Widget.Styles.Ignore = new FastArray('backgroundColor', 'width', 'height', 'minWidth', 'minHeight', 'maxWidth', 'maxHeight');
+Widget.Styles.Element = FastArray.from(Hash.getKeys(Element.Styles).concat('float', 'display', 'clear', 'cursor', 'verticalAlign', 'textAlign', 'font', 'fontFamily', 'fontSize', 'fontStyle'));
 
 Widget.Styles.Complex = {
   'cornerRadius': {
@@ -36,6 +36,7 @@ Widget.Styles.Complex = {
     get: ['cornerRadiusTopLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight', 'cornerRadiusBottomLeft']
   }
 }
+
 
 
 LSD.Widget.Module.Styles = new Class({
@@ -50,6 +51,7 @@ LSD.Widget.Module.Styles = new Class({
       found: {},      //styles that were found in stylesheets
       given: {},      //styles that were manually assigned
 
+      changed: {},    //styles that came from stylesheet since last render
       calculated: {}, //styles that are calculated in runtime
       computed: {},   //styles that are already getStyled
       expressed: {},  //styles that are expressed through function
@@ -58,61 +60,24 @@ LSD.Widget.Module.Styles = new Class({
       element: {},    //styles that are currently assigned to element
       paint: {}       //styles that are currently used to paint
     };
-    this.rules = {
-      current: [],
-      possible: null
-    };
+    this.rules = [];
     this.parent.apply(this, arguments);
-    $extend(this.style.current, this.options.styles);
+    Object.append(this.style.current, this.options.styles);
     for (var property in this.style.current) this.setStyle(property, this.style.current[property])
   },
   
-  findStyles: function() {
-    var found = this.lookupStyles();
-    if (found) {
-      for (var property in found.style) if (property in this.style.given) delete found.style[property];
-      var changed = false;
-      for (var property in found.style) if (!$equals(found.style[property], this.style.current[property])) {
-        changed = true;
-        break;
-      }
-      if (!changed) for (var property in this.style.found) if (!(property in found.style)) {
-        changed = true;
-        break;
-      }
-      if (changed) {
-        this.style.found = found.style;
-        this.setStyles(found.style, true);
-        for (var property in found.implied) if (property in this.style.given) delete found.implied[property];
-        this.style.implied = found.implied;
-        $extend(this.style.current, this.style.implied);
-        return true;
-      }  
-    }  
-    return false;
-  },
-
-  lookupStyles: function() {
-    var result = LSD.Sheet.lookup(this.getHierarchy(), this.rules.possible);
-    if (!$equals(result.rules, this.rules.current)) {
-      this.rules.current = result.rules;
-      if (!this.rules.possible) this.rules.possible = result.possible;
-      for (var i in result.style) return result;
-    }
-    return false;
-  },
-  
   renderStyles: function(style) {
-    $extend(this.style.given, style);
-    this.setStyles(this.style.given)
     var style = this.style, 
         current = style.current,
         paint = style.paint, 
-        element = style.element, 
-        given = style.given, 
+        element = style.element,  
         found = style.found,
+        implied = style.implied,
         calculated = style.calculated,
-        implied = style.implied
+        given = Object.append(style.given, given)
+    this.setStyles(given)
+    for (var property in found) if (!(property in given)) this.setStyle(property, found[property], true);
+    Object.append(style.current, style.implied);
     for (var property in element)  {
       if (!(property in given) && !(property in found) && !(property in calculated) && !(property in implied)) {
         this.element.style[property] = '';
@@ -125,6 +90,37 @@ LSD.Widget.Module.Styles = new Class({
         delete paint[property];
       }
     }
+  },
+  
+  combineRules: function(rule) {
+    var rules = this.rules, style = this.style, found = style.found = {}, implied = style.implied = {}, changed = style.changed;
+    for (var j = rules.length, other; other = rules[--j];) {
+      var setting = other.style, implying = other.implied, self = (rule == other);
+      if (setting) for (var property in setting) if (!(property in found)) {
+        if (self) changed[property] = setting[property];
+        found[property] = setting[property];
+      }
+      if (implying) for (var property in implying) if (!(property in implied)) implied[property] = implying[property];
+    }
+  },
+  
+  addRule: function(rule) {
+    var rules = this.rules;
+    if (rules.indexOf(rule) > -1) return
+    for (var i = 0, other;  other = rules[i++];) {
+      if ((other.specificity > rule.specificity) || ((other.specificity == rule.specificity) && (other.index > rule.index))) break;
+    }
+    rules.splice(--i, 0, rule);
+    this.combineRules(rule);
+  },
+  
+  removeRule: function(rule) {
+    var rules = this.rules, index = rules.indexOf(rule)
+    if (index == -1) return
+    rules.splice(index, 1);
+    this.combineRules(rule);
+    var style = this.style, found = style.found, changed = style.changed, setting = rule.style;; 
+    if (setting) for (var property in setting) if (!$equals(found[property], setting[property])) changed[property] = found[property];
   },
   
   setStyles: function(style, temp) {
@@ -234,6 +230,6 @@ LSD.Widget.Module.Styles = new Class({
 });
 
 
-ART.Styles.calculate = function() {
+LSD.calculate = LSD.Widget.Module.Styles.calculate = function() {
   return LSD.Expression.get.apply(LSD.Expression, arguments)
 }

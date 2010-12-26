@@ -31,7 +31,7 @@ LSD.Widget.Trait.Menu = new Class({
       cancel: 'cancel'
     },
     events: {
-      menu: {
+      _menu: {
         self: {
           expand: 'makeItems',
           redraw: 'repositionMenu',
@@ -71,11 +71,11 @@ LSD.Widget.Trait.Menu = new Class({
   },
   
   attach: Macro.onion(function() {
-    this.addEvents(this.events.menu);
+    this.addEvents(this.events._menu);
   }),
   
   detach: Macro.onion(function() {
-    this.removeEvents(this.events.menu);
+    this.removeEvents(this.events._menu);
   }),
   
   repositionMenu: function() {
@@ -121,6 +121,7 @@ LSD.Widget.Trait.Menu = new Class({
   }),
   
   collapse: Macro.onion(function() {
+    console.log('collapse', this.menu)
     if (this.menu) this.menu.hide();
     //this.repositionMenu();
   }),
@@ -136,4 +137,4 @@ LSD.Widget.Trait.Menu.Stateful = [
   LSD.Widget.Trait.Menu
 ]
 
-Widget.Events.Ignore.push('menu');
+Widget.Events.Ignore.push('_menu');

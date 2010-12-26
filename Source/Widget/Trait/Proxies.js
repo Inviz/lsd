@@ -28,7 +28,7 @@ LSD.Widget.Trait.Proxies = new Class({
     var proxies = []
     for (var name in options) proxies.push(options[name]);
     return proxies.sort(function(a, b) {
-      return (a.priority || 0) > (b.priority || 0) ? -1 : 1
+      return (b.priority || 0) - (a.priority || 0)
     })
   }),
   

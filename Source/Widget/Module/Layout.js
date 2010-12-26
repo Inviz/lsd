@@ -30,30 +30,13 @@ LSD.Widget.Module.Layout = new Class({
     var layout = Array.from(this.options.layout.children);
     if (origin && !options.source) {
       var children = origin.getChildren();
-      if (children.length) layout.push.apply(layout, Array.from(children));
-      else {
+      if (!children.length) {
         var text = origin.get('html').trim();
         if (text.length) this.setContent(text)
-      }
+      } else layout.push.apply(layout, Array.from(children));
     }
     if (layout.length) this.setLayout(layout);
     if (this.options.layout.self) this.applySelector(this.options.layout.self);
-  },
-  
-  dispatchEvent: function(type, args){
-    args = Array.from(args);
-    var node = this;
-    type = type.replace(/^on([A-Z])/, function(match, letter) {
-      return letter.toLowerCase();
-    });
-    while (node) {
-      var events = node.$events;
-      if (events && events[type]) events[type].each(function(fn){
-        return fn.apply(node, args);
-      }, node);
-      node = node.parentNode;
-    }
-    return this;
   },
   
   applySelector: function(selector) {
@@ -70,12 +53,8 @@ LSD.Widget.Module.Layout = new Class({
         options[attribute.key] = attribute.value || true;
       });
     }  
-    if (parsed.attributes || parsed.id) $extend(this.options, options);
+    if (parsed.attributes || parsed.id) Object.append(this.options, options);
     this.fireEvent('selector', [parsed, selector]);
-  },
-  
-  match: function(selector) {
-    return Slick.match(this, selector)
   },
   
   setLayout: function(layout) {

@@ -101,23 +101,16 @@ LSD.Widget.Trait.Layers = new Class({
   },
   
   repaint: function() {
-    var dirty, style = this.style, last = style.last, old = style.size, paint = style.paint, dirty = paint
+    var style = this.style, last = style.last, old = style.size, paint = style.paint, changed = style.changed;
     this.parent.apply(this, arguments);
     this.setSize(this.getStyles('height', 'width'));
     var size = this.size;
-    if (old) {
-      if (old.width == size.width && old.height == size.height) {
-        last = Object.append({}, style.last);
-        dirty = style.dirty = {};
-        for (var property in paint) {
-          var value = paint[property];
-          if (!$equals(value, last[property])) dirty[property] = paint[property];
-          delete last[property];
-        }
-        for (var property in last) dirty[property] = window.undefined;
-      } else this.fireEvent('resize', [size, old]);
+    if (size && (!old || (old.width != size.width || old.height != size.height))) {
+      this.fireEvent('resize', [size, old]);
+      changed = paint;
     }
-    if (Object.getLength(dirty) > 0) this.renderLayers(dirty);
+    if (Object.getLength(changed) > 0) this.renderLayers(changed);
+    style.changed = {};
     style.last = Object.append({}, paint);
     style.size = Object.append({}, size);
     this.renderOffsets();
@@ -148,12 +141,12 @@ LSD.Widget.Trait.Layers = new Class({
       var cc = property.capitalize();
       if (offset.inner) var last = offset.inner[property];
       inner[property] = padding[property] + inside[property] + shape[property] + outside[property];
-      if ($defined(last) ? last != inner[property] : inner[property]) element.style['padding' + cc] = inner[property] + 'px';
+      if (last != null ? last != inner[property] : inner[property]) element.style['padding' + cc] = inner[property] + 'px';
       if (offset.outer) last = offset.outer[property];
       outer[property] = margin[property] - outside[property];
-      if ($defined(last) ? last != outer[property] : outer[property]) element.style['margin' + cc] = outer[property] + 'px';
+      if (last != null ? last != outer[property] : outer[property]) element.style['margin' + cc] = outer[property] + 'px';
     }
-    $extend(offset, {inner: inner, outer: outer});
+    Object.append(offset, {inner: inner, outer: outer});
   }
 });
 

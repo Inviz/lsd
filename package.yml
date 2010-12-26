@@ -33,6 +33,7 @@ sources:
   - Source/Layer.js
   - Source/Layer/Fill.js
   - Source/Layer/Glyph.js
+  - Source/Layer/GlyphShadow.js
   - Source/Layer/Icon.js
   - Source/Layer/InnerShadow.js
   - Source/Layer/Shadow.js
@@ -60,7 +61,6 @@ sources:
   - Source/Widget/Menu/List.js
   - Source/Widget/Menu/Toolbar.js
   - Source/Widget/Menu/Toolbar.Menu.js
-  - Source/Widget/Module/Behaviours.js
   - Source/Widget/Module/Container.js
   - Source/Widget/Module/Command.js
   - Source/Widget/Module/DOM.js
