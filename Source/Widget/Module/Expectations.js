@@ -176,7 +176,7 @@ var Expectations = LSD.Widget.Module.Expectations = new Class({
   },
   
   unwatch: function(selector, callback, depth) {
-    if (typeof selector == 'string') selector = Slicparse(selector);
+    if (typeof selector == 'string') selector = Slick.parse(selector);
     if (!depth) depth = 0;
     selector.expressions.each(function(expressions) {
       this.unexpect(expressions[depth], callback, function(widget) {
