@@ -307,7 +307,6 @@ Expectations.behave = function(selector, events) {
     if (!behaviours) behaviours = widget.expectations.behaviours = {};
     var behaviour = behaviours[selector];
     if (!behaviour) behaviour = behaviours[selector] = widget.bindEvents(events);
-    console.log(Object.clone(behaviour), Object.clone(events), state)
     widget[state ? 'addEvents' : 'removeEvents'](behaviour);
   };
 }
