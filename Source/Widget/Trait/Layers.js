@@ -75,6 +75,8 @@ LSD.Widget.Trait.Layers = new Class({
       var value = updated[name] ? LSD.Layer.render(definitions[name], this) : null;
       var layer = this.layers[name];
       if (!layer) continue;
+      if (value == null) value = layer.value;
+      layer.value = value;
       if (value === false) {
         if (layer.injected) layer.eject();
       } else {
@@ -89,8 +91,6 @@ LSD.Widget.Trait.Layers = new Class({
         } else {
           if (layer.update) layer.update(this.getCanvas())
         }
-        if (!value) value = layer.value;
-        layer.value = value;
         layer.translate(value.translate.x + outside.left + inside.left, value.translate.y + outside.top + inside.top);
         for (side in value.inside) {  
           outside[side] += value.outside[side];
