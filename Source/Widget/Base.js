@@ -70,7 +70,7 @@ LSD.Widget.Base = new Class({
   }),
   
   repaint: function(style) {
-  this.renderStyles(style);
+    this.renderStyles(style);
     this.childNodes.each(function(child){
       child.render();
     });
