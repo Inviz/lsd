@@ -44,7 +44,7 @@ LSD.Document.Resizable = new Class({
 	  };
 	  this.parent.apply(this, arguments);
 	  this.attach();
-	 // this.onResize();
+	  this.onResize();
 	  this.element.set('userSelect', false)
 	},
 	
