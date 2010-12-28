@@ -120,7 +120,7 @@ LSD.Widget.Module.Styles = new Class({
     if (index == -1) return
     rules.splice(index, 1);
     this.combineRules();
-    var found = style.found, style = this.style, changed = style.changed, setting = rule.style; 
+    var style = this.style, found = style.found, changed = style.changed, setting = rule.style;
     if (setting) for (var property in setting) if (!$equals(found[property], setting[property])) changed[property] = found[property];
  },
   
