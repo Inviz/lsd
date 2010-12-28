@@ -76,6 +76,7 @@ LSD.Widget.Select = new Class({
               this.listWidget.selectItem(this);
               e.stop()
             } else this.listWidget.collapse();
+            this.forget()
           }
         }
       }
