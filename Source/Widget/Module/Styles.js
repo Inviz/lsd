@@ -74,9 +74,10 @@ LSD.Widget.Module.Styles = new Class({
         found = style.found,
         implied = style.implied,
         calculated = style.calculated,
-        given = Object.append(style.given, given)
+        given = Object.append(style.given, given),
+        changed = style.changed;
     this.setStyles(given)
-    for (var property in found) if (!(property in given)) this.setStyle(property, found[property], true);
+    for (var property in found) if ((property in changed) && !(property in given)) this.setStyle(property, found[property], true);
     Object.append(style.current, style.implied);
     for (var property in element)  {
       if (!(property in given) && !(property in found) && !(property in calculated) && !(property in implied)) {
@@ -118,10 +119,10 @@ LSD.Widget.Module.Styles = new Class({
     var rules = this.rules, index = rules.indexOf(rule)
     if (index == -1) return
     rules.splice(index, 1);
-    this.combineRules(rule);
-    var style = this.style, found = style.found, changed = style.changed, setting = rule.style;; 
+    this.combineRules();
+    var found = style.found, style = this.style, changed = style.changed, setting = rule.style; 
     if (setting) for (var property in setting) if (!$equals(found[property], setting[property])) changed[property] = found[property];
-  },
+ },
   
   setStyles: function(style, temp) {
     for (var key in style) this.setStyle(key, style[key], temp)
