@@ -146,7 +146,7 @@ LSD.Widget.Trait.Layers = new Class({
       outer[property] = margin[property] - outside[property];
       if (last != null ? last != outer[property] : outer[property]) element.style['margin' + cc] = outer[property] + 'px';
     }
-    Object.append(offset, {inner: inner, outer: outer});
+    if (inside) Object.append(offset, {inner: inner, outer: outer});
   }
 });
 
