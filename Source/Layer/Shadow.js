@@ -182,3 +182,6 @@ LSD.Layer.Shadow.Layer.release = function(layer) {
   if (shape) shape.element.parentNode.removeChild(shape.element);
   LSD.Layer.Shadow.Layer.stack.push(layer);
 };
+
+
+Widget.Styles.Paint.push('shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY')

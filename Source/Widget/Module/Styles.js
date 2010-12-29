@@ -24,8 +24,7 @@ provides: [LSD.Widget.Module.Styles]
 Widget.Styles.Paint = new FastArray(
   'glyphColor', 'glyphShadow', 'glyphSize', 'glyphStroke', 'glyph', 'glyphColor', 'glyphColor', 'glyphHeight', 'glyphWidth', 'glyphTop', 'glyphLeft',     
   'cornerRadius', 'cornerRadiusTopLeft', 'cornerRadiusBottomLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight',    
-  'reflectionColor',  'backgroundColor', 'strokeColor', 'fillColor', 'starRays',
-  'shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY', 'userSelect'
+  'reflectionColor',  'backgroundColor', 'strokeColor', 'fillColor', 'starRays', 'userSelect'
 );
 Widget.Styles.Ignore = new FastArray('backgroundColor', 'width', 'height', 'minWidth', 'minHeight', 'maxWidth', 'maxHeight');
 Widget.Styles.Element = FastArray.from(Hash.getKeys(Element.Styles).concat('float', 'display', 'clear', 'cursor', 'verticalAlign', 'textAlign', 'font', 'fontFamily', 'fontSize', 'fontStyle'));
