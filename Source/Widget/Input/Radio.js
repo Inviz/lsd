@@ -41,12 +41,18 @@ LSD.Widget.Input.Radio = new Class({
       glyph: ['glyph']
     },
     shortcuts: {
-      space: 'check'
+      space: 'click'
+    },
+    events: {
+      command: {
+        'check': 'check',
+        'uncheck': 'uncheck'
+      }
     }
-  },
-  
-  retain: function() {
-    this.check();
-    return this.parent.apply(this, arguments);
   }
+  
+  //retain: function() {
+  //  this.check();
+  //  return this.parent.apply(this, arguments);
+  //}
 });

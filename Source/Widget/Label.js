@@ -45,6 +45,7 @@ LSD.Widget.Label = new Class({
     while (parent.parentNode && parent.parentNode != this.document) parent = parent.parentNode; //search by id in topmost widget
     var element = parent.getElement("#" + target);
     if (!element) return;
-    element.retain();
+    if (element.retain) element.retain();
+    if (element.click) element.click();
   }
 });

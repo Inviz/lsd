@@ -35,6 +35,7 @@ LSD.Widget.Button = new Class({
       glyphShadow: ['glyph-shadow'],
       glyph: ['glyph']
     },
+    
     label: ''
   },
   

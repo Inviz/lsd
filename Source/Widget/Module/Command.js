@@ -50,10 +50,11 @@ LSD.Widget.Module.Command = new Class({
   getCommand: Macro.getter('command', function() {
     var type = this.options.command.type.capitalize();
     var options = Object.append({id: this.options.id}, this.options.command);
-    return new LSD.Command[type](options).addEvents(this.events.command)
+    return new LSD.Command[type](this.document, options).addEvents(this.events.command)
   }),
   
   click: function() {
+    this.fireEvent('click');
     return this.getCommand().click();
   }
   
@@ -74,7 +75,7 @@ LSD.Widget.Module.Command.Checkbox = [
   Class.Stateful({
     checked: ['check', 'uncheck', 'toggle']
   }),
-  {
+  new Class({
     options: {
       command: {
         type: 'checkbox'
@@ -86,7 +87,7 @@ LSD.Widget.Module.Command.Checkbox = [
         }
       }
     }
-  }
+  })
 ];
 
 /*
@@ -107,7 +108,8 @@ LSD.Widget.Module.Command.Radio = [
   Class.Stateful({
     checked: ['check', 'uncheck']
   }),
-  {  
+  
+  new Class({  
     options: {
       radiogroup: null,
       command: {
@@ -119,8 +121,16 @@ LSD.Widget.Module.Command.Radio = [
           'uncheck': 'uncheck',
         }
       }
+    },
+    
+    getCommand: function() {
+      if (!this.command) {
+        var options = this.options, command = options.command;
+        if (!command.radiogroup) command.radiogroup = options.radiogroup || this.attributes.name;
+      }
+      return this.parent.apply(this, arguments);
     }
-  }
+  })
 ];
 
 Widget.Attributes.Ignore.push('command-type');

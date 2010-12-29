@@ -23,8 +23,14 @@ LSD.Command = new Class({
     disabled: ['disable', 'enable']
   },
   
+  Implements: [Options, Events],
+  
   initialize: function(document, options) {
     this.document = document;
     this.setOptions(options);
+  },
+  
+  click: function() {
+    this.fireEvent('click', arguments);
   }
 })

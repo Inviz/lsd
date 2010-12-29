@@ -19,15 +19,14 @@ provides:
 */
 
 LSD.Command.Checkbox = new Class({
+  Extends: LSD.Command,
+  
   States: {
-    checked: ['check', 'uncheck'],
-    options: {
-      events: {
-        command: {
-          'check': 'check',
-          'uncheck': 'uncheck'
-        }
-      }
-    }
+    checked: ['check', 'uncheck', 'toggle']
+  },
+
+  click: function() {
+    this.parent.apply(this, arguments);
+    this.toggle();
   }
 })

@@ -25,12 +25,6 @@ LSD.Command.Radio = new Class({
   },
   
   options: {
-    events: {
-      command: {
-        'check': 'check',
-        'uncheck': 'uncheck'
-      }
-    },
     radiogroup: false
   },
   
@@ -47,10 +41,14 @@ LSD.Command.Radio = new Class({
     }
   },
   
+  click: function() {
+    this.parent.apply(this, arguments);
+    this.check();
+  },
+  
   check: Macro.onion(function() {
-    console.log('chheck', this.group)
     this.group.each(function(command) {
       if (command != this) command.uncheck()
-    });
-  });
+    }, this);
+  })
 });

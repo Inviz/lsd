@@ -41,10 +41,5 @@ LSD.Widget.Input.Checkbox = new Class({
     shortcuts: {
       space: 'toggle'
     }
-  },
-  
-  retain: function() {
-    this.toggle();
-    return this.parent.apply(this, arguments);
   }
 });
