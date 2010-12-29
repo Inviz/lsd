@@ -43,7 +43,7 @@ LSD.Widget.Menu.Toolbar.Menu = new Class({
       },
       parent: {
         blur: function() {
-          this.removeEvents(this.events );
+          this.removeEvents(this.events);
         },
         focus: function() {
           this.addEvents(this.events.target);
@@ -75,7 +75,7 @@ LSD.Widget.Menu.Toolbar.Menu = new Class({
     }
   },
   
-  retain: function() {
+  click: function() {
     this.select();
     return this.parent.apply(this, arguments);
   },
