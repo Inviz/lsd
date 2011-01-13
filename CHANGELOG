@@ -40,7 +40,7 @@ LSD-BASE
 new Class({
   Includes: [
     ART.Widget,
-    Widget.Trait.Hoverable
+    LSD.Trait.Hoverable
   ],
 
   options: {
@@ -66,7 +66,7 @@ new Class({
   releaseUnicorns: function() {}
 });
 
-You can make your own state-specific event groups by extending Widget.States.Evevnts.[Positive|Negative]
+You can make your own state-specific event groups by extending LSD.States.Evevnts.[Positive|Negative]
 
 * Added a way to make state set real attribute on change instead of only pseudo class with emulation. Used for disabled state to set a corresponding attribute for element to stop taking focus and other things
 
@@ -108,12 +108,12 @@ The above code is actually used in Menu trait.
 
 * Going further splitting states and traits. Now State goes into its own object, then Stateful array then is [State, Trait], like this:
 
-Widget.Trait.Item.State = Class.Stateful({
+LSD.Trait.Item.State = Class.Stateful({
   selected: ['select', 'unselect']
 });
-Widget.Trait.Item.Stateful = [
-  Widget.Trait.Item.State,
-  Widget.Trait.Item
+LSD.Trait.Item.Stateful = [
+  LSD.Trait.Item.State,
+  LSD.Trait.Item
 ]
 
 Gives ability to include state only. Useful for including focus/blur state without focus trait logic.
@@ -135,7 +135,7 @@ LSD
 
 * Use new enabled event subgroups
 
-* Use new Widget.Trait.Focus.State, Widget.Trait.Touchable.Stateful, Widget.Trait.Focus.Stateful
+* Use new Mixin.Focus.State, LSD.Mixin.Touchable.Stateful, Mixin.Focus.Stateful
 
 * Add getElements/getElement methods to DOM trait that use Slick. Use those methods in Radio widget to locate widgets with the same name
 

@@ -184,4 +184,4 @@ LSD.Layer.Shadow.Layer.release = function(layer) {
 };
 
 
-Widget.Styles.Paint.push('shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY')
+LSD.Styles.Paint.push('shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY')

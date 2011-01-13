@@ -77,10 +77,10 @@ LSD.Layer.Fill.Offset = new Class({
       optional: [type + 'Offset', type + 'CornerRadius']
     }
   });
-  Widget.Styles.Paint.push(type + 'Offset', type + 'Color', type + 'OffsetTop', type + 'OffsetRight', type + 'OffsetBottom', type + 'OffsetLeft', type + 'CornerRadius')
+  LSD.Styles.Paint.push(type + 'Offset', type + 'Color', type + 'OffsetTop', type + 'OffsetRight', type + 'OffsetBottom', type + 'OffsetLeft', type + 'CornerRadius')
   
   
-  Widget.Styles.Complex[type + 'Offset'] = {
+  LSD.Styles.Complex[type + 'Offset'] = {
     set: [type + 'OffsetTop', type + 'OffsetLeft', type + 'OffsetBottom', type + 'OffsetRight'],
     get: [type + 'OffsetTop', type + 'OffsetRight', type + 'OffsetBottom', type + 'OffsetLeft']
   }

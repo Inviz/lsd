@@ -11,8 +11,6 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD
-  - Core/Events
-  - Core/Options
   
 provides:
   - LSD.Node

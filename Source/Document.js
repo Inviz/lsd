@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires: 
   - LSD.Node
-  - LSD.Widget.Module.DOM
+  - LSD.Module.DOM
  
 provides:
   - LSD.Document
@@ -35,7 +35,7 @@ LSD.Document = new Class({
 
   Includes: [
     LSD.Node,
-    LSD.Widget.Module.DOM
+    LSD.Module.DOM
   ],
   
   States: {
@@ -67,6 +67,9 @@ LSD.Document = new Class({
     this.element.getChildren(this.options.selector).each(LSD.Layout.replace);
     if (this.stylesheets) this.stylesheets.each(this.addStylesheet.bind(this))
   }),
+
+	attach: $lambda(true),
+	detach: $lambda(true),
   
   /*
     Slick.Finder tries to probe document it was given to determine
@@ -75,7 +78,7 @@ LSD.Document = new Class({
     
     We try to emulate XML-tree (simple built-in querying capabilities),
     so all of the traversing work happens inside of Slick except 
-    getElementsByTagName which is provided by LSD.Widget.Module.DOM.
+    getElementsByTagName which is provided by LSD.Module.DOM.
     
     So the problem is that Slick creates element and tries to 
     append it to the document which is unacceptable (because every node
@@ -98,9 +101,6 @@ LSD.Document = new Class({
   removeChild: function(widget) {
     if (widget.mock) return false;
     return this.parent.apply(this, arguments);
-  },
-
-  setParent: function(widget){
   },
   
   getAttribute: function(name) {

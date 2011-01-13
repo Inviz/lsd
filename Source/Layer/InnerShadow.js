@@ -98,4 +98,4 @@ LSD.Layer.InnerShadow.Layer.release = function(layer) {
   LSD.Layer.InnerShadow.Layer.stack.push(layer);
 };
 
-Widget.Styles.Paint.push('innerShadowColor', 'innerShadowBlur', 'innerShadowOffsetX', 'innerShadowOffsetY')
+LSD.Styles.Paint.push('innerShadowColor', 'innerShadowBlur', 'innerShadowOffsetX', 'innerShadowOffsetY')

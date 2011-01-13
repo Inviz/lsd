@@ -36,4 +36,4 @@ LSD.Layer.GlyphShadow = new Class({
   }
 });
 
-Widget.Styles.Paint.push('glyphShadowBlur', 'glyphShadowOffsetX', 'glyphShadowOffsetY', 'glyphShadowColor')
+LSD.Styles.Paint.push('glyphShadowBlur', 'glyphShadowOffsetX', 'glyphShadowOffsetY', 'glyphShadowColor')

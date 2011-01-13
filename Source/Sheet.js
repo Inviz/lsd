@@ -10,16 +10,13 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- LSD
-- CSSParser/CSSParser
-- Core/Slick.Parser
-- Core/Slick.Finder
-- Core/Request
-- Core/Element.Style
-- LSD.Widget.Module.Styles
-- LSD.Document
- 
-provides: [LSD.Sheet]
+  - LSD.Node
+  - Core/Element
+  - Core/Request
+  - CSSParser/CSSParser
+  
+provides:
+  - LSD.Sheet
  
 ...
 */
@@ -46,8 +43,6 @@ LSD.Sheet = new Class({
   },
   
   addRule: function(rule) {
-    //var raw = rule.selector.raw;
-    //if (this.rules[raw]) {}
     this.rules.push(rule)
   },
   
@@ -109,6 +104,7 @@ LSD.Sheet = new Class({
     this.rules.each(function(rule) {
       rule.attach(node)
     });
+    LSD.start();
   },
   
   detach: function(node) {
@@ -153,7 +149,7 @@ LSD.Sheet = new Class({
 });
 
 LSD.Sheet.isElementStyle = function(cc) {
-  return Widget.Styles.Element[cc] && !Widget.Styles.Ignore[cc];
+  return LSD.Styles.Element[cc] && !LSD.Styles.Ignore[cc];
 }
 
 LSD.Sheet.Rule = function(selector, style) {

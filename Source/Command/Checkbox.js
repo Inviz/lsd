@@ -18,10 +18,22 @@ provides:
 ...
 */
 
+/*
+  Checkbox commands are useful when you need to track and toggle
+  state of some linked object. 
+  
+  Provide your custom logic hooking on *check* and *uncheck*
+  state transitions. Use *checked* property to get the current state.
+  
+  Examples:
+    - Button that toggles visibility of a sidebar
+    - Context menu item that shows or hides line numbers in editor
+*/
+
 LSD.Command.Checkbox = new Class({
   Extends: LSD.Command,
   
-  States: {
+  Stateful: {
     checked: ['check', 'uncheck', 'toggle']
   },
 

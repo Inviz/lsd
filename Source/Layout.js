@@ -11,9 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
 - LSD
-- LSD.Widget.Base
-- Ext/Logger
- 
+
 provides: [LSD.Layout]
  
 ...
@@ -21,7 +19,7 @@ provides: [LSD.Layout]
 
 LSD.Layout = new Class({
   
-  Implements: [Options, Logger],
+  Implements: [Options],
     
   initialize: function(widget, layout, options) {
     if (LSD.Layout.isConvertable(widget)) widget = LSD.Layout.build(widget)
@@ -77,7 +75,7 @@ LSD.Layout = new Class({
           name = 'Position';
           break;
       };
-      var base = LSD.Widget.Trait;
+      var base = LSD.Trait;
       for (var bits = name.split('-'), bit, i = 0; (bit = bits[i++]) && (base = base[bit.capitalize()]););
       var klass = cache[name] = base || null;
       if (klass && klass.Stateful) cache[name] = klass.Stateful;

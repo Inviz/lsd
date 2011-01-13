@@ -20,16 +20,12 @@ sources:
   - Source/ART/ART.Shape.Flower.js
   - Source/ART/ART.Shape.Rectangle.js
   - Source/ART/ART.Shape.Star.js
-  - Source/Container.js
-  - Source/Command.js
   - Source/Command/Command.js
   - Source/Command/Checkbox.js
   - Source/Command/Radio.js
   - Source/Document.js
   - Source/Document/Resizable.js
-  - Source/Fx.js
   - Source/LSD.js
-  - Source/Layout.js
   - Source/Layer.js
   - Source/Layer/Fill.js
   - Source/Layer/Glyph.js
@@ -38,55 +34,44 @@ sources:
   - Source/Layer/InnerShadow.js
   - Source/Layer/Shadow.js
   - Source/Layer/Stroke.js
+  - Source/Mixin/Focus.js
+  - Source/Mixin/Shy.js
+  - Source/Mixin/Draggable.js
+  - Source/Mixin/Resizable.js
+  - Source/Mixin/Scrollable.js
+  - Source/Mixin/Touchable.js
+  - Source/Mixin/Position.js
+  - Source/Module/Container.js
+  - Source/Module/Command.js
+  - Source/Module/DOM.js
+  - Source/Module/Expectations.js
+  - Source/Module/Layout.js
+  - Source/Module/Styles.js
+  - Source/Module/Attributes.js
+  - Source/Module/Events.js
+  - Source/Module/Actions.js
+  - Source/Trait/Dimensions.js
+  - Source/Trait/Proxies.js
+  - Source/Trait/Layers.js
+  - Source/Trait/Menu.js
+  - Source/Trait/Shape.js
+  - Source/Trait/Accessibility.js
+  - Source/Trait/Animation.js
+  - Source/Trait/Choice.js
+  - Source/Trait/List.js
+  - Source/Trait/Item.js
+  - Source/Trait/Observer.js
+  - Source/Trait/Value.js
+  - Source/Trait/Input.js
+  - Source/Trait/Slider.js
+  - Source/Action.js
+  - Source/Container.js
+  - Source/Element.js
+  - Source/Layout.js
+  - Source/Fx.js
   - Source/Node.js
   - Source/Sheet.js
   - Source/Expression.js
-  - Source/Widget/Base.js
-  - Source/Widget/Body.js
-  - Source/Widget/Button.js
-  - Source/Widget/Container.js
-  - Source/Widget/Element.js
-  - Source/Widget/Form.js
-  - Source/Widget/Glyph.js
-  - Source/Widget/Input.js
-  - Source/Widget/Input/Checkbox.js
-  - Source/Widget/Input/Combo.js
-  #- Source/Widget/Input/Date.js
-  - Source/Widget/Input/Radio.js
-  - Source/Widget/Input/Range.js
-  - Source/Widget/Input/Search.js
-  - Source/Widget/Label.js
-  - Source/Widget/Menu.js
-  - Source/Widget/Menu/Context.js
-  - Source/Widget/Menu/List.js
-  - Source/Widget/Menu/Toolbar.js
-  - Source/Widget/Menu/Toolbar.Menu.js
-  - Source/Widget/Module/Container.js
-  - Source/Widget/Module/Command.js
-  - Source/Widget/Module/DOM.js
-  - Source/Widget/Module/Expectations.js
-  - Source/Widget/Module/Layout.js
-  - Source/Widget/Module/Styles.js
-  - Source/Widget/Paint.js
-  - Source/Widget/Panel.js
-  - Source/Widget/Scrollbar.js
-  - Source/Widget/Section.js
-  - Source/Widget/Header.js
-  - Source/Widget/Footer.js
-  - Source/Widget/Command.js
-  - Source/Widget/Nav.js
-  - Source/Widget/Select.js
-  - Source/Widget/Textarea.js
-  - Source/Widget/Trait/Dimensions.js
-  - Source/Widget/Trait/Draggable.js
-  - Source/Widget/Trait/Fitting.js
-  - Source/Widget/Trait/Hoverable.js
-  - Source/Widget/Trait/Proxies.js
-  - Source/Widget/Trait/Position.js
-  - Source/Widget/Trait/Layers.js
-  - Source/Widget/Trait/Menu.js
-  - Source/Widget/Trait/Resizable.js
-  - Source/Widget/Trait/Scrollable.js
-  - Source/Widget/Trait/Shape.js
-  - Source/Widget/Widget.js
-  - Source/Widget/Window.js
+  - Source/Base.js
+  - Source/Widget.js
+  - Source/Widget.Paint.js

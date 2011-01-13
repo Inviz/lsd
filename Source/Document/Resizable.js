@@ -11,9 +11,9 @@ authors: Yaroslaff Fedin
  
 requires: 
   - LSD.Document
-  - LSD.Widget.Module.Layout
-  - Base/Widget.Module.Events
-  - Base/Widget.Module.Attributes
+  - LSD.Module.Layout
+  - LSD.Module.Events
+  - LSD.Module.Attributes
  
 provides:
   - LSD.Document.Resizable
@@ -24,9 +24,9 @@ provides:
 LSD.Document.Resizable = new Class({
 	Includes: [
     LSD.Document,
-    LSD.Widget.Module.Layout,
-    Widget.Module.Events,
-    Widget.Module.Attributes
+    LSD.Module.Layout,
+    LSD.Module.Events,
+    LSD.Module.Attributes
 	],
 	
 	options: {
@@ -45,12 +45,7 @@ LSD.Document.Resizable = new Class({
 	  this.parent.apply(this, arguments);
 	  this.attach();
 	  this.onResize();
-	  this.element.set('userSelect', false)
 	},
-	
-	attach: $lambda(true),
-	
-	detach: $lambda(true),
 	
 	onResize: function() {
 	  Object.append(this.style.current, document.getCoordinates());

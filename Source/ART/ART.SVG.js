@@ -63,7 +63,7 @@ ART.SVG.Base.implement({
   },
   
   _writeTransform: function(){
-    if ($equals(this.transformed, this.transform)) return;
+    if (Object.equals(this.transformed, this.transform)) return;
     this.transformed = $unlink(this.transform);
     var transforms = [];
     for (var transform in this.transform) transforms.push(transform + '(' + this.transform[transform].join(',') + ')');
@@ -72,7 +72,7 @@ ART.SVG.Base.implement({
 
   fill: function(color){
     var args = arguments;
-    if ($equals(args, this.filled)) return;
+    if (Object.equals(args, this.filled)) return;
     this.filled = args;
     if (args.length > 1) {
       if (color == 'radial') {
