@@ -8,14 +8,14 @@ description: A mixin that adds support for declarative events assignment
 license: Public domain (http://unlicense.org).
  
 requires:
-	- LSD
-	- Core/Events
-	- Core/Element.Event
-	- More/Element.Delegation
-	- Ext/Element.Properties.widget
- 
+  - LSD
+  - Core/Events
+  - Core/Element.Event
+  - More/Element.Delegation
+  - Ext/Element.Properties.widget
+
 provides:
-	- LSD.Module.Events
+  - LSD.Module.Events
 
 ...
 */
