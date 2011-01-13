@@ -6,6 +6,8 @@ script: Accessibility.js
 description: Basic keyboard shortcuts support for any focused widget 
  
 license: Public domain (http://unlicense.org).
+
+authors: Yaroslaff Fedin
  
 requires:
   - LSD
