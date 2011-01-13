@@ -14,9 +14,9 @@ requires:
 	- More/Element.Delegation
 	- Ext/Element.Properties.widget
  
-provides: 
+provides:
 	- LSD.Module.Events
- 
+
 ...
 */
 
