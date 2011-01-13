@@ -6,6 +6,8 @@ script: Events.js
 description: A mixin that adds support for declarative events assignment
  
 license: Public domain (http://unlicense.org).
+
+authors: Yaroslaff Fedin
  
 requires:
   - LSD
