@@ -6,6 +6,8 @@ script: Shy.js
 description: A trait to make widget take no space at all in layout
  
 license: Public domain (http://unlicense.org).
+
+authors: Yaroslaff Fedin
  
 requires:
   - LSD

@@ -6,6 +6,8 @@ script: Focus.js
 description: A trait to make widget take focus like a regular input (even in Safari)
  
 license: Public domain (http://unlicense.org).
+
+authors: Yaroslaff Fedin
  
 requires:
   - LSD

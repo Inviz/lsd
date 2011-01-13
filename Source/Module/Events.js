@@ -111,9 +111,9 @@ LSD.Module.Events = new Class({
 	| State      | Condition                          |
 	|-------------------------------------------------|
 	| *enabled*  | widget is enabled                  |
-	| *disabled* | widget is enabled                  |
-	| *focused*  | widget is enabled                  |
-	| *blured*   | widget is enabled                  |
+	| *disabled* | widget is disabled                 |
+	| *focused*  | widget is focused                  |
+	| *blured*   | widget is blured                   |
 	| *target*   | first focusable parent is focused  |
 	
 	| Extras     | Description                        |

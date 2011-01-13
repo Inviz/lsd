@@ -6,6 +6,8 @@ script: Touchable.js
 description: A mousedown event that lasts even when you move your mouse over. 
  
 license: Public domain (http://unlicense.org).
+
+authors: Yaroslaff Fedin
  
 requires:
   - LSD
