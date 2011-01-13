@@ -6,6 +6,8 @@ script: Attributes.js
 description: A mixin that adds support for setting attributes, adding and removing classes and pseudos
  
 license: Public domain (http://unlicense.org).
+
+authors: Yaroslaff Fedin
  
 requires:
   - LSD
