@@ -6,6 +6,8 @@ script: Command.js
 description: A command getter that watches attributes to redefine command
  
 license: Public domain (http://unlicense.org).
+
+authors: Yaroslaff Fedin
  
 requires: 
   - LSD.Module.Expectations

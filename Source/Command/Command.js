@@ -11,7 +11,6 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD
-  
  
 provides: 
   - LSD.Command
