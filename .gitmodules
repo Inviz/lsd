@@ -33,9 +33,6 @@
 [submodule "Dependencies/lsd-examples"]
 	path = Dependencies/lsd-examples
 	url = git://github.com/Inviz/lsd-examples.git
-[submodule "Dependencies/lsd-widgets"]
-	path = Dependencies/lsd-widgets
-	url = git://github.com/Inviz/lsd-widgets.git
 [submodule "Dependencies/lsd-themes"]
 	path = Dependencies/lsd-themes
 	url = git://github.com/Inviz/lsd-themes.git
@@ -45,3 +42,6 @@
 [submodule "Dependencies/lsd-specs"]
 	path = Dependencies/lsd-specs
 	url = git://github.com/Inviz/lsd-specs.git
+[submodule "Dependencies/lsd-widgets"]
+	path = Dependencies/lsd-widgets
+	url = git://github.com/Inviz/lsd-widgets.git
