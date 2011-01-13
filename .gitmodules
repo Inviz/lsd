@@ -25,7 +25,7 @@
 	url = git://github.com/Inviz/mootools-speedups.git
 [submodule "Dependencies/mootools-mobile"]
 	path = Dependencies/mootools-mobile
-	url = git://github.com/inviz/mootools-mobile.git
+	url = git://github.com/Inviz/mootools-mobile.git
 [submodule "Dependencies/mootools-custom-event"]
 	path = Dependencies/mootools-custom-event
 	url = git://github.com/cpojer/mootools-custom-event.git
