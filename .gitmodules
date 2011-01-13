@@ -1,6 +1,3 @@
-[submodule "Dependencies/mootools-ext"]
-	path = Dependencies/mootools-ext
-	url = git://github.com/Inviz/mootools-ext.git
 [submodule "Dependencies/qfocuser"]
 	path = Dependencies/qfocuser
 	url = git://github.com/Inviz/qfocuser.git
@@ -10,6 +7,7 @@
 [submodule "Dependencies/art"]
 	path = Dependencies/art
 	url = git://github.com/kamicane/art.git
+	
 [submodule "Dependencies/mootools-color"]
 	path = Dependencies/mootools-color
 	url = git://github.com/kamicane/mootools-color.git
@@ -19,9 +17,25 @@
 [submodule "Dependencies/mootools-core"]
 	path = Dependencies/mootools-core
 	url = git://github.com/mootools/mootools-core.git
+[submodule "Dependencies/mootools-ext"]
+	path = Dependencies/mootools-ext
+	url = git://github.com/Inviz/mootools-ext.git
+[submodule "Dependencies/mootools-speedups"]
+	path = Dependencies/mootools-speedups
+	url = git://github.com/Inviz/mootools-speedups.git
+[submodule "Dependencies/mootools-mobile"]
+	path = Dependencies/mootools-mobile
+	url = git://github.com/inviz/mootools-mobile.git
+[submodule "Dependencies/mootools-custom-event"]
+	path = Dependencies/mootools-custom-event
+	url = git://github.com/cpojer/mootools-custom-event.git
+	
 [submodule "Dependencies/lsd-examples"]
 	path = Dependencies/lsd-examples
 	url = git://github.com/Inviz/lsd-examples.git
+[submodule "Dependencies/lsd-widgets"]
+	path = Dependencies/lsd-widgets
+	url = git://github.com/Inviz/lsd-widgets.git
 [submodule "Dependencies/lsd-themes"]
 	path = Dependencies/lsd-themes
 	url = git://github.com/Inviz/lsd-themes.git
@@ -31,9 +45,3 @@
 [submodule "Dependencies/lsd-specs"]
 	path = Dependencies/lsd-specs
 	url = git://github.com/Inviz/lsd-specs.git
-[submodule "Dependencies/mootools-mobile"]
-	path = Dependencies/mootools-mobile
-	url = git://github.com/cpojer/mootools-mobile.git
-[submodule "Dependencies/mootools-custom-event"]
-	path = Dependencies/mootools-custom-event
-	url = git://github.com/cpojer/mootools-custom-event.git
