@@ -12,7 +12,7 @@ requires:
 
 provides: 
   - LSD.Trait.Input
- 
+  
 ...
 */
 

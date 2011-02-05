@@ -10,39 +10,52 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- LSD.Layer
+  - LSD.Layer
+  - LSD.Layer.Color
  
-provides: [LSD.Layer.Stroke]
+provides: 
+  - LSD.Layer.Stroke
  
 ...
 */
 
-LSD.Layer.Stroke = new Class({
-  Extends: LSD.Layer,
+LSD.Layer.Stroke = {
   
   properties: {
-    required: ['strokeColor'],
-    numerical: ['strokeWidth'],
-    alternative: ['fillColor'],
-    optional: ['strokeColor', 'strokeDash']
+    stroke:    ['width', ['cap', 'join', 'dash'], 'color'], 
+    color:     ['gradient', 'color'],
+    width:     ['length'],
+    cap:       ['butt', 'round', 'square'],
+    join:      ['butt', 'round', 'square'],
+    dash:      ['tokens']
   },
   
-  paint: function(strokeColor, stroke, color, cap, dash) {
-    this.produce(stroke / 2);
-    this.shape.stroke(strokeColor, stroke, cap);
-    this.shape.fill.apply(this.shape, color ? $splat(color) : null);
-    this.shape.dash(dash);
-    return {
-      translate: {
-        x: stroke / 2, 
-        y: stroke / 2
+  paint: function(color, width, cap, join, dash) {
+    if (!width) width = 0;
+    var gradient = color && (color['gradient'] || color['linear-gradient']);
+    var result = {    
+      dash: dash,
+      size: {
+        width: width,
+        height: width
+      },
+      move: {
+        x: width / 2,
+        y: width / 2
       },
       inside: {
-        left: stroke,
-        top: stroke,
-        right: stroke,
-        bottom: stroke
-      }
+        left: width,
+        top: width,
+        right: width,
+        bottom: width
+      },
+      stroke: [!gradient && color || null, width, cap, join]
     };
+    if (this.radius != null) {
+      var radius = result.radius = []
+          for (var i = 0; i < 4; i++) radius[i] = (this.radius[i] > 0) ? width / 1.5 : 0;
+    }
+    if (gradient) result.strokeLinear = [gradient]
+    return result;
   }
-});
+}

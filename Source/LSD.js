@@ -41,9 +41,7 @@ Object.append(LSD, {
     Ignore: new FastArray,
     Numeric: new FastArray('tabindex', 'width', 'height')
   },
-  Styles: {
-    Ignore: new FastArray
-  },
+  Styles: {},
   States: {
     Known: {
       'hidden':   ['hide',    'show'],

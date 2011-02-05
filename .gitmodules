@@ -6,7 +6,7 @@
 	url = git://github.com/Inviz/cssparser.git
 [submodule "Dependencies/art"]
 	path = Dependencies/art
-	url = git://github.com/kamicane/art.git
+	url = git://github.com/calyptus/art.git
 	
 [submodule "Dependencies/mootools-color"]
 	path = Dependencies/mootools-color
@@ -45,3 +45,9 @@
 [submodule "Dependencies/lsd-widgets"]
 	path = Dependencies/lsd-widgets
 	url = git://github.com/Inviz/lsd-widgets.git
+[submodule "Dependencies/Sheet.js"]
+	path = Dependencies/Sheet.js
+	url = git://github.com/Inviz/Sheet.js.git
+[submodule "Dependencies/art-morph"]
+	path = Dependencies/art-morph
+	url = git://github.com/calyptus/art-morph.git

@@ -10,40 +10,39 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- LSD
-- LSD.Expression
-- Core/Element.Style
-- Ext/FastArray
+  - LSD
+  - LSD.Expression
+  - Core/Element.Style
+  - Ext/FastArray
+  - Sheet/SheetParser.Styles
 
-provides: [LSD.Module.Styles]
- 
+provides: 
+  - LSD.Module.Styles
+
 ...
 */
 
-
-LSD.Styles.Paint = new FastArray(
-  'glyphColor', 'glyphShadow', 'glyphSize', 'glyphStroke', 'glyph', 'glyphColor', 'glyphColor', 'glyphHeight', 'glyphWidth', 'glyphTop', 'glyphLeft',     
-  'cornerRadius', 'cornerRadiusTopLeft', 'cornerRadiusBottomLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight',    
-  'reflectionColor',  'backgroundColor', 'strokeColor', 'fillColor', 'starRays', 'userSelect'
-);
-LSD.Styles.Ignore = new FastArray('backgroundColor', 'width', 'height', 'minWidth', 'minHeight', 'maxWidth', 'maxHeight');
-LSD.Styles.Element = FastArray.from(Object.keys(Element.Styles).concat('float', 'display', 'clear', 'cursor', 'verticalAlign', 'textAlign', 'font', 'fontFamily', 'fontSize', 'fontStyle'));
-
-LSD.Styles.Complex = {
-  'cornerRadius': {
-    set: ['cornerRadiusTopLeft', 'cornerRadiusBottomLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight'],
-    get: ['cornerRadiusTopLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight', 'cornerRadiusBottomLeft']
+(function() {
+  
+var CSS = SheetParser.Styles, Paint = LSD.Styles;
+var setStyle = function(element, property, value, type) {
+  if (value === false) {
+    if (element && this.element) delete this.element.style[property];
+    delete this.style[element ? 'element' : 'paint'][property], this.style.current[property];
+    if (type) delete this.style[type][property];
+  } else {
+    if (element && this.element) this.element.style[property] = (typeof value == 'number') ? value + 'px' : value;
+    this.style[element ? 'element' : 'paint'][property] = this.style.current[property] = value;
+    if (type) this.style[type][property] = value;
   }
 }
-
-
 
 LSD.Module.Styles = new Class({
   
   options: {
     styles: {}
   },
-  
+
   initialize: function() {
     this.style = {
       current: {},    //styles that widget currently has
@@ -64,6 +63,60 @@ LSD.Module.Styles = new Class({
     Object.append(this.style.current, this.options.styles);
     for (var property in this.style.current) this.setStyle(property, this.style.current[property])
   },
+
+  setStyle: function(property, value) {
+    var paint, css;
+    if (!(paint = Paint[property]) && !(css = CSS[property])) return false;
+    var length = arguments.length;
+    if (length > 2) {
+      if (arguments[length - 1] in this.style) var type = arguments[--length];
+      if (length > 2) value = Array.prototype.splice.call(arguments, 1, length);
+    }
+    if (value.call) {
+      this.style.expressed[property] = value;
+      this.style.computed[property] = value = value.call(this);
+    }
+    var result = (css || paint)[value.push ? 'apply' : 'call'](this, value);
+    if (property == 'stroke') console.info(value, result, $t = this, this.element);
+    //if (property == 'glyphPosition') alert([property, JSON.stringify(result)])
+    if (result === true || result === false) setStyle.call(this, css, property, value, type);
+    else for (var prop in result) setStyle.call(this, css, prop, result[prop], type);
+    return result;
+  },
+
+  setStyles: function(style, type) {
+    for (var key in style) this.setStyle(key, style[key], type)
+  },
+
+  getStyle: function(property) {
+    if (this.style.computed[property]) return this.style.computed[property];
+    var value;
+    var definition = Paint[property] || CSS[property];
+    if (!definition) return;
+    if (definition.properties) return definition.properties.map(this.getStyle.bind(this));
+    var expression = this.style.expressed[property];    
+    if (expression) {
+      value = this.style.current[property] = this.calculateStyle(property, expression);
+    } else {  
+      value = this.style.current[property];
+      if (property == 'height') {
+        if (typeof value !== 'number') value = this.getClientHeight();
+      } else if (property == 'width') {
+        if (typeof value !== 'number') value = this.getClientWidth();
+      } else {
+        if (value == "inherit") value = this.inheritStyle(property);
+        if (value == "auto") value = this.calculateStyle(property);
+      }
+    }
+    this.style.computed[property] = value;
+    return value;
+  },
+
+  getStyles: function(properties) {
+    var result = {};
+    for (var i = 0, property, args = arguments; property = args[i++];) result[property] = this.getStyle(property);
+    return result;
+  },
   
   renderStyles: function(style) {
     var style = this.style, 
@@ -75,8 +128,8 @@ LSD.Module.Styles = new Class({
         calculated = style.calculated,
         given = Object.append(style.given, given),
         changed = style.changed;
-    this.setStyles(given)
-    for (var property in found) if ((property in changed) && !(property in given)) this.setStyle(property, found[property], true);
+    this.setStyles(given, 'given')
+    for (var property in found) if ((property in changed) && !(property in given)) this.setStyle(property, found[property]);
     Object.append(style.current, style.implied);
     for (var property in element)  {
       if (!(property in given) && !(property in found) && !(property in calculated) && !(property in implied)) {
@@ -123,66 +176,6 @@ LSD.Module.Styles = new Class({
     if (setting) for (var property in setting) if (!Object.equals(found[property], setting[property])) changed[property] = found[property];
  },
   
-  setStyles: function(style, temp) {
-    for (var key in style) this.setStyle(key, style[key], temp)
-  },
-  
-  setStyle: function(property, value, type) {
-    if (Object.equals(this.style.current[property], value)) return;
-    if (value.call) {
-      this.style.expressed[property] = value;
-      value = value.call(this);
-    }
-    this.style.current[property] = value;
-    switch (type) {
-      case undefined:
-        this.style.given[property] = value;
-        break;
-      case "calculated": 
-      case "given": 
-        this.styles[type][property] = value;
-        break;
-    }
-    return value;
-  },
-   
-  getStyle: function(property) {
-    if (this.style.computed[property]) return this.style.computed[property];
-    var value;
-    var properties = LSD.Styles.Complex[property];
-    if (properties) {
-      if (properties.set) properties = properties.get;
-      var current = this.style.current;
-      value = [];
-      var i = 0;
-      while (property = properties[i++]) {
-        var part = current[property];
-        value.push(((isFinite(part)) ? part : this.getStyle(property)) || 0)
-      }
-    } else {
-      var expression = this.style.expressed[property];
-      if (expression) {
-        value = this.style.current[property] = this.calculateStyle(property, expression);
-      } else {
-        if (property == 'height') {
-          value = this.getClientHeight();
-        } else {
-          value = this.style.current[property];
-          if (value == "inherit") value = this.inheritStyle(property);
-          if (value == "auto") value = this.calculateStyle(property);
-        }
-      }  
-    }
-    this.style.computed[property] = value;
-    return value;
-  },
-  
-  getStyles: function(properties) {
-    var result = {};
-    for (var i = 0, property, args = arguments; property = args[i++];) result[property] = this.getStyle(property);
-    return result;
-  },
-  
   inheritStyle: function(property) {
     var node = this;
     var style = node.style.current[property];
@@ -217,6 +210,9 @@ LSD.Module.Styles = new Class({
     this.style.computed = {};
   })
 });
+
+
+})();
 
 
 LSD.calculate = LSD.Module.Styles.calculate = function() {

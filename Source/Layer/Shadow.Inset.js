@@ -3,23 +3,23 @@
  
 script: InnerShadow.js
  
-description: Dropps inner shadow with offsets 
+description: Drops inner shadow 
  
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-- LSD.Layer
-- LSD.Layer.Shadow
+  - LSD.Layer.Shadow
  
-provides: [LSD.Layer.InnerShadow, LSD.Layer.InnerShadow.Layer]
+provides: 
+  - LSD.Layer.Shadow.Inset
  
 ...
 */
 
 LSD.Layer.InnerShadow = new Class({
-  Extends: LSD.Layer.Shadow,
+  //Extends: LSD.Layer.Shadow,
   
   properties: {
     required: ['innerShadowColor'],
@@ -97,5 +97,3 @@ LSD.Layer.InnerShadow.Layer.release = function(layer) {
   layer.element.parentNode.removeChild(layer.element);
   LSD.Layer.InnerShadow.Layer.stack.push(layer);
 };
-
-LSD.Styles.Paint.push('innerShadowColor', 'innerShadowBlur', 'innerShadowOffsetX', 'innerShadowOffsetY')

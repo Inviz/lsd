@@ -28,14 +28,13 @@ provides:
     'ctrl': 'control',
     'command': Browser.Platform.mac ? 'meta': 'control',
     'cmd': Browser.Platform.mac ? 'meta': 'control'
-  }
-  
+  };
   var presets = {
     'next': ['right', 'down'],
     'previous': ['left', 'up'],
     'ok': ['enter', 'space'],
     'cancel': ['esc']
-  }
+  };
 
   var parse = function(expression){
     if (presets[expression]) expression = presets[expression];

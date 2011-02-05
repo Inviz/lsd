@@ -27,14 +27,13 @@ LSD.Module.Attributes = new Class({
     this.classes = new FastArray
     this.pseudos = new FastArray
     this.attributes = {}
+    this.parent.apply(this, arguments);
     if (this.options.attributes) for (var name in this.options.attributes) if (!LSD.Attributes.Ignore[name]) this.attributes[name] = this.options.attributes[name]
     pseudos.each(function(value) {
       this.setStateTo(value, true);
     }, this);
     for (var attribute in this.attributes) this.setAttribute(attribute, this.attributes[attribute]);
     classes.each(this.addClass.bind(this));
-    
-    this.parent.apply(this, arguments);
   },
   
   getAttribute: function(attribute) {
@@ -104,14 +103,11 @@ LSD.Attributes.Setter = {
       bits[0] = bits[0].camelCase();
       var integer = bits[1].toInt();
       if (bits[1].indexOf('px') > -1 || (integer == bits[1])) bits[1] = integer
-      this.setStyle.apply(this, bits);
+      //this.setStyle.apply(this, bits);
     }, this);
   },
   'disabled': function(value) {
     if (value == false) this.enable()
     else this.disable();
-  },
-  'label': function(value) {
-    this.setContent(value)
   }
 }

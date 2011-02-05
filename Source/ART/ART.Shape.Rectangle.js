@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Shape
+- ART/ART.Shape
  
 provides: [ART.Shape.Rectangle]
  
@@ -21,14 +21,7 @@ ART.Shape.Rectangle = new Class({
 
   Extends: ART.Shape,
   
-  properties: ['width', 'height', 'cornerRadius'],
-  
-  initialize: function(width, height, radius){
-    this.parent();
-    if (width != null && height != null) this.draw(width, height, radius);
-  },
-  
-  paint: function(width, height, radius) {
+  draw: function(width, height, radius) {
     var path = new ART.Path;
     if (!radius){
 
@@ -63,18 +56,12 @@ ART.Shape.Rectangle = new Class({
       path.line(0, - Math.abs(height) + (bl + tl));
     }
     
-    return path;
+    return this.parent(path);
   },
   
-  render: function(){
-    return this.draw(this.paint.apply(this, arguments));
-  },
-  
-  change: function(x, y, r) {
-    if (y == null) y = x;
-    if (r == null) r = x;
-    return this.paint(this.style.width + x * 2, this.style.height + y * 2, this.style.cornerRadius.map(function(radius, i) {
-      return (r.push ? r[i] : r) + radius;
-    }))
+  render: function(context) {
+    var radius = context.radius;     
+    if (radius && radius.length == 4) radius = [radius[0], radius[2], radius[3], radius[1]]       
+    return this.draw(context.size.width, context.size.height, radius)
   }
 });

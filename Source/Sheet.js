@@ -13,7 +13,10 @@ requires:
   - LSD.Node
   - Core/Element
   - Core/Request
-  - CSSParser/CSSParser
+  - Sheet/Sheet
+  - Sheet/SheetParser.Value
+  - Sheet/SheetParser.Property
+  - Sheet/SheetParser.Styles
   
 provides:
   - LSD.Sheet
@@ -21,6 +24,8 @@ provides:
 ...
 */
 
+(function() {
+  
 LSD.Sheet = new Class({
   Extends: LSD.Node,
   
@@ -63,41 +68,32 @@ LSD.Sheet = new Class({
   },
   
   parse: function(text) {
-    var sheet = {}
- 
-    var parsed = CSSParser.parse(text);;
-    parsed.each(function(rule) {
-      var selector = rule.selectors.map(function(selector) {
-        return selector.selector.
-          replace(/\.is-/g, ':').
-          replace(/\.id-/g , '#').
-          replace(/\.lsd#/g, '#').
-          replace(/\.lsd\./g, '').
-          replace(/^html \> body /g, '')
-      }).join(', ');
-      if (!selector.length || (selector.match(/svg|v\\?:|:(?:before|after)|\.container/))) return;
- 
-      if (!sheet[selector]) sheet[selector] = {};
-      var styles = sheet[selector];
- 
-      rule.styles.each(function(style) {
-        var name = style.name.replace('-lsd-', '');
-        var value = style.value;
-        var integer = value.toInt();
-        if ((integer + 'px') == value) {
-          styles[name] = integer;
-        } else {
-          if ((value.indexOf('hsb') > -1)
-           || (value.indexOf('ART') > -1)
-           || (value.indexOf('LSD') > -1)
-           || (value.charAt(0) == '"')
-           || (value == 'false')
-           || (integer == value) || (value == parseFloat(value))) value = eval(value.replace(/^['"]/, '').replace(/['"]$/, ''));
-          styles[name] = value;
+    var sheet = new Sheet(text);
+    var rules = sheet.cssRules;
+    var CSS = SheetParser.Styles, Paint = LSD.Styles;
+    var parsed = {};
+    for (var i = 0, rule; rule = rules[i++];) {      
+      var selector = LSD.Sheet.convertSelector(rule.selectorText)
+      if (!selector.length || LSD.Sheet.isElementSelector(selector)) continue;
+      if (!parsed[selector]) parsed[selector] = {};
+      var styles = parsed[selector];
+      for (var style = rule.style, j = 0, name; name = style[j++];) {
+        var property = name.replace('-lsd-', '').camelCase();
+        var value = SheetParser.Value.translate(style[name]);
+        var definition = Paint[property] || CSS[property];
+        if (!definition) continue;
+        if (definition.type != 'simple') {
+          var result = definition[value.push ? 'apply' : 'call'](this, value);
+          if (result === false) value = false;
+          else if (result !== true) {
+            for (prop in result) styles[prop] = Value.compile(result[prop]);
+            continue
+          }
         }
-      })
-    });
-    return sheet;
+        styles[property] = Value.compile(value);
+      }
+    };
+    return parsed;
   },
   
   attach: function(node) {
@@ -148,9 +144,22 @@ LSD.Sheet = new Class({
   }
 });
 
-LSD.Sheet.isElementStyle = function(cc) {
-  return LSD.Styles.Element[cc] && !LSD.Styles.Ignore[cc];
-}
+Object.append(LSD.Sheet, {
+  isElementSelector: function(selector) {
+    return selector.match(/svg|v\\?:|:(?:before|after)|\.container/);
+  },
+  convertSelector: function(selector) {
+    return selector.replace(/\.id-/g , '#').replace(/\.is-/g, ':').replace(/\.lsd#/g, '#').
+                    replace(/\.lsd\./g, '').replace(/^html body /g, '');
+  },
+  isElementStyle: function(cc) {
+    return false//LSD.Styles.Element[cc] && !LSD.Styles.Ignore[cc];
+  },
+  isRawValue: function(value) {
+    return (value.indexOf('hsb') > -1) || (value.indexOf('ART') > -1) || (value.indexOf('LSD') > -1) || 
+           (value.charAt(0) == '"') || (value == 'false') || (value == parseInt(value)) || (value == parseFloat(value))
+  }
+});
 
 LSD.Sheet.Rule = function(selector, style) {
   this.selector = selector;
@@ -208,11 +217,77 @@ Object.append(LSD.Sheet.Rule.prototype, {
     });
     return specificity;
   }
-})
+});
+
+var Value = LSD.Sheet.Value = {
+  px: function(value) {
+    return value;
+  },
+  deg: function(value) {
+    return value;
+  },
+  em: function(value) {
+    return function() {
+      return value * (this.baseline || 16)
+    }
+  },
+  "%": function(value) {
+    return function() {
+      return value * (this.baseline || 16)
+    }
+  },
+  url: function(value) {
+    return value
+  },
+  src: function(value) {
+    return value
+  },
+  rgb: function() {
+    return window.rgb.apply(window, arguments)
+  },
+  rgba: function(value) {
+    return window.rgb.apply(window, arguments)
+  },
+  hsb: function() {
+    return window.hsb.apply(window, arguments)
+  },
+  hex: function(value) {
+    return new Color(value)
+  }
+};
+
+Value.compiled = {};
+Value.compile = function(value, context) {
+  if (!value || value.call || typeof value == 'number') return value;
+  if (!context) context = Value;
+  if (value.push) {
+    for (var i = 0, j = value.length, result = [], bit; i < j; bit = value[i++]) result[i] = Value.compile(value[i], context);
+    return result;
+  }
+  if (value.unit)  {
+    var parser = context[value.unit](value.number);
+    parser.unit = value.unit;
+    parser.number = value.number;
+    return parser;
+  }
+  if (value.charAt) {
+    if (context.hex && value.charAt(0) == "#" && value.match(/#[a-z0-9]{3,6}/)) return context.hex(value);
+  } else for (var name in value) {
+    if (context[name]) {
+      return context[name](Value.compile(value[name]), context);
+    } else {
+      value[name] = Value.compile(value[name]);
+    }
+    break;
+  }
+  return value;
+}
 
 LSD.Sheet.Rule.fromSelectors = function(selectors, style) { //temp solution, split by comma
   return selectors.split(/\s*,\s*/).map(function(selector){
     return new LSD.Sheet.Rule(Slick.parse(selector), style);
   });
-}
+};
 
+
+})();

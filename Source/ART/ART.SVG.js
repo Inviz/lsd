@@ -38,8 +38,8 @@ ART.SVG.Base.implement({
     if (container instanceof ART.SVG.Group) container.children.push(this);
     this.parent.apply(this, arguments);
     this.container = container.defs ? container : container.container;
-    this._injectGradient('fill');
-    this._injectGradient('stroke');
+		this._injectBrush('fill');
+		this._injectBrush('stroke');
     this._injectFilter('blur');
     return this;
   },
@@ -70,27 +70,6 @@ ART.SVG.Base.implement({
     this.element.setAttribute('transform', transforms.join(' '));
   },
 
-  fill: function(color){
-    var args = arguments;
-    if (Object.equals(args, this.filled)) return;
-    this.filled = args;
-    if (args.length > 1) {
-      if (color == 'radial') {
-        var opts = args.length == 3 ? args[2] : {}
-        this.fillRadial(args[1], opts.fx, opts.fy, opts.r, opts.cx, opts.cy)
-      } else if (args[args.length - 1].red != null) {
-        this.fillLinear(args)
-      } else {
-        this.fillLinear.apply(this, args);
-      }
-    } else if (color && (color.red == null)) {
-      this.fillLinear.apply(this, args);
-    } else {
-      this._setColor('fill', color);
-    }
-    return this;
-  },
-
   blur: function(radius){
     if (radius == null) radius = 4;
     if (radius == this.blurred) return;
@@ -109,92 +88,6 @@ ART.SVG.Base.implement({
   unblur: function() {
     delete this.blurred;
     this._ejectFilter();
-  },
-  
-  
-  
-  /* styles */
-  
-  _createGradient: function(type, style, stops){
-    this._ejectGradient(type);
-
-    var gradient = createElement(style + 'Gradient');
-
-    this[type + 'Gradient'] = gradient;
-
-    var addColor = function(offset, color){
-      color = Color.detach(color);
-      var stop = createElement('stop');
-      stop.setAttribute('offset', offset);
-      stop.setAttribute('stop-color', color[0]);
-      stop.setAttribute('stop-opacity', color[1]);
-      gradient.appendChild(stop);
-    };
-    // Enumerate stops, assumes offsets are enumerated in order
-    // TODO: Sort. Chrome doesn't always enumerate in expected order but requires stops to be specified in order.
-    if ('length' in stops) for (var i = 0, l = stops.length - 1; i <= l; i++) addColor(i / l, stops[i]);
-    else for (var offset in stops) addColor(offset, stops[offset]);
-
-    var id = 'g' + String.uniqueID();
-    gradient.setAttribute('id', id);
-
-    this._injectGradient(type);
-
-    this.element.removeAttribute('fill-opacity');
-    this.element.setAttribute(type, 'url(#' + id + ')');
-    
-    return gradient;
-  },
-  
-  _setColor: function(type, color){
-    this._ejectGradient(type);
-    this[type + 'Gradient'] = null;
-    var element = this.element;
-    if (color == null){
-      element.setAttribute(type, 'none');
-      element.removeAttribute(type + '-opacity');
-    } else {
-      color = Color.detach(color);
-      element.setAttribute(type, color[0]);
-      element.setAttribute(type + '-opacity', color[1]);
-    }
-  },
-
-  fillRadial: function(stops, focusX, focusY, radius, centerX, centerY){
-    var gradient = this._createGradient('fill', 'radial', stops);
-
-    if (focusX != null) gradient.setAttribute('fx', focusX);
-    if (focusY != null) gradient.setAttribute('fy', focusY);
-
-    if (radius) gradient.setAttribute('r', radius);
-
-    if (centerX == null) centerX = focusX;
-    if (centerY == null) centerY = focusY;
-
-    if (centerX != null) gradient.setAttribute('cx', centerX);
-    if (centerY != null) gradient.setAttribute('cy', centerY);
-
-    //gradient.setAttribute('spreadMethod', 'reflect'); // Closer to the VML gradient
-    
-    return this;
-  },
-
-  fillLinear: function(stops, angle){
-    var gradient = this._createGradient('fill', 'linear', stops);
-
-    angle = ((angle == null) ? 270 : angle) * Math.PI / 180;
-
-    var x = Math.cos(angle), y = -Math.sin(angle),
-      l = (Math.abs(x) + Math.abs(y)) / 2;
-
-    x *= l; y *= l;
-
-    gradient.setAttribute('x1', 0.5 - x);
-    gradient.setAttribute('x2', 0.5 + x);
-    gradient.setAttribute('y1', 0.5 - y);
-    gradient.setAttribute('y2', 0.5 + y);
-
-    return this;
   },
   
   _injectFilter: function(type){
@@ -223,20 +116,6 @@ ART.SVG.Base.implement({
     this.element.setAttribute('filter', 'url(#' + id + ')');
   
     return filter;
-  },
-  
-  stroke: function(color, width, cap, join){
-    var element = this.element;
-    element.setAttribute('stroke-width', (width != null) ? width : 1);
-    element.setAttribute('stroke-linecap', (cap != null) ? cap : 'round');
-    element.setAttribute('stroke-linejoin', (join != null) ? join : 'round');
-    if (color) {
-      if (color.length > 1 || ((!('length' in color)) && (color.red == null))) this.strokeLinear(color);
-      else if (color.length == 1) this.strokeLinear(color[0])
-      else this._setColor('stroke', color);
-    } else this._setColor('stroke', color);
-    
-    return this;
   },
 });
 

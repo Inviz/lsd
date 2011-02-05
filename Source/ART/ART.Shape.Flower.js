@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Shape
+- ART/ART.Shape
  
 provides: [ART.Shape.Flower]
  
@@ -21,14 +21,9 @@ ART.Shape.Flower = new Class({
   
   Extends: ART.Shape,
   
-  properties: ['width', 'height', 'star-rays', 'star-radius'],
+  properties: ['width', 'height', 'leaves', 'radius'],
   
-  initialize: function(width, height){
-    this.parent();
-    if (width != null && height != null) this.draw(width, height);
-  },
-  
-  paint: function(width, height, leaves, radius){
+  draw: function(width, height, leaves, radius){
      var path = new ART.Path,
          outside = width / 2,
          cx = width / 2,
@@ -47,11 +42,7 @@ ART.Shape.Flower = new Class({
     return this.path(points);
     
     
-    return path.close();
-  },
-
-  change: function(delta) {
-    return this.paint(this.style.width + delta * 2, this.style.height + delta * 2);
+    return this.parent(path.close());
   },
 
   getOffset: function(styles, offset) {

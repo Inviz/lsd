@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Shape
+- ART/ART.Shape
  
 provides: [ART.Shape.Ellipse]
  
@@ -32,7 +32,7 @@ ART.Shape.Ellipse = new Class({
     var path = new ART.Path;
     var rx = width / 2, ry = height / 2;
     path.move(0, ry).arc(width, 0, rx, ry).arc(-width, 0, rx, ry);
-    return path;
+    return this.parent(path);
   },
   
   produce: function(delta) {

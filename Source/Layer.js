@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - ART.Shape
   - LSD.Module.Styles
+  - Sheet/SheetParser.Styles
  
 provides: 
   - LSD.Layer
@@ -20,130 +21,193 @@ provides:
 ...
 */
 
-LSD.Layer = new Class({
-  initialize: function(shape) {
-    if (shape) this.base = shape;
-  },
-  
-  produce: function(delta) {
-    if (!delta) delta = 0;
-    this.delta = delta;
-    this.shape = this.base.produce(delta, this.shape);
-  },
-  
-  setShape: function(shape) {
-    this.base = shape;
-  }
-});
-
-LSD.Layer.Shaped = new Class({ //layer that produce svg element (some dont, e.g. shadow)
-  Extends: LSD.Layer,
-  
-  initialize: function() {
-    this.shape = new ART.Shape;
-  }
-});
-
-LSD.Layer.implement({
-  inject: function() {
-    this.injected = true;
-    if (this.shape) return this.shape.inject.apply(this.shape, arguments);
-  },
-  
-  eject: function() {
-    delete this.injected
-    if (this.shape) return this.shape.eject.apply(this.shape, arguments);
-  }
-});
-
-['translate', 'fill', 'stroke'].each(function(method) {
-  LSD.Layer.implement(method, function() {
-    if (!this.shape) return;
-    return this.shape[method].apply(this.shape, arguments);
-  })
-});
-
-
-//Styles
 (function() {
   
-LSD.Layer.prepare = function() {
-  var options = Array.link(arguments, {
-    layer: String.type,
-    name: String.type,
-    klass: Class.type,
-    paint: Function.type,
-    options: Object.type, 
-    properties: Array.type
-  });
-  if (options.options) {
-    Object.append(options, options.options);
-    delete options.options;
-  }
-  if (!options.name) options.name = options.layer;
-  if (!options.klass) options.klass = LSD.Layer[options.layer.camelCase().capitalize()];
-  var properties = options.klass.prototype.properties || {};
-  var props = options.properties || {};
-  if (props.push) { // [ required[, numerical], optional ] 
-    var props, first = props[0];
-    if (first && first.push) {
-      var array = props;
-      props = {required: first};
-      if (props.length > 1) props.optional = array.pop();
-      if (props[1]) props.numerical = array[1];
-      if (props[2]) props.alternative = array[2];
-    } else {
-      props = {required: props};
-    }
-  }
-  for (var type in props) properties[type] = properties[type] ? properties[type].concat(props[type]) : props[type];
-  options.properties = properties;
-  return options;
-};
-
-LSD.Layer.render = function(definition, widget) {
-  var styles = {};
-  var properties = definition.properties;
-  var fallback = properties.alternative && widget.getStyles.apply(widget, properties.alternative)
-  for (var type in properties) {
-    if (type != 'alternative') {
-      var subset = widget.getStyles.apply(widget, properties[type]);
-      var kind = Properties[type];
-      if (kind.transformation) for (property in subset) subset[property] = styles[property] = kind.transformation(subset[property]);
-      else Object.append(styles, subset);
-      if (kind.condition && !kind.condition(subset) && !fallback) return false; 
-    } else Object.append(styles, fallback);        
-  }
-  var layer = widget.getLayer(definition.name);
-  layer.setShape(widget.shape);
-  var value = layer.paint.apply(layer, Hash.getValues(styles));
-  if (value === false) return false;
-  return Object.merge({translate: {x: 0, y: 0}, outside: {left: 0, right: 0, top: 0, bottom: 0}, inside: {left: 0, right: 0, top: 0, bottom: 0}}, value);
-};
-
-var Properties = LSD.Layer.Properties = {
-  required: {
-    condition: function(styles) {
-      for (var property in styles) if (!styles[property]) return false;
-      return true;
-    }
-  },
-  numerical: {
-    condition: function(styles) {
-      for (var property in styles) if (styles[property] > 0) return true;
-      return false;
-    },
-    transformation: function(value) {
-      return parseInt(value) || 0;
-    },
-  },
-  alternative: {
-    condition: function(styles) {
-      for (var property in styles) if (!styles[property]) return false;
-      return true;
-    }
-  },
-  optional: {}
+LSD.Layer = function(name, styles, painters) {
+  this.name = name;
+  this.styles = styles;
+  this.painters = painters;
 }
+
+LSD.Layer.prototype = {
+  render: function(widget, commands) {
+    var canvas = widget.getCanvas();
+    var shape = commands.shape;
+    if (shape == 'none') return;
+    if (!shape) shape = widget.getStyle('shape') || 'rectangle';
+    var layer = widget.shapes[this.name];
+    if (shape.glyph) {
+      var glyph = ART.Glyphs[shape.glyph];
+      if (!glyph) return;    
+      var path = new ART.Path(glyph);
+      var box = path.measure();
+      if (!layer) layer = new ART.Shape(path, box.width, box.height);
+      if (commands.size && (previous 
+            ? Oject.equals(previous.size, commands.size) 
+            : (commands.size.height != box.width || commands.size.width != box.width))) layer.resizeTo(commands.size.width, commands.size.height)
+    } else if (!shape.indexOf){
+      for (var name in shape) {
+        var values = Array.from(shape[name]);
+        shape = name;
+      }
+    }
+    if (!layer) {
+      var path = ART.Shape[shape.capitalize()];
+      if (!path) return;
+      var layer = new path;
+      layer.render(commands)
+    } else {
+      var previous = layer.commands;
+      if (layer.draw && layer.render) layer.render(commands)
+    }
+    layer.commands = commands;
+    widget.shapes[this.name] = layer;
+    for (command in commands) {
+      var value = commands[command];
+      if (value && layer[command] && command != 'move') {
+        if (!previous || !Object.equals(previous[command], value)) layer[command][value && value.push ? 'apply' : 'call'](layer, value);
+      }
+    }
+    var translate = commands.translate = {x: 0, y: 0}
+    if (commands.inside) {
+      translate.x += commands.inside.left
+      translate.y += commands.inside.top;
+    };
+    //if (commands.outside) {
+    //  top += commands.outside.top;
+    //  left += commands.outside.left
+    //};
+    if (commands.move) {
+      translate.x += commands.move.x;
+      translate.y += commands.move.y;
+    }
+    if (!previous || !Object.equals(previous.translate, translate)) layer.moveTo(translate.x, translate.y)
+  },
+  
+  draw: function(widget, context, previous) {
+    context = Object.append({size: widget.size, style: widget.style.current}, context || {});
+    if (context.style.cornerRadiusTopLeft !== null) {
+      context.radius = widget.getStyle('cornerRadius')
+    }
+    var inherited = {}, overwritten = {};
+    for (var painter, i = 0; painter = this.painters[i++];) {
+      var commands = painter.paint.apply(context, painter.keys.map(function(prop) { return widget.getStyle(prop)}));
+      for (var name in commands) {
+        var value = commands[name];
+        if (Inherit[name]) {;
+          inherited[name] = merge(value, context[name])
+        } else {
+          if (!Accumulate[name]) overwritten[name] = context[name]
+          context[name] = (Accumulate[name] || Merge[name]) ? merge(value, context[name]) : value;
+        }
+      }
+      //for (var command in value) this[command](command[value]);
+    }    
+    this.render(widget, context);
+    return Object.append(context, overwritten, inherited);;
+  }
+}
+
+var merge = function(value, old) {
+  if (typeof value == "object") {
+    if (value.push) {
+      for (var j = 0, k = value.length; j < k; j++) {
+        var item = value[j] || 0;
+        if (old) old[j] = (old[j] || 0) + item;
+        else old = [item]
+      }
+      return old;
+    } else if (!value.indexOf) {
+      for (var prop in value) {
+        var item = value[prop] || 0;
+        if (!old) old = {}
+        old[prop] = (old[prop] || 0) + item;
+      }
+      return old;
+    }
+  }  
+  return value;
+}
+
+var Accumulate = LSD.Layer.accumulated = new FastArray('translate', 'radius');
+var Inherit = LSD.Layer.inherited = new FastArray('inside', 'outside')
+var Merge = LSD.Layer.merged = new FastArray('size')
+
+var Property = SheetParser.Property;
+var Styles = LSD.Styles;
+var Map = LSD.Layer.Map = {};
+var Cache = LSD.Layer.Cache = {};
+
+//LSD.Layer.getProperty = function(property, properties)
+ 
+LSD.Layer.generate = function(name, layers) {
+  if (arguments.length > 2) layers = Array.prototype.splice.call(arguments, 1);
+  var painters = [];
+  var styles = LSD.Layer.prepare(name, layers, function(painter) {
+    painters.push(painter)
+  })
+  return new LSD.Layer(name, styles, painters);
+};
+
+LSD.Layer.prepare = function(name, layers, callback) {
+  var properties = [], styles = {};
+  for (var i = 0, layer; layer = layers[i++];) {
+    var definition = LSD.Layer[layer.capitalize()];
+    if (!definition ) continue;
+    var properties = definition.properties && Object.clone(definition.properties);
+    if (!properties) continue;
+    definition = Object.append({styles: {}, keys: []}, definition);
+    var prefix = definition.prefix;
+    if (prefix === false || layer == name) prefix = name;
+    else if (!prefix) prefix = name + layer.capitalize();
+    var length = 0;
+    for (var property in properties) length++
+    var simple = (length == 1);
+    Object.each(properties, function(value, property) {
+      if (property == layer) {
+        if (simple) var style = prefix
+        else return;
+      } else var style = prefix + property.capitalize()
+      if (style == 'stroke') console.error(123, '!!!!!!!!!!!!!!!!!!!!', [].concat(properties), layer, property, value, prefix)
+      definition.styles[style] = styles[style] = Property.compile(value, properties);
+      definition.keys.push(style);
+    });
+    var shorthand = properties[layer];
+    if (shorthand && !simple) {
+      var style = (layer == name) ? name : name + layer.capitalize();
+      if (length) {
+        for (var j = 0, k = 0, l = 0, prop; prop = shorthand[j]; j++) {
+          if (!prop.push) { 
+            if (properties[prop]) {
+              shorthand[j] = prefix + prop.capitalize();
+              k++
+            }
+          } else for (var m = 0, sub; sub = prop[m]; m++) {
+            if (properties[sub]) {
+              prop[m] = prefix + sub.capitalize();
+              l++;
+            }
+          }
+        }
+      }
+      definition.styles[style] = styles[style] = Property.compile(((l > 0 && (k > 0 || j == 1)) ) ? [shorthand] : shorthand, styles);
+      definition.shorthand = style;
+    }
+    if (definition.onCompile) definition.onCompile(name);
+    if (callback) callback(definition);
+  }
+  for (var property in styles) {
+    Styles[property] = styles[property];
+    Map[property] = name;
+  }
+  return styles;
+}
+
+LSD.Layer.get = function(name) {
+  var key = name//Array.flatten(arguments).join('');
+  if (Cache[key]) return Cache[key];
+  else return (Cache[key] = LSD.Layer.generate.apply(LSD.Layer, arguments))
+}
+
 
 })();

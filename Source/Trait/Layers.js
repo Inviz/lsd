@@ -31,71 +31,57 @@ LSD.Trait.Layers = new Class({
   initialize: function() {
     this.offset = {};
     this.layers = {};
+    this.shapes = {};
     this.parent.apply(this, arguments);
   },
   
   attach: Macro.onion(function() {
     this.style.layers = {};
-    var layers = this.options.layers;
-    for (var name in layers) layers[name] = this.addLayer.apply(this, Array.from(layers[name]).concat(name));
+    for (var name in this.options.layers) this.addLayer(name, this.options.layers[name]);
+    //console.log(this.style.layers)
   }),
 
-  addLayer: function() {
-    var options = LSD.Layer.prepare.apply(this, arguments);
-    var slots = this.style.layers, properties = options.properties;
-    for (var type in properties) {
-      for (var group = properties[type], i = 0, property; property = group[i++];) {
+  addLayer: function(name, value) {
+    var slots = this.style.layers;
+    var layer = this.layers[name] = LSD.Layer.get(name, Array.from(value));
+    for (var i = 0, painter; painter = layer.painters[i++];) {
+      for (var group = painter.keys, j = 0, property; property = group[j++];) {
         if (!slots[property]) slots[property] = [];
-        slots[property].push(options.name);
+        slots[property].push(name);
       }
     }
-    return options;
-  },
-  
-  getLayer: function(name) {
-    if (this.layers[name]) return this.layers[name];
-    var options = this.options.layers[name];
-    var layer = this.layers[name] = new options.klass;
-    layer.name = options.name;
-    layer.properties = options.properties;
-    if (options.paint) instance.paint = options.paint;
-    return layer
   },
   
   renderLayers: function(dirty) {
-    var style = this.style, layers = style.layers, offset = this.offset;
-    var updated = new FastArray, definitions = this.options.layers;
-    this.getShape().setStyles(this.getStyles.apply(this, this.getShape().properties));
-    offset.outside = {left: 0, right: 0, top: 0, bottom: 0};
-    offset.inside = {left: 0, right: 0, top: 0, bottom: 0};
-    offset.shape = this.shape.getOffset ? this.shape.getOffset(style.current) : {left: 0, right: 0, top: 0, bottom: 0};
+    var updated = new FastArray, style = this.style, layers = style.layers, offset = this.offset;
     for (var property in dirty) if (layers[property]) updated.push.apply(updated, layers[property]);
-    var outside = offset.outside, inside = offset.inside;
-    for (var name in definitions) {
-      var value = updated[name] ? LSD.Layer.render(definitions[name], this) : null;
+    
+    
+    
+    
+    var result = {};
+    for (var name in this.layers) {
+      if (!updated[name]) continue;
       var layer = this.layers[name];
+      var sizes = Object.append({box: this.size}, {size: Object.append({}, this.size)});
+      result = layer.draw(this, Object.append(result.inside ? {inside: result.inside, outside: result.outside} : {}, sizes))
+    }
+    var inside  = offset.inside  = Object.append({left: 0, right: 0, top: 0, bottom: 0}, result.inside);
+    var outside = offset.outside = Object.append({left: 0, right: 0, top: 0, bottom: 0}, result.outside);
+    offset.shape = /*this.shape.getOffset ? this.shape.getOffset(style.current) : */{left: 0, right: 0, top: 0, bottom: 0};
+    
+    for (var name in this.shapes) {
+      var layer = this.shapes[name];
       if (!layer) continue;
-      if (value == null) value = layer.value;
-      layer.value = value;
-      if (value === false) {
-        if (layer.injected) layer.eject();
-      } else {
-        if (!layer.injected) {
-          for (var layers = Object.keys(definitions), i = layers.indexOf(layer.name), key, next; key = layers[++i];) {
-            if ((next = this.layers[key]) && next.injected && next.shape) {
-              layer.inject(next.shape, 'before');
-              break;
-            }
+      if (!layer.injected) {
+        for (var layers = Object.keys(this.layers), i = layers.indexOf(layer.name), key, next; key = layers[++i];) {
+          if ((next = this.layers[key]) && next.injected && next.shape) {
+            layer.inject(next.shape, 'before');
+            break;
           }
-          if (!layer.injected) layer.inject(this.getCanvas());
-        } else {
-          if (layer.update) layer.update(this.getCanvas())
         }
-        layer.translate(value.translate.x + outside.left + inside.left, value.translate.y + outside.top + inside.top);
-        for (side in value.inside) {  
-          outside[side] += value.outside[side];
-          inside[side] += value.inside[side]
-        }
+        if (!layer.injected) layer.inject(this.getCanvas());
+        layer.injected = true;
       }
     }
   },

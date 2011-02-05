@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- ART.Shape
+- ART/ART.Shape
  
 provides: [ART.Shape.Arrow]
  
@@ -21,15 +21,9 @@ ART.Shape.Arrow = new Class({
 
   Extends: ART.Shape,
   
+  properties: ['width', 'height', 'radius', 'arrowWidth', 'arrowHeight', 'arrowSide', 'arrowPosition', 'arrowX', 'arrowY'],
   
-  properties: ['width', 'height', 'cornerRadius', 'arrowWidth', 'arrowHeight', 'arrowSide', 'arrowPosition', 'arrowX', 'arrowY'],
-  
-  initialize: function(){
-    this.parent();
-    if (arguments.length >= 2) this.draw.apply(this, arguments);
-  },
-  
-  paint: function(width, height, radius, aw, ah, as, ap, ax, ay){
+  draw: function(width, height, radius, aw, ah, as, ap, ax, ay){
 
     var path = new ART.Path;
     
@@ -90,21 +84,9 @@ ART.Shape.Arrow = new Class({
     if (as == 'left') path.line(0, -ap).line(-ah, -aw2).line(ah, -aw2).line(0, -ae);
     else path.line(0, -sides.left);
 
-    return path;
+    return this.parent(path);
   },
 
-  render: function(){
-    return this.draw(this.paint.apply(this, arguments));
-  },
-
-  change: function(x, y, r) {
-    if (y == null) y = x;
-    if (r == null) r = x;
-    return this.paint(this.style.width + x * 2, this.style.height + y * 2, this.style.cornerRadius.map(function(radius, i) {
-      return (r.push ? r[i] : r) + radius;
-    }), this.style.arrowWidth, this.style.arrowHeight, this.style.arrowSide, this.style.arrowPosition)
-  },
-  
   getOffset: function(styles) {
     return {
       left: (styles.arrowSide == 'left') ? styles.arrowWidth : 0,
@@ -112,6 +94,10 @@ ART.Shape.Arrow = new Class({
       top: (styles.arrowSide == 'top') ? styles.arrowHeight : 0,
       bottom: (styles.arrowSide == 'bottom') ? styles.arrowHeight : 0
     }
+  },
+  
+  render: function(context) {
+    return this.draw(context.size.width, context.size.height, context.radius)
   }
 
 });

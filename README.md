@@ -1,4 +1,4 @@
-LSD - Lovely SVG Drawings
+LSD - Lovely Scalable Drawings
 =========================
 
 An interface library that blows the mind, does things that were obvious but never really done and put together: CSS-driven customizable interfaces that render into SVG/VML. The goal is to generate phat ass amount of clean, clear, reusable, lightweight, modular and powerful code to use whenever it comes to UI.

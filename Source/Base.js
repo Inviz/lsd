@@ -209,6 +209,13 @@ LSD.Base = new Class({
     return "object"
   },
   
+  /*
+    Wrapper is where content nodes get appended. 
+    Defaults to this.element, but can be redefined
+    in other Modules or Traits (as seen in Container
+    module)
+  */
+  
   getWrapper: function() {
     return this.toElement();
   }

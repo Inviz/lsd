@@ -1,5 +1,5 @@
 name: LSD
-fullname: Lovely SVG Drawings
+fullname: Lovely Scalable Drawings
 filename: lsd.js
 description: Psychodelically awesome library for UI in javascript and SVG
 license: Public domain, http://unlicense.org
@@ -14,7 +14,6 @@ sources:
   - Source/ART/ART.SVG.js
   - Source/ART/ART.Element.js
   - Source/ART/ART.Glyphs.js
-  - Source/ART/ART.Shape.js
   - Source/ART/ART.Shape.Arrow.js
   - Source/ART/ART.Shape.Ellipse.js
   - Source/ART/ART.Shape.Flower.js
@@ -27,20 +26,25 @@ sources:
   - Source/Document/Resizable.js
   - Source/LSD.js
   - Source/Layer.js
-  - Source/Layer/Fill.js
-  - Source/Layer/Glyph.js
-  - Source/Layer/GlyphShadow.js
-  - Source/Layer/Icon.js
-  - Source/Layer/InnerShadow.js
+  - Source/Layer/Color.js
+  - Source/Layer/Offset.js
+  - Source/Layer/Position.js
+  - Source/Layer/Radius.js
+  - Source/Layer/Shadow.Blur.js
+  - Source/Layer/Shadow.Inset.js
   - Source/Layer/Shadow.js
+  - Source/Layer/Shadow.Native.js
+  - Source/Layer/Shadow.Onion.js
+  - Source/Layer/Shape.js
+  - Source/Layer/Size.js
+  - Source/Layer/Scale.js
   - Source/Layer/Stroke.js
-  - Source/Mixin/Focus.js
-  - Source/Mixin/Shy.js
   - Source/Mixin/Draggable.js
   - Source/Mixin/Resizable.js
   - Source/Mixin/Scrollable.js
   - Source/Mixin/Touchable.js
   - Source/Mixin/Position.js
+  - Source/Mixin/Focus.js
   - Source/Module/Container.js
   - Source/Module/Command.js
   - Source/Module/DOM.js
