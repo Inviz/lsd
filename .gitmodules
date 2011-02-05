@@ -48,3 +48,6 @@
 [submodule "Dependencies/art-morph"]
 	path = Dependencies/art-morph
 	url = git://github.com/calyptus/art-morph.git
+[submodule "Dependencies/Sheet.js"]
+	path = Dependencies/Sheet.js
+	url = git://github.com/Inviz/Sheet.js.git
