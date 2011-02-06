@@ -76,7 +76,7 @@ LSD.Module.Styles = new Class({
     }
     if (value.call) {
       var expression = value;
-      value = value.call(this);
+      value = value.call(this, property);
     }
     var result = (css || paint)[value.push ? 'apply' : 'call'](this, value);
     if (property == 'stroke') console.info(value, result, $t = this, this.element);
@@ -193,7 +193,7 @@ LSD.Module.Styles = new Class({
     if (this.style.calculated[property]) return this.style.calculated[property];
     var value;
     if (expression) {
-      value = expression.call(this);
+      value = expression.call(this, property);
     } else {
       switch (property) {
         case "height":
@@ -219,8 +219,3 @@ LSD.Module.Styles = new Class({
 
 
 })();
-
-
-LSD.calculate = LSD.Module.Styles.calculate = function() {
-  return LSD.Expression.get.apply(LSD.Expression, arguments)
-}

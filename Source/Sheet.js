@@ -232,8 +232,11 @@ var Value = LSD.Sheet.Value = {
     }
   },
   "%": function(value) {
-    return function() {
-      return value * (this.baseline || 16)
+    return function(property) {
+      var resolved = Value['%'].resolve(property);
+      if (resolved.call) resolved = resolved.call(this);
+      console.log(123, this, resolved, value)
+      return resolved / 100 * value;
     }
   },
   url: function(value) {
@@ -253,7 +256,40 @@ var Value = LSD.Sheet.Value = {
   },
   hex: function(value) {
     return new Color(value)
+  },
+  calc: function(value) {
+    var bits = value.map(function(bit, i) {
+      if (bit.call) {
+        return "value[" + i + "].call(this, property)"
+      } else {
+        return bit;
+      }
+    })
+    eval("var compiled = function(property) { return " + bits.join(" ") + "}");
+    return compiled
+  },
+  min: function() {
+    return Math.min.apply(Math, arguments)
+  },
+  max: function() {
+    return Math.max.apply(Math, arguments)
   }
+};
+
+
+var resolved = {};
+var dimensions = {
+  height: /[hH]eight|[tT]op|[bB]ottom|[a-z]Y/,
+  width: /[wW]idth|[lL]eft|[rR]ight|[a-z]X/
+}
+Value['%'].resolve = function(property) {
+  var result = resolved[property];
+  if (result != null) return result;
+  for (var side in dimensions) if (property.match(dimensions[side])) {
+    result = function() { if (this.parentNode) return this.parentNode.getStyle(side); return 0;}
+    break;
+  }
+  return (resolved[property] = (result || 1));
 };
 
 Value.compiled = {};
@@ -264,12 +300,7 @@ Value.compile = function(value, context) {
     for (var i = 0, j = value.length, result = [], bit; i < j; bit = value[i++]) result[i] = Value.compile(value[i], context);
     return result;
   }
-  if (value.unit)  {
-    var parser = context[value.unit](value.number);
-    parser.unit = value.unit;
-    parser.number = value.number;
-    return parser;
-  }
+  if (value.unit)  return Object.append(context[value.unit](value.number), value);
   if (value.charAt) {
     if (context.hex && value.charAt(0) == "#" && value.match(/#[a-z0-9]{3,6}/)) return context.hex(value);
   } else for (var name in value) {
