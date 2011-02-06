@@ -75,7 +75,6 @@ sources:
   - Source/Fx.js
   - Source/Node.js
   - Source/Sheet.js
-  - Source/Expression.js
   - Source/Base.js
   - Source/Widget.js
   - Source/Widget.Paint.js
