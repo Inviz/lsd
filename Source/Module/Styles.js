@@ -26,6 +26,8 @@ provides:
   
 var CSS = SheetParser.Styles, Paint = LSD.Styles;
 var setStyle = function(element, property, value, type) {
+  delete this.style.expressed[property];
+  delete this.style.calculated[property];
   if (value === false) {
     if (element && this.element) delete this.element.style[property];
     delete this.style[element ? 'element' : 'paint'][property], this.style.current[property];
@@ -73,14 +75,18 @@ LSD.Module.Styles = new Class({
       if (length > 2) value = Array.prototype.splice.call(arguments, 1, length);
     }
     if (value.call) {
-      this.style.expressed[property] = value;
-      this.style.computed[property] = value = value.call(this);
+      var expression = value;
+      value = value.call(this);
     }
     var result = (css || paint)[value.push ? 'apply' : 'call'](this, value);
     if (property == 'stroke') console.info(value, result, $t = this, this.element);
     //if (property == 'glyphPosition') alert([property, JSON.stringify(result)])
     if (result === true || result === false) setStyle.call(this, css, property, value, type);
     else for (var prop in result) setStyle.call(this, css, prop, result[prop], type);
+    if (expression) {
+      this.style.expressed[property] = expression
+      this.style.computed[property] = value
+    }
     return result;
   },
 

@@ -52,4 +52,5 @@ Object.append(SheetParser.Property.Type, {
     return value.glyph
   }
 });
-LSD.Styles.shape = SheetParser.Property.compile('shape', LSD.Layer.Shape.properties.shape)
+
+LSD.Styles.shape = SheetParser.Property.compile(LSD.Layer.Shape.properties.shape)

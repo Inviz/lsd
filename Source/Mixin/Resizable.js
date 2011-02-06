@@ -131,7 +131,6 @@ LSD.Mixin.Resizable = new Class({
   },
   
   onResizeComplete: function() {
-    console.log(this.resized.style.liquid)
     if (this.resized.style.liquid) this.resized.setStyles(this.resized.style.liquid);
     this.onStateChange('resized', false);
     delete this.liquid

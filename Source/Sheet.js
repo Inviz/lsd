@@ -150,10 +150,10 @@ Object.append(LSD.Sheet, {
   },
   convertSelector: function(selector) {
     return selector.replace(/\.id-/g , '#').replace(/\.is-/g, ':').replace(/\.lsd#/g, '#').
-                    replace(/\.lsd\./g, '').replace(/^html body /g, '');
+                    replace(/\.lsd\./g, '').replace(/html\sbody\s/g, '');
   },
   isElementStyle: function(cc) {
-    return false//LSD.Styles.Element[cc] && !LSD.Styles.Ignore[cc];
+    return SheetParser.Styles[cc] && !LSD.Styles[cc] && (cc != 'height' && cc != 'width')
   },
   isRawValue: function(value) {
     return (value.indexOf('hsb') > -1) || (value.indexOf('ART') > -1) || (value.indexOf('LSD') > -1) || 

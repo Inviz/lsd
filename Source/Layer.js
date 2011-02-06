@@ -42,9 +42,9 @@ LSD.Layer.prototype = {
       var path = new ART.Path(glyph);
       var box = path.measure();
       if (!layer) layer = new ART.Shape(path, box.width, box.height);
-      if (commands.size && (previous 
-            ? Oject.equals(previous.size, commands.size) 
-            : (commands.size.height != box.width || commands.size.width != box.width))) layer.resizeTo(commands.size.width, commands.size.height)
+      if (commands.size && !Object.equals(previous ? previous.size : box, commands.size))
+        layer.resizeTo(commands.size.width, commands.size.height)
+        
     } else if (!shape.indexOf){
       for (var name in shape) {
         var values = Array.from(shape[name]);
@@ -64,8 +64,8 @@ LSD.Layer.prototype = {
     widget.shapes[this.name] = layer;
     for (command in commands) {
       var value = commands[command];
-      if (value && layer[command] && command != 'move') {
-        if (!previous || !Object.equals(previous[command], value)) layer[command][value && value.push ? 'apply' : 'call'](layer, value);
+      if (layer[command] && command != 'move') {
+        if (!value || !previous || !Object.equals(previous[command], value)) layer[command][value && value.push ? 'apply' : 'call'](layer, value);
       }
     }
     var translate = commands.translate = {x: 0, y: 0}

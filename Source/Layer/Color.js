@@ -24,10 +24,10 @@ LSD.Layer.Color = {
   
   paint: function(color) {
     if (color) var radial = color['radial-gradient'], gradient = color['gradient'] || color ['linear-gradient'];
-    return {
-      fill: color && ((color != 'none') && !gradient && !radial) && color,
-      fillLinear: gradient && [gradient],
-      fillRadial: false//radial
+    if (gradient) {
+      return {fillLinear: [gradient]}
+    } else if (!radial) {
+      return {fill: (!color || color == 'none') ? null : color} 
     }
   }
 };
