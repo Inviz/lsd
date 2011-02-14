@@ -20,6 +20,7 @@ provides:
 */
 
 LSD.Module.Actions = new Class({
+  Stateful: LSD.States.Known.disabled,
   
   initialize: function() {
     this.actions = {};

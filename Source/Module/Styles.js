@@ -11,7 +11,6 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD
-  - LSD.Expression
   - Core/Element.Style
   - Ext/FastArray
   - Sheet/SheetParser.Styles
@@ -42,7 +41,15 @@ var setStyle = function(element, property, value, type) {
 LSD.Module.Styles = new Class({
   
   options: {
-    styles: {}
+    styles: {},
+    events: {
+      _styles: {
+        update: function() {
+          this.style.calculated = {};
+          this.style.computed = {};
+        }
+      }
+    }
   },
 
   initialize: function() {
@@ -124,7 +131,7 @@ LSD.Module.Styles = new Class({
     return result;
   },
   
-  renderStyles: function(style) {
+  renderStyles: function(styles) {
     var style = this.style, 
         current = style.current,
         paint = style.paint, 
@@ -132,7 +139,7 @@ LSD.Module.Styles = new Class({
         found = style.found,
         implied = style.implied,
         calculated = style.calculated,
-        given = Object.append(style.given, given),
+        given = Object.append(style.given, styles),
         changed = style.changed;
     this.setStyles(given, 'given')
     for (var property in found) if ((property in changed) && !(property in given)) this.setStyle(property, found[property]);
@@ -211,10 +218,10 @@ LSD.Module.Styles = new Class({
     return value;
   },
   
-  update: Macro.onion(function() {
-    this.style.calculated = {};
-    this.style.computed = {};
-  })
+  render: function(style) {
+    this.renderStyles(style);
+    this.parent.apply(this, arguments);
+  }
 });
 
 

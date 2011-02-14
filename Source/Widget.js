@@ -10,6 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
+  - LSD.Node
   - LSD.Base
   - LSD.Module.Layout
   - LSD.Module.Styles
@@ -20,6 +21,7 @@ requires:
   - LSD.Module.Attributes
   - LSD.Module.Actions
   - LSD.Module.Command
+  - LSD.Module.Render
 
 provides: 
   - LSD.Widget
@@ -43,26 +45,21 @@ if (!LSD.modules) {
 
 LSD.Widget = new Class({
   
-  States: Object.append({
-    'built': ['build', 'destroy', false],
-    'attached': ['attach', 'detach', false],
-    'dirty': ['update', 'render', false]
-  }, Object.subset(LSD.States.Known, ['disabled', 'hidden'])),
+  Includes: Array.concat(LSD.Node, LSD.Base, LSD.modules),
   
-  Includes: Array.concat(LSD.Base, LSD.modules),
+  States: Object.subset(LSD.States.Known, ['disabled', 'hidden', 'built', 'attached', 'dirty']),
   
-  options: {
+  options: {  
     element: {
       tag: 'div'
     },
     writable: false
   },
   
-  initialize: function(options) {
-    this.setOptions(options);
+  initialize: function(element, options) {
     this.dirty = true;
-    this.parent.apply(this, arguments);
-    if (this.options.writable && !this.attributes.tabindex && (this.options.focusable !== false)) this.setAttribute('tabindex', 0) 
+    this.parent(element, options);
+    if (this.options.writable && !this.attributes.tabindex && (this.options.focusable !== false)) this.setAttribute('tabindex', 0);
     this.addPseudo(this.options.writable ? 'read-write' : 'read-only');
   }
 });

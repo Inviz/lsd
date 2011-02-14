@@ -23,38 +23,33 @@ provides:
 (function() {
 
 var Expectations = LSD.Module.Expectations = new Class({
-  options: {
-    events: {
-      _expectations: {
-        nodeInserted: function(widget) {
-          var expectations = this.expectations, type = expectations.tag, tag = widget.options.tag;
-          if (!type) type = expectations.tag = {};
-          var group = type[tag];
-          if (!group) group = type[tag] = [];
-          group.push(widget);
-          group = type['*'];
-          if (!group) group = type['*'] = [];
-          group.push(widget);
-          update.call(this, widget, tag, true);
-        },
-        nodeRemoved: function(widget) {
-          var expectations = this.expectations, type = expectations.tag, tag = widget.options.tag;
-          type[tag].erase(this);
-          type["*"].erase(this);
-          update.call(this, widget, tag, false);
-        }
+  initialize: function() {
+    this.expectations = {};
+    this.addEvents({
+      nodeInserted: function(widget) {
+        var expectations = this.expectations, type = expectations.tag, tag = widget.options.tag;
+        if (!type) type = expectations.tag = {};
+        var group = type[tag];
+        if (!group) group = type[tag] = [];
+        group.push(widget);
+        group = type['*'];
+        if (!group) group = type['*'] = [];
+        group.push(widget);
+        update.call(this, widget, tag, true);
+      },
+      nodeRemoved: function(widget) {
+        var expectations = this.expectations, type = expectations.tag, tag = widget.options.tag;
+        type[tag].erase(this);
+        type["*"].erase(this);
+        update.call(this, widget, tag, false);
       }
-    }
+    }, true);
+    this.parent.apply(this, arguments);
   },
   
   getElementsByTagName: function(tag) {
     var cache = this.expectations.tag;
     return (cache && cache[tag.toLowerCase()]) || [];
-  },
-  
-  initialize: function() {
-    this.expectations = {};
-    this.parent.apply(this, arguments);
   },
     
   removeClass: function(name) {

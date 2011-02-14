@@ -21,8 +21,31 @@ LSD.Trait.Input = new Class({
     input: {},
     events: {
       input: {
-        mousedown: 'stopMousedown'
-      }
+        element:  {
+          mousedown: function(e) {
+            e.stopPropagation()
+          }
+        },
+        self: {
+          attach: function() {
+            this.getInput().addEvents({
+              blur: this.onBlur.bind(this),
+              focus: this.onFocus.bind(this)
+            }).addEvents(this.events.input);
+          },
+          build: function() {
+            this.getInput().inject(this.element);
+          },
+          focus: function() {
+            this.document.activeElement = this;
+            if (LSD.Mixin.Focus) LSD.Mixin.Focus.Propagation.focus(this);
+          },
+          blur: function() 
+              if (this.document.activeElement == this) delete this.document.activeElement;
+           //   if (LSD.Mixin.Focus) LSD.Mixin.Focus.Propagation.blur.delay(10, this, this);
+          },
+          resize: 'setInputSize'
+        }
     }
   },
   
@@ -30,37 +53,10 @@ LSD.Trait.Input = new Class({
     e.stopPropagation()
   },
   
-  attach: Macro.onion(function() {
-    this.getInput().addEvents({
-      blur: this.onBlur.bind(this),
-      focus: this.onFocus.bind(this)
-    }).addEvents(this.events.input);
-    this.addEvent('resize', this.setInputSize.bind(this))
-  }),
-  
-  focus: Macro.onion(function() {
-    this.document.activeElement = this;
-    if (LSD.Mixin.Focus) LSD.Mixin.Focus.Propagation.focus(this);
-  }),
-  
-  blur: Macro.onion(function() {
-    if (this.document.activeElement == this) delete this.document.activeElement;
- //   if (LSD.Mixin.Focus) LSD.Mixin.Focus.Propagation.blur.delay(10, this, this);
-  }),
-  
   onFocus: function() {
     this.document.activeElement = this;
     this.focus();
   },
-  
-  onBlur: function() {
-    if (this.document.activeElement == this) delete this.document.activeElement
-    this.blur.delay(10, this);
-  },
-  
-  build: Macro.onion(function() {
-    this.getInput().inject(this.element);
-  }),
   
   getInput: Macro.getter('input', function() {
     return new Element('input', $extend({'type': 'text'}, this.options.input));
@@ -79,7 +75,6 @@ LSD.Trait.Input = new Class({
     if (this.canceller) width -= this.canceller.getLayoutWidth();
     if (this.glyph) width -= this.glyph.getLayoutWidth();
     this.input.setStyle('width', width);
-    return true;
   },
   
   getObservedElement: function() {

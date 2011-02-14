@@ -88,7 +88,44 @@ LSD.Module.Attributes = new Class({
                   ? this.pseudos[attribute] 
                   : this.getAttribute(attribute)
     }
-  }
+  },
+  
+  setState: function(state) {
+    if (LSD.States.Attributes[state]) {
+      this.setAttribute(state, true)
+    } else {
+      this.addClass('is-' + state);
+    }
+    this.addPseudo(state);
+  },
+  
+  unsetState: function(state) {
+    if (LSD.States.Attributes[state]) {
+      this.removeAttribute(state)
+    } else {
+      this.removeClass('is-' + state);
+    }
+    this.removePseudo(state);
+  },
+  
+  getSelector: function(){
+    var parent = this.parentNode;
+    var selector = (parent && parent.getSelector) ? parent.getSelector() + ' ' : '';
+    selector += this.options.tag;
+    if (this.options.id) selector += '#' + this.options.id;
+    for (var klass in this.classes)  if (this.classes.hasOwnProperty(klass))  selector += '.' + klass;
+    for (var pseudo in this.pseudos) if (this.pseudos.hasOwnProperty(pseudo)) selector += ':' + pseudo;
+    if (this.attributes) for (var name in this.attributes) selector += '[' + name + '=' + this.attributes[name] + ']';
+    return selector;
+  },
+  
+  onStateChange: function(state, value, args) {
+    var args = Array.from(arguments);
+    args.slice(1, 2); //state + args
+    this[value ? 'setState' : 'unsetState'].apply(this, args);
+    this.fireEvent('stateChange', [state, args])
+    return true;
+  },
 });
 
 
@@ -110,4 +147,4 @@ LSD.Attributes.Setter = {
     if (value == false) this.enable()
     else this.disable();
   }
-}
+};

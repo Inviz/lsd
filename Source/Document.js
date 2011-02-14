@@ -44,13 +44,16 @@ LSD.Document = new Class({
   
   options: {
     tag: '#document',
-    selector: ':not(.lsd)', //convert unconvered elements
-    root: false // topmost widget's parentNode is the document if set to true
+    root: false, // topmost widget's parentNode is the document if set to true
+    layout: {
+      method: 'augment'
+    }
   },
   
-  initialize: function(options) {
+  initialize: function(element, options) {
+    console.log(Object.append({}, LSD.document), 656666)
     if (!LSD.document.body) LSD.document = Object.append(this, LSD.document);
-    this.parent.apply(this, Element.type(options) ? [options] : [options.origin, options]);
+    this.parent.apply(this, [element || options.origin, options]);
     this.body = this.element.store('widget', this);
     this.document = this.documentElement = this;
     
@@ -58,18 +61,14 @@ LSD.Document = new Class({
     this.navigator = {};
     this.attributes = {};
     
-    this.childNodes = [];
     this.nodeType = 9;
     this.events = this.options.events;
   },
   
-  build: Macro.onion(function() {
-    this.element.getChildren(this.options.selector).each(LSD.Layout.replace);
+  build: function() {
+    LSD.Layout.augment(this.element);
     if (this.stylesheets) this.stylesheets.each(this.addStylesheet.bind(this))
-  }),
-
-	attach: $lambda(true),
-	detach: $lambda(true),
+  },
   
   /*
     Slick.Finder tries to probe document it was given to determine

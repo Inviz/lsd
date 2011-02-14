@@ -25,7 +25,16 @@ provides:
 
 LSD.Trait.Layers = new Class({
   options: {
-    layers: {}
+    layers: {},
+    
+    events: {
+      self: {
+        attach: function() {
+          this.style.layers = {};
+          for (var name in this.options.layers) this.addLayer(name, this.options.layers[name]);
+        }
+      }
+    }
   },
   
   initialize: function() {
@@ -34,12 +43,6 @@ LSD.Trait.Layers = new Class({
     this.shapes = {};
     this.parent.apply(this, arguments);
   },
-  
-  attach: Macro.onion(function() {
-    this.style.layers = {};
-    for (var name in this.options.layers) this.addLayer(name, this.options.layers[name]);
-    //console.log(this.style.layers)
-  }),
 
   addLayer: function(name, value) {
     var slots = this.style.layers;
@@ -86,7 +89,7 @@ LSD.Trait.Layers = new Class({
     }
   },
   
-  repaint: function() {
+  render: function() {
     var style = this.style, last = style.last, old = style.size, paint = style.paint, changed = style.changed;
     this.parent.apply(this, arguments);
     this.setSize(this.getStyles('height', 'width'));

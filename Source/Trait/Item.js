@@ -22,19 +22,19 @@ provides:
 LSD.Trait.Item = new Class({
   options: {
     events: {
-      self: {
-        setParent: 'setList'
+      _item: {
+        setParent: 'setList',
+        select: function() {
+          this.listWidget.selectItem(this)
+        }
       }
     }
   },
   
-  select: Macro.onion(function() {
-    this.listWidget.selectItem(this)
-  }),
-  
-  attach: Macro.onion(function() {
+  initialize: function() {
+    this.parent.apply(this, arguments);
     this.value = this.element.get('item') || $uid(this.element);
-  }),
+  },
   
   getValue: Macro.defaults(function() {
     return this.value;

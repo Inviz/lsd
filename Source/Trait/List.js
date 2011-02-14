@@ -35,18 +35,17 @@ LSD.Trait.List = new Class({
     shortcuts: {
       previous: 'previous',
       next: 'next'
+    },
+    events: {
+      attach: function() {
+        var items = this.items.length ? this.items : this.options.list.items;
+        if (items) this.setItems(items);
+      }
     }
   },
   
   list: [],
   items: [],
-  
-  attach: Macro.onion(function() {  
-    var items = this.items.length ? this.items : this.options.list.items;
-    if (items) {
-      this.setItems(items);
-    }
-  }),
   
   selectItem: function(item) {
     if (item && !item.render) item = this.findItemByValue(item);

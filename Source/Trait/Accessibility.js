@@ -128,20 +128,18 @@ LSD.Trait.Accessibility = new Class({
   options: {
     events: {
       _accessibility: {
+        attach: function() {
+          var shortcuts = this.bindEvents(this.options.shortcuts);
+          for (var shortcut in shortcuts) this.addShortcut(shortcut, shortcuts[shortcut]);
+        },
+        detach: function() {
+          var shortcuts = this.bindEvents(this.options.shortcuts);
+          for (var shortcut in shortcuts) this.removeShortcut(shortcut, shortcuts[shortcut]);
+        },
         focus: 'enableShortcuts',
         blur: 'disableShortcuts'
       }
     },
     shortcuts: {}
-  },
-  
-  attach: Macro.onion(function() {
-    var shortcuts = this.bindEvents(this.options.shortcuts);
-    for (var shortcut in shortcuts) this.addShortcut(shortcut, shortcuts[shortcut]);
-  }),
-  
-  detach: Macro.onion(function() {
-    var shortcuts = this.bindEvents(this.options.shortcuts);
-    for (var shortcut in shortcuts) this.removeShortcut(shortcut, shortcuts[shortcut]);
-  })
+  }
 });

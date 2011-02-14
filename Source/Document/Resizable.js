@@ -48,7 +48,7 @@ LSD.Document.Resizable = new Class({
 	},
 	
 	onResize: function() {
-	  Object.append(this.style.current, document.getCoordinates());
+	  if (document.getCoordinates) Object.append(this.style.current, document.getCoordinates());
 	  this.render()
 	},
 	

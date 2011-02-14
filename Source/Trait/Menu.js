@@ -94,7 +94,7 @@ LSD.Trait.Menu = new Class({
     return this.buildLayout(this.options.layout.menu);
   }),
   
-  expand: Macro.onion(function() {
+  expand: function() {
     if (!this.menu) {
       this.getMenu();
       this.repositionMenu();
@@ -104,12 +104,12 @@ LSD.Trait.Menu = new Class({
     }
     if (this.hasItems()) this.menu.show();
     else this.menu.hide();
-  }),
+  },
   
-  collapse: Macro.onion(function() {
+  collapse: function() {
     if (this.menu) this.menu.hide();
     //this.repositionMenu();
-  }),
+  },
   
   getSelectedOptionPosition: $lambda(0)
 });
@@ -118,6 +118,6 @@ LSD.Trait.Menu.State = Class.Stateful({
   'expanded': ['expand', 'collapse']
 });
 LSD.Trait.Menu.Stateful = [
-  LSD.Trait.Menu.State,
-  LSD.Trait.Menu
+  LSD.Trait.Menu,
+  LSD.Trait.Menu.State
 ]

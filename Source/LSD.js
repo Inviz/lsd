@@ -44,6 +44,7 @@ Object.append(LSD, {
   Styles: {},
   States: {
     Known: {
+      'built':    ['build', 'destroy', false],
       'hidden':   ['hide',    'show'],
       'disabled': ['disable', 'enable'],
       'focused':  ['focus',   'blur']

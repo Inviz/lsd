@@ -22,9 +22,41 @@ provides:
 ...
 */
 
+/*
+	The module takes events object defined in options
+	and binds all functions to the widget.
+
+	Ready to use event tree can be accessed via
+	*.events* accessor. 
+*/
 
 LSD.Module.Events = new Class({
-	
+  Stateful: {
+    'attached': ['attach', 'detach', false],
+  },
+  
+  initialize: function() {
+    this.addEvents({
+      build: function() {
+        this.attach();
+      },
+
+      destroy: function() {
+        this.detach();
+      },
+
+      attach: function() {
+    		if (!this.events) this.events = this.bindEvents(this.options.events);
+    		this.addEvents(this.events);
+      },
+
+      detach: function() {
+        this.removeEvents(this.events);
+      }
+    }, true);
+    this.parent.apply(this, arguments);
+  },
+  
 	addEvents: function(events) {
 		return this.setEvents(events, true);
 	},
@@ -76,24 +108,7 @@ LSD.Module.Events = new Class({
 		}
 		for (var i in tree) tree[i] = this.bindEvents(tree[i]);
 		return tree;
-	},
-	
-	/*
-		The module takes events object defined in options
-		and binds all functions to the widget.
-		
-		Ready to use event tree can be accessed via
-		*.events* accessor. 
-	*/
-
-	attach: Macro.onion(function() {
-		if (!this.events) this.events = this.bindEvents(this.options.events);
-		this.addEvents(this.events);
-	}),
-
-	detach: Macro.onion(function() {
-		this.removeEvents(this.events);
-	})
+	}
 });
 
 
@@ -194,6 +209,7 @@ LSD.Module.Events.Targets = {
 	Object.each(Object.append({}, Positive, Negative), function(state, name) {
 		var positive = !!Positive[name];
 		LSD.Module.Events.Targets[name] = function() {
+		  console.log(state)
 			var self = this, setting = Known[state], group;
 			var add		 = function() { self.addEvents(group);	 }
 			var remove = function() { self.removeEvents(group) }

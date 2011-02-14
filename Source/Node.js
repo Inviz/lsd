@@ -25,13 +25,31 @@ LSD.Node = new Class({
   options: {},
 
   initialize: function(element, options) {
+    if ((element && !element.tagName) || (options && options.tagName)) {
+      var el = options;
+      options = element;
+      element = el;
+    }
     this.element = document.id(element);
     this.setOptions(options);
-    var attributes = this.options.element;
-    if (attributes && element) this.element.set(attributes);
+  },
+  
+  dispose: function() {
+    if (this.element) this.element.dispose();
+  },
+  
+  destroy: function() {
+    if (this.parentNode) this.dispose();
+    if (this.element) this.element.destroy();
   },
   
   toElement: function() {
     return this.element;
+  },
+  
+  /* This declaration speeds up mootools type checks */
+  
+  $family: function() {
+    return "object"
   }
 })

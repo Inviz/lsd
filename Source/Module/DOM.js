@@ -54,15 +54,27 @@ LSD.Module.DOM = new Class({
     this.tagName = this.options.tag;
   },
   
-  //getElementsByTagName: function(tagName) {
-  //  var found = [];
-  //  var all = tagName == "*";
-  //  for (var i = 0, child; child = this.childNodes[i]; i++) {
-  //    if (all || tagName == child.tagName) found.push(child);
-  //    found.push.apply(found, child.getElementsByTagName(tagName))
-  //  }
-  //  return found;
-  //},
+  toElement: function(){
+    if (!this.built) this.build();
+    return this.element;
+  },
+  
+  build: function() {
+    var options = this.options, attrs = Object.append({}, options.element);
+    var tag = attrs.tag || options.tag;
+    delete attrs.tag;
+    if (!this.element) this.element = new Element(tag, attrs);
+    else this.element.set(attrs)
+    this.element.addClass('lsd');
+    if (options.tag != tag) this.element.addClass(options.tag || this.tagName);
+    this.classes.each(this.element.addClass.bind(this.element));
+    if (options.id) this.element.addClass('id-' + options.id);
+    if (this.attributes) 
+      for (var name in this.attributes) 
+        if (name != 'width' && name != 'height') this.element.setAttribute(name, this.attributes[name]);
+
+    if (this.style) for (var property in this.style.element) this.element.setStyle(property, this.style.element[property]);
+  },
   
   getElements: function(selector) {
     return Slick.search(this, selector)
@@ -98,7 +110,6 @@ LSD.Module.DOM = new Class({
   },
   
   setParent: function(widget){
-    this.parent.apply(this, arguments);
     this.fireEvent('setParent', [widget, widget.document])
     var siblings = widget.childNodes;
     var length = siblings.length;
@@ -148,13 +159,14 @@ LSD.Module.DOM = new Class({
     else if (!this['_' + tags]) this['_' + tags] = [widget];
     else this['_' + tags].push(widget);
         
+          console.log('appendChild', this.childNodes, this.tagName, widget.tagName )
     this.childNodes.push(widget);
     if (this.nodeType != 9) widget.setParent(this);
     (adoption || function() {
       this.toElement().appendChild(document.id(widget));
     }).apply(this, arguments);
     
-    this.fireEvent('adopt', [widget, id])
+    this.fireEvent('adopt', [widget, id]);
     widget.walk(function(node) {
       this.dispatchEvent('nodeInserted', node);
     }.bind(this));
@@ -180,6 +192,7 @@ LSD.Module.DOM = new Class({
     if (isDocument || isBody || element.offsetParent) {
       if (!isDocument) {
         var body = (isBody ? element : element.ownerDocument.body);
+        console.log('set document', body.retrieve('widget'), this.getSelector())
         doc = body.retrieve('widget') || new LSD.Document(body);
       } else doc = widget;
       var halted = [];
@@ -211,7 +224,7 @@ LSD.Module.DOM = new Class({
     if (quiet !== true) this.setDocument(widget);
     return true;
   },
-  
+
   dispose: function() {
     var parent = this.parentNode;
     if (parent) {
@@ -219,6 +232,8 @@ LSD.Module.DOM = new Class({
       if (parent.firstChild == this) delete parent.firstChild;
       if (parent.lastChild == this) delete parent.lastChild;
     }
+    this.fireEvent('dispose', parent);
+    delete this.parentNode;
     return this.parent.apply(this, arguments);
   },
   

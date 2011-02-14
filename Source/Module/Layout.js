@@ -23,19 +23,18 @@ LSD.Module.Layout = new Class({
     layout: {}
   },
   
-  initialize: function(options) {
-    if (options && LSD.Layout.isConvertable(options)) options = LSD.Layout.convert(options);
-    this.parent.apply(this, arguments);
-    var origin = options && options.origin;
-    var layout = Array.from(this.options.layout.children);
-    if (origin && !options.source) {
-      var children = origin.getChildren();
-      if (!children.length) {
-        var text = origin.get('html').trim();
-        if (text.length) this.setContent(text)
-      } else layout.push.apply(layout, Array.from(children));
+  initialize: function(element, options) {
+    if (element) {
+      var el = options;
+      options = element;
+      element = el;
+      if (element) if (!options || !options.layout || !options.layout.instance) {
+        this.layout = new LSD.Layout(element)
+        if (element.parentNode) this.parentNode = element.get('item');
+      } else this.layout =  options.layout.instance;
     }
-    if (layout.length) this.setLayout(layout);
+    this.parent(element, options)
+    if (this.options.layout.children) this.layout.render(this.options.layout.children)
     if (this.options.layout.self) this.applySelector(this.options.layout.self);
   },
   
@@ -55,16 +54,6 @@ LSD.Module.Layout = new Class({
     }  
     if (parsed.attributes || parsed.id) Object.append(this.options, options);
     this.fireEvent('selector', [parsed, selector]);
-  },
-  
-  setLayout: function(layout) {
-    this.layout = layout;
-    this.tree = this.applyLayout(layout);
-    this.fireEvent('layout', [this.tree, this.layout])
-  },
-  
-  applyLayout: function(layout) {
-    return new LSD.Layout(this, layout)
   },
   
   buildLayout: function(selector, layout, parent) {

@@ -57,7 +57,5 @@ LSD.Widget.Element = new Class({
   setStyles: function(properties) {
     for (var property in properties) this.setStyle(property, properties[property]);
     return true;
-  },
-  
-  renderStyles: $lambda(false)
+  }
 });
