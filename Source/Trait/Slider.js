@@ -58,7 +58,9 @@ LSD.Trait.Slider = new Class({
     return slider;
   }),
   
-  onSet: Macro.defaults($lambda(true)),
+  onSet: Macro.defaults(function() {
+    return true;
+  }),
   
   getTrack: Macro.defaults(function() {
     return this

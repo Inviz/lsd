@@ -28,7 +28,9 @@ LSD.Module.Container = new Class({
         container: function() {
           return $(this.getContainer()) //creates container, once condition is true
         },
-        condition: $lambda(false),      //turned off by default
+        condition: function() {         //turned off by default
+          return false 
+        },      
         priority: -1,                   //lowest priority
         rewrite: false                  //does not rewrite parent
       }

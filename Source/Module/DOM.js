@@ -19,7 +19,7 @@ provides:
 */
 
 
-(function() {
+;(function() {
   
 var inserters = {
 

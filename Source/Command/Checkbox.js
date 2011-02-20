@@ -41,4 +41,4 @@ LSD.Command.Checkbox = new Class({
     this.parent.apply(this, arguments);
     this.toggle();
   }
-})
+});

@@ -77,7 +77,7 @@ LSD.Widget = new Class({
 //Basic widget initialization
 LSD.Widget.count = 0;
 LSD.Widget.create = function(klasses, a, b, c, d) {
-  klasses = $splat(klasses);
+  klasses = Array.from(klasses);
   var base = klasses[0].indexOf ? LSD.Widget : klasses.shift();
   var klass = klasses.shift();
   var original = klass;

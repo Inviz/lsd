@@ -38,7 +38,7 @@ provides:
 
   var parse = function(expression){
     if (presets[expression]) expression = presets[expression];
-    return $splat(expression).map(function(type) {
+    return Array.from(expression).map(function(type) {
       if (!parsed[type]){
         var bits = [], mods = {}, string, event;
         if (type.contains(':')) {

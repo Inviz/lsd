@@ -111,7 +111,9 @@ LSD.Trait.Menu = new Class({
     //this.repositionMenu();
   },
   
-  getSelectedOptionPosition: $lambda(0)
+  getSelectedOptionPosition: function() {
+    return 0
+  }
 });
 
 LSD.Trait.Menu.State = Class.Stateful({

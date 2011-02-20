@@ -171,7 +171,7 @@ LSD.Layout = new Class({
         for (var i = bits.length - 1; i > -1; i--) {
           var obj = {};
           obj[bits[i]] = value;
-          if (i == 0) $mixin(options, obj);
+          if (i == 0) Object.merge(options, obj);
           else value = obj;
         }
       }

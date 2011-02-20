@@ -38,4 +38,4 @@ LSD.Trait.Form = new Class({
     if (this.getRequestType() == 'form' && event && event.type == 'submit') return;
     this.send();
   }
-})
+});

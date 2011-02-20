@@ -29,7 +29,7 @@ LSD.Fx = new Class({
   },
 
   prepare: function(widget, property, values){
-    values = $splat(values);
+    values = Array.from(values);
     var values1 = values[1];
     if (!$chk(values1)){
       values[1] = values[0];
