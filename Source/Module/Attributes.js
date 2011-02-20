@@ -32,7 +32,6 @@ LSD.Module.Attributes = new Class({
     pseudos.each(function(value) {
       this.setStateTo(value, true);
     }, this);
-    for (var attribute in this.attributes) this.setAttribute(attribute, this.attributes[attribute]);
     classes.each(this.addClass.bind(this));
   },
   
@@ -84,9 +83,7 @@ LSD.Module.Attributes = new Class({
   getAttributeNode: function(attribute) {
     return {
       nodeName: attribute,
-      nodeValue: (attribute in this.options.states) || (attribute in this.pseudos) 
-                  ? this.pseudos[attribute] 
-                  : this.getAttribute(attribute)
+      nodeValue: (attribute in this.options.states) || (attribute in this.pseudos) && this.pseudos[attribute]
     }
   },
   

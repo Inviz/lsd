@@ -20,19 +20,23 @@ provides: [LSD.Module.Layout]
 
 LSD.Module.Layout = new Class({
   options: {
-    layout: {}
+    layout: {},
   },
   
   initialize: function(element, options) {
-    if (element) {
+    if ((element && !element.tagName) || (options && options.tagName)) {
       var el = options;
       options = element;
       element = el;
-      if (element) if (!options || !options.layout || !options.layout.instance) {
-        this.layout = new LSD.Layout(element)
-        if (element.parentNode) this.parentNode = element.get('item');
-      } else this.layout =  options.layout.instance;
     }
+    this.childNodes = [];
+    if (element) LSD.Layout.converted[$uid(element)] = this;
+    if ((!options || !options.layout || !options.layout.instance)) {
+      this.layout = new LSD.Layout(element, null, this.options.layout)
+    } else this.layout = options.layout.instance;
+    this.addEvent('build', function() {
+      LSD.Layout.converted[$uid(this.element)] = this;
+    })
     this.parent(element, options)
     if (this.options.layout.children) this.layout.render(this.options.layout.children)
     if (this.options.layout.self) this.applySelector(this.options.layout.self);

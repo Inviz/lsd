@@ -46,12 +46,11 @@ var inserters = {
 
 LSD.Module.DOM = new Class({
   initialize: function() {
-    this.childNodes = [];
+    if (!this.childNodes) this.childNodes = [];
     this.nodeType = 1;
     this.parentNode = this.nextSibling = this.previousSibling = null;
     this.parent.apply(this, arguments);
-    this.nodeName = this.options.tag//.toUpperCase(); //Make slick happy
-    this.tagName = this.options.tag;
+    this.nodeName = this.tagName = this.options.tag;
   },
   
   toElement: function(){
@@ -64,14 +63,18 @@ LSD.Module.DOM = new Class({
     var tag = attrs.tag || options.tag;
     delete attrs.tag;
     if (!this.element) this.element = new Element(tag, attrs);
-    else this.element.set(attrs)
-    this.element.addClass('lsd');
+    else var element = this.element.set(attrs);
+    this.element.addClass('lsd').store('widget', this);;
     if (options.tag != tag) this.element.addClass(options.tag || this.tagName);
     this.classes.each(this.element.addClass.bind(this.element));
     if (options.id) this.element.addClass('id-' + options.id);
     if (this.attributes) 
       for (var name in this.attributes) 
-        if (name != 'width' && name != 'height') this.element.setAttribute(name, this.attributes[name]);
+        if (name != 'width' && name != 'height') {
+          var value = this.attributes[name];
+          if (!element || element[name] != value)
+            this.element.setAttribute(name, value);
+        }
 
     if (this.style) for (var property in this.style.element) this.element.setStyle(property, this.style.element[property]);
   },
@@ -99,17 +102,9 @@ LSD.Module.DOM = new Class({
     return widget;
   },
   
-  getHierarchy: function() {
-    var widgets = [this];
-    var widget = this;
-    while (widget.parentNode) {
-      widget = widget.parentNode;
-      widgets.unshift(widget)
-    }
-    return widgets;
-  },
-  
   setParent: function(widget){
+    if ('localName' in widget) widget = Element.get(widget, 'widget');
+    this.parentNode = widget;
     this.fireEvent('setParent', [widget, widget.document])
     var siblings = widget.childNodes;
     var length = siblings.length;
@@ -120,7 +115,6 @@ LSD.Module.DOM = new Class({
       previous.nextSibling = this;
       this.previousSibling = previous;
     }
-    widget.dispatchEvent('nodeInserted', this)
   },
   
   /*
@@ -159,12 +153,12 @@ LSD.Module.DOM = new Class({
     else if (!this['_' + tags]) this['_' + tags] = [widget];
     else this['_' + tags].push(widget);
         
-          console.log('appendChild', this.childNodes, this.tagName, widget.tagName )
     this.childNodes.push(widget);
     if (this.nodeType != 9) widget.setParent(this);
-    (adoption || function() {
+    if ((!widget.quiet || (this.toElement() && !this.element.parentNode)) && (adoption !== false)) (adoption || function() {
       this.toElement().appendChild(document.id(widget));
     }).apply(this, arguments);
+    delete widget.quiet;
     
     this.fireEvent('adopt', [widget, id]);
     widget.walk(function(node) {
@@ -192,7 +186,6 @@ LSD.Module.DOM = new Class({
     if (isDocument || isBody || element.offsetParent) {
       if (!isDocument) {
         var body = (isBody ? element : element.ownerDocument.body);
-        console.log('set document', body.retrieve('widget'), this.getSelector())
         doc = body.retrieve('widget') || new LSD.Document(body);
       } else doc = widget;
       var halted = [];
@@ -219,10 +212,16 @@ LSD.Module.DOM = new Class({
       }
     }
     var self = isElement ? this.toElement() : this;
+    this.quiet = quiet;
     if (!inserters[where || 'bottom'](self, widget) && !quiet) return false;
     this.fireEvent('inject', arguments);
     if (quiet !== true) this.setDocument(widget);
     return true;
+  },
+
+  onDOMInject: function(callback) {
+    if (this.document) callback.call(this, document.id(this.document)) 
+    else this.addEvent('dominject', callback.bind(this))
   },
 
   dispose: function() {

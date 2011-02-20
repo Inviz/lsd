@@ -54,7 +54,7 @@ LSD.Document.Resizable = new Class({
 	
 	render: function() {
 		this.childNodes.each(function(child){
-		  child.refresh();
+		  if (child.refresh) child.refresh();
 		});
 	}
 });

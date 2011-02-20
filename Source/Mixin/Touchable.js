@@ -35,15 +35,10 @@ LSD.Mixin.Touchable = new Class({
       enabled: {
         element: {
           'touchstart': 'activate',
-          'touchend': 'onClick',
+          'touchend': 'deactivate',
           'touchcancel': 'deactivate'
         }
       }
     }
-  },
-  
-  onClick: function() {
-    this.deactivate();
-    this.click();
   }
 });

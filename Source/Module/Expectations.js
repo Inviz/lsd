@@ -21,7 +21,7 @@ provides:
 */
 
 (function() {
-
+var pseudos = {};
 var Expectations = LSD.Module.Expectations = new Class({
   initialize: function() {
     this.expectations = {};
@@ -95,22 +95,39 @@ var Expectations = LSD.Module.Expectations = new Class({
       if (j.operator ? !j.test(this.attributes[j.key] && this.attributes[j.key].toString()) : !(j.key in this.attributes)) return false;
     if (selector.classes) for (var i = 0, j; j = selector.classes[i]; i++) if (!this.classes[j.value]) return false;
     if (selector.pseudos) {
-      var states = this.options.states;
       for (var i = 0, j; j = selector.pseudos[i]; i++) {
-        if (this.pseudos[j.key]) continue;
-        if (j.key in this.options.states) return false;
-        if (!selector.pseudo) selector.pseudo = {Slick: true, expressions: [[{combinator: ' ', tag: '*', pseudos: selector.pseudos}]]};
-        if (!Slick.match(this, selector.pseudo)) return false;
-        break;
+        var name = j.key;
+        if (this.pseudos[name]) continue;
+        var pseudo = pseudos[name];
+        if (pseudo == null) pseudos[name] = pseudo = Slick.lookupPseudo(name) || false;
+        if (pseudo === false || (pseudo && !pseudo.call(this, this, j.value))) return false;
       }
     }
     return true;
   },
   
+  /*
+    Expect processes a single step in a complex selector.
+    
+    Each of those bits (e.g. strong.important) consists 
+    pieces that can not be cnahged in runtime (tagname)
+    and other dynamic parts (classes, pseudos, attributes).
+    
+    The idea is to split the selector bit to static and dynamic
+    parts. The widget that is *expect*ing the selector, groups
+    his expectations by tag name. Every node inserted into
+    that element or its children will pick up expectations
+    related to it, thus matching static part of a selector.
+    Then it's time to match the dynamic part. 
+  */
   expect: function(selector, callback) {
     var combinator = selector.combinator || 'self', expectations = this.expectations[combinator];
     if (!expectations) expectations = this.expectations[combinator] = {};
     if (selector.combinator) {
+      /*
+        Given selector has combinator.
+        Finds related elements and passes expectations to them.
+      */
       var tag = selector.tag, group = expectations[tag];
       if (!group) group = expectations[tag] = [];
       group.push([selector, callback]);
@@ -124,6 +141,10 @@ var Expectations = LSD.Module.Expectations = new Class({
         if (state) widget.expect(state, callback);
       });
     } else {
+      /*
+        Selector without combinator,
+        depends on state of current widget.
+      */
       for (var types = ['pseudos', 'classes', 'attributes'], type, i = 0; type = types[i++];) {
         var values = selector[type];
         if (values) values: for (var j = 0, value; (value = values[j++]) && (value = value.key || value.value);) {

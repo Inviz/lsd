@@ -26,20 +26,16 @@ LSD.Trait.Form = new Class({
   },
   
   initialize: function() {
+    this.addEvent('nodeInserted', function(node) {
+      if (node.pseudos['read-write'] || node.pseudos['form-associated']) node.form = this;
+    });
     this.parent.apply(this, arguments);
-    console.log('ima form trait')
     if (!this.getAttribute('action')) this.setAttribute('action', location.pathname);
   },
   
-  submit: function(e) {
+  submit: function(event) {
     this.fireEvent('submit');
-    if (this.getRequestType() != 'form') {
-      if (e) e.stop();
-      this.send()
-    }
-  },
-  
-  reset: function() {
-    
-  }  
+    if (this.getRequestType() == 'form' && event && event.type == 'submit') return;
+    this.send();
+  }
 })

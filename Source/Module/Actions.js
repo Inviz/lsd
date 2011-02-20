@@ -20,7 +20,7 @@ provides:
 */
 
 LSD.Module.Actions = new Class({
-  Stateful: LSD.States.Known.disabled,
+  Stateful: Object.subset(LSD.States.Known, ['disabled']),
   
   initialize: function() {
     this.actions = {};
@@ -52,9 +52,9 @@ LSD.Module.Actions = new Class({
   mixin: function(mixin) {
     if (typeof mixin == 'string') mixin = LSD.Mixin[mixin.capitalize()];
     Class.mixin(this, mixin);
-    var options = Object.clone(mixin.prototype.options);
+    var options = mixin.prototype.options;
     if (!options) return;
-    for (var action in options.actions) this.addAction(action);
+    for (var action in options.actions) this.addAction(Object.clone(action));
     if (options.events) this.addEvents(this.bindEvents(options.events));
   },
 

@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Base
+  - LSD.Node
   - LSD.Module.Events
   - LSD.Module.Expectations
   - LSD.Module.DOM
@@ -31,7 +31,6 @@ provides:
   So if a new module needs to be included into the base class, then it only needs
   to be *require*d.
 */
-
 LSD.Native = new Class({
   
   Includes: [
@@ -55,7 +54,6 @@ LSD.Native = new Class({
           this.element.erase('disabled');
         },
         disable: function() {
-          console.log(123, 'DISABLE')
           this.element.set('disabled', true);
         }
       }
@@ -63,9 +61,9 @@ LSD.Native = new Class({
   },
   
   initialize: function() {
-    $z = this;
     this.parent.apply(this, arguments);
     if (this.options.writable && !this.attributes.tabindex && (this.options.focusable !== false)) this.setAttribute('tabindex', 0) 
     this.addPseudo(this.options.writable ? 'read-write' : 'read-only');
+    if (this.element) this.build()
   }
 });

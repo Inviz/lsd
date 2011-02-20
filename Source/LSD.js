@@ -45,6 +45,8 @@ Object.append(LSD, {
   States: {
     Known: {
       'built':    ['build', 'destroy', false],
+      'attached': ['attach', 'detach', false],
+      'dirty':    ['update', 'render', false],
       'hidden':   ['hide',    'show'],
       'disabled': ['disable', 'enable'],
       'focused':  ['focus',   'blur']

@@ -104,7 +104,7 @@ LSD.Container = new Class({
   },
   
   append: function(element) {
-    if (!$(element)) return false;
+    if (!document.id(element)) return false;
     this.element.adopt(element);
     this.update();
     return element;

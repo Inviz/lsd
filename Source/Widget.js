@@ -11,7 +11,6 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Node
-  - LSD.Base
   - LSD.Module.Layout
   - LSD.Module.Styles
   - LSD.Module.Events
@@ -61,6 +60,17 @@ LSD.Widget = new Class({
     this.parent(element, options);
     if (this.options.writable && !this.attributes.tabindex && (this.options.focusable !== false)) this.setAttribute('tabindex', 0);
     this.addPseudo(this.options.writable ? 'read-write' : 'read-only');
+  },
+
+  /*
+    Wrapper is where content nodes get appended. 
+    Defaults to this.element, but can be redefined
+    in other Modules or Traits (as seen in Container
+    module)
+  */
+  
+  getWrapper: function() {
+    return this.toElement();
   }
 });
 

@@ -110,7 +110,11 @@ LSD.Mixin.Focus.Propagation = {
   
   blur: function(parent) {
     var active = parent.document.activeElement;
-    var hierarchy = active ? active.getHierarchy() : [];
+    var hierarchy = [];
+    if (active) {
+      var widget = active;
+      while (widget.parentNode) hierarchy.unshift(widget = widget.parentNode);
+    }
     while (parent = parent.parentNode) {
       if (active && hierarchy.contains(parent)) break;
       if (parent.options && $defined(parent.options.tabindex) && parent.blur) parent.blur(true);

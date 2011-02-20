@@ -25,12 +25,7 @@ LSD.Node = new Class({
   options: {},
 
   initialize: function(element, options) {
-    if ((element && !element.tagName) || (options && options.tagName)) {
-      var el = options;
-      options = element;
-      element = el;
-    }
-    this.element = document.id(element);
+    if (element) this.element = document.id(element)
     this.setOptions(options);
   },
   

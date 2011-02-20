@@ -17,6 +17,8 @@ provides: [LSD.Layout]
 ...
 */
 
+(function() {
+  
 /* 
   Layout takes any tree-like structure and tries
   to build layout that representats that structure.
@@ -48,16 +50,16 @@ LSD.Layout = new Class({
   initialize: function(widget, layout, options) {
     this.setOptions(options);
     this.context = LSD[this.options.context.capitalize()];
-    if (layout) {
-      this.render(layout, this.convert(widget) || widget)
-    } else {
-      this.render(widget);
-    }
+    this.render(layout || widget, layout ? this.convert(widget) : null, true);
   },
   
-  render: function(layout, parent) {
-    var type = typeOf(layout);
-    return type ? this[type](layout, parent) : layout;
+  render: function(layout, parent, loud, arg) {
+    var type = layout.push ? 'array' : layout.nodeType ? 'element' : 'object';
+    var result = this[type](layout, parent, arg);
+    if (result && parent && result != layout && result.inject && result.parentNode != parent) {
+      result.inject(parent, 'bottom', !loud);
+      }
+    return result;
   },
   
   materialize: function(selector, layout, parent) {
@@ -72,8 +74,10 @@ LSD.Layout = new Class({
   */
   
   parse: function(selector) {
+    if (!this.parsed) this.parsed = {};
+    else if (this.parsed[selector]) return this.parsed[selector];
+    var options = {};
     var parsed = Slick.parse(selector).expressions[0][0]
-    var options = {layout: {instance: this}}
     if (parsed.tag != '*') options.source = parsed.tag;
     if (parsed.id) options.id = parsed.id
     if (parsed.attributes) parsed.attributes.each(function(attribute) {
@@ -89,7 +93,7 @@ LSD.Layout = new Class({
       case '>':
         options.inherit = 'partial';
     }
-    return options;
+    return (this.parsed[selector] = options);
   },
   
   /* 
@@ -113,7 +117,8 @@ LSD.Layout = new Class({
     if (tag != 'div') options.source = tag;
     if (element.id) options.id = element.id;
     for (var i = 0, attribute; attribute = element.attributes[i++];) {
-      options.attributes[attribute.name] = ((attribute.value != attribute.name) && attribute.value) || true;
+      var value = ((attribute.value != attribute.name) && attribute.value);
+      options.attributes[attribute.name] = (value == null) ? true : value;
     }
     if (options.attributes && options.attributes.inherit) {
       options.inherit = options.attributes.inherit;
@@ -144,8 +149,14 @@ LSD.Layout = new Class({
     return options;
   },
   
-  convert: function(element) {
-    return (this.isConvertable(element)) ? this.build(this.extract(element)) : false;
+  convert: function(element, transformed) {
+    if (transformed == null) transformed = this.transform(element)
+    if (transformed) return this.build(transformed);
+    if (this.isConvertable(element)) return this.build(this.extract(element));
+  },
+  
+  patch: function(element, transformed) {
+    if (this.isAugmentable(element, transformed)) return this.build(transformed || this.extract(element), element)
   },
   
   build: function(options) {
@@ -165,6 +176,8 @@ LSD.Layout = new Class({
         }
       }
     }
+    if (!options.layout) options.layout = {};
+    if (!options.layout.instance) options.layout.instance = this;
     if (options.inherit) {
       var source = parent.options.source;
       if (!source) {
@@ -185,10 +198,18 @@ LSD.Layout = new Class({
     Replaces an element with a widget. Also replaces
     all children widgets when possible. 
   */
-  replace: function(element) {
-    var converted = this.convert(element);
-    if (converted) converted.toElement().replaces(element);
-    return true;
+  replace: function(element, parent, transformed) {
+    var converted = this.convert(element, transformed);
+    if (converted) {
+      var replacement = converted.toElement();
+      replacement.replaces(element);
+      var node, next = element.firstChild;
+      while (node = next) {
+        next = next.nextSibling;
+        replacement.appendChild(node);
+      }
+    }
+    return converted;
   },
   
   /*
@@ -196,9 +217,10 @@ LSD.Layout = new Class({
     at all costs and tries to use the whole tree. Used
     as a primary method in regular HTML applications.
   */
-  augment: function(element) {
-    if (this.isAugmentable(element)) return this.build(this.extract(element), element)
-    return false;
+  augment: function(element, parent, transformed) {
+    var converted = this.patch(element, transformed)
+    if (converted && converted.element) Converted[converted.element.uid] = converted;
+    return converted;
   },
   
   /*
@@ -209,7 +231,7 @@ LSD.Layout = new Class({
   */
   
   clone: function(element, parent) {
-    var converted = this.convert(element);
+    var converted = this.convert.apply(this, arguments);
     if (converted) {
       converted.inject(parent);
     } else {
@@ -232,13 +254,21 @@ LSD.Layout = new Class({
     return elements.map(function(widget) { return this.render(widget, parent)}.bind(this));
   },
   
-  element: function(element, parent) {
-    if (this.isConvertable(element)) {
-      var widget = this[this.options.method](element, parent);
-      if (!widget && this.options.fallback) widget = this[this.options.fallback](element, parent)
+  element: function(element, parent, arg) {
+    var converted = element.uid && Converted[element.uid];
+    var method = this.options.method;
+    if (!converted) {
+      var transformed = this.transform(element);
+      if (transformed || this.isConvertable(element)) {
+        var widget = this[method](element, parent, transformed), success = !!widget;
+        if (!widget && this.options.fallback) widget = this[this.options.fallback](element, parent, transformed);
+      }
+    } else var widget = converted;
+    if (method == 'augment' && (success || !widget || converted)) {
+      if (arg !== true && element.childNodes.length) this.find(element, widget);
+    } else {
+      this.walk(element)
     }
-    var children = element.childNodes;
-    if (children) for (var i = 0, node; node = children[i++];) this[node.nodeType == 1 ? 'element' : 'textnode'](node, widget);
     return widget || element;
   },
   
@@ -248,28 +278,78 @@ LSD.Layout = new Class({
     return widgets;
   },
   
-  textnode: function(textnode, parent) {
-    if (this.options.method == 'clone') parent.toElement().appendText(textnode)
-    return true;
+  walk: function(element, parent) {
+    var node = element.firstChild;
+    while (node) {
+      if (node.nodeType == 1) this.render(node, parent);
+      node = node.nextSibling;
+    }
+  },
+  
+  find: function(element, root) {
+    var last, children = element.getElementsByTagName("*");
+    var found = {};
+    for (var i = 0, child; child = children[i++];) {
+      var parent = null, node = child;
+      if (last) while (node = node.parentNode) if (node == element || node.uid && (parent = found[node.uid])) break;
+      var widget = this.render(child, parent || root, false, true);
+      if (widget && widget.element) found[widget.element.uid] = last = widget;
+    }
+  },
+  
+  // transformations
+  
+  merge: function(first, second) {
+    var result = {layout: first.layout}, id, combinator;
+    result.source = second.source || first.source;
+    if (id = (second.id || first.id)) result.id = id;
+    if (combinator = (second.combinator || first.combinator)) result.combinator = combinator;
+    if (second.attributes || first.attributes) result.attributes = Object.append({}, first.attributes, second.attributes);
+    if (second.classes || first.classes) result.classes = Array.concat([], first.classes || [], second.classees || []);
+    if (second.pseudos || first.pseudos) result.pseudos = Array.concat([], first.pseudos || [], second.pseudos || []);
+    return result;
+  },
+  
+  transform: function(element) {
+    for (var selector in Transformations)
+      if (Slick.match(element, selector)) 
+        return this.merge(this.extract(element), this.parse(Transformations[selector]));
+    return false;
   },
   
   // redefinable predicates
   
   isConvertable: function(element) {
-    return element.nodeType == 1 && element.tagName && !!this.context[element.tagName.capitalize()]
+    var memo = convertable[element.tagName];
+    if (memo != null) return memo;
+    var tagName = element.tagName;
+    var tag = tags[tagName] || (tags[tagName] = tagName.toLowerCase());
+    return (convertable[tagName] = !!this.context[tag.capitalize()]);
   },
   
-  isAugmentable: function(element) {
+  isAugmentable: function(element, transformed) {
     if (element.nodeType != 1) return true;
-    var klass = this.context[element.tagName.capitalize()];
+    var tag = tags[element.tagName] || (tags[element.tagName] = element.tagName.toLowerCase());
+    var source = transformed ? transformed.source : tag;
+    var memo = augmentable[source];
+    var klass = (memo != null) ? memo : (augmentable[source] = this.context[source.capitalize()] || false);
     if (!klass) return;
-    var opts = klass.prototype.options.element;
-    return !opts || !opts.tag || (opts.tag == element.tagName.toLowerCase());
+    var opts = klass.prototype.options;
+    return !opts || ((opts.element && opts.element.tag) ? (opts.element.tag == tag) : (!opts.tag || opts.tag == tag))
   }
 });
+
+var tags = {};
+var convertable = {};
+var augmentable = {};
+var Converted = LSD.Layout.converted = {};
+var Transformations = LSD.Layout.Transformations = {};
 
 ['replace', 'augment', 'clone'].each(function(method) {
   LSD.Layout[method] = function(element, layout, options) {
     return new LSD.Layout(element, layout, Object.append({method: method}, options));
   }
 });
+
+
+})();

@@ -17,7 +17,6 @@ provides:
 */
 
 LSD.Trait.Value = new Class({
-
   setValue: function(item) {
     var value = this.value;
     this.value = this.processValue(item);
@@ -29,16 +28,21 @@ LSD.Trait.Value = new Class({
   },
   
   applyValue: function(item) {
-    //if (this.element.getProperty('itemprop')) this.element.set('itemvalue', item);
-    return this.setContent(item)
+    if (this.element.getProperty('itemprop')) this.element.set('itemvalue', item);
+    //return this.setContent(item)
   },
 
   getValue: function() {
     return this.formatValue(this.value);
   },
 
-  formatValue: $arguments(0),
-  processValue: $arguments(0),
+  formatValue: function(value) {
+    return value;
+  },
+  
+  processValue: function(value) {
+    return value;
+  },
   
   onChange: function() {
     this.fireEvent('change', arguments)

@@ -51,10 +51,9 @@ LSD.Document = new Class({
   },
   
   initialize: function(element, options) {
-    console.log(Object.append({}, LSD.document), 656666)
     if (!LSD.document.body) LSD.document = Object.append(this, LSD.document);
-    this.parent.apply(this, [element || options.origin, options]);
-    this.body = this.element.store('widget', this);
+    this.parent.apply(this, [element, options]);
+    this.body = this.element;
     this.document = this.documentElement = this;
     
     this.xml = true;
@@ -63,10 +62,10 @@ LSD.Document = new Class({
     
     this.nodeType = 9;
     this.events = this.options.events;
+    this.build();
   },
   
   build: function() {
-    LSD.Layout.augment(this.element);
     if (this.stylesheets) this.stylesheets.each(this.addStylesheet.bind(this))
   },
   
@@ -93,7 +92,7 @@ LSD.Document = new Class({
   
   appendChild: function(widget) {
     if (widget.mock) return false;
-    if (this.options.root) widget.parentNode = this; 
+    if (this.options.root) widget.parentNode = this;
     return this.parent.apply(this, arguments);
   },
   

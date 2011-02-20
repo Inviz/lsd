@@ -46,6 +46,7 @@ sources:
   - Source/Mixin/Position.js
   - Source/Mixin/Focus.js
   - Source/Mixin/Request.js
+  - Source/Mixin/Validity.js
   - Source/Module/Container.js
   - Source/Module/Command.js
   - Source/Module/DOM.js
@@ -71,6 +72,8 @@ sources:
   - Source/Trait/Input.js
   - Source/Trait/Slider.js
   - Source/Trait/Form.js
+  - Source/Trait/Fieldset.js
+  - Source/Trait/Field.js
   - Source/Action.js
   - Source/Container.js
   - Source/Element.js
@@ -78,7 +81,6 @@ sources:
   - Source/Fx.js
   - Source/Node.js
   - Source/Sheet.js
-  - Source/Base.js
   - Source/Native.js
   - Source/Widget.js
   - Source/Widget.Paint.js
