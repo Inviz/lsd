@@ -59,7 +59,17 @@ LSD.Document = new Class({
     this.xml = true;
     this.navigator = {};
     this.attributes = {};
-    
+    this.slickFeatures = {
+      brokenStarGEBTN: false,
+      starSelectsClosedQSA: false,
+      idGetsName: false,
+      brokenMixedCaseQSA: false,
+      brokenGEBCN: false,
+      brokenCheckedQSA: false,
+      brokenEmptyAttributeQSA: false,
+      isHTMLDocument: false,
+      nativeMatchesSelector: false
+    }                        
     this.nodeType = 9;
     this.events = this.options.events;
     this.build();
@@ -67,38 +77,6 @@ LSD.Document = new Class({
   
   build: function() {
     if (this.stylesheets) this.stylesheets.each(this.addStylesheet.bind(this))
-  },
-  
-  /*
-    Slick.Finder tries to probe document it was given to determine
-    capabilities of the engine and possible quirks that will alter
-    the desired results. 
-    
-    We try to emulate XML-tree (simple built-in querying capabilities),
-    so all of the traversing work happens inside of Slick except 
-    getElementsByTagName which is provided by LSD.Module.DOM.
-    
-    So the problem is that Slick creates element and tries to 
-    append it to the document which is unacceptable (because every node
-    in LSD.Document means widget instance, and we dont want that for 
-    dummy elements). The solution is to ignore those elements.
-  */
-  createElement: function(tag) {
-    return {
-      innerText: '',
-      mock: true
-    }
-  },
-  
-  appendChild: function(widget) {
-    if (widget.mock) return false;
-    if (this.options.root) widget.parentNode = this;
-    return this.parent.apply(this, arguments);
-  },
-  
-  removeChild: function(widget) {
-    if (widget.mock) return false;
-    return this.parent.apply(this, arguments);
   },
   
   getAttribute: function(name) {
