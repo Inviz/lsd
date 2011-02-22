@@ -46,7 +46,7 @@ LSD.Trait.Layers = new Class({
 
   addLayer: function(name, value) {
     var slots = this.style.layers;
-    var layer = this.layers[name] = LSD.Layer.get(name, Array.from(value));
+    var layer = this.layers[name] = LSD.Layer.get(name, Array.concat(value));
     for (var i = 0, painter; painter = layer.painters[i++];) {
       for (var group = painter.keys, j = 0, property; property = group[j++];) {
         if (!slots[property]) slots[property] = [];

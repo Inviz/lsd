@@ -72,11 +72,11 @@ LSD.Mixin.Request = new Class({
   },
   
   getRequestType: function() {
-    return this.getAttribute('transport') || this.options.request.type;
+    return this.attributes.transport || this.options.request.type;
   },
   
   getRequestMethod: function() {
-    return this.getAttribute('method') || this.options.request.method;
+    return this.attributes.method || this.options.request.method;
   },
   
   getRequestURL: function() {

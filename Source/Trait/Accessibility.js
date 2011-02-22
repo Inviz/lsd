@@ -38,7 +38,7 @@ provides:
 
   var parse = function(expression){
     if (presets[expression]) expression = presets[expression];
-    return Array.from(expression).map(function(type) {
+    return (expression.push ? expression : [expression]).map(function(type) {
       if (!parsed[type]){
         var bits = [], mods = {}, string, event;
         if (type.contains(':')) {

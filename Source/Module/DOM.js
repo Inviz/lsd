@@ -64,10 +64,12 @@ LSD.Module.DOM = new Class({
     delete attrs.tag;
     if (!this.element) this.element = new Element(tag, attrs);
     else var element = this.element.set(attrs);
-    this.element.addClass('lsd').store('widget', this);;
-    if (options.tag != tag) this.element.addClass(options.tag || this.tagName);
-    this.classes.each(this.element.addClass.bind(this.element));
-    if (options.id) this.element.addClass('id-' + options.id);
+    var classes = [];
+    if (options.tag != tag) classes.push('lsd', options.tag || this.tagName);
+    if (options.id) classes.push('id-' + options.id);
+    this.classes.each(function(cls) { classes.push(cls) });
+    this.element.store('widget', this);
+    if (classes.length) this.element.className = classes.join(' ');
     if (this.attributes) 
       for (var name in this.attributes) 
         if (name != 'width' && name != 'height') {
@@ -154,9 +156,9 @@ LSD.Module.DOM = new Class({
     else this['_' + tags].push(widget);
         
     this.childNodes.push(widget);
-    if (this.nodeType != 9) widget.setParent(this);
-    if ((!widget.quiet || (this.toElement() && !this.element.parentNode)) && (adoption !== false)) (adoption || function() {
-      this.toElement().appendChild(document.id(widget));
+    widget.setParent(this);
+    if (!widget.quiet && adoption !== false && this.toElement()) (adoption || function() {
+      this.element.appendChild(document.id(widget));
     }).apply(this, arguments);
     delete widget.quiet;
     
@@ -179,11 +181,11 @@ LSD.Module.DOM = new Class({
   },
   
   setDocument: function(widget) {
-    var element = document.id(widget);
     var doc;
+    var element = ('localName' in widget) ? widget : widget.element;
     var isDocument = (widget.nodeType == 9);
-    var isBody = element.get('tag') == 'body';
-    if (isDocument || isBody || element.offsetParent) {
+    var isBody = element && element.tagName.toLowerCase() == 'body';
+    if (isDocument || isBody || this.parentNode.dominjected || element.offsetParent) {
       if (!isDocument) {
         var body = (isBody ? element : element.ownerDocument.body);
         doc = body.retrieve('widget') || new LSD.Document(body);
@@ -193,7 +195,7 @@ LSD.Module.DOM = new Class({
       this.walk(function(child) {
         //if (child.halted) halted.push(child);
         child.ownerDocument = child.document = doc;
-        child.fireEvent('dominject', element);
+        child.fireEvent('dominject', [element, doc]);
         child.dominjected = true;
       });
       //halted.each(function(child) {
@@ -212,10 +214,10 @@ LSD.Module.DOM = new Class({
       }
     }
     var self = isElement ? this.toElement() : this;
-    this.quiet = quiet;
+    this.quiet = quiet || (widget.nodeType == 9);
     if (!inserters[where || 'bottom'](self, widget) && !quiet) return false;
-    this.fireEvent('inject', arguments);
-    if (quiet !== true) this.setDocument(widget);
+    if (quiet !== true || widget.document) this.setDocument(widget);
+    this.fireEvent('inject', this.parentNode);
     return true;
   },
 
@@ -237,7 +239,6 @@ LSD.Module.DOM = new Class({
   },
   
   dispatchEvent: function(type, args){
-    args = Array.from(args);
     var node = this;
     type = type.replace(/^on([A-Z])/, function(match, letter) {
       return letter.toLowerCase();
@@ -245,7 +246,7 @@ LSD.Module.DOM = new Class({
     while (node) {
       var events = node.$events;
       if (events && events[type]) events[type].each(function(fn){
-        return fn.apply(node, args);
+        return fn[args.push ? 'apply' : 'call'](node, args);
       }, node);
       node = node.parentNode;
     }

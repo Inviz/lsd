@@ -37,10 +37,6 @@ LSD.Module.Events = new Class({
   
   initialize: function() {
     this.addEvents({
-      build: function() {
-        this.attach();
-      },
-
       destroy: function() {
         this.detach();
       },
@@ -54,6 +50,7 @@ LSD.Module.Events = new Class({
         this.removeEvents(this.events);
       }
     }, true);
+    this.attach();
     this.parent.apply(this, arguments);
   },
   
@@ -169,7 +166,35 @@ LSD.Module.Events.Targets = {
     return this
   },
   element: function() { 
-    return this.element
+    if (this.element) return this.element;
+    var promise = this.$events.$element;
+    if (!promise) {
+      promise = this.$events.$element = {
+        events: {},
+        addEvents: function(events) {
+          for (var name in events) {
+            var group = promise.events[name]
+            if (!group) group = promise.events[name] = [];
+            group.push(events[name]);
+          }
+        },
+        removeEvents: function(events) {
+          for (var name in events) {
+            var group = promise.events[name]
+            if (group) group.erase(events[name]);
+          }
+        }       
+      }  
+      this.addEvent('build', function() {
+        var events = promise.events;
+        var element = this.element;
+        for (var name in events) {
+          for (var i = 0, fn; fn = events[name][i++];) element.addEvent(name, fn);
+        }
+        this.element.addEvents()
+      });
+    }
+    return promise;
   },
   window: function() {
     return window;

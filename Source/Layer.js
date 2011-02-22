@@ -47,7 +47,8 @@ LSD.Layer.prototype = {
         
     } else if (!shape.indexOf){
       for (var name in shape) {
-        var values = Array.from(shape[name]);
+        var values = shape[name];
+        if (!values.push) values = [values];
         shape = name;
       }
     }

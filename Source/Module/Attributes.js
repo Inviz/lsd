@@ -22,24 +22,22 @@ provides:
 LSD.Module.Attributes = new Class({
   
   initialize: function() {
-    var classes = (this.classes || []).concat(this.options.classes || []);
-    var pseudos = (this.pseudos || []).concat(this.options.pseudos || []);
     this.classes = new FastArray
     this.pseudos = new FastArray
     this.attributes = {}
     this.parent.apply(this, arguments);
-    if (this.options.attributes) for (var name in this.options.attributes) if (!LSD.Attributes.Ignore[name]) this.attributes[name] = this.options.attributes[name]
-    pseudos.each(function(value) {
+    if (this.options.attributes) for (var name in this.options.attributes) if (!LSD.Attributes.Ignore[name]) this.attributes[name] = this.options.attributes[name];
+    (this.pseudos || []).concat(this.options.pseudos || []).each(function(value) {
       this.setStateTo(value, true);
     }, this);
-    classes.each(this.addClass.bind(this));
+    (this.classes || []).concat(this.options.classes || []).each(this.addClass.bind(this));
   },
   
   getAttribute: function(attribute) {
     switch (attribute) {
       case "id": return this.options.id || this.identifier;
       case "class": return this.classes.join(' ');
-      default:   return this.attributes[attribute]
+      default:   return this.attributes[attribute] || this.pseudos[attribute]
     }
   },
   
@@ -58,7 +56,7 @@ LSD.Module.Attributes = new Class({
     if (value === attribute) value = true;
     if (typeof value != 'string') value = value.toString()  //Slick compat
     this.attributes[attribute] = value;
-    if (attribute != 'slick:uniqueid')
+    if (attribute != 'slick-uniqueid')
     if (this.element) this.element.setProperty(attribute, value);
   },
 
@@ -117,7 +115,7 @@ LSD.Module.Attributes = new Class({
   },
   
   onStateChange: function(state, value, args) {
-    var args = Array.from(arguments);
+    var args = Array.prototype.splice(arguments, 0);
     args.slice(1, 2); //state + args
     this[value ? 'setState' : 'unsetState'].apply(this, args);
     this.fireEvent('stateChange', [state, args])

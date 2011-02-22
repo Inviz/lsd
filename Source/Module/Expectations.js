@@ -121,24 +121,29 @@ var Expectations = LSD.Module.Expectations = new Class({
     Then it's time to match the dynamic part. 
   */
   expect: function(selector, callback) {
-    var combinator = selector.combinator || 'self', expectations = this.expectations[combinator];
-    if (!expectations) expectations = this.expectations[combinator] = {};
+    var combinator = selector.combinator || 'self';
+    var id = selector.id;
+    var index = (combinator == ' ' && id) ? 'id' : combinator; 
+    expectations = this.expectations[index];
+    if (!expectations) expectations = this.expectations[index] = {};
     if (selector.combinator) {
       /*
         Given selector has combinator.
         Finds related elements and passes expectations to them.
       */
-      var tag = selector.tag, group = expectations[tag];
-      if (!group) group = expectations[tag] = [];
-      group.push([selector, callback]);
       if (!selector.structure) {
         var separated = separate(selector);
         selector.structure = { Slick: true, expressions: [[separated.structure]] }
         if (separated.state) selector.state = separated.state;
       }
+      var key = (index == 'id') ? id : selector.tag;
+      var group = expectations[key];
+      if (!group) group = expectations[key] = [];
+      group.push([selector, callback]);
       var state = selector.state;
       if (this.document) this.getElements(selector.structure).each(function(widget) {
         if (state) widget.expect(state, callback);
+        else callback(this, true);
       });
     } else {
       /*
@@ -240,9 +245,9 @@ var check = function(widget, type, value, state, target) {
   expectations = expectations && expectations[type] && expectations[type][value];
   if (expectations) for (var i = 0, expectation; expectation = expectations[i++];) {
     var selector = expectation[0];
-    if (selector.structure) {
+    if (selector.structure && selector.state) {
       if (target.match(selector.structure)) target.expect(selector.state, expectation[1])
-    } else if (target.match(expectation[0])) expectation[1](target, !!state)
+    } else if (target.match(selector)) expectation[1](target, !!state)
   }
 }
 
@@ -253,9 +258,11 @@ var notify = function(widget, type, tag, state, target) {
 
 var update = function(widget, tag, state) {
   notify(this, ' ', tag, true, widget);
+  var options = widget.options, id = options.id;
+  if (id) check(this, 'id', id, state, widget);
   if (this.previousSibling) {
-    notify(this.previousSibling, '!+', widget.options.tag, state, widget);
-    notify(this.previousSibling, '++', widget.options.tag, state, widget);
+    notify(this.previousSibling, '!+', options.tag, state, widget);
+    notify(this.previousSibling, '++', options.tag, state, widget);
     for (var sibling = this; sibling = sibling.previousSibling;) {
       notify(sibling, '!~', tag, state, widget);
       notify(sibling, '~~', tag, state, widget);
@@ -269,7 +276,7 @@ var update = function(widget, tag, state) {
       notify(sibling, '~~', tag, state, widget);
     }
   }
-  if (widget.parentNode == this) notify(this, '>', widget.options.tag, state, widget);
+  if (widget.parentNode == this) notify(this, '>', options.tag, state, widget);
 }
 
 var remove = function(array, callback) {

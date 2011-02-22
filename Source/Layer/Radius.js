@@ -29,7 +29,7 @@ LSD.Layer.Radius = {
   
   paint: function() {
     return {
-      radius: Array.from(arguments).map(function(r) { return r || 0})
+      radius: Array.prototype.splice.call(arguments, 0).map(function(r) { return r || 0})
     }
   }
 }

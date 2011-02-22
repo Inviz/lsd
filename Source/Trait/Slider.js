@@ -84,7 +84,7 @@ Slider = new Class({
   Extends: Slider,
   
   initialize: function() {
-    Array.from(this.Binds).each(function(name){
+    (this.Binds.push ? this.Binds : [this.Binds]).each(function(name){
       var original = this[name];
       if (original) this[name] = original.bind(this);
     }, this);

@@ -50,15 +50,18 @@ LSD.Layout = new Class({
   initialize: function(widget, layout, options) {
     this.setOptions(options);
     this.context = LSD[this.options.context.capitalize()];
-    this.render(layout || widget, layout ? this.convert(widget) : null, true);
+    this.render(layout || widget, layout ? this.convert(widget) : null);
   },
   
-  render: function(layout, parent, loud, arg) {
+  render: function(layout, parent, arg) {
     var type = layout.push ? 'array' : layout.nodeType ? 'element' : 'object';
     var result = this[type](layout, parent, arg);
-    if (result && parent && result != layout && result.inject && result.parentNode != parent) {
-      result.inject(parent, 'bottom', !loud);
+    if (result && parent && result != layout && result.inject) {
+      if (parent && parent.call) parent = parent(result.element || layout, result);
+      if (result.parentNode != parent) {
+        result.inject(parent, 'bottom', parent.nodeType == 1);
       }
+    }
     return result;
   },
   
@@ -232,12 +235,13 @@ LSD.Layout = new Class({
   
   clone: function(element, parent) {
     var converted = this.convert.apply(this, arguments);
+    if (parent && parent.call) parent = parent(element);
     if (converted) {
       converted.inject(parent);
     } else {
       parent.toElement().appendChild(document.cloneNode(element));
     }
-    return true;
+    return converted;
   },
   
   // type handlers
@@ -287,13 +291,17 @@ LSD.Layout = new Class({
   },
   
   find: function(element, root) {
-    var last, children = element.getElementsByTagName("*");
+    var selected = element.getElementsByTagName("*");
+    for (var children = [], i = 0, j = selected.length; i < j; i++) children[i] = selected[i];
     var found = {};
+    var getParent = function(node, result) {
+      var parent = null;
+      while (node = node.parentNode) if (node == element || node.uid && (parent = found[node.uid])) break;
+      return parent || root
+    };
     for (var i = 0, child; child = children[i++];) {
-      var parent = null, node = child;
-      if (last) while (node = node.parentNode) if (node == element || node.uid && (parent = found[node.uid])) break;
-      var widget = this.render(child, parent || root, false, true);
-      if (widget && widget.element) found[widget.element.uid] = last = widget;
+      var widget = this.render(child, getParent, true);
+      if (widget && widget.element) found[widget.element.uid] = widget;
     }
   },
   
@@ -311,9 +319,12 @@ LSD.Layout = new Class({
   },
   
   transform: function(element) {
-    for (var selector in Transformations)
-      if (Slick.match(element, selector)) 
+    
+    for (var selector in Transformations) {
+      var parsed = ParsedTransformations[selector] || (ParsedTransformations[selector] = Slick.parse(selector));
+      if (Slick.match(element, parsed)) 
         return this.merge(this.extract(element), this.parse(Transformations[selector]));
+    }
     return false;
   },
   
@@ -344,6 +355,7 @@ var convertable = {};
 var augmentable = {};
 var Converted = LSD.Layout.converted = {};
 var Transformations = LSD.Layout.Transformations = {};
+var ParsedTransformations = {};
 
 ['replace', 'augment', 'clone'].each(function(method) {
   LSD.Layout[method] = function(element, layout, options) {

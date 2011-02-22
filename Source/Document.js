@@ -72,11 +72,17 @@ LSD.Document = new Class({
     }                        
     this.nodeType = 9;
     this.events = this.options.events;
+    this.dominjected = true;
     this.build();
   },
   
   build: function() {
-    if (this.stylesheets) this.stylesheets.each(this.addStylesheet.bind(this))
+    if (this.stylesheets) this.stylesheets.each(this.addStylesheet.bind(this));
+    this.parent.apply(this, arguments);
+  },
+  
+  setParent: function(widget) {
+    if (this.options.root) this.parent.apply(this, arguments);
   },
   
   getAttribute: function(name) {

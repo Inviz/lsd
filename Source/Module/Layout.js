@@ -31,13 +31,13 @@ LSD.Module.Layout = new Class({
     }
     this.childNodes = [];
     if (element) LSD.Layout.converted[$uid(element)] = this;
-    if ((!options || !options.layout || !options.layout.instance)) {
-      this.layout = new LSD.Layout(element, null, this.options.layout)
-    } else this.layout = options.layout.instance;
     this.addEvent('build', function() {
       LSD.Layout.converted[$uid(this.element)] = this;
     })
-    this.parent(element, options)
+    this.parent(element, options);
+    if ((!options || !options.layout || !options.layout.instance)) {
+      this.layout = new LSD.Layout(element, null, this.options.layout)
+    } else this.layout = options.layout.instance;
     if (this.options.layout.children) this.layout.render(this.options.layout.children)
     if (this.options.layout.self) this.applySelector(this.options.layout.self);
   },

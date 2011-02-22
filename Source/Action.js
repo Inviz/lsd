@@ -43,7 +43,7 @@ LSD.Action = function(options, name) {
     },
 
     use: function(widget, state) {
-      var widgets = Array.from(arguments);
+      var widgets = Array.prototype.splice.call(arguments, 0);
       var state = widgets.pop();
       self[state ? 'enable' : 'disable'].apply(self, widgets);
     },

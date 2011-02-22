@@ -37,6 +37,11 @@ provides:
 LSD.Mixin.Validity = new Class({
   behaviour: ':read-write',
   
+  initialize: function() {
+    this.parent.apply(this, arguments);
+    this.addClass(this.attributes.required ? 'required' : 'optional');
+  },
+  
   checkValidity: function() {
     var validity = this.validity = {};
     var value = this.getValue();e
