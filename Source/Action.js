@@ -60,7 +60,7 @@ LSD.Action = function(options, name) {
 
     attach: function(widget) {
       target = widget;
-      state = widget.options.states && widget.options.states[name];
+      state = name && widget.options.states && widget.options.states[name];
       if (state) {
         events[state.enabler] = options.enable.bind(target);
         events[state.disabler] = options.disabler.bind(target);
@@ -70,7 +70,7 @@ LSD.Action = function(options, name) {
         target.use(options.uses, self.use);
       } else if (options.watches) {
         target.watch(options.watches, self.watch);
-      } else if (!state || target[name]) target.onDOMInject(self.inject);
+      } else if (!state || (name && target[name])) target.onDOMInject(self.inject);
     },
 
     detach: function(widget) {
@@ -89,5 +89,5 @@ LSD.Action = function(options, name) {
     disable: self.disable,
     detach:  self.disable
   };  
-  return self ;
+  return self;
 }

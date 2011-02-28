@@ -42,7 +42,7 @@ LSD.Module.Events = new Class({
       },
 
       attach: function() {
-        if (!this.events) this.events = this.bindEvents(this.options.events);
+        if (!this.events) this.events = this.options.events ? this.bindEvents(this.options.events) : {};
         this.addEvents(this.events);
       },
 
@@ -161,6 +161,30 @@ LSD.Module.Events = new Class({
   }
 */
 
+LSD.Module.Events.Promise = function() {
+  this.events = {}
+}
+LSD.Module.Events.Promise.prototype = {
+  addEvents: function(events) {
+    for (var name in events) {
+      var group = this.events[name]
+      if (!group) group = this.events[name] = [];
+      group.push(events[name]);
+    }
+  },
+  
+  removeEvents: function(events) {
+    for (var name in events) {
+      var group = this.events[name]
+      if (group) group.erase(events[name]);
+    }
+  },
+  
+  realize: function(object) {
+    for (var name in this.events) for (var i = 0, fn; fn = this.events[name][i++];) object.addEvent(name, fn);
+  }
+}
+
 LSD.Module.Events.Targets = {
   self: function() { 
     return this
@@ -169,29 +193,9 @@ LSD.Module.Events.Targets = {
     if (this.element) return this.element;
     var promise = this.$events.$element;
     if (!promise) {
-      promise = this.$events.$element = {
-        events: {},
-        addEvents: function(events) {
-          for (var name in events) {
-            var group = promise.events[name]
-            if (!group) group = promise.events[name] = [];
-            group.push(events[name]);
-          }
-        },
-        removeEvents: function(events) {
-          for (var name in events) {
-            var group = promise.events[name]
-            if (group) group.erase(events[name]);
-          }
-        }       
-      }  
+      promise = this.$events.$element = new LSD.Module.Events.Promise
       this.addEvent('build', function() {
-        var events = promise.events;
-        var element = this.element;
-        for (var name in events) {
-          for (var i = 0, fn; fn = events[name][i++];) element.addEvent(name, fn);
-        }
-        this.element.addEvents()
+        promise.realize(this.element)
       });
     }
     return promise;

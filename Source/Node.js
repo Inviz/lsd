@@ -47,4 +47,4 @@ LSD.Node = new Class({
   $family: function() {
     return "object"
   }
-})
+});

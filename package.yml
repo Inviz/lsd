@@ -24,6 +24,7 @@ sources:
   - Source/Command/Radio.js
   - Source/Document.js
   - Source/Document/Resizable.js
+  - Source/Document/Commands.js
   - Source/LSD.js
   - Source/Layer.js
   - Source/Layer/Color.js
@@ -47,6 +48,7 @@ sources:
   - Source/Mixin/Focus.js
   - Source/Mixin/Request.js
   - Source/Mixin/Validity.js
+  - Source/Mixin/Target.js
   - Source/Module/Container.js
   - Source/Module/Command.js
   - Source/Module/DOM.js
@@ -74,12 +76,14 @@ sources:
   - Source/Trait/Form.js
   - Source/Trait/Fieldset.js
   - Source/Trait/Field.js
+  - Source/Trait/Date.js
   - Source/Action.js
   - Source/Container.js
   - Source/Element.js
   - Source/Layout.js
   - Source/Fx.js
   - Source/Node.js
+  - Source/Node/Link.js
   - Source/Sheet.js
   - Source/Native.js
   - Source/Widget.js

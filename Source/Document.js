@@ -35,7 +35,10 @@ LSD.Document = new Class({
 
   Includes: [
     LSD.Node,
-    LSD.Module.DOM
+    LSD.Module.Attributes,
+    LSD.Module.DOM,
+    LSD.Module.Events,
+    LSD.Module.Layout
   ],
   
   States: {
@@ -83,14 +86,6 @@ LSD.Document = new Class({
   
   setParent: function(widget) {
     if (this.options.root) this.parent.apply(this, arguments);
-  },
-  
-  getAttribute: function(name) {
-    return this.attributes[name]
-  },
-  
-  setAttribute: function(name, value) {
-    return this.attributes[name] = value;
   },
   
   id: function(item) {

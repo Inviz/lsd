@@ -67,5 +67,5 @@ LSD.start = function() {
   if (LSD.started) return;
   LSD.started = true;
   LSD.fireEvent('before');
-  LSD.fireEvent('ready');
+  LSD.fireEvent('ready', arguments);
 };

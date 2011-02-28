@@ -65,5 +65,9 @@ LSD.Native = new Class({
     if (this.options.writable && !this.attributes.tabindex && (this.options.focusable !== false)) this.setAttribute('tabindex', 0) 
     this.addPseudo(this.options.writable ? 'read-write' : 'read-only');
     if (this.element) this.build()
+  },
+  
+  setContent: function(content) {
+    this.toElement().innerHTML = content;
   }
 });

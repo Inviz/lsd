@@ -312,8 +312,8 @@ Expectations.behave = function(selector, events) {
   };
 }
 
-LSD.addEvent('ready', function() {
-  for (selector in Expectations.behaviours) LSD.document.watch(selector, Expectations.behaviours[selector]);
+LSD.addEvent('ready', function(document) {
+  for (selector in Expectations.behaviours) document.watch(selector, Expectations.behaviours[selector]);
 });
 
 LSD.Module.Events.Targets.expected = function() {

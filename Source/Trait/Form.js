@@ -26,10 +26,16 @@ LSD.Trait.Form = new Class({
   },
   
   initialize: function() {
-    this.addEvent('nodeInserted', function(node) {
-      if (node.pseudos['read-write'] || node.pseudos['form-associated']) node.form = this;
+    this.addEvents({
+      nodeInserted: function(node) {
+        if (node.pseudos['read-write'] || node.pseudos['form-associated']) node.form = this;
+      },
+      build: function() {
+        this.element.submit = this.submit.bind(this);
+      }
     });
     this.parent.apply(this, arguments);
+    
     if (!this.getAttribute('action')) this.setAttribute('action', location.pathname);
   },
   

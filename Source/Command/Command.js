@@ -25,7 +25,8 @@ LSD.Command = new Class({
   },
   
   options: {
-    id: null
+    id: null,
+    action: null
   },
   
   Implements: [Options, Events],

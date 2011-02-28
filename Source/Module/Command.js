@@ -22,7 +22,8 @@ provides:
 */
 
 /*
-  Usually widget generate a command on its own. 
+  Usually a widget that does something interactive defines command
+  automatically. 
   
   The default type is 'command', but there are possible values of 
   'radio' and 'checkbox'.
@@ -62,7 +63,17 @@ LSD.Module.Command = new Class({
   
   click: function() {
     this.fireEvent('click', arguments);
-    return this.getCommand().click();
+    var action = this.getCommandAction.apply(this, arguments);
+    if (action) this.execute(action);
+    return this.getCommand().click(widget);
+  },
+  
+  execute: function() {
+    
+  },
+  
+  getCommandAction: function() {
+    return false;
   }
   
 });

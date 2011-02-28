@@ -20,7 +20,10 @@ provides: [LSD.Module.Layout]
 
 LSD.Module.Layout = new Class({
   options: {
-    layout: {},
+    layout: {
+      instance: null,
+      extract: false
+    },
   },
   
   initialize: function(element, options) {
@@ -29,14 +32,15 @@ LSD.Module.Layout = new Class({
       options = element;
       element = el;
     }
+    if (this.options.layout.extract) options = Object.append(options || {}, LSD.Layout.extract(element));
     this.childNodes = [];
     if (element) LSD.Layout.converted[$uid(element)] = this;
     this.addEvent('build', function() {
       LSD.Layout.converted[$uid(this.element)] = this;
-    })
+    });
     this.parent(element, options);
-    if ((!options || !options.layout || !options.layout.instance)) {
-      this.layout = new LSD.Layout(element, null, this.options.layout)
+    if (this.options.layout.instance !== false) if (!options || !options.layout || !options.layout.instance) {
+      if (element) this.layout = new LSD.Layout(element, null, this.options.layout)
     } else this.layout = options.layout.instance;
     if (this.options.layout.children) this.layout.render(this.options.layout.children)
     if (this.options.layout.self) this.applySelector(this.options.layout.self);
@@ -61,7 +65,7 @@ LSD.Module.Layout = new Class({
   },
   
   buildLayout: function(selector, layout, parent) {
-    return LSD.Layout.build(selector, layout, (parent === null) ? null : (parent || this))
+    return LSD.Layout.clone(selector, layout, (parent === null) ? null : (parent || this))
   },
   
   buildItem: function() {

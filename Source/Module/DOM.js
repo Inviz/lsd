@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
 
 requires:
   - LSD
+  - Core/Element.Event
 
 provides:
   - LSD.Module.DOM
@@ -42,7 +43,6 @@ var inserters = {
   }
 
 };
-
 
 LSD.Module.DOM = new Class({
   initialize: function() {
@@ -79,6 +79,7 @@ LSD.Module.DOM = new Class({
         }
 
     if (this.style) for (var property in this.style.element) this.element.setStyle(property, this.style.element[property]);
+    this.element.fireEvent('build', [this.element, this]);
   },
   
   getElements: function(selector) {
@@ -157,7 +158,7 @@ LSD.Module.DOM = new Class({
         
     this.childNodes.push(widget);
     widget.setParent(this);
-    if (!widget.quiet && adoption !== false && this.toElement()) (adoption || function() {
+    if (!widget.quiet && (adoption !== false) && this.toElement()) (adoption || function() {
       this.element.appendChild(document.id(widget));
     }).apply(this, arguments);
     delete widget.quiet;
@@ -186,9 +187,11 @@ LSD.Module.DOM = new Class({
     var isDocument = (widget.nodeType == 9);
     var isBody = element && element.tagName.toLowerCase() == 'body';
     if (isDocument || isBody || this.parentNode.dominjected || element.offsetParent) {
-      if (!isDocument) {
-        var body = (isBody ? element : element.ownerDocument.body);
-        doc = body.retrieve('widget') || new LSD.Document(body);
+      if (!isDocument) { 
+        if (widget == element && !widget.document) {
+          var body = (isBody ? element : element.ownerDocument.body);
+          doc = body.retrieve('widget') || new LSD.Document(body);
+        } else doc = widget.document
       } else doc = widget;
       var halted = [];
       //this.render();
@@ -207,14 +210,15 @@ LSD.Module.DOM = new Class({
   inject: function(widget, where, quiet) {
     var isElement = 'localName' in widget;
     if (isElement) {
-      var instance = widget.retrieve('widget');
+      var instance = widget.retrieve && widget.retrieve('widget');
       if (instance) {
         widget = instance;
         isElement = false;
       }
     }
     var self = isElement ? this.toElement() : this;
-    this.quiet = quiet || (widget.nodeType == 9);
+    this.quiet = quiet || (widget.nodeType == 9 && this.element && this.element.parentNode);
+    //console.log('inject', widget, where, self.tagName, this.options.id)
     if (!inserters[where || 'bottom'](self, widget) && !quiet) return false;
     if (quiet !== true || widget.document) this.setDocument(widget);
     this.fireEvent('inject', this.parentNode);
@@ -276,5 +280,22 @@ LSD.Module.DOM = new Class({
 		return false;
 	}
 });
+
+Element.Events.ready = {
+  onAdd: function(fn) {
+    if (this.retrieve('widget')) {
+      fn.call(this, this.retrieve('widget'))
+    } else {
+      this.addEvent('build', fn);
+    }
+  }
+};
+
+Element.Events.contentready = {
+  onAdd: function(fn) {
+    fn.call(this, this)
+    this.addEvent('update', fn)
+  }
+};
 
 })();

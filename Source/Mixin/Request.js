@@ -12,7 +12,6 @@ requires:
   - Core/Request
   - Ext/Request.Form
   - Ext/Request.Auto
-  - Core
   
 provides: 
   - LSD.Mixin.Request
@@ -40,7 +39,6 @@ LSD.Mixin.Request = new Class({
   },
   
   getRequest: function(opts) {
-    console.log(this.getRequestData())
     var options = Object.append({data: this.getRequestData(), url: this.getRequestURL()}, this.options.request, {type: this.getRequestType(), method: this.getRequestMethod()}, opts);
     if (!this.request || this.request.type != options.type) {
       this.request = this[options.type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options)

@@ -13,7 +13,6 @@ requires:
   - LSD.Document
   - LSD.Module.Layout
   - LSD.Module.Events
-  - LSD.Module.Attributes
  
 provides:
   - LSD.Document.Resizable
@@ -22,12 +21,6 @@ provides:
 */
 
 LSD.Document.Resizable = new Class({
-	Includes: [
-    LSD.Document,
-    LSD.Module.Layout,
-    LSD.Module.Events,
-    LSD.Module.Attributes
-	],
 	
 	options: {
   	events: {

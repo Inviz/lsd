@@ -50,13 +50,16 @@ LSD.Layout = new Class({
   initialize: function(widget, layout, options) {
     this.setOptions(options);
     this.context = LSD[this.options.context.capitalize()];
-    this.render(layout || widget, layout ? this.convert(widget) : null);
+    this.result = this.render(layout || widget, layout && widget ? this.convert(widget) : null);
   },
   
   render: function(layout, parent, arg) {
-    var type = layout.push ? 'array' : layout.nodeType ? 'element' : 'object';
-    var result = this[type](layout, parent, arg);
-    if (result && parent && result != layout && result.inject) {
+    var rendered = !!layout.layout;
+    if (!rendered) {
+      var type = layout.push ? 'array' : layout.nodeType ? 'element' : layout.indexOf ? 'string' : 'object';
+      var result = this[type](layout, parent, arg);
+    } else var result = layout;
+    if (result && parent && (rendered || result != layout) && result.inject) {
       if (parent && parent.call) parent = parent(result.element || layout, result);
       if (result.parentNode != parent) {
         result.inject(parent, 'bottom', parent.nodeType == 1);
@@ -66,9 +69,10 @@ LSD.Layout = new Class({
   },
   
   materialize: function(selector, layout, parent) {
-    var widget = this.build(this.parse(selector));
-    if (!String.type(layout)) this.render(layout, widget);
-    else widget.setContent(layout);
+    var widget = this.build(this.parse(selector))
+    if (parent) this.render(widget, parent);
+    if (layout.charAt) widget.setContent(layout);
+    else this.render(layout, widget);
     return widget;
   },
   
@@ -99,67 +103,14 @@ LSD.Layout = new Class({
     return (this.parsed[selector] = options);
   },
   
-  /* 
-    Extracts options from a DOM element.
-    
-    Following selectors considered equal:
-    
-    footer#bottom.left
-    div.lsd.footer.id-bottom.left
-    div.tag-footer.id-bottom.left
-    div.tag-footer[id=bottom][class=left]
-  */
-  
-  extract: function(element) {
-    var options = {
-      attributes: {},
-      origin: element,
-      layout: {instance: this}
-    };
-    var tag = element.get('tag');
-    if (tag != 'div') options.source = tag;
-    if (element.id) options.id = element.id;
-    for (var i = 0, attribute; attribute = element.attributes[i++];) {
-      var value = ((attribute.value != attribute.name) && attribute.value);
-      options.attributes[attribute.name] = (value == null) ? true : value;
-    }
-    if (options.attributes && options.attributes.inherit) {
-      options.inherit = options.attributes.inherit;
-      delete options.attributes.inherit;
-    }
-    var klass = options.attributes['class'];
-    if (klass) {
-      klass = klass.replace(/^lsd (?:tag-)?([a-zA-Z0-9-_]+)\s?/, function(m, tag) {
-        options.source = tag;
-        return '';
-      })
-      options.classes = klass.split(' ').filter(function(name) {
-        var match = /^(is|id)-(.*?)$/.exec(name)
-        if (match) {
-          switch (match[1]) {
-            case "is":
-              if (!options.pseudos) options.pseudos = [];
-              options.pseudos.push(match[2]);
-              break;
-            case "id":
-              options.id = match[2];
-          }
-        }
-        return !match;
-      })
-      delete options.attributes['class'];
-    }
-    return options;
-  },
-  
   convert: function(element, transformed) {
     if (transformed == null) transformed = this.transform(element)
     if (transformed) return this.build(transformed);
-    if (this.isConvertable(element)) return this.build(this.extract(element));
+    if (this.isConvertable(element)) return this.build(LSD.Layout.extract(element));
   },
   
   patch: function(element, transformed) {
-    if (this.isAugmentable(element, transformed)) return this.build(transformed || this.extract(element), element)
+    if (this.isAugmentable(element, transformed)) return this.build(transformed || LSD.Layout.extract(element), element)
   },
   
   build: function(options) {
@@ -180,7 +131,7 @@ LSD.Layout = new Class({
       }
     }
     if (!options.layout) options.layout = {};
-    if (!options.layout.instance) options.layout.instance = this;
+    if (!options.layout.instance) options.layout.instance = true//this;
     if (options.inherit) {
       var source = parent.options.source;
       if (!source) {
@@ -276,9 +227,11 @@ LSD.Layout = new Class({
     return widget || element;
   },
   
-  object: function(object) {
+  object: function(object, parent) {
     var widgets = [];
-    for (var selector in object) widgets.push(this.materialize(selector, object[selector], parent));
+    for (var selector in object) {
+      widgets.push(this.materialize(selector, object[selector], parent));
+    }
     return widgets;
   },
   
@@ -323,7 +276,7 @@ LSD.Layout = new Class({
     for (var selector in Transformations) {
       var parsed = ParsedTransformations[selector] || (ParsedTransformations[selector] = Slick.parse(selector));
       if (Slick.match(element, parsed)) 
-        return this.merge(this.extract(element), this.parse(Transformations[selector]));
+        return this.merge(LSD.Layout.extract(element), this.parse(Transformations[selector]));
     }
     return false;
   },
@@ -349,6 +302,58 @@ LSD.Layout = new Class({
     return !opts || ((opts.element && opts.element.tag) ? (opts.element.tag == tag) : (!opts.tag || opts.tag == tag))
   }
 });
+
+/* 
+  Extracts options from a DOM element.
+  
+  Following selectors considered equal:
+  
+  footer#bottom.left
+  div.lsd.footer.id-bottom.left
+  div.tag-footer.id-bottom.left
+  div.tag-footer[id=bottom][class=left]
+*/
+
+LSD.Layout.extract = function(element) {
+  var options = {
+    attributes: {},
+    origin: element
+  };
+  var tag = element.tagName.toLowerCase()
+  if (tag != 'div') options.source = tag;
+  if (element.id) options.id = element.id;
+  for (var i = 0, attribute; attribute = element.attributes[i++];) {
+    var value = ((attribute.value != attribute.name) && attribute.value);
+    options.attributes[attribute.name] = (value == null) ? true : value;
+  }
+  if (options.attributes && options.attributes.inherit) {
+    options.inherit = options.attributes.inherit;
+    delete options.attributes.inherit;
+  }
+  var klass = options.attributes['class'];
+  if (klass) {
+    klass = klass.replace(/^lsd (?:tag-)?([a-zA-Z0-9-_]+)\s?/, function(m, tag) {
+      options.source = tag;
+      return '';
+    })
+    options.classes = klass.split(' ').filter(function(name) {
+      var match = /^(is|id)-(.*?)$/.exec(name)
+      if (match) {
+        switch (match[1]) {
+          case "is":
+            if (!options.pseudos) options.pseudos = [];
+            options.pseudos.push(match[2]);
+            break;
+          case "id":
+            options.id = match[2];
+        }
+      }
+      return !match;
+    })
+    delete options.attributes['class'];
+  }
+  return options;
+};
 
 var tags = {};
 var convertable = {};
