@@ -1,9 +1,9 @@
 /*
 ---
  
-script: Create.js
+script: Replace.js
  
-description: Creates a layout based on selector object or DOM elements
+description: Replaces one widget with another
  
 license: Public domain (http://unlicense.org).
 
@@ -13,13 +13,13 @@ requires:
   - LSD.Action
  
 provides:
-  - LSD.Action.Create
+  - LSD.Action.Replace
  
 ...
 */
 
 
-LSD.Action.Create = LSD.Action.build({
+LSD.Action.Replace = LSD.Action.build({
   enable: function() {
     
   }

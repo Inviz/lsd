@@ -26,11 +26,12 @@ provides:
   
     getTarget: function(target) {
       if (!target) target = this.attributes.target;
+      if (!target) return false;
       var parsed = this.parseTargetSelector(target);
       results = [];
       parsed.each(function(expression) {
         results.push.apply(results, Slick.search(expression.anchor || (this.document ? this.document.element : document.body), expression.selector));
-      }, this)
+      }, this);
       return results;
     },
     

@@ -38,6 +38,9 @@ LSD.Node.Link = new Class({
   ],
   
   options: {
+    request: {
+      type: 'form'
+    },
     layout: {
       instance: false,
       extract: true

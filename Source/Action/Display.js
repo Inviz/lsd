@@ -35,4 +35,4 @@ LSD.Action.Display = LSD.Action.build({
   getState: function() {
     return !(('hidden' in this) || (this.getStyle && (this.getStyle('display') == 'none')));
   }
-})
+});

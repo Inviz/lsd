@@ -79,7 +79,7 @@ LSD.Module.Actions = new Class({
   
   execute: function(action, args) {
     if (typeof action == 'string') action = this.getAction(action);
-    var targets = this.getTarget();
+    var targets = this.getTarget() || [this];
     if (targets) targets.each(function(target) {
       action.perform(target, target.options && target.options.states && target.options.states[action.name], args);
     });

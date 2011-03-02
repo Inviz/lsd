@@ -84,4 +84,4 @@ LSD.Module.Render = new Class({
     this.update(recursive);
     return this.render();
   }
-})
+});

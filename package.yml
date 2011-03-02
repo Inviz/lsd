@@ -81,6 +81,7 @@ sources:
   - Source/Action/Update.js
   - Source/Action/Destroy.js
   - Source/Action/Value.js
+  - Source/Action/Replace.js
   - Source/Action/Send.js
   - Source/Action/State.js
   - Source/Action/Display.js

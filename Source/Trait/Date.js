@@ -47,4 +47,4 @@ LSD.Trait.Date = new Class({
     this.setDate(this.date.decrement(this.options.calendar.interval, number || 1))
   }
   
-})
+});
