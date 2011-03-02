@@ -9,18 +9,18 @@ license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
-requires: 
-  - LSD
- 
-provides: 
+requires:
   - LSD.Action
+ 
+provides:
+  - LSD.Action.Destroy
  
 ...
 */
 
 
-LSD.Action.Create = new LSD.Action({
-  enable: function(target, content, method) {
+LSD.Action.Create = LSD.Action.build({
+  enable: function(content, method) {
     
   }
-})
+});

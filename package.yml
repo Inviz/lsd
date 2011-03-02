@@ -77,6 +77,13 @@ sources:
   - Source/Trait/Fieldset.js
   - Source/Trait/Field.js
   - Source/Trait/Date.js
+  - Source/Action/Create.js
+  - Source/Action/Update.js
+  - Source/Action/Destroy.js
+  - Source/Action/Value.js
+  - Source/Action/Send.js
+  - Source/Action/State.js
+  - Source/Action/Display.js
   - Source/Action.js
   - Source/Container.js
   - Source/Element.js

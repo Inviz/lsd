@@ -44,9 +44,14 @@ LSD.Module.Actions = new Class({
     if (action instanceof LSD.Action) return action;
     if (typeof action == 'string') {
       if (this.actions[action]) return this.actions[action];
-      action = Object.append(this.options.actions[action], {name: action});
-    } 
-    return this.actions[action.name] || (this.actions[action.name] = new LSD.Action(action, action.name))
+      var actions = this.options.actions;
+      var named = {name: action};
+      if (actions && actions[action]) action = Object.append(actions[action], named);
+      else action = named;
+    }   
+    var cc = action.name.capitalize();
+    var Action = LSD.Action[cc] || LSD.Action;
+    return this.actions[action.name] || (this.actions[action.name] = new Action(action, action.name))
   },
 
   mixin: function(mixin) {
@@ -66,6 +71,18 @@ LSD.Module.Actions = new Class({
       if (options.events) this.removeEvents(this.bindEvents(options.events));
     };
     Class.unmix(this, mixin);
+  },
+  
+  getTarget: function() {
+    return false;
+  },
+  
+  execute: function(action, args) {
+    if (typeof action == 'string') action = this.getAction(action);
+    var targets = this.getTarget();
+    if (targets) targets.each(function(target) {
+      action.perform(target, target.options && target.options.states && target.options.states[action.name], args);
+    });
   }
 });
 

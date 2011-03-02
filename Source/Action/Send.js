@@ -9,18 +9,18 @@ license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
-requires: 
-  - LSD
- 
-provides: 
+requires:
   - LSD.Action
+ 
+provides:
+  - LSD.Action.Send
  
 ...
 */
 
 
-LSD.Action.Send = new LSD.Action({
+LSD.Action.Send = LSD.Action.build({
   enable: function(target) {
-    return target.submit ? target.submit() : target.send ? target.send() : null;
+    return this.submit ? this.submit() : this.send ? this.send() : null;
   }
 })

@@ -57,6 +57,10 @@ LSD.Mixin.Request = new Class({
     return this.request;
   },
   
+  onRequestSuccess: function() {
+    this.execute('update', arguments);
+  },
+  
   getRequestData: Macro.defaults(function() {
     return null;
   }),
@@ -79,5 +83,12 @@ LSD.Mixin.Request = new Class({
   
   getRequestURL: function() {
     return this.attributes.action || this.attributes.href || this.attributes.src;
+  },
+  
+  isRequestURLLocal: function(base, host) {
+    if (!host) host = location.host
+    if (!base) base = location.pathname;
+    var url = this.getRequestURL;
+    return (url.charAt(0) == "#") || url.match(new RegExp('(?:' + host + ')?' + base + '/?#'))
   }
 })

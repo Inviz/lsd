@@ -17,6 +17,7 @@ requires:
   - LSD.Module.Command
   - LSD.Module.Actions
   - LSD.Mixin.Request
+  - LSD.Mixin.Target
 
 provides: 
   - LSD.Node.Link
@@ -32,7 +33,8 @@ LSD.Node.Link = new Class({
     LSD.Module.Layout,
     LSD.Module.Command,
     LSD.Module.Actions,
-    LSD.Mixin.Request
+    LSD.Mixin.Request,
+    LSD.Mixin.Target
   ],
   
   options: {
@@ -40,5 +42,9 @@ LSD.Node.Link = new Class({
       instance: false,
       extract: true
     }
+  },
+  
+  getCommandAction: function() {
+    return this.parent.apply(this, arguments) || 'send'
   }
 })

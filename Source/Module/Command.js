@@ -64,16 +64,13 @@ LSD.Module.Command = new Class({
   click: function() {
     this.fireEvent('click', arguments);
     var action = this.getCommandAction.apply(this, arguments);
-    if (action) this.execute(action);
-    return this.getCommand().click(widget);
-  },
-  
-  execute: function() {
-    
+    if (action) this.execute(action, arguments);
+    var command = this.getCommand();
+    return command.click.apply(command, arguments);
   },
   
   getCommandAction: function() {
-    return false;
+    return this.attributes.commandaction || this.attributes.interaction;
   }
   
 });

@@ -24,8 +24,7 @@ LSD.Action = function(options, name) {
   var self = {
     enable: function() {
       if (self.enabled) return false;
-      if (state) target[state.enabler]();
-      options.enable.apply(target, arguments);
+      this.commit(target, state, arguments);
       if (options.events) target.addEvents(target.events[options.events]);
       if (self.enabled == null) target.addEvents(events);
       self.enabled = true;
@@ -34,12 +33,26 @@ LSD.Action = function(options, name) {
 
     disable: function() {
       if (!self.enabled) return false;
-      if (state) target[state.disabler]();
-      options.disable.apply(target, arguments);
+      this.revert(target, state, arguments);
       if (options.events) target.removeEvents(target.events[options.events]);
       if (self.enabled != null) target.removeEvents(events);
       self.enabled = false;
       return true;
+    },
+    
+    commit: function(target, state, args) {
+      if (state) target[state.enabler]();
+      options.enable.apply(target, args);
+    },
+    
+    revert: function(target, state, args) {
+      if (state) target[state.disabler]();
+      options.disable.apply(target, args);
+    },
+    
+    perform: function(target, state, args) {
+      var method = (!options.getState || !options.getState.apply(target, args)) ? 'commit' : 'revert';
+      this[method].apply(this, arguments);
     },
 
     use: function(widget, state) {
@@ -55,7 +68,7 @@ LSD.Action = function(options, name) {
     
     inject: function() {
       self.enable();
-      if (state) self[state.disabler]();
+      if (state) self[state.enabler]();
     },
 
     attach: function(widget) {
@@ -91,3 +104,9 @@ LSD.Action = function(options, name) {
   };  
   return self;
 }
+
+LSD.Action.build = function(curry) {
+  return function(options, name) {
+    return new LSD.Action(Object.append({}, options , curry), name);
+  }
+};

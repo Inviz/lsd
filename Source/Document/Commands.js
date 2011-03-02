@@ -33,10 +33,8 @@ LSD.Document.Commands = new Class({
     if (!link) return;
     var node = link.retrieve('node');
     if (!node) link.store('node', node = new LSD.Node.Link(link));
-    if (node.send) {
-      node.send();
-      event.stop();
-    }
+    node.click();
+    event.preventDefault();
   }
 });
 

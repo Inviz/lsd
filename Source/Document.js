@@ -11,7 +11,10 @@ authors: Yaroslaff Fedin
  
 requires: 
   - LSD.Node
+  - LSD.Module.Attributes
   - LSD.Module.DOM
+  - LSD.Module.Events
+  - LSD.Module.Layout
  
 provides:
   - LSD.Document

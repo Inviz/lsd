@@ -35,6 +35,10 @@ LSD.Module.Events = new Class({
     'attached': ['attach', 'detach', false],
   },
   
+  options: {
+    events: {}
+  },
+  
   initialize: function() {
     this.addEvents({
       destroy: function() {
