@@ -58,7 +58,7 @@ LSD.Mixin.Request = new Class({
   },
   
   onRequestSuccess: function() {
-    this.execute('update', arguments);
+    if (this.attributes.target) this.execute('update', arguments);
   },
   
   getRequestData: Macro.defaults(function() {

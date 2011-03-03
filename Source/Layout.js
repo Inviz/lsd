@@ -50,7 +50,11 @@ LSD.Layout = new Class({
   initialize: function(widget, layout, options) {
     this.setOptions(options);
     this.context = LSD[this.options.context.capitalize()];
-    this.result = this.render(layout || widget, layout && widget ? this.convert(widget) : null);
+    if (!layout) {
+      layout = widget;
+      widget = null;
+    } else if (widget && widget.nodeName) widget = this.convert(widget);
+    this.result = this.render(layout, widget);
   },
   
   render: function(layout, parent, arg) {
@@ -71,8 +75,8 @@ LSD.Layout = new Class({
   materialize: function(selector, layout, parent) {
     var widget = this.build(this.parse(selector))
     if (parent) this.render(widget, parent);
-    if (layout.charAt) widget.setContent(layout);
-    else this.render(layout, widget);
+    if (layout && layout.charAt) widget.setContent(layout);
+    else this.render(layout || {}, widget);
     return widget;
   },
   

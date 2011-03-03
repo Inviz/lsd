@@ -64,7 +64,12 @@ LSD.Module.Layout = new Class({
     this.fireEvent('selector', [parsed, selector]);
   },
   
-  buildLayout: function(selector, layout, parent) {
+  buildLayout: function() {
+    var layout = this.createLayout.apply(this, arguments);
+    return layout.result.length == 1 ? layout.result[0] : layout.result;
+  },
+  
+  createLayout: function(selector, layout, parent) {
     return LSD.Layout.clone(selector, layout, (parent === null) ? null : (parent || this))
   },
   

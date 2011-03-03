@@ -49,6 +49,7 @@ sources:
   - Source/Mixin/Request.js
   - Source/Mixin/Validity.js
   - Source/Mixin/Target.js
+  - Source/Mixin/Dialog.js
   - Source/Module/Container.js
   - Source/Module/Command.js
   - Source/Module/DOM.js

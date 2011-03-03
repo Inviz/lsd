@@ -32,7 +32,14 @@ LSD.Trait.Date = new Class({
   
   getDate: function() {
     if (this.date) return this.date;
-    if (this.getRawDate) return this.date = this.parseDate(this.getRawDate());
+    if (this.getRawDate) {
+      var raw = this.getRawDate();
+      return raw ? this.parseDate(raw) : this.getDefaultDate();
+    }
+  },
+  
+  getDefaultDate: function() {
+    return new Date;
   },
   
   parseDate: function(date) {
@@ -40,11 +47,13 @@ LSD.Trait.Date = new Class({
   },
   
   increment: function(number) {
-    this.setDate(this.date.increment(this.options.calendar.interval, number || 1))
+    number = number.toInt ? number.toInt() : 1;
+    this.setDate(this.getDate().increment(this.options.date.interval, number))
   },
 
   decrement: function(number) {
-    this.setDate(this.date.decrement(this.options.calendar.interval, number || 1))
+    number = number.toInt ? number.toInt() : 1;
+    this.setDate(this.getDate().decrement(this.options.date.interval, number))
   }
   
 });
