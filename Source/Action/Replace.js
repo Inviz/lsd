@@ -20,7 +20,7 @@ provides:
 
 
 LSD.Action.Replace = LSD.Action.build({
-  enable: function() {
-    
+  enable: function(content) {
+    this.parentNode.replaceChild((LSD.document || document).createFragment(content), this);
   }
 });

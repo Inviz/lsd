@@ -48,6 +48,6 @@ LSD.Node.Link = new Class({
   },
   
   getCommandAction: function() {
-    return this.parent.apply(this, arguments) || 'send'
+    return 'send'
   }
 })

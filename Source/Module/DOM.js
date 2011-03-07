@@ -186,7 +186,7 @@ LSD.Module.DOM = new Class({
     var element = ('localName' in widget) ? widget : widget.element;
     var isDocument = (widget.nodeType == 9);
     var isBody = element && element.tagName.toLowerCase() == 'body';
-    if (isDocument || isBody || this.parentNode.dominjected || element.offsetParent) {
+    if (isDocument || isBody || (this.parentNode && this.parentNode.dominjected) || element.offsetParent) {
       if (!isDocument) { 
         if (widget == element && !widget.document) {
           var body = (isBody ? element : element.ownerDocument.body);

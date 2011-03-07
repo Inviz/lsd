@@ -23,6 +23,16 @@ provides:
   
   LSD.Mixin.Target = new Class({
     behaviour: '[target][target!=_blank][target!=false]',
+    
+    options: {
+      chain: {
+        target: function() {
+          var interaction = this.getTargetAction();
+          if (interaction) return [interaction, this.getTarget];
+        }
+      }
+    },
+    
   
     getTarget: function(target) {
       if (!target) target = this.attributes.target;
@@ -60,6 +70,10 @@ provides:
       return this.getTarget().map(function(target) { 
         return this.execute(target, action) 
       }.bind(this));
+    },
+    
+    getTargetAction: function() {
+      return this.attributes.interaction || (Class.hasParent(this) && this.parent.apply(this, arguments));
     }
   });
   

@@ -105,6 +105,12 @@ LSD.Document = new Class({
     if (!this.stylesheets) return;
     this.stylesheets.erase(sheet);
     sheet.detach(this);
+  },
+  
+  createFragment: function(content) {
+    var fragment = document.createFragment(content)
+    this.fireEvent('DOMNodeInserted', fragment);
+    return fragment;
   }
 });
 

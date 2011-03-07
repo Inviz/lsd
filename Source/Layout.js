@@ -32,43 +32,46 @@ provides: [LSD.Layout]
   
   * Augment - Tries to use element in widget with minimal
               changes. (default)
-  * Replace - Builds widget with new element and replaces 
+  * Modify  - Builds widget with new element and replaces 
               the original element (fallback, destructive)
   * Clone   - Builds new element, original element untouched
 */
 
-LSD.Layout = new Class({
-  
-  Implements: [Options],
+LSD.Layout = function(widget, layout, options) {
+  this.setOptions(options);
+  this.context = LSD[this.options.context.capitalize()];
+  if (!layout) {
+    layout = widget;
+    widget = null;
+  } else if (widget && widget.nodeName) widget = this.convert(widget);
+  this.result = this.render(layout, widget);
+};
+
+
+LSD.Layout.prototype = Object.append(new Options, {
   
   options: {
     method: 'augment',
-    fallback: 'replace',
+    fallback: 'modify',
     context: 'widget'
   },
-    
-  initialize: function(widget, layout, options) {
-    this.setOptions(options);
-    this.context = LSD[this.options.context.capitalize()];
-    if (!layout) {
-      layout = widget;
-      widget = null;
-    } else if (widget && widget.nodeName) widget = this.convert(widget);
-    this.result = this.render(layout, widget);
-  },
   
-  render: function(layout, parent, arg) {
+  render: function(layout, parent, method) {
     var rendered = !!layout.layout;
+    if (!method) method = this.options.method;
     if (!rendered) {
-      var type = layout.push ? 'array' : layout.nodeType ? 'element' : layout.indexOf ? 'string' : 'object';
-      var result = this[type](layout, parent, arg);
+      var type = layout.push ? 'array' : layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : layout.indexOf ? 'string' : 'object';
+      var result = this[type](layout, parent, method);
     } else var result = layout;
-    if (result && parent && (rendered || result != layout) && result.inject) {
+    if (result) {
       if (parent && parent.call) parent = parent(result.element || layout, result);
-      if (result.parentNode != parent) {
-        result.inject(parent, 'bottom', parent.nodeType == 1);
+      if (parent && (rendered || result != layout) && result.nodeType) {
+        if (result.parentNode != parent) {
+          if (result.inject) result.inject(parent, 'bottom', parent.nodeType == 1);
+          else parent.appendChild(result);
+        }
       }
-    }
+    };
     return result;
   },
   
@@ -156,7 +159,7 @@ LSD.Layout = new Class({
     Replaces an element with a widget. Also replaces
     all children widgets when possible. 
   */
-  replace: function(element, parent, transformed) {
+  modify: function(element, parent, transformed) {
     var converted = this.convert(element, transformed);
     if (converted) {
       var replacement = converted.toElement();
@@ -189,12 +192,14 @@ LSD.Layout = new Class({
   */
   
   clone: function(element, parent) {
-    var converted = this.convert.apply(this, arguments);
+    var converted = this.convert(element)
     if (parent && parent.call) parent = parent(element);
-    if (converted) {
-      converted.inject(parent);
-    } else {
-      parent.toElement().appendChild(document.cloneNode(element));
+    if (parent) {
+      if (converted) {
+        converted.inject(parent);
+      } else {
+        parent.toElement().appendChild(element.cloneNode());
+      }
     }
     return converted;
   },
@@ -205,30 +210,40 @@ LSD.Layout = new Class({
     return this.materialize(string, {}, parent);
   },
   
-  array: function(array, parent) {
-    return array.map(function(widget) { return this.render(widget, parent)}.bind(this));
+  array: function(array, parent, method) {
+    return array.map(function(widget) { return this.render(widget, parent, method)}.bind(this));
   },
   
-  elements: function(elements, parent) {
-    return elements.map(function(widget) { return this.render(widget, parent)}.bind(this));
+  elements: function(elements, parent, method) {
+    return elements.map(function(widget) { return this.render(widget, parent, method)}.bind(this));
   },
   
-  element: function(element, parent, arg) {
+  element: function(element, parent, method) {
     var converted = element.uid && Converted[element.uid];
-    var method = this.options.method;
-    if (!converted) {
+    var augment = (method == 'augment'), clone = (method == 'clone');
+    if (!converted || !augment) {
       var transformed = this.transform(element);
       if (transformed || this.isConvertable(element)) {
         var widget = this[method](element, parent, transformed), success = !!widget;
         if (!widget && this.options.fallback) widget = this[this.options.fallback](element, parent, transformed);
+      } else if (clone) {  
+        var widget = element.cloneNode();
       }
     } else var widget = converted;
-    if (method == 'augment' && (success || !widget || converted)) {
-      if (arg !== true && element.childNodes.length) this.find(element, widget);
+    if (augment && (success || !widget || converted)) {
+      if (method !== false && element.childNodes.length) this.find(element, widget);
     } else {
-      this.walk(element)
+      this.walk(element, widget || parent);
     }
     return widget || element;
+  },
+  
+  textnode: function(element, parent, method) {
+    return ((method || this.options.method) == 'clone') ? element.cloneNode() : element;
+  },
+  
+  fragment: function(element, parent, method) {
+    return this.walk(element, parent, method);
   },
   
   object: function(object, parent) {
@@ -239,10 +254,10 @@ LSD.Layout = new Class({
     return widgets;
   },
   
-  walk: function(element, parent) {
+  walk: function(element, parent, method) {
     var node = element.firstChild;
     while (node) {
-      if (node.nodeType == 1) this.render(node, parent);
+      if (node.nodeType) this.render(node, parent, method);
       node = node.nextSibling;
     }
   },
@@ -257,7 +272,7 @@ LSD.Layout = new Class({
       return parent || root
     };
     for (var i = 0, child; child = children[i++];) {
-      var widget = this.render(child, getParent, true);
+      var widget = this.render(child, getParent, false);
       if (widget && widget.element) found[widget.element.uid] = widget;
     }
   },
@@ -306,6 +321,8 @@ LSD.Layout = new Class({
     return !opts || ((opts.element && opts.element.tag) ? (opts.element.tag == tag) : (!opts.tag || opts.tag == tag))
   }
 });
+
+LSD.Layout.NodeTypes = {1: 'element', 3: 'textnode', 11: 'fragment'};
 
 /* 
   Extracts options from a DOM element.
@@ -366,7 +383,7 @@ var Converted = LSD.Layout.converted = {};
 var Transformations = LSD.Layout.Transformations = {};
 var ParsedTransformations = {};
 
-['replace', 'augment', 'clone'].each(function(method) {
+['modify', 'augment', 'clone'].each(function(method) {
   LSD.Layout[method] = function(element, layout, options) {
     return new LSD.Layout(element, layout, Object.append({method: method}, options));
   }

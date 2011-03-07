@@ -21,8 +21,8 @@ provides:
 LSD.Action.Update = LSD.Action.build({
   enable: function(content) {
     if (this.empty) this.empty();
-    if (this.setContent) this.setContent(content)
-    else if (this.set) this.set('html', content)
+    if (this.setContent) this.setContent(content);
+    else this.appendChild((LSD.document || document).createFragment(content));
     return this;
   }
 });

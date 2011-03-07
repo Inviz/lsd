@@ -12,6 +12,7 @@ requires:
   - Core/Request
   - Ext/Request.Form
   - Ext/Request.Auto
+  - Ext/document.createFragment
   
 provides: 
   - LSD.Mixin.Request
@@ -58,7 +59,7 @@ LSD.Mixin.Request = new Class({
   },
   
   onRequestSuccess: function() {
-    if (this.attributes.target) this.execute('update', arguments);
+    this.kick.apply(this, arguments);
   },
   
   getRequestData: Macro.defaults(function() {
@@ -90,5 +91,9 @@ LSD.Mixin.Request = new Class({
     if (!base) base = location.pathname;
     var url = this.getRequestURL;
     return (url.charAt(0) == "#") || url.match(new RegExp('(?:' + host + ')?' + base + '/?#'))
+  },
+  
+  getTargetAction: function() {
+    return 'update';
   }
 })

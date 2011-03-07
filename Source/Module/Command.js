@@ -41,6 +41,11 @@ LSD.Module.Command = new Class({
     expectations: {
       '[radiogroup]': ['getCommand', true],
       '[command]': ['getCommand', true],
+    },
+    chain: {
+      commandaction: function() {
+        return this.getCommandAction();
+      }
     }
   },
 
@@ -63,14 +68,13 @@ LSD.Module.Command = new Class({
   
   click: function() {
     this.fireEvent('click', arguments);
-    var action = this.getCommandAction.apply(this, arguments);
-    if (action) this.execute(action, arguments);
+    this.kick.apply(this, arguments);
     var command = this.getCommand();
     return command.click.apply(command, arguments);
   },
   
   getCommandAction: function() {
-    return this.attributes.commandaction || this.attributes.interaction;
+    return this.attributes.commandaction;
   }
   
 });

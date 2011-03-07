@@ -96,17 +96,17 @@ LSD.Action = function(options, name) {
       }
       target = state = null;
     }
-  }
+  };
   var events = {
     enable:  self.enable,
     disable: self.disable,
     detach:  self.disable
   };  
   return self;
-}
+};
 
 LSD.Action.build = function(curry) {
   return function(options, name) {
-    return new LSD.Action(Object.append({}, options , curry), name);
-  }
+    return new LSD.Action(Object.append({}, options, curry), name);
+  };
 };

@@ -22,6 +22,10 @@ provides:
 LSD.Module.Actions = new Class({
   Stateful: Object.subset(LSD.States.Known, ['disabled']),
   
+  options: {
+    chain: {}
+  },
+  
   initialize: function() {
     this.actions = {};
     this.parent.apply(this, arguments);
@@ -53,6 +57,30 @@ LSD.Module.Actions = new Class({
     var Action = LSD.Action[cc] || LSD.Action;
     return this.actions[action.name] || (this.actions[action.name] = new Action(action, action.name))
   },
+  
+  getActionChain: function() {
+    var actions = [];
+    for (var name in this.options.chain) {
+      var action = this.options.chain[name].call(this);
+      if (action) actions.push(action);
+    }
+    return actions.sort(function(a, b) {
+      return a.push ? 1 : -1
+    });
+  },
+  
+  getNextAction: function() {
+    var actions = this.getActionChain();
+    var index = this.currentActionIndex == null ? 0 : this.currentActionIndex + 1;
+    var action = actions[index];
+    this.currentActionIndex = action ? index : 0;
+    return action;
+  },
+  
+  kick: function() {
+    var action = this.getNextAction.apply(this, arguments);
+    if (action) this.execute(action, arguments);
+  },
 
   mixin: function(mixin) {
     if (typeof mixin == 'string') mixin = LSD.Mixin[mixin.capitalize()];
@@ -78,11 +106,14 @@ LSD.Module.Actions = new Class({
   },
   
   execute: function(action, args) {
+    if (action.push) var targets = action[1], action = action[0]
     if (typeof action == 'string') action = this.getAction(action);
-    var targets = this.getTarget() || [this];
-    if (targets) targets.each(function(target) {
+    else if (action.call) action = action.call(this, args)
+    if (targets && targets.call) targets = targets.call(this);
+    var perform = function(target) {
       action.perform(target, target.options && target.options.states && target.options.states[action.name], args);
-    });
+    };
+    return targets ? targets.map(perform) : perform(this);
   }
 });
 
