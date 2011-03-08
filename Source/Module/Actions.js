@@ -9,9 +9,6 @@ license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
-requires:
-  - LSD.Action
-  - LSD.Module.Expectations
  
 provides: 
   - LSD.Module.Actions
@@ -65,7 +62,7 @@ LSD.Module.Actions = new Class({
       if (action) actions.push(action);
     }
     return actions.sort(function(a, b) {
-      return a.push ? 1 : -1
+      return (b.push ? (b[2] || 0) : 10) - (a.push ? (a[2] || 0) : 10);
     });
   },
   
@@ -73,13 +70,17 @@ LSD.Module.Actions = new Class({
     var actions = this.getActionChain();
     var index = this.currentActionIndex == null ? 0 : this.currentActionIndex + 1;
     var action = actions[index];
-    this.currentActionIndex = action ? index : 0;
+    this.currentActionIndex = action ? index : -1;
     return action;
   },
   
   kick: function() {
     var action = this.getNextAction.apply(this, arguments);
-    if (action) this.execute(action, arguments);
+    if (action) return this.execute(action, Array.prototype.splice(arguments, 0));
+  },
+  
+  unkick: function() {
+    delete this.currentActionIndex;
   },
 
   mixin: function(mixin) {
@@ -108,12 +109,17 @@ LSD.Module.Actions = new Class({
   execute: function(action, args) {
     if (action.push) var targets = action[1], action = action[0]
     if (typeof action == 'string') action = this.getAction(action);
-    else if (action.call) action = action.call(this, args)
-    if (targets && targets.call) targets = targets.call(this);
+    else if (action.call && (!(action = action.call(this, args)))) return;
+    if (targets && targets.call && !(targets = targets.call(this))) return;
     var perform = function(target) {
+      if (target.indexOf) target = new String(target);
       action.perform(target, target.options && target.options.states && target.options.states[action.name], args);
-    };
-    return targets ? targets.map(perform) : perform(this);
+    };  
+    action.caller = this;
+    var result = targets ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);  
+    delete this.caller;
+    if (!action.options.asynchronous) this.kick.apply(this, args);
+    return result;
   }
 });
 

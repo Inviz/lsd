@@ -22,6 +22,8 @@ provides:
 LSD.Action = function(options, name) {
   var target, state;
   var self = {
+    options: options,
+    
     enable: function() {
       if (self.enabled) return false;
       this.commit(target, state, arguments);
@@ -42,16 +44,16 @@ LSD.Action = function(options, name) {
     
     commit: function(target, state, args) {
       if (state) target[state.enabler]();
-      options.enable.apply(target, args);
+      options.enable.apply(this, [target].concat(args));
     },
     
     revert: function(target, state, args) {
       if (state) target[state.disabler]();
-      options.disable.apply(target, args);
+      options.disable.apply(this, [target].concat(args));
     },
     
     perform: function(target, state, args) {
-      var method = (!options.getState || !options.getState.apply(target, args)) ? 'commit' : 'revert';
+      var method = (!options.getState || !options.getState.call(this, target)) ? 'commit' : 'revert';
       this[method].apply(this, arguments);
     },
 

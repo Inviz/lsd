@@ -68,6 +68,7 @@ LSD.Module.Command = new Class({
   
   click: function() {
     this.fireEvent('click', arguments);
+    this.unkick.apply(this, arguments);
     this.kick.apply(this, arguments);
     var command = this.getCommand();
     return command.click.apply(command, arguments);

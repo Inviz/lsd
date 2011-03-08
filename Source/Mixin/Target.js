@@ -27,12 +27,11 @@ provides:
     options: {
       chain: {
         target: function() {
-          var interaction = this.getTargetAction();
-          if (interaction) return [interaction, this.getTarget];
+          var action = this.getTargetAction();
+          if (action) return [action, this.getTarget];
         }
       }
     },
-    
   
     getTarget: function(target) {
       if (!target) target = this.attributes.target;

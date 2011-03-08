@@ -9,6 +9,7 @@ license: Public domain (http://unlicense.org).
  
 requires:
   - LSD
+  - LSD.Mixin.Target
  
 provides: 
   - LSD.Mixin.Dialog
@@ -17,9 +18,19 @@ provides:
 */
 
 LSD.Mixin.Dialog = new Class({
+  Extends: LSD.Mixin.Target,
+  
+  behaviour: '[dialog]',
+  
   options: {
     layout: {
       dialog: "body[type=dialog]"
+    },
+    chain: {
+      dialog: function() {
+        var target = this.getDialogTarget();
+        if (target) return ['dialog', target, 100];
+      }
     },
     events: {
       dialogs: {}
@@ -36,10 +47,12 @@ LSD.Mixin.Dialog = new Class({
     var layout = {}
     layout[this.options.layout.dialog] = this.options.layout[name];
     var dialog = this.buildLayout(null, layout, null);
-    for (var z in this.$constructor.prototype.options.layout[name]) console.log(z)
-    console.log(name, dialog)
     var events = this.options.events.dialogs;
     if (events[name]) dialog.addEvents(events[name]);
     return dialog;
+  },
+  
+  getDialogTarget: function() {
+    return this.attributes.dialog && this.getTarget(this.attributes.dialog);
   }
 })

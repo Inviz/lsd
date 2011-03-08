@@ -86,6 +86,7 @@ sources:
   - Source/Action/Send.js
   - Source/Action/State.js
   - Source/Action/Display.js
+  - Source/Action/Dialog.js
   - Source/Action.js
   - Source/Container.js
   - Source/Element.js

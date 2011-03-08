@@ -58,7 +58,6 @@ LSD.Layout.prototype = Object.append(new Options, {
   
   render: function(layout, parent, method) {
     var rendered = !!layout.layout;
-    if (!method) method = this.options.method;
     if (!rendered) {
       var type = layout.push ? 'array' : layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : layout.indexOf ? 'string' : 'object';
       var result = this[type](layout, parent, method);
@@ -220,6 +219,8 @@ LSD.Layout.prototype = Object.append(new Options, {
   
   element: function(element, parent, method) {
     var converted = element.uid && Converted[element.uid];
+    var skip = (method === false);
+    if (!method) method = this.options.method;
     var augment = (method == 'augment'), clone = (method == 'clone');
     if (!converted || !augment) {
       var transformed = this.transform(element);
@@ -231,7 +232,7 @@ LSD.Layout.prototype = Object.append(new Options, {
       }
     } else var widget = converted;
     if (augment && (success || !widget || converted)) {
-      if (method !== false && element.childNodes.length) this.find(element, widget);
+      if (!skip && element.childNodes.length) this.find(element, widget);
     } else {
       this.walk(element, widget || parent);
     }

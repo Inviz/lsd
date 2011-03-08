@@ -67,11 +67,11 @@ LSD.Mixin.Request = new Class({
   }),
   
   getXHRRequest: function(options) {
-    return new Request.Auto(options)
+    return new Request.Auto(options);
   },
   
   getFormRequest: function(options) {
-    return new Request.Form(options)
+    return new Request.Form(options);
   },
   
   getRequestType: function() {
@@ -87,13 +87,13 @@ LSD.Mixin.Request = new Class({
   },
   
   isRequestURLLocal: function(base, host) {
-    if (!host) host = location.host
+    if (!host) host = location.host;
     if (!base) base = location.pathname;
-    var url = this.getRequestURL;
-    return (url.charAt(0) == "#") || url.match(new RegExp('(?:' + host + ')?' + base + '/?#'))
+    var url = this.getRequestURL();
+    return (url.charAt(0) == "#") || url.match(new RegExp('(?:' + host + ')?' + base + '/?#'));
   },
   
   getTargetAction: function() {
     return 'update';
   }
-})
+});
