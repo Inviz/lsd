@@ -15,6 +15,7 @@ requires:
 
 provides:
   - LSD.Module.DOM
+  - LSD.Module.DOM.findDocument
 
 ...
 */
@@ -45,10 +46,15 @@ var inserters = {
 };
 
 LSD.Module.DOM = new Class({
+  options: {
+    nodeType: 1
+  },
+  
   initialize: function() {
     if (!this.childNodes) this.childNodes = [];
-    this.nodeType = 1;
+    this.nodeType = this.options.nodeType
     this.parentNode = this.nextSibling = this.previousSibling = null;
+    this.fireEvent('initialize')
     this.parent.apply(this, arguments);
     this.nodeName = this.tagName = this.options.tag;
   },
@@ -79,7 +85,7 @@ LSD.Module.DOM = new Class({
         }
 
     if (this.style) for (var property in this.style.element) this.element.setStyle(property, this.style.element[property]);
-    this.element.fireEvent('build', [this.element, this]);
+    this.element.fireEvent('build', [this, this.element]);
   },
   
   getElements: function(selector) {
@@ -182,23 +188,20 @@ LSD.Module.DOM = new Class({
   },
   
   setDocument: function(widget) {
-    var doc;
     var element = ('localName' in widget) ? widget : widget.element;
-    var isDocument = (widget.nodeType == 9);
-    var isBody = element && element.tagName.toLowerCase() == 'body';
-    if (isDocument || isBody || (this.parentNode && this.parentNode.dominjected) || element.offsetParent) {
-      if (!isDocument) { 
-        if (widget == element && !widget.document) {
-          var body = (isBody ? element : element.ownerDocument.body);
-          doc = body.retrieve('widget') || new LSD.Document(body);
-        } else doc = widget.document
-      } else doc = widget;
+    var isDocument = widget.documentElement || (instanceOf(widget, LSD.Document));
+    if (isDocument  // if document
+    || (this.parentNode && this.parentNode.dominjected) //already injected widget
+    || (widget.ownerDocument && (widget.ownerDocument.body == widget)) //body element
+    || element.offsetParent) { //element in dom (costy check)
+      var document = isDocument ? widget : LSD.Module.DOM.findDocument(widget);
+      if (!document) return;
       var halted = [];
       //this.render();
       this.walk(function(child) {
         //if (child.halted) halted.push(child);
-        child.ownerDocument = child.document = doc;
-        child.fireEvent('dominject', [element, doc]);
+        child.ownerDocument = child.document = document;
+        child.fireEvent('dominject', [child.element.parentNode, document]);
         child.dominjected = true;
       });
       //halted.each(function(child) {
@@ -217,10 +220,12 @@ LSD.Module.DOM = new Class({
       }
     }
     var self = isElement ? this.toElement() : this;
-    this.quiet = quiet || (widget.nodeType == 9 && this.element && this.element.parentNode);
+    this.quiet = quiet || (widget.documentElement && this.element && this.element.parentNode);
     //console.log('inject', widget, where, self.tagName, this.options.id)
     if (!inserters[where || 'bottom'](self, widget) && !quiet) return false;
-    if (quiet !== true || widget.document) this.setDocument(widget);
+    if (quiet !== true || widget.document) {
+      this.setDocument(widget);
+    }
     this.fireEvent('inject', this.parentNode);
     return true;
   },
@@ -281,12 +286,28 @@ LSD.Module.DOM = new Class({
 	}
 });
 
+LSD.Module.DOM.findDocument = function(target) {
+  if (target.documentElement) return target;
+  if (target.document) return target.document;
+  if (!target.localName) return;
+  var body = target.ownerDocument.body;
+  var document = (target != body) && Element.retrieve(body, 'widget');
+  while (!document && (target = target.parentNode)) {
+    var widget = Element.retrieve(target, 'widget')
+    if (widget) document = (widget instanceof LSD.Document) ? widget : widget.document;
+  }
+  return document;
+}
+
 Element.Events.ready = {
   onAdd: function(fn) {
-    if (this.retrieve('widget')) {
-      fn.call(this, this.retrieve('widget'))
+    var widget = this.retrieve('widget');
+    if (widget) {
+      fn.call(this, widget)
     } else {
-      this.addEvent('build', fn);
+      this.addEvent('build', function(widget) {
+        fn.call(this, widget);
+      }.bind(this));
     }
   }
 };

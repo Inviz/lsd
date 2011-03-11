@@ -53,7 +53,8 @@ LSD.Document = new Class({
     root: false, // topmost widget's parentNode is the document if set to true
     layout: {
       method: 'augment'
-    }
+    },
+    nodeType: 9
   },
   
   initialize: function(element, options) {
@@ -61,6 +62,7 @@ LSD.Document = new Class({
     this.parent.apply(this, [element, options]);
     this.body = this.element;
     this.document = this.documentElement = this;
+    if (this.nodeType != 9) this.ownerDocument = this;
     
     this.xml = true;
     this.navigator = {};
@@ -75,16 +77,10 @@ LSD.Document = new Class({
       brokenEmptyAttributeQSA: false,
       isHTMLDocument: false,
       nativeMatchesSelector: false
-    }                        
-    this.nodeType = 9;
+    }                 
     this.events = this.options.events;
     this.dominjected = true;
     this.build();
-  },
-  
-  build: function() {
-    if (this.stylesheets) this.stylesheets.each(this.addStylesheet.bind(this));
-    this.parent.apply(this, arguments);
   },
   
   setParent: function(widget) {
@@ -114,13 +110,18 @@ LSD.Document = new Class({
   }
 });
 
+LSD.Document.prototype.addEvents({
+  initialize: function() {
+    if (this.watch) {
+      // Attach behaviour expectations
+      LSD.Module.Expectations.attach(this);
+      // Attach action expectations
+      LSD.Module.Actions.attach(this);
+    }
+    // Attach stylesheets, if there are stylesheets loaded
+    if (LSD.Sheet && LSD.Sheet.stylesheets) for (var i = 0, sheet; sheet = LSD.Sheet.stylesheets[i++];) this.addStylesheet(sheet);
+  }
+});
+
 // Properties set here will be picked up by first document
 LSD.document = {}; 
-
-// Queue up stylesheets before document is loaded
-LSD.Document.addStylesheet = function(sheet) {
-  var instance = LSD.document, stylesheets = instance.stylesheets
-  if (instance.addStylesheet) return instance.addStylesheet(sheet)
-  if (!stylesheets) stylesheets = instance.stylesheets = [];
-  instance.stylesheets.push(sheet);
-}

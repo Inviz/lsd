@@ -65,9 +65,9 @@ LSD.Layout.prototype = Object.append(new Options, {
     if (result) {
       if (parent && parent.call) parent = parent(result.element || layout, result);
       if (parent && (rendered || result != layout) && result.nodeType) {
-        if (result.parentNode != parent) {
-          if (result.inject) result.inject(parent, 'bottom', parent.nodeType == 1);
-          else parent.appendChild(result);
+        if (result.parentNode != parent) { 
+          if (result.inject) result.inject(parent, 'bottom', (parent.nodeType == 1) && !parent.documentElement);
+          else (parent.toElement ? parent.toElement() : parent).appendChild(result);
         }
       }
     };
@@ -228,7 +228,7 @@ LSD.Layout.prototype = Object.append(new Options, {
         var widget = this[method](element, parent, transformed), success = !!widget;
         if (!widget && this.options.fallback) widget = this[this.options.fallback](element, parent, transformed);
       } else if (clone) {  
-        var widget = element.cloneNode();
+        var widget = element.cloneNode(false);
       }
     } else var widget = converted;
     if (augment && (success || !widget || converted)) {
@@ -240,7 +240,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   textnode: function(element, parent, method) {
-    return ((method || this.options.method) == 'clone') ? element.cloneNode() : element;
+    return ((method || this.options.method) == 'clone') ? element.cloneNode(false) : element;
   },
   
   fragment: function(element, parent, method) {
@@ -386,7 +386,7 @@ var ParsedTransformations = {};
 
 ['modify', 'augment', 'clone'].each(function(method) {
   LSD.Layout[method] = function(element, layout, options) {
-    return new LSD.Layout(element, layout, Object.append({method: method}, options));
+    return new LSD.Layout(element, layout, Object.append({method: method}, options)).result;
   }
 });
 

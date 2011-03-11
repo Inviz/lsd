@@ -31,7 +31,8 @@ LSD.Mixin.Request = new Class({
     request: {
       method: 'get',
       type: 'xhr'
-    }
+    },
+    targetAction: 'update'
   },
   
   send: function() {
@@ -91,9 +92,5 @@ LSD.Mixin.Request = new Class({
     if (!base) base = location.pathname;
     var url = this.getRequestURL();
     return (url.charAt(0) == "#") || url.match(new RegExp('(?:' + host + ')?' + base + '/?#'));
-  },
-  
-  getTargetAction: function() {
-    return 'update';
   }
 });

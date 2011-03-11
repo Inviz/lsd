@@ -21,9 +21,23 @@ provides:
 
 LSD.Action.Dialog = LSD.Action.build({
   enable: function(target) {
-    var dialog = new LSD.Widget.Body.Dialog(target);
+    var dialog = this.retrieve(target);
+    if (!dialog) {
+      dialog = LSD.Layout.clone(target);
+      if (!dialog.show) dialog = new LSD.Widget.Body.Dialog(dialog);
+      var caller = this.caller;
+      dialog.addEvents({
+        'submit': function() {
+          console.log('submit', caller)
+          if (caller.kick) caller.kick()
+        }.bind(this),
+        'cancel': function() {
+          if (caller.unkick) caller.unkick()
+        }.bind(this)
+      })
+    }
     dialog.show();
-    console.log('dialog', target.indexOf, this.caller, target.origin, this, target + '');
+    this.store(target, dialog);
   },
   
   disable: function(target) {

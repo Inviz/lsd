@@ -19,6 +19,7 @@ sources:
   - Source/ART/ART.Shape.Flower.js
   - Source/ART/ART.Shape.Rectangle.js
   - Source/ART/ART.Shape.Star.js
+  - Source/Application.js
   - Source/Command/Command.js
   - Source/Command/Checkbox.js
   - Source/Command/Radio.js

@@ -40,7 +40,8 @@ LSD.Sheet = new Class({
     this.callback = callback;
     if (this.element) this.fetch();
     else if (callback) callback(this);
-    LSD.Document.addStylesheet(this);
+    if (!LSD.Sheet.stylesheets) LSD.Sheet.stylesheets = [];
+    LSD.Sheet.stylesheets.push(this);
   },
   
   define: function(selectors, style) {

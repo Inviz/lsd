@@ -21,6 +21,6 @@ provides:
 
 LSD.Action.Replace = LSD.Action.build({
   enable: function(target, content) {
-    if (content) target.parentNode.replaceChild((LSD.document || document).createFragment(content), target);
+    if (content) target.parentNode.replaceChild((this.document || document).createFragment(content), target);
   }
 });

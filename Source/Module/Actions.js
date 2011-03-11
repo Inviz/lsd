@@ -76,7 +76,7 @@ LSD.Module.Actions = new Class({
   
   kick: function() {
     var action = this.getNextAction.apply(this, arguments);
-    if (action) return this.execute(action, Array.prototype.splice(arguments, 0));
+    if (action) return this.execute(action, Array.prototype.splice.call(arguments, 0));
   },
   
   unkick: function() {
@@ -110,28 +110,33 @@ LSD.Module.Actions = new Class({
     if (action.push) var targets = action[1], action = action[0]
     if (typeof action == 'string') action = this.getAction(action);
     else if (action.call && (!(action = action.call(this, args)))) return;
-    if (targets && targets.call && !(targets = targets.call(this))) return;
+    if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return;
     var perform = function(target) {
       if (target.indexOf) target = new String(target);
+      else if (target.localName) target = Element.retrieve(target, 'widget') || target;
       action.perform(target, target.options && target.options.states && target.options.states[action.name], args);
+      delete action.document
     };  
+    console.log('action doc', targets)
+    action.document =  LSD.Module.DOM.findDocument(targets ? (targets.map ? targets[0] : targets) : this)
     action.caller = this;
     var result = targets ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);  
-    delete this.caller;
+    delete action.caller, action.document;
     if (!action.options.asynchronous) this.kick.apply(this, args);
     return result;
   }
 });
 
-LSD.addEvent('before', function() {
+LSD.Module.Actions.attach = function(doc) {
   Object.each(LSD.Mixin, function(mixin, name) {
     var selector = mixin.prototype.behaviour;
     if (!selector) return;
     var watcher = function (widget, state) {
+      //console.log(selector, widget.tagName)
       widget[state ? 'mixin' : 'unmix'](mixin)
     };
     selector.split(/\s*,\s*/).each(function(bit) {
-      LSD.Module.Expectations.behaviours[bit] = watcher;
+      doc.watch(bit, watcher)
     })
   });
-})
+};

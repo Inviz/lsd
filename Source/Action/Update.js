@@ -23,7 +23,7 @@ LSD.Action.Update = LSD.Action.build({
     if (target.empty) target.empty();
     if (content) {
       if (target.setContent) target.setContent(content);
-      else target.appendChild((LSD.document || document).createFragment(content));
+      else target.appendChild((this.document || document).createFragment(content));
     }
     return target;
   }

@@ -52,4 +52,4 @@ LSD.Node.Link = new Class({
   getCommandAction: function() {
     return !this.isRequestURLLocal() && 'send'
   }
-})
+});

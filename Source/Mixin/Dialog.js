@@ -18,8 +18,6 @@ provides:
 */
 
 LSD.Mixin.Dialog = new Class({
-  Extends: LSD.Mixin.Target,
-  
   behaviour: '[dialog]',
   
   options: {
@@ -46,7 +44,7 @@ LSD.Mixin.Dialog = new Class({
   buildDialog: function(name) {
     var layout = {}
     layout[this.options.layout.dialog] = this.options.layout[name];
-    var dialog = this.buildLayout(null, layout, null);
+    var dialog = this.buildLayout(layout);
     var events = this.options.events.dialogs;
     if (events[name]) dialog.addEvents(events[name]);
     return dialog;

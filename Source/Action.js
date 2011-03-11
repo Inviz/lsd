@@ -97,7 +97,21 @@ LSD.Action = function(options, name) {
         delete events[state.enabler], events[state.disabler];
       }
       target = state = null;
+    },
+    
+    store: function(key, value) {
+      if (!this.storage) this.storage = {};
+      if (!key.indexOf && (typeof key !== 'number')) key = $uid(key);
+      this.storage[key] = value;
+     },
+    
+    retrieve: function(key) {
+      if (!this.storage) return;
+      if (!key.indexOf && (typeof key !== 'number')) key = $uid(key);
+      return this.storage[key];
     }
+    
+    
   };
   var events = {
     enable:  self.enable,

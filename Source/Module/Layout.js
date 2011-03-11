@@ -69,12 +69,12 @@ LSD.Module.Layout = new Class({
     return layout.result.length == 1 ? layout.result[0] : layout.result;
   },
   
-  createLayout: function(selector, layout, parent) {
-    return LSD.Layout.clone(selector, layout, (parent === null) ? null : (parent || this))
+  createLayout: function(layout, parent) {
+    return new LSD.Layout(parent || this, layout);
   },
   
   buildItem: function() {
     if (!this.options.layout.item) return this.parent.apply(this, arguments);
-    return this.buildLayout(this.options.layout.item, null, this)
+    return this.buildLayout(this.options.layout.item)
   }
 });
