@@ -50,7 +50,10 @@ LSD.Module.Layout = new Class({
     });
     this.parent(element, options);
     if (this.options.layout.instance !== false) if (!options || !options.layout || (options.layout.instance !== false)) {
-      if (layout) this.layout = new LSD.Layout(this, Array.prototype.splice.call(layout.childNodes, 0), this.options.layout.options)
+      if (layout) {
+        for (var nodes = layout.childNodes, children = [], node, i = 0; node = nodes[i++];) children.push(node);
+        this.layout = new LSD.Layout(this, children, this.options.layout.options)
+      }
     } else this.layout = options.layout.instance;
     if (this.options.layout.children) this.layout.render(this.options.layout.children)
     if (this.options.layout.self) this.applySelector(this.options.layout.self);

@@ -122,13 +122,13 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   patch: function(element, parent, transformed, opts) {
-    if (this.isAugmentable(element, parent, transformed)) this.make(element, parent, transformed, opts, true);
+    if (this.isAugmentable(element, parent, transformed)) return this.make(element, parent, transformed, opts, true);
   },
   
   make: function(element, parent, transformed, opts, reuse) {
     var extracted = LSD.Layout.extract(element);
     if (transformed) extracted = extracted ? this.merge(extracted, transformed) : transformed;
-    return this.build(Object.append({}, opts, extracted), parent && parent.call ? parent(element) : parent, reuse && element)
+    return this.build(Object.append({}, opts, extracted), parent && parent.call ? parent(element) : parent, reuse ? element : null)
   },
   
   build: function(options, parent) {
