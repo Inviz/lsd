@@ -236,7 +236,6 @@ var Value = LSD.Sheet.Value = {
     return function(property) {
       var resolved = Value['%'].resolve(property);
       if (resolved.call) resolved = resolved.call(this);
-      console.log(123, this, resolved, value)
       return resolved / 100 * value;
     }
   },

@@ -27,10 +27,10 @@ LSD.Module.Attributes = new Class({
     this.attributes = {}
     this.parent.apply(this, arguments);
     if (this.options.attributes) for (var name in this.options.attributes) if (!LSD.Attributes.Ignore[name]) this.attributes[name] = this.options.attributes[name];
-    (this.pseudos || []).concat(this.options.pseudos || []).each(function(value) {
+    this.pseudos.concat(this.options.pseudos || []).each(function(value) {
       this.setStateTo(value, true);
     }, this);
-    (this.classes || []).concat(this.options.classes || []).each(this.addClass.bind(this));
+    this.classes.concat(this.options.classes || []).each(this.addClass, this);
   },
   
   getAttribute: function(attribute) {

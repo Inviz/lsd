@@ -3,7 +3,7 @@
  
 script: Target.js
  
-description: A mixins that assigns command targets from selectors in markup
+description: Functions to fetch and parse targets
  
 license: Public domain (http://unlicense.org).
 
@@ -11,43 +11,41 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD
- 
-provides:
-  - LSD.Mixin.Target
- 
+
+provides: 
+  - LSD.Module.Target
+
 ...
 */
 
 (function() {
   var cache = {};
-  
-  LSD.Mixin.Target = new Class({
+  LSD.Module.Target = new Class({
     behaviour: '[target][target!=_blank][target!=false]',
-    
+
     options: {
       chain: {
         target: function() {
-          var action = this.getTargetAction() || this.options.targetAction;
-          console.log(this.getTargetAction() , this.options.targetAction, this.getTarget(), this.element)
+          var action = this.getTargetAction();
           if (action) return [action, this.getTarget];
         }
       }
     },
-  
-    getTarget: function(target) {
-      if (!target) target = this.attributes.target;
+    
+    getTarget: function(target, anchor) {
+      if (!target && !(target = this.attributes.target)) return false;
       if (!target) return false;
       var parsed = this.parseTargetSelector(target);
       results = [];
       parsed.each(function(expression) {
-        results.push.apply(results, Slick.search(expression.anchor || (this.document ? this.document.element : document.body), expression.selector));
+        results.push.apply(results, Slick.search(anchor || expression.anchor || (this.document ? this.document.element : document.body), expression.selector));
       }, this);
-      return results;
+      return results.length > 0 && results;
     },
     
     parseTargetSelector: function(target) {
       if (cache[target]) return cache[target];
-      var parsed = Slick.parse(target);
+      var parsed = target.Slick ? target : Slick.parse(target);
       cache[target] = parsed.expressions.map(this.parseTarget.bind(this));
       return cache[target];
     },
@@ -65,24 +63,21 @@ provides:
       result.selector = {Slick: true, expressions: [expression], length: 1};
       return result;
     },
-    
-    commit: function(action) {
-      return this.getTarget().map(function(target) { 
-        return this.execute(target, action) 
-      }.bind(this));
-    },
-    
+
     getTargetAction: function() {
-      return this.attributes.interaction;
+      return this.attributes.interaction || this.options.targetAction;
     }
   });
   
-  var Pseudo = LSD.Mixin.Target.Pseudo = {
+  var Pseudo = LSD.Module.Target.Pseudo = {
     document: function() {
       return this.document;
     },
     body: function() {
       return this.document.element;
+    },
+    page: function() {
+      return document.body;
     },
     self: function() {
       return this;

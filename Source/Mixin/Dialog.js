@@ -9,7 +9,6 @@ license: Public domain (http://unlicense.org).
  
 requires:
   - LSD
-  - LSD.Mixin.Target
  
 provides: 
   - LSD.Mixin.Dialog

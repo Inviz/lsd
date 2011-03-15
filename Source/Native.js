@@ -41,7 +41,8 @@ LSD.Native = new Class({
     LSD.Module.DOM,
     LSD.Module.Attributes,
     LSD.Module.Actions,
-    LSD.Module.Command
+    LSD.Module.Command,
+    LSD.Module.Target
   ],
   
   States: Object.subset(LSD.States.Known, ['built', 'attached']),

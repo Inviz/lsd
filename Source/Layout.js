@@ -10,9 +10,11 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- LSD
+  - LSD
+  - More/Object.Extras
 
-provides: [LSD.Layout]
+provides: 
+  - LSD.Layout
  
 ...
 */
@@ -43,9 +45,24 @@ LSD.Layout = function(widget, layout, options) {
   if (!layout) {
     layout = widget;
     widget = null;
-  } else if (widget && widget.nodeName) widget = this.convert(widget);
+  } else if (widget && widget.localName) widget = this.convert(widget);
   this.result = this.render(layout, widget);
 };
+LSD.toLowerCase = (function(lowercased) {
+  return function(string) { 
+    return (lowercased[string]) || (lowercased[string] = string.toLowerCase())
+  }
+})({});
+LSD.capitalize = (function(capitalized) {
+  return function(string) {
+    return (capitalized[string]) || (capitalized[string] = string.capitalize())
+  }
+})({});
+LSD.toClassName = (function(classnameized) {
+  return function(string) {
+    return (classnameized[string]) || (classnameized[string] = string.replace(/(^|-)([a-z])/g, function(a, b, c) { return (b ? '.' : '') + c.toUpperCase()}))
+  }
+})({});
 
 
 LSD.Layout.prototype = Object.append(new Options, {
@@ -56,29 +73,19 @@ LSD.Layout.prototype = Object.append(new Options, {
     context: 'widget'
   },
   
-  render: function(layout, parent, method) {
-    var rendered = !!layout.layout;
-    if (!rendered) {
+  render: function(layout, parent, method, opts) {
+    if (!layout.layout) {
       var type = layout.push ? 'array' : layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : layout.indexOf ? 'string' : 'object';
-      var result = this[type](layout, parent, method);
-    } else var result = layout;
-    if (result) {
-      if (parent && parent.call) parent = parent(result.element || layout, result);
-      if (parent && (rendered || result != layout) && result.nodeType) {
-        if (result.parentNode != parent) { 
-          if (result.inject) result.inject(parent, 'bottom', (parent.nodeType == 1) && !parent.documentElement);
-          else (parent.toElement ? parent.toElement() : parent).appendChild(result);
-        }
-      }
-    };
+      var result = this[type](layout, parent, method, opts);
+    } else if (parent) this.appendChild(layout, parent);
     return result;
   },
   
-  materialize: function(selector, layout, parent) {
-    var widget = this.build(this.parse(selector))
-    if (parent) this.render(widget, parent);
-    if (layout && layout.charAt) widget.setContent(layout);
-    else this.render(layout || {}, widget);
+  materialize: function(selector, layout, parent, opts) {
+    var widget = this.build(Object.append({}, opts, this.parse(selector)), parent);
+    if (parent) this.render(widget, parent, null, opts);
+    if (layout) if (layout.charAt) widget.setContent(layout);
+    else this.render(layout, widget, null, opts);
     return widget;
   },
   
@@ -109,17 +116,22 @@ LSD.Layout.prototype = Object.append(new Options, {
     return (this.parsed[selector] = options);
   },
   
-  convert: function(element, transformed) {
-    if (transformed == null) transformed = this.transform(element)
-    if (transformed) return this.build(transformed);
-    if (this.isConvertable(element)) return this.build(LSD.Layout.extract(element));
+  convert: function(element, parent, transformed, opts) {
+    if (transformed == null) transformed = this.transform(element, parent);
+    if (transformed || this.isConvertable(element, parent)) return this.make(element, parent, transformed, opts);
   },
   
-  patch: function(element, transformed) {
-    if (this.isAugmentable(element, transformed)) return this.build(transformed || LSD.Layout.extract(element), element)
+  patch: function(element, parent, transformed, opts) {
+    if (this.isAugmentable(element, parent, transformed)) this.make(element, parent, transformed, opts, true);
   },
   
-  build: function(options) {
+  make: function(element, parent, transformed, opts, reuse) {
+    var extracted = LSD.Layout.extract(element);
+    if (transformed) extracted = extracted ? this.merge(extracted, transformed) : transformed;
+    return this.build(Object.append({}, opts, extracted), parent && parent.call ? parent(element) : parent, reuse && element)
+  },
+  
+  build: function(options, parent) {
     var mixins = [];
     var tag = options.source || options.tag || 'container'
     if (options.attributes) {
@@ -137,19 +149,33 @@ LSD.Layout.prototype = Object.append(new Options, {
       }
     }
     if (!options.layout) options.layout = {};
-    if (!options.layout.instance) options.layout.instance = true//this;
-    if (options.inherit) {
-      var source = parent.options.source;
-      if (!source) {
-        var bits = [parent.options.tag, parent.getAttribute('type')]
-        if (options.inherit == 'full') bits.push(parent.getAttribute('kind'))
-        source = bits.filter(function(bit) { return bit }).join('-');
-      }
-      tag = source + '-' + tag
+    if (!options.layout.instance) options.layout.instance = false;
+    if (options.inherit && parent) {
+      if (parent.options) {
+        var source = parent.options.source;
+        if (!source) {
+          var bits = [parent.tagName, parent.getAttribute('type')]
+          if (options.inherit == 'full') bits.push(parent.getAttribute('kind'))
+          source = bits.filter(function(bit) { return bit }).join('-');
+        }
+      } else if (parent.indexOf) var source = parent;
+      if (source) tag = source + '-' + tag
     }
-
     mixins.unshift(tag);
-    return this.context.create.apply(this.context, [mixins].concat(Array.prototype.splice.call(arguments, 0)));
+    var args = Array.prototype.splice.call(arguments, 0);
+    args.splice(1, 1); //remove parent
+    var result = this.context.create.apply(this.context, [mixins].concat(args));
+    result.layout = this;
+    return result;
+  },
+  
+  /*
+    Tries given method. Retries with fallback.
+  */
+  
+  translate: function(method) {
+    var args = Array.prototype.splice.call(arguments, 1);
+    return this[method].apply(this, args) || (this.options.fallback && this[this.options.fallback].apply(this, args));
   },
   
   // methods
@@ -159,7 +185,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     all children widgets when possible. 
   */
   modify: function(element, parent, transformed) {
-    var converted = this.convert(element, transformed);
+    var converted = this.convert(element, parent, transformed);
     if (converted) {
       var replacement = converted.toElement();
       replacement.replaces(element);
@@ -177,8 +203,8 @@ LSD.Layout.prototype = Object.append(new Options, {
     at all costs and tries to use the whole tree. Used
     as a primary method in regular HTML applications.
   */
-  augment: function(element, parent, transformed) {
-    var converted = this.patch(element, transformed)
+  augment: function(element, parent, transformed, opts) {
+    var converted = this.patch(element, parent, transformed, opts)
     if (converted && converted.element) Converted[converted.element.uid] = converted;
     return converted;
   },
@@ -190,14 +216,14 @@ LSD.Layout.prototype = Object.append(new Options, {
     many times after. Textnodes are cloned too.
   */
   
-  clone: function(element, parent) {
-    var converted = this.convert(element)
+  clone: function(element, parent, transformed, opts) {
+    var converted = this.convert(element, parent, transformed, opts)
     if (parent && parent.call) parent = parent(element);
     if (parent) {
       if (converted) {
         converted.inject(parent);
       } else {
-        parent.toElement().appendChild(element.cloneNode());
+        (parent.toElement ? parent.toElement() : parent).appendChild(element.cloneNode(false));
       }
     }
     return converted;
@@ -205,76 +231,91 @@ LSD.Layout.prototype = Object.append(new Options, {
   
   // type handlers
   
-  string: function(string, parent) {
-    return this.materialize(string, {}, parent);
+  string: function(string, parent, method, opts) {
+    return this.materialize(string, {}, parent, opts);
   },
   
-  array: function(array, parent, method) {
-    return array.map(function(widget) { return this.render(widget, parent, method)}.bind(this));
+  array: function(array, parent, method, opts) {
+    return array.map(function(widget) { return this.render(widget, parent, method, opts)}.bind(this));
   },
   
-  elements: function(elements, parent, method) {
-    return elements.map(function(widget) { return this.render(widget, parent, method)}.bind(this));
+  elements: function(elements, parent, method, opts) {
+    return elements.map(function(widget) { return this.render(widget, parent, method, opts)}.bind(this));
   },
   
-  element: function(element, parent, method) {
+  element: function(element, parent, method, opts) {
     var converted = element.uid && Converted[element.uid];
     var skip = (method === false);
     if (!method) method = this.options.method;
-    var augment = (method == 'augment'), clone = (method == 'clone');
-    if (!converted || !augment) {
-      var transformed = this.transform(element);
-      if (transformed || this.isConvertable(element)) {
-        var widget = this[method](element, parent, transformed), success = !!widget;
-        if (!widget && this.options.fallback) widget = this[this.options.fallback](element, parent, transformed);
-      } else if (clone) {  
-        var widget = element.cloneNode(false);
+    var augmenting = (method == 'augment'), cloning = (method == 'clone');
+    if (!converted || !augmenting) {
+      var ascendant = (parent && parent[1]) || parent;
+      var transformed = this.transform(element, ascendant);
+      if (transformed || this.isConvertable(element, ascendant)) {
+        var widget = this.translate(method, element, ascendant, transformed, opts);
+      } else if (cloning) {  
+        var clone = element.cloneNode(false);
       }
     } else var widget = converted;
-    if (augment && (success || !widget || converted)) {
-      if (!skip && element.childNodes.length) this.find(element, widget);
-    } else {
-      this.walk(element, widget || parent);
-    }
-    return widget || element;
+    var child = widget || clone;
+    if (parent && child) this.appendChild(child, parent[0] || parent);
+    
+    //if (augment && ((widget && widget.element == element) || !widget || converted)) {
+    //  if (!skip && element.childNodes.length) this.find(element, widget);
+    //} else {
+      this.walk(widget && !element.parentNode ? widget.element : element, clone ? [clone, parent] : widget || parent, method, opts);
+    //}
+    return clone || widget || element;
   },
   
   textnode: function(element, parent, method) {
-    return ((method || this.options.method) == 'clone') ? element.cloneNode(false) : element;
+    return ((method || this.options.method) == 'clone') ? this.appendChild(element.cloneNode(false), parent[0] || parent) : element;
   },
   
-  fragment: function(element, parent, method) {
-    return this.walk(element, parent, method);
+  fragment: function(element, parent, method, opts) {
+    return this.walk(element, parent, method, opts);
   },
   
-  object: function(object, parent) {
+  object: function(object, parent, method, opts) {
     var widgets = [];
     for (var selector in object) {
-      widgets.push(this.materialize(selector, object[selector], parent));
+      widgets.push(this.materialize(selector, object[selector], parent, opts));
     }
     return widgets;
   },
   
-  walk: function(element, parent, method) {
+  walk: function(element, parent, method, opts) {
     var node = element.firstChild;
     while (node) {
-      if (node.nodeType) this.render(node, parent, method);
+      if (node.nodeType) this.render(node, parent, method, opts);
       node = node.nextSibling;
     }
   },
   
-  find: function(element, root) {
+  find: function(element, root, opts) {
     var selected = element.getElementsByTagName("*");
     for (var children = [], i = 0, j = selected.length; i < j; i++) children[i] = selected[i];
     var found = {};
-    var getParent = function(node, result) {
+    var getParent = function(node) {
       var parent = null;
       while (node = node.parentNode) if (node == element || node.uid && (parent = found[node.uid])) break;
-      return parent || root
+      return parent || root;
     };
     for (var i = 0, child; child = children[i++];) {
-      var widget = this.render(child, getParent, false);
+      var widget = this.render(child, getParent, false, opts);
       if (widget && widget.element) found[widget.element.uid] = widget;
+    }
+  },
+  
+  appendChild: function(child, parent) {
+    if (child.nodeType && (!parent.call || (child.element && (parent = parent(child.element))))) {
+      var element = parent.toElement ? parent.toElement() : parent;
+      if (child.parentNode != parent && child.parentNode != element) { 
+        if (child.element && parent.element) 
+          parent.appendChild(child, false)
+        else
+          element.appendChild(child.element || child);
+      }
     }
   },
   
@@ -291,35 +332,27 @@ LSD.Layout.prototype = Object.append(new Options, {
     return result;
   },
   
-  transform: function(element) {
-    
-    for (var selector in Transformations) {
-      var parsed = ParsedTransformations[selector] || (ParsedTransformations[selector] = Slick.parse(selector));
-      if (Slick.match(element, parsed)) 
-        return this.merge(LSD.Layout.extract(element), this.parse(Transformations[selector]));
+  transform: function(element, parent) {
+    if (parent && parent.transformLayout) {
+      var transformation = parent.transformLayout(element, this);
+      if (transformation) return this.merge(LSD.Layout.extract(element), this.parse(transformation))
     }
     return false;
   },
   
   // redefinable predicates
   
-  isConvertable: function(element) {
-    var memo = convertable[element.tagName];
-    if (memo != null) return memo;
-    var tagName = element.tagName;
-    var tag = tags[tagName] || (tags[tagName] = tagName.toLowerCase());
-    return (convertable[tagName] = !!this.context[tag.capitalize()]);
+  isConvertable: function(element, parent) {
+    return !!this.context[LSD.toClassName(LSD.toLowerCase(element.tagName))];
   },
   
-  isAugmentable: function(element, transformed) {
+  isAugmentable: function(element, parent, transformed) {
     if (element.nodeType != 1) return true;
-    var tag = tags[element.tagName] || (tags[element.tagName] = element.tagName.toLowerCase());
-    var source = transformed ? transformed.source : tag;
-    var memo = augmentable[source];
-    var klass = (memo != null) ? memo : (augmentable[source] = this.context[source.capitalize()] || false);
+    var tag = LSD.toLowerCase(element.tagName);
+    var klass = Object.getFromPath(this.context, LSD.toClassName(transformed ? transformed.source : tag));
     if (!klass) return;
     var opts = klass.prototype.options;
-    return !opts || ((opts.element && opts.element.tag) ? (opts.element.tag == tag) : (!opts.tag || opts.tag == tag))
+    return !opts || ((opts.element && opts.element.tag) ? (opts.element.tag == tag) : true)
   }
 });
 
@@ -341,7 +374,7 @@ LSD.Layout.extract = function(element) {
     attributes: {},
     origin: element
   };
-  var tag = element.tagName.toLowerCase()
+  var tag = LSD.toLowerCase(element.tagName);
   if (tag != 'div') options.source = tag;
   if (element.id) options.id = element.id;
   for (var i = 0, attribute; attribute = element.attributes[i++];) {
@@ -354,35 +387,29 @@ LSD.Layout.extract = function(element) {
   }
   var klass = options.attributes['class'];
   if (klass) {
-    klass = klass.replace(/^lsd (?:tag-)?([a-zA-Z0-9-_]+)\s?/, function(m, tag) {
+    klass = klass.replace(/^lsd\s+(?:tag-)?([a-zA-Z0-9-_]+)\s?/, function(m, tag) {
       options.source = tag;
       return '';
     })
-    options.classes = klass.split(' ').filter(function(name) {
-      var match = /^(is|id)-(.*?)$/.exec(name)
-      if (match) {
-        switch (match[1]) {
-          case "is":
-            if (!options.pseudos) options.pseudos = [];
-            options.pseudos.push(match[2]);
-            break;
-          case "id":
-            options.id = match[2];
-        }
+    options.classes = klass.split(/\s+/).filter(function(name) {
+      switch (name.substr(0, 3)) {
+        case "is-":
+          if (!options.pseudos) options.pseudos = [];
+          options.pseudos.push(name.substr(3, name.length - 3));
+          break;
+        case "id-":
+          options.id = name.substr(3, name.length - 3);
+          break;
+        default:
+          return true;
       }
-      return !match;
     })
     delete options.attributes['class'];
   }
   return options;
 };
 
-var tags = {};
-var convertable = {};
-var augmentable = {};
 var Converted = LSD.Layout.converted = {};
-var Transformations = LSD.Layout.Transformations = {};
-var ParsedTransformations = {};
 
 ['modify', 'augment', 'clone'].each(function(method) {
   LSD.Layout[method] = function(element, layout, options) {

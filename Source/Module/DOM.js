@@ -70,12 +70,12 @@ LSD.Module.DOM = new Class({
     delete attrs.tag;
     if (!this.element) this.element = new Element(tag, attrs);
     else var element = this.element.set(attrs);
-    var classes = [];
+    var classes = new FastArray;
     if (options.tag != tag) classes.push('lsd', options.tag || this.tagName);
     if (options.id) classes.push('id-' + options.id);
-    this.classes.each(function(cls) { classes.push(cls) });
+    classes.concat(this.classes);
     this.element.store('widget', this);
-    if (classes.length) this.element.className = classes.join(' ');
+    if (classes.getLength()) this.element.className = classes.join(' ');
     if (this.attributes) 
       for (var name in this.attributes) 
         if (name != 'width' && name != 'height') {
@@ -187,27 +187,24 @@ LSD.Module.DOM = new Class({
     return this;
   },
   
-  setDocument: function(widget) {
+  extractDocument: function(widget) {
     var element = ('localName' in widget) ? widget : widget.element;
     var isDocument = widget.documentElement || (instanceOf(widget, LSD.Document));
+    var parent = this.parentNode;
     if (isDocument  // if document
-    || (this.parentNode && this.parentNode.dominjected) //already injected widget
+    || (parent && parent.dominjected) //already injected widget
     || (widget.ownerDocument && (widget.ownerDocument.body == widget)) //body element
     || element.offsetParent) { //element in dom (costy check)
-      var document = isDocument ? widget : LSD.Module.DOM.findDocument(widget);
-      if (!document) return;
-      var halted = [];
-      //this.render();
-      this.walk(function(child) {
-        //if (child.halted) halted.push(child);
-        child.ownerDocument = child.document = document;
-        child.fireEvent('dominject', [child.element.parentNode, document]);
-        child.dominjected = true;
-      });
-      //halted.each(function(child) {
-      //  child.refresh();
-      //})
+      return (parent && parent.document) || (isDocument ? widget : LSD.Module.DOM.findDocument(widget));
     }
+  },
+  
+  setDocument: function(document) {
+    return this.walk(function(child) {
+      child.ownerDocument = child.document = document;
+      child.fireEvent('dominject', [child.element.parentNode, document]);
+      child.dominjected = true;
+    });
   },
   
   inject: function(widget, where, quiet) {
@@ -221,10 +218,10 @@ LSD.Module.DOM = new Class({
     }
     var self = isElement ? this.toElement() : this;
     this.quiet = quiet || (widget.documentElement && this.element && this.element.parentNode);
-    //console.log('inject', widget, where, self.tagName, this.options.id)
     if (!inserters[where || 'bottom'](self, widget) && !quiet) return false;
     if (quiet !== true || widget.document) {
-      this.setDocument(widget);
+      var document = this.documentElement ? this : this.extractDocument(widget);
+      if (document) this.setDocument(document);
     }
     this.fireEvent('inject', this.parentNode);
     return true;

@@ -20,7 +20,7 @@ requires:
   - LSD.Module.Attributes
   - LSD.Module.Actions
   - LSD.Module.Command
-  - LSD.Module.Render
+  - LSD.Module.Target
 
 provides: 
   - LSD.Widget

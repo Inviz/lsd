@@ -35,6 +35,8 @@ Object.append(LSD, {
   Trait: {},   // some widgets may use those
   Mixin: {},   // these may be applied in runtime
   
+  Mutator: {}, // class mutators (class methods)
+  
   // Conventions
   Events: {},
   Attributes: {

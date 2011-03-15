@@ -21,6 +21,10 @@ provides:
 LSD.Application = new Class({
   Extends: LSD.Node,
   
+  options: {
+    method: 'augment'
+  },
+  
   initialize: function(document, options) {
     if (!LSD.application) LSD.application = this;
     this.parent.apply(this, arguments);
@@ -47,17 +51,13 @@ LSD.Application = new Class({
   
   setBody: function(element) {
     this.fireEvent('beforeBody', element);
-    var body = new LSD.Widget.Body(element);
+    var body = this.body = new LSD.Widget.Body(element);
     this.fireEvent('body', [body, element]);
-    body.addEvents({
-      'DOMNodeInserted': this.augment,
-      'DOMSubtreeModified': this.augment
-    });
     return body;
   },
   
-  augment: function(element) {
-    LSD.Layout.augment(element);
+  getBody: function() {
+    return this.body;
   },
   
   redirect: function(url) {

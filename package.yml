@@ -49,7 +49,6 @@ sources:
   - Source/Mixin/Focus.js
   - Source/Mixin/Request.js
   - Source/Mixin/Validity.js
-  - Source/Mixin/Target.js
   - Source/Mixin/Dialog.js
   - Source/Module/Container.js
   - Source/Module/Command.js
@@ -61,6 +60,7 @@ sources:
   - Source/Module/Events.js
   - Source/Module/Actions.js
   - Source/Module/Render.js
+  - Source/Module/Target.js
   - Source/Trait/Dimensions.js
   - Source/Trait/Proxies.js
   - Source/Trait/Layers.js
@@ -88,7 +88,9 @@ sources:
   - Source/Action/State.js
   - Source/Action/Display.js
   - Source/Action/Dialog.js
+  - Source/Action/Check.js
   - Source/Action.js
+  - Source/Mutator/Accessors.js
   - Source/Container.js
   - Source/Element.js
   - Source/Layout.js

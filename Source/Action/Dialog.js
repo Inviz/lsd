@@ -23,12 +23,10 @@ LSD.Action.Dialog = LSD.Action.build({
   enable: function(target) {
     var dialog = this.retrieve(target);
     if (!dialog) {
-      dialog = LSD.Layout.clone(target);
-      if (!dialog.show) dialog = new LSD.Widget.Body.Dialog(dialog);
+      dialog = new LSD.Widget.Body.Dialog(target, {layout: {options: {method: 'clone'}}});
       var caller = this.caller;
       dialog.addEvents({
         'submit': function() {
-          console.log('submit', caller)
           if (caller.kick) caller.kick()
         }.bind(this),
         'cancel': function() {

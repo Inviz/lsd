@@ -102,12 +102,8 @@ LSD.Module.Actions = new Class({
     Class.unmix(this, mixin);
   },
   
-  getTarget: function() {
-    return false;
-  },
-  
   execute: function(action, args) {
-    if (action.push) var targets = action[1], action = action[0]
+    if (action.push) var targets = action[1], action = action[0];
     if (typeof action == 'string') action = this.getAction(action);
     else if (action.call && (!(action = action.call(this, args)))) return;
     if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return;
@@ -116,8 +112,7 @@ LSD.Module.Actions = new Class({
       else if (target.localName) target = Element.retrieve(target, 'widget') || target;
       action.perform(target, target.options && target.options.states && target.options.states[action.name], args);
       delete action.document
-    };  
-    console.log('action doc', targets)
+    };
     action.document =  LSD.Module.DOM.findDocument(targets ? (targets.map ? targets[0] : targets) : this)
     action.caller = this;
     var result = targets ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);  

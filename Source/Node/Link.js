@@ -14,10 +14,10 @@ requires:
   - LSD.Module.Attributes
   - LSD.Module.Events
   - LSD.Module.Layout
+  - LSD.Module.Target
   - LSD.Module.Command
   - LSD.Module.Actions
   - LSD.Mixin.Request
-  - LSD.Mixin.Target
   - LSD.Mixin.Dialog
 
 provides: 
@@ -34,8 +34,8 @@ LSD.Node.Link = new Class({
     LSD.Module.Layout,
     LSD.Module.Command,
     LSD.Module.Actions,
+    LSD.Module.Target,
     LSD.Mixin.Request,
-    LSD.Mixin.Target,
     LSD.Mixin.Dialog
   ],
   

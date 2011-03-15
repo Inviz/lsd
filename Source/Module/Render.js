@@ -40,6 +40,20 @@ LSD.Module.Render = new Class({
       child.render();
     });
   },
+  
+  //setDocument: function(document) {
+  //  //var halted = [];
+  //  //this.render();
+  //  this.walk(function(child) {
+  //    //if (child.halted) halted.push(child);
+  //    child.ownerDocument = child.document = document;
+  //    child.fireEvent('dominject', [child.element.parentNode, document]);
+  //    child.dominjected = true;
+  //  });
+  //  //halted.each(function(child) {
+  //  //  child.refresh();
+  //  //})
+  //},
 
   /*
     Halt marks widget as failed to render.
