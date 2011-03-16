@@ -75,7 +75,7 @@ LSD.Module.DOM = new Class({
     if (options.id) classes.push('id-' + options.id);
     classes.concat(this.classes);
     this.element.store('widget', this);
-    if (classes.getLength()) this.element.className = classes.join(' ');
+    if (Object.getLength(classes)) this.element.className = classes.join(' ');
     if (this.attributes) 
       for (var name in this.attributes) 
         if (name != 'width' && name != 'height') {
