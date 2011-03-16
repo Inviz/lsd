@@ -39,14 +39,12 @@ LSD.Document.Commands = new Class({
     and only instantiate class when the link was actually clicked.
   */
   onClick: function(event) {
-    var link = (event.target.tagName.toLowerCase() == 'a') ? event.target : Slick.find(event.target, '! a');
+    var link = (LSD.toLowerCase(event.target.tagName) == 'a') ? event.target : Slick.find(event.target, '! a');
     if (!link) return;
     if (link.retrieve('widget')) return;
     var node = link.retrieve('node')
     if (!node) link.store('node', node = new LSD.Node.Link(link));
-    node.click();
-    event.preventDefault();
-    
+    node.click(event);
   }
 });
 

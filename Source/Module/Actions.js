@@ -58,7 +58,7 @@ LSD.Module.Actions = new Class({
   getActionChain: function() {
     var actions = [];
     for (var name in this.options.chain) {
-      var action = this.options.chain[name].call(this);
+      var action = this.options.chain[name].apply(this, arguments);
       if (action) actions.push(action);
     }
     return actions.sort(function(a, b) {
@@ -67,7 +67,7 @@ LSD.Module.Actions = new Class({
   },
   
   getNextAction: function() {
-    var actions = this.getActionChain();
+    var actions = this.getActionChain.apply(this, arguments);
     var index = this.currentActionIndex == null ? 0 : this.currentActionIndex + 1;
     var action = actions[index];
     this.currentActionIndex = action ? index : -1;

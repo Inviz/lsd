@@ -311,10 +311,9 @@ LSD.Layout.prototype = Object.append(new Options, {
     if (child.nodeType && (!parent.call || (child.element && (parent = parent(child.element))))) {
       var element = parent.toElement ? parent.toElement() : parent;
       if (child.parentNode != parent && child.parentNode != element) { 
-        if (child.element && parent.element) 
-          parent.appendChild(child, false)
-        else
-          element.appendChild(child.element || child);
+        if (child.element && parent.element) {
+          child.inject(parent, false)
+        } else element.appendChild(child.element || child);
       }
     }
   },

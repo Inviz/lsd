@@ -216,11 +216,11 @@ LSD.Module.DOM = new Class({
         isElement = false;
       }
     }
-    var self = isElement ? this.toElement() : this;
     this.quiet = quiet || (widget.documentElement && this.element && this.element.parentNode);
-    if (!inserters[where || 'bottom'](self, widget) && !quiet) return false;
+    if (where === false) widget.appendChild(this, false)
+    else if (!inserters[where || 'bottom'](isElement ? this.toElement() : this, widget) && !quiet) return false;
     if (quiet !== true || widget.document) {
-      var document = this.documentElement ? this : this.extractDocument(widget);
+      var document = widget.document || (this.documentElement ? this : this.extractDocument(widget));
       if (document) this.setDocument(document);
     }
     this.fireEvent('inject', this.parentNode);

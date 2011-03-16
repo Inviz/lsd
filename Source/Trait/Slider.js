@@ -50,7 +50,7 @@ LSD.Trait.Slider = new Class({
   },
   
   getSlider: Macro.getter('slider', function (update) {
-    var slider = new Slider(document.id(this.getTrack()), document.id(this.getTrackThumb()), $merge(this.options.slider, {
+    var slider = new Slider(document.id(this.getTrack()), document.id(this.getTrackThumb()), Object.merge(this.options.slider, {
       mode: this.options.mode
     })).set(parseFloat(this.options.value));
     slider.addEvent('change', this.onSet.bind(this));

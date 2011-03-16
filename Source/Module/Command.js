@@ -44,7 +44,7 @@ LSD.Module.Command = new Class({
     },
     chain: {
       commandaction: function() {
-        return this.getCommandAction();
+        return this.getCommandAction.apply(this, arguments)
       }
     }
   },

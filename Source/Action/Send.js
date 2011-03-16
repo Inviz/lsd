@@ -20,7 +20,7 @@ provides:
 
 
 LSD.Action.Send = LSD.Action.build({
-  enable: function(target, e) {
+  enable: function(target, event) {
     return target.submit ? target.submit() : target.send ? target.send() : null;
   }
 });
