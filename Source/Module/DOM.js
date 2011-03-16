@@ -126,42 +126,9 @@ LSD.Module.DOM = new Class({
     }
   },
   
-  /*
-    
-    %header
-      %section#top
-      %button
-      %button
-      %section Title
-    
-    var header = LSD.document.getElement('header');
-    header.top     //=> section#top
-    header.buttons //=> [button, button]
-    header.section //=> section 
-    
-    When widget is appended as child the semantic to that widget
-    is set. The name of the link is determined by these rules:
-    
-    - If widget has id, use id
-    - Use tag name
-      - If the link is not taken, write tag name link
-      - If the link is taken, append widget to a pluralized array link
-        - When pluralized link is added, original link is not removed
-  */
-  
   appendChild: function(widget, adoption) {
     if (!adoption && this.canAppendChild && !this.canAppendChild(widget)) return false;
-    var options = widget.options, id = options.id, tag = options.tag, tags = tag + 's', kind = widget.attributes['kind']
-    widget.identifier = id || tag;
-    if (id) {
-      if (this[id]) this[id].dispose();
-      this[id] = widget;
-    } else if (!this[tag]) this[tag] = widget;
-    else if (!this[tags]) this[tags] = [widget];
-    else if (typeof this[tags] == 'array') this[tags].push(widget);
-    else if (!this['_' + tags]) this['_' + tags] = [widget];
-    else this['_' + tags].push(widget);
-        
+    if (widget.id) this[widget.id] = widget;
     this.childNodes.push(widget);
     widget.setParent(this);
     if (!widget.quiet && (adoption !== false) && this.toElement()) (adoption || function() {
@@ -169,7 +136,7 @@ LSD.Module.DOM = new Class({
     }).apply(this, arguments);
     delete widget.quiet;
     
-    this.fireEvent('adopt', [widget, id]);
+    this.fireEvent('adopt', [widget]);
     widget.walk(function(node) {
       this.dispatchEvent('nodeInserted', node);
     }.bind(this));

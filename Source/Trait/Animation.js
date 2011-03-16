@@ -71,4 +71,4 @@ LSD.Trait.Animation.Instant = new Class({
   getAnimatedElement: function() {
     return this.element;
   }
-})
+});

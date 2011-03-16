@@ -21,8 +21,15 @@ provides:
 */
 
 !function() {
-var pseudos = {};
+  
 var Expectations = LSD.Module.Expectations = new Class({
+  options: {
+    has: {
+      one: null,
+      many: null
+    }
+  },
+  
   initialize: function() {
     this.expectations = {};
     this.addEvents({
@@ -45,6 +52,28 @@ var Expectations = LSD.Module.Expectations = new Class({
       }
     }, true);
     this.parent.apply(this, arguments);
+    var has = this.options.has, one = has.one, many = has.many;
+    if (one) {
+      for (var name in one) {
+        this.watch(one[name], function(widget, state) {
+          if (state) this[name] = widget
+          else delete this[name];
+        });
+      }
+    }
+    if (many) {
+      for (var name in many) {
+        console.log('watch', this.element, many[name], name)
+        this[name] = [];
+        var self = this;
+        this.watch(many[name], function(widget, state) {
+          console.log(self.element, widget.element, name, many[name], widget)
+          if (state) {
+            this[name].push(widget);
+          } else this[name].erase(widget);
+        }.bind(this));
+      }
+    }
   },
   
   getElementsByTagName: function(tag) {
@@ -189,12 +218,12 @@ var Expectations = LSD.Module.Expectations = new Class({
     if (typeof selector == 'string') selector = Slick.parse(selector);
     if (!depth) depth = 0;
     selector.expressions.each(function(expressions) {
-      var expression = expressions[depth];
-      if (!expression.watcher) expression.watcher = function(widget, state) {
+      var watcher = function(widget, state) {
         if (expressions[depth + 1]) widget[state ? 'watch' : 'unwatch'](selector, callback, depth + 1)
         else callback(widget, state)
-      }
-      this.expect(expression, expression.watcher);
+      };
+      watcher.callback = callback;
+      this.expect(expressions[depth], watcher);
     }, this);
   },
   
@@ -236,6 +265,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   
 });
 
+var pseudos = {};
 var check = function(widget, type, value, state, target) {
   var expectations = widget.expectations
   if (!target) {
@@ -280,7 +310,10 @@ var update = function(widget, tag, state) {
 }
 
 var remove = function(array, callback) {
-  if (array) for (var i = array.length; i--;) if (array[i][1] == callback) array.splice(i, 1);
+  if (array) for (var i = array.length; i--;) {
+    var fn = array[i][1]; 
+    if (fn == callback || fn.callback == callback) array.splice(i, 1);
+  }
 }
 
 var separate = function(selector) {
@@ -345,7 +378,5 @@ LSD.Module.Events.Targets.expected = function() {
     }
   }
 }
-
-
 
 }();

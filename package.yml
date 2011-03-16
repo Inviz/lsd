@@ -90,7 +90,6 @@ sources:
   - Source/Action/Dialog.js
   - Source/Action/Check.js
   - Source/Action.js
-  - Source/Mutator/Accessors.js
   - Source/Container.js
   - Source/Element.js
   - Source/Layout.js

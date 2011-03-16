@@ -173,6 +173,14 @@ LSD.Trait.List = new Class({
       return !!this.fireEvent('previous', [previous]);
     }
     return false;
+  },
+  
+  sort: function(sort) {
+    return this.getItems().sort(sort)
+  },
+  
+  filter: function(filter) {
+    return this.getItems().filter(filter)
   }
   
 });

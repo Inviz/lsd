@@ -40,7 +40,7 @@ LSD.Trait.Input = new Class({
             this.document.activeElement = this;
             if (LSD.Mixin.Focus) LSD.Mixin.Focus.Propagation.focus(this);
           },
-          blur: function() 
+          blur: function() {
               if (this.document.activeElement == this) delete this.document.activeElement;
            //   if (LSD.Mixin.Focus) LSD.Mixin.Focus.Propagation.blur.delay(10, this, this);
           },

@@ -26,6 +26,7 @@ LSD.Module.Attributes = new Class({
     this.pseudos = new FastArray
     this.attributes = {}
     this.parent.apply(this, arguments);
+    if (this.options.id) this.id = this.options.id;
     if (this.options.attributes) for (var name in this.options.attributes) if (!LSD.Attributes.Ignore[name]) this.attributes[name] = this.options.attributes[name];
     this.pseudos.concat(this.options.pseudos || []).each(function(value) {
       this.setStateTo(value, true);
@@ -35,7 +36,7 @@ LSD.Module.Attributes = new Class({
   
   getAttribute: function(attribute) {
     switch (attribute) {
-      case "id": return this.options.id || this.identifier;
+      case "id": return this.id;
       case "class": return this.classes.join(' ');
       default:   return this.attributes[attribute] || this.pseudos[attribute]
     }
