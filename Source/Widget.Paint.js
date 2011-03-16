@@ -71,6 +71,6 @@ LSD.Widget.Paint = new Class({
   lets us use it in other parts of the framework
   (e.g. in stylesheets to validate styles)
 */
-(function(layers) {
+!function(layers) {
   for (var layer in layers) LSD.Layer.get(layer, layers[layer]);
-})(LSD.Widget.Paint.prototype.options.layers);
+}(LSD.Widget.Paint.prototype.options.layers);

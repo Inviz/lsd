@@ -19,7 +19,7 @@ provides:
 ...
 */
 
-(function() {
+!function() {
   
 /* 
   Layout takes any tree-like structure and tries
@@ -418,4 +418,4 @@ var Converted = LSD.Layout.converted = {};
 });
 
 
-})();
+}();

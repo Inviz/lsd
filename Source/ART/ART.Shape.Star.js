@@ -49,9 +49,9 @@ ART.Shape.Star = new Class({
 
 });
 
-(function() {
+!function() {
   var Properties = {
     starRays: ['number'],
     starRadius: ['length', 'percentage']
   }
-})();
+}();

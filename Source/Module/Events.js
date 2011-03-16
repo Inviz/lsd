@@ -236,7 +236,7 @@ LSD.Module.Events.Targets = {
   }
 };
 
-(function(Events, Known, Positive, Negative) {
+!function(Events, Known, Positive, Negative) {
   Object.each(Object.append({}, Positive, Negative), function(state, name) {
     var positive = !!Positive[name];
     LSD.Module.Events.Targets[name] = function() {
@@ -258,7 +258,7 @@ LSD.Module.Events.Targets = {
       }
     }
   });
-})(LSD.Module.Events, LSD.States.Known, LSD.States.Positive, LSD.States.Negative)
+}(LSD.Module.Events, LSD.States.Known, LSD.States.Positive, LSD.States.Negative)
 
 /* 
   

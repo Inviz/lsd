@@ -21,7 +21,7 @@ provides:
 ...
 */
 
-(function() {
+!function() {
   
 var CSS = SheetParser.Styles, Paint = LSD.Styles;
 var setStyle = function(element, property, value, type) {
@@ -225,4 +225,4 @@ LSD.Module.Styles = new Class({
 });
 
 
-})();
+}();

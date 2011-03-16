@@ -24,7 +24,7 @@ provides:
 ...
 */
 
-(function() {
+!function() {
   
 LSD.Sheet = new Class({
   Extends: LSD.Node,
@@ -321,4 +321,4 @@ LSD.Sheet.Rule.fromSelectors = function(selectors, style) { //temp solution, spl
 };
 
 
-})();
+}();

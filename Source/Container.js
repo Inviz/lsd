@@ -49,7 +49,7 @@ LSD.Container = new Class({
   
   set: function() {
     var params = Array.link(arguments, {options: Object.type, content: String.type, fn: Function.type, element: Element.type});
-    if (!Hash.getLength(params)) return;
+    if (!Object.getLength(params)) return;
     if (!params.options) params.options = {};
     if (params.fn) this.set(params.fn());
     if (params.element) params.options.element = params.element;
@@ -58,9 +58,9 @@ LSD.Container = new Class({
       delete params.element
     }
     
-    if (params.content) params.options = $merge(params.options, {content: params.content});
+    if (params.content) params.options = Object.merge(params.options, {content: params.content});
 
-    return this.act($merge(this.options, params.options));
+    return this.act(Object.merge(this.options, params.options));
   },
   
   load: function() {
@@ -84,7 +84,7 @@ LSD.Container = new Class({
         this.iframe = this.options.iframe;
       default:
         if (!this.iframe) {
-          this.iframe = new IFrame($merge({
+          this.iframe = new IFrame(Object.merge({
             styles: {
               border: 0, 
               display: 'block',
@@ -93,7 +93,7 @@ LSD.Container = new Class({
             }
           }, this.options.iframe))
         } else {
-          var options = $merge(this.options.iframe) || {}
+          var options = Object.merge(this.options.iframe) || {}
           if (options.src == this.iframe.src) delete options.src //do not set same src to avoid refreshing
           this.iframe.set(this.options.iframe)
         }
@@ -112,7 +112,7 @@ LSD.Container = new Class({
   
   request: function(options) {  
     if (!options || !options.url) return false;
-    this.xhr = new Request($merge({method: "get"}, options));
+    this.xhr = new Request(Object.merge({method: "get"}, options));
     this.xhr.addEvent('success', this.recieve.bind(this));
     return this.xhr.send();
   },

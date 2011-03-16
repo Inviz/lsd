@@ -17,7 +17,7 @@ provides:
 
 */
 
-(function() {
+!function() {
   
 var parsed = {};
 var object = {
@@ -47,7 +47,7 @@ LSD.Mutator.Accessors = Class.Mutators.Accessors = function(accessors) {
   var proto = {
     elements: {}
   };
-  Hash.each(accessors, function(options, name) {
+  Object.each(accessors, function(options, name) {
     if (typeof options == 'string') options = parse(options);
     proto['get' + name.capitalize()] = function() {
       if (this.elements[name] == null) {
@@ -68,4 +68,4 @@ LSD.Mutator.Accessors = Class.Mutators.Accessors = function(accessors) {
   this.implement('Implements', new Class(proto));
 }
 
-})();
+}();

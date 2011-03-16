@@ -21,7 +21,7 @@ provides:
 */
 
 
-(function() {
+!function() {
 
 LSD.Trait.Layers = new Class({
   options: {
@@ -139,4 +139,4 @@ LSD.Trait.Layers = new Class({
   }
 });
 
-})();
+}();

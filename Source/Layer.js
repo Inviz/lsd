@@ -21,7 +21,7 @@ provides:
 ...
 */
 
-(function() {
+!function() {
   
 LSD.Layer = function(name, styles, painters) {
   this.name = name;
@@ -211,4 +211,4 @@ LSD.Layer.get = function(name) {
 }
 
 
-})();
+}();

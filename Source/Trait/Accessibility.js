@@ -21,7 +21,7 @@ provides:
 ...
 */
 
-(function() {
+!function() {
   var parsed = {};
   var modifiers = ['shift', 'control', 'alt', 'meta'];
   var aliases = {
@@ -68,13 +68,13 @@ provides:
   Shortcuts = new Class({
     
     addShortcuts: function(shortcuts, internal) {
-      Hash.each(shortcuts, function(fn, shortcut) {
+      Object.each(shortcuts, function(fn, shortcut) {
         this.addShortcut(shortcut, fn, internal);
       }, this)
     },
 
     removeShortcuts: function(shortcuts, internal) {
-      Hash.each(shortcuts, function(fn, shortcut) {
+      Object.each(shortcuts, function(fn, shortcut) {
         this.removeShortcut(shortcut, fn, internal);
       }, this)
     },
@@ -117,7 +117,7 @@ provides:
     }
   });
   
-})();
+}();
 
 
 

@@ -16,7 +16,7 @@ provides: [ART.SVG.prototype.dash, ART.SVG.prototype.strokeLinear, ART.SVG.proto
 ...
 */
 
-(function() {
+!function() {
 var NS = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink', UID = 0, createElement = function(tag){
   return document.createElementNS(NS, tag);
 };
@@ -119,4 +119,4 @@ ART.SVG.Base.implement({
   },
 });
 
-})();
+}();

@@ -32,7 +32,7 @@ provides:
 */
    
 
-(function() {
+!function() {
 
 LSD.Mixin.Validity = new Class({
   behaviour: ':read-write',
@@ -94,4 +94,4 @@ var Attributes = LSD.Mixin.Validity.Attributes = {
 
 
   
-})();
+}();

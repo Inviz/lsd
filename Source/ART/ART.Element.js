@@ -16,7 +16,7 @@ provides: ART.Element.inserters
 ...
 */
 
-(function() {
+!function() {
   
 var inserters = {
 
@@ -48,4 +48,4 @@ ART.Element.implement({
   }
 });
 
-})();
+}();

@@ -20,7 +20,7 @@ provides:
 ...
 */
 
-(function() {
+!function() {
 var pseudos = {};
 var Expectations = LSD.Module.Expectations = new Class({
   initialize: function() {
@@ -320,7 +320,7 @@ LSD.Module.Events.Targets.expected = function() {
   var self = this, Targets = LSD.Module.Events.Targets;
   return {
     addEvents: function(events) {
-      Hash.each(events, function(value, key) {
+      Object.each(events, function(value, key) {
         if (!self.watchers) self.watchers = {};
         self.watchers[key] = function(widget, state) {
           value = Object.append({}, value)
@@ -339,7 +339,7 @@ LSD.Module.Events.Targets.expected = function() {
       });
     },
     removeEvents: function(events) {
-      Hash.each(events, function(value, key) {
+      Object.each(events, function(value, key) {
         self.unwatch(key, self.watchers[key]);
       });
     }
@@ -348,4 +348,4 @@ LSD.Module.Events.Targets.expected = function() {
 
 
 
-})();
+}();
