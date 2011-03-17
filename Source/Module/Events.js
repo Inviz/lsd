@@ -94,9 +94,8 @@ LSD.Module.Events = new Class({
     if (tree.indexOf) {
       var args, self = this
       if (tree.map) {
-        var name = tree.shift();
-        args = tree;
-        tree = name;
+        args = tree.splice(1);
+        tree = tree[0];
       }
       if (!this.$bound[tree]) {
         this.$bound[tree] = function() {
@@ -105,8 +104,9 @@ LSD.Module.Events = new Class({
       }
       return this.$bound[tree];
     }
-    for (var i in tree) tree[i] = this.bindEvents(tree[i]);
-    return tree;
+    var result = {}
+    for (var i in tree) result[i] = this.bindEvents(tree[i]);
+    return result;
   }
 });
 

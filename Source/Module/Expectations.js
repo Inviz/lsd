@@ -53,26 +53,18 @@ var Expectations = LSD.Module.Expectations = new Class({
     }, true);
     this.parent.apply(this, arguments);
     var has = this.options.has, one = has.one, many = has.many;
-    if (one) {
-      for (var name in one) {
-        this.watch(one[name], function(widget, state) {
-          if (state) this[name] = widget
-          else delete this[name];
-        });
-      }
+    if (one) for (var name in one) {
+      var value = one[name];
+      if (value.indexOf) value = {selector: value}
+      value.name = name;
+      this.addRelation(value);
     }
-    if (many) {
-      for (var name in many) {
-        console.log('watch', this.element, many[name], name)
-        this[name] = [];
-        var self = this;
-        this.watch(many[name], function(widget, state) {
-          console.log(self.element, widget.element, name, many[name], widget)
-          if (state) {
-            this[name].push(widget);
-          } else this[name].erase(widget);
-        }.bind(this));
-      }
+    if (many) for (var name in many) {
+      var value = many[name];
+      if (value.indexOf) value = {selector: value}
+      value.name = name;
+      value.multiple = true;
+      this.addRelation(value);
     }
   },
   
@@ -261,6 +253,46 @@ var Expectations = LSD.Module.Expectations = new Class({
       }
       this.watch(selector, watcher)
     }, this)
+  },
+  
+  addRelation: function(relation, callback) {
+    if (relation.indexOf) relation = {selector: relation};
+    var states = relation.states, name = relation.name, origin = relation.origin || this,
+        events = relation.events, multiple = origin.multiple;
+    if (states) {
+      for (var i = 0, pseudo; pseudo = states[i++];) {
+        var definition = States[pseudo];
+        if (definition) {
+          if (!relation.events) relation.events = events = {};
+          relation.events[definition[0]] = definition[0];
+          relation.events[definition[1]] = definition[1];
+        }
+      }
+    }  
+    if (name && multiple) origin[name] = [];
+    this.watch(relation.selector, function(widget, state) {
+      if (callback) callback.call(relation.origin, widget, state);
+      if (events) {
+        if (state) {
+          origin.addEvents(widget.bindEvents(events))
+        } else origin.removeEvents(widget.bindEvents(events));
+      }
+      if (name) {
+        if (multiple) {
+          if (state) origin[name].push(widget)
+          else origin[name].erase(widget);
+        } else {
+          if (state) origin[name] = widget;
+          else delete origin[name];
+        }
+      }
+      if (state && states) {
+        for (var i = 0, pseudo; pseudo = states[i++];) {
+          var definition = States[pseudo];
+          if (definition) if (origin.pseudos[pseudo]) widget[definition[0]]();
+        }
+      }
+    });
   }
   
 });
@@ -379,4 +411,6 @@ LSD.Module.Events.Targets.expected = function() {
   }
 }
 
+var States = LSD.States.Known;
+  
 }();

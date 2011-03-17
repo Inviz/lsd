@@ -59,6 +59,9 @@ Object.append(LSD, {
       enabled: 'disabled',
       blured: 'focused'
     },
-    Attributes: new FastArray
+    Attributes: new FastArray,
+    Classes: {
+      disabled: 'disabled'
+    }
   }
 });

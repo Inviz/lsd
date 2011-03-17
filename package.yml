@@ -79,6 +79,7 @@ sources:
   - Source/Trait/Fieldset.js
   - Source/Trait/Field.js
   - Source/Trait/Date.js
+  - Source/Trait/Grid.js
   - Source/Action/Create.js
   - Source/Action/Update.js
   - Source/Action/Destroy.js

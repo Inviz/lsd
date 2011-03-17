@@ -89,7 +89,7 @@ LSD.Module.Layout = new Class({
     var element = query.element;
     var transformations = (this.layoutTransformations[LSD.toLowerCase(element.tagName)] || []).concat(this.layoutTransformations['*'] || []);
     for (var i = 0, transformation; transformation = transformations[i++];) {
-      if (Slick.match(element, transformation[0])) query.transformation = transformation[1];
+      if (Slick.matchR(element, transformation[0])) query.transformation = transformation[1];
     }
   },
   
@@ -98,16 +98,13 @@ LSD.Module.Layout = new Class({
       this.layoutTransformations = {};
       this.addEvent('layoutTransform', this.onLayoutTransformHandler = this.onLayoutTransform.bind(this));
     }
-    var parsed = LSD.Module.Layout.parsedTransformations || (LSD.Module.Layout.parsedTransformations = {});
     for (var selector in transformations) {
-      var transformation = parsed[selector];
-      if (!transformation) {
-        transformation = parsed[selector] = Slick.parse(selector);
-        transformation.tag = transformation.expressions[0][transformation.expressions[0].length - 1].tag;
-      }
-      var group = this.layoutTransformations[transformation.tag];
-      if (!group) group = this.layoutTransformations[transformation.tag] = [];
-      group.push([transformation, transformations[selector]]);
+      var parsed = Slick.parse(selector);
+      var expression = parsed.expressions[0];
+      var tag = expression[expression.length - 1].tag;
+      var group = this.layoutTransformations[tag];
+      if (!group) group = this.layoutTransformations[tag] = [];
+      group.push([parsed, transformations[selector]]);
     }
   },
   
