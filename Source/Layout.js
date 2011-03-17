@@ -70,15 +70,15 @@ LSD.Layout.prototype = Object.append(new Options, {
   options: {
     method: 'augment',
     fallback: 'modify',
-    context: 'widget'
+    context: 'widget',
+    interpolate: null
   },
   
   render: function(layout, parent, method, opts) {
     if (!layout.layout) {
       var type = layout.push ? 'array' : layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : layout.indexOf ? 'string' : 'object';
-      var result = this[type](layout, parent, method, opts);
-    } else if (parent) this.appendChild(layout, parent);
-    return result;
+      return this[type](layout, parent, method, opts);
+    } else if (parent) return this.appendChild(layout, parent);
   },
   
   materialize: function(selector, layout, parent, opts) {
@@ -92,6 +92,17 @@ LSD.Layout.prototype = Object.append(new Options, {
   /* 
     Parsers selector and generates options for layout 
   */
+  
+  interpolate: function(string, object) {
+    if (!object) object = this.options.interpolate;
+    var self = this;
+    return string.replace(/\\?\{([^{}]+)\}/g, function(match, name){
+			if (match.charAt(0) == '\\') return match.slice(1);
+			var value = object.call ? object(name) : object[name];
+			self.interpolated = true;
+			return (value != undefined) ? value : '';
+		});
+  },
   
   parse: function(selector) {
     if (!this.parsed) this.parsed = {};
@@ -133,12 +144,14 @@ LSD.Layout.prototype = Object.append(new Options, {
   
   build: function(options, parent) {
     var mixins = [];
-    var tag = options.source || options.tag || 'container'
-    if (options.attributes) {
-      if ('type' in options.attributes) tag += "-" + options.attributes.type;
-      if ('kind' in options.attributes) tag += "-" + options.attributes.kind;
-      for (var name in options.attributes) {
-        var value = options.attributes[name];
+    var tag = options.source || options.tag || 'container', attributes = options.attributes;
+    if (attributes) {
+      if ('type' in attributes) tag += "-" + attributes.type;
+      if ('kind' in attributes) tag += "-" + attributes.kind;
+      var interpolate = this.options.interpolate;
+      for (var name in attributes) {
+        var value = attributes[name];
+        if (interpolate) value = attributes[name] = this.interpolate(value);
         var bits = name.split('-');
         for (var i = bits.length - 1; i > -1; i--) {
           var obj = {};
@@ -269,7 +282,16 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   textnode: function(element, parent, method) {
-    return ((method || this.options.method) == 'clone') ? this.appendChild(element.cloneNode(false), parent[0] || parent) : element;
+    if (!method) method = this.options.method;
+    if (method != 'augment') {
+      var value = element.textContent;
+      if (this.options.interpolate) var interpolated = this.interpolate(value);
+      var textnode = element.ownerDocument.createTextNode(interpolated || value);
+      if (method != 'clone') {
+        if (interpolated != null && interpolated != value) element.parentNode.replaceChild(textnode)
+      } else this.appendChild(textnode, parent[0] || parent)
+    }
+    return textnode || element;
   },
   
   fragment: function(element, parent, method, opts) {

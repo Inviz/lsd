@@ -8,8 +8,10 @@ description: Assign functions asyncronously to any widget
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
- 
+
+requires:
+  - LSD
+
 provides: 
   - LSD.Module.Actions
  
@@ -82,7 +84,26 @@ LSD.Module.Actions = new Class({
   unkick: function() {
     delete this.currentActionIndex;
   },
-
+  
+  execute: function(action, args) {
+    if (action.push) var targets = action[1], action = action[0];
+    if (typeof action == 'string') action = this.getAction(action);
+    else if (action.call && (!(action = action.call(this, args)))) return;
+    if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return this.kick.apply(this, args);
+    var perform = function(target) {
+      if (target.indexOf) target = new String(target);
+      else if (target.localName) target = Element.retrieve(target, 'widget') || target;
+      action.perform(target, target.options && target.options.states && target.options.states[action.name], args);
+      delete action.document
+    };
+    action.document =  LSD.Module.DOM.findDocument(targets ? (targets.map ? targets[0] : targets) : this)
+    action.caller = this;
+    var result = targets ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);  
+    delete action.caller, action.document;
+    if (!action.options.asynchronous) this.kick.apply(this, args);
+    return result;
+  },
+  
   mixin: function(mixin) {
     if (typeof mixin == 'string') mixin = LSD.Mixin[mixin.capitalize()];
     Class.mixin(this, mixin);
@@ -100,25 +121,6 @@ LSD.Module.Actions = new Class({
       if (options.events) this.removeEvents(this.bindEvents(options.events));
     };
     Class.unmix(this, mixin);
-  },
-  
-  execute: function(action, args) {
-    if (action.push) var targets = action[1], action = action[0];
-    if (typeof action == 'string') action = this.getAction(action);
-    else if (action.call && (!(action = action.call(this, args)))) return;
-    if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return;
-    var perform = function(target) {
-      if (target.indexOf) target = new String(target);
-      else if (target.localName) target = Element.retrieve(target, 'widget') || target;
-      action.perform(target, target.options && target.options.states && target.options.states[action.name], args);
-      delete action.document
-    };
-    action.document =  LSD.Module.DOM.findDocument(targets ? (targets.map ? targets[0] : targets) : this)
-    action.caller = this;
-    var result = targets ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);  
-    delete action.caller, action.document;
-    if (!action.options.asynchronous) this.kick.apply(this, args);
-    return result;
   }
 });
 

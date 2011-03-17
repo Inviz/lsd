@@ -50,7 +50,7 @@ LSD.Node.Link = new Class({
   },
   
   getCommandAction: function(event) {
-    if (this.isRequestURLLocal()) event.preventDefault(); 
-    else return 'send';
+    if (event && event.preventDefault) event.preventDefault(); 
+    if (!this.isRequestURLLocal()) return 'send';
   }
 });

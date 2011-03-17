@@ -22,15 +22,29 @@ provides:
 LSD.Action.Dialog = LSD.Action.build({
   enable: function(target) {
     var dialog = this.retrieve(target);
+    if (dialog && dialog.layout.interpolated) {
+      dialog.destroy();
+      dialog = null;
+    }
     if (!dialog) {
-      dialog = new LSD.Widget.Body.Dialog(target, {layout: {options: {method: 'clone'}}});
+      var caller = this.caller.element || this.caller;
+      dialog = new LSD.Widget.Body.Dialog(target, {
+        layout: {
+          options: {
+            method: 'clone', 
+            interpolate: function(string) {
+              return caller.getProperty('data-' + string)
+            }
+          }
+        }
+      });
       var caller = this.caller;
       dialog.addEvents({
         'submit': function() {
-          if (caller.kick) caller.kick()
+          if (caller.kick) caller.kick(dialog.getData())
         }.bind(this),
         'cancel': function() {
-          if (caller.unkick) caller.unkick()
+          if (caller.unkick) caller.unkick(dialog.getData())
         }.bind(this)
       })
     }
