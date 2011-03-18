@@ -31,6 +31,12 @@ LSD.Trait.Fieldset = new Class({
     for (var name in this.elements) if (!this.elements[name].checkValidity()) valid = false;
     return valid;
   },
+  
+  getData: function() {
+    var data = {}
+    for (var name in this.elements) data[name] = this.elements[name].getValue();
+    return data;
+  },
 
   getRequestData: function() {
     return this.element;

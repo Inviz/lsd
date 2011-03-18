@@ -53,6 +53,7 @@ LSD.Mixin.Request = new Class({
           failure: 'onRequestFailure'
         });
         if (this.events.request) this.request.addEvents(this.events.request);
+        if (this.events.$request) this.request.addEvents(this.events.$request)
         this.request.addEvents(this.events._request)
       }
     }

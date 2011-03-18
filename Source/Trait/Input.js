@@ -50,10 +50,6 @@ LSD.Trait.Input = new Class({
     }
   },
   
-  stopMousedown: function(e) {
-    e.stopPropagation()
-  },
-  
   onFocus: function() {
     this.document.activeElement = this;
     this.focus();

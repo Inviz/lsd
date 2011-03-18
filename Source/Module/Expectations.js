@@ -164,7 +164,7 @@ var Expectations = LSD.Module.Expectations = new Class({
       var state = selector.state;
       if (this.document) this.getElements(selector.structure).each(function(widget) {
         if (state) widget.expect(state, callback);
-        else callback(this, true);
+        else callback(widget, true);
       });
     } else {
       /*
@@ -258,7 +258,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   addRelation: function(relation, callback) {
     if (relation.indexOf) relation = {selector: relation};
     var states = relation.states, name = relation.name, origin = relation.origin || this,
-        events = relation.events, multiple = origin.multiple;
+        events = relation.events, multiple = relation.multiple, chain = relation.chain;
     if (states) {
       for (var i = 0, pseudo; pseudo = states[i++];) {
         var definition = States[pseudo];
@@ -290,6 +290,13 @@ var Expectations = LSD.Module.Expectations = new Class({
         for (var i = 0, pseudo; pseudo = states[i++];) {
           var definition = States[pseudo];
           if (definition) if (origin.pseudos[pseudo]) widget[definition[0]]();
+        }
+      }
+      if (chain) {
+        for (var label in chain) {
+          console.log(state, label, widget, widget.element, 'lol')
+          if (state) widget.options.chain[label] = chain[label]
+          else delete widget.options.chain[label]
         }
       }
     });
