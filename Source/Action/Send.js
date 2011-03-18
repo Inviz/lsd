@@ -21,10 +21,9 @@ provides:
 
 LSD.Action.Send = LSD.Action.build({
   enable: function(target, data) {
-    if (data) {
-      if (data.event) data = null;
-    }
     var method = target[target.submit ? 'submit' : 'send'];
-    if (method) return method.call(target, data)
-  }
+    if (method) return method.call(target, data, this.caller.kick.bind(this.caller));
+  },
+  
+  asynchronous: true
 });

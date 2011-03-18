@@ -32,15 +32,15 @@ LSD.Module.Attributes = new Class({
       this[LSD.States.Classes[kls] ? 'setState' : 'addClass'](kls);
     }, this);
     this.pseudos.concat(this.options.pseudos || []).each(function(value) {
-      this.setStateTo(value, true);
+      if (this.options.states[value]) this.setStateTo(value, true);
     }, this);
   },
   
   getAttribute: function(attribute) {
     switch (attribute) {
-      case "id": return this.id;
+      case "id":    return this.id;
       case "class": return this.classes.join(' ');
-      default:   return this.attributes[attribute] || this.pseudos[attribute]
+      default:      return this.attributes[attribute] || this.pseudos[attribute]
     }
   },
   
@@ -81,6 +81,10 @@ LSD.Module.Attributes = new Class({
     if (state) this.pseudos.erase(state)
     this.classes.erase(name);
     if (this.element) this.element.removeClass(name);
+  },
+  
+  hasClass: function(name) {
+    return this.classes[name]
   },
   
   getAttributeNode: function(attribute) {

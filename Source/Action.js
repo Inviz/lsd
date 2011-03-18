@@ -53,8 +53,8 @@ LSD.Action = function(options, name) {
     },
     
     perform: function(target, state, args) {
-      var method = (!options.getState || !options.getState.call(this, target)) ? 'commit' : 'revert';
-      this[method].apply(this, arguments);
+      var method = (!options.getState || !options.getState.apply(this, [target].concat(args))) ? 'commit' : 'revert';
+      return this[method].apply(this, arguments);
     },
 
     use: function(widget, state) {

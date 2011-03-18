@@ -27,7 +27,7 @@ provides:
       chain: {
         target: function() {
           var action = this.getTargetAction();
-          if (action) return [action, this.getTarget];
+          if (action) return {action: action, target: this.getTarget, arguments: this.getTargetArguments}
         }
       }
     },
@@ -56,7 +56,7 @@ provides:
       var result = {}
       if (pseudo && pseudo.type == 'element') { 
         if (Pseudo[pseudo.key]) {
-          result.anchor = Pseudo[pseudo.key](pseudo.value);
+          result.anchor = Pseudo[pseudo.key].call(this, pseudo.value);
           expression.shift();
         }
       }

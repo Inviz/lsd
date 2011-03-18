@@ -36,8 +36,13 @@ LSD.Mixin.Request = new Class({
   },
   
   send: function() {
-    var request = this.getRequest();
-    return request.send.apply(request, arguments);
+    for (var i = 0, arg, args = Array.prototype.splice.call(arguments, 0); arg = args[i]; i++) {
+      if (arg.call) var callback = arg;
+      if (arg.call || arg.event) args.splice(i--, 1);
+    }
+    var request = this.getRequest.apply(this, args);
+    if (callback) request.addEvent('complete:once', callback)
+    return request.send.apply(request, args);
   },
   
   getRequest: function(opts) {
@@ -58,10 +63,6 @@ LSD.Mixin.Request = new Class({
       }
     }
     return this.request;
-  },
-  
-  onRequestSuccess: function() {
-    this.kick.apply(this, arguments);
   },
   
   getRequestData: Macro.defaults(function() {

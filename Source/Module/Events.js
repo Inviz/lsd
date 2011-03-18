@@ -14,6 +14,7 @@ requires:
   - Core/Events
   - Core/Element.Event
   - More/Element.Delegation
+  - More/Events.Pseudos
   - Ext/Element.Properties.widget
 
 provides:

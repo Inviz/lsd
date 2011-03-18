@@ -27,6 +27,7 @@ LSD.Application = new Class({
   
   initialize: function(document, options) {
     if (!LSD.application) LSD.application = this;
+    this.param = {};
     this.parent.apply(this, arguments);
     document.addEvent('domready', function() {
       this.setDocument(document);

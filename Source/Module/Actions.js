@@ -27,6 +27,7 @@ LSD.Module.Actions = new Class({
   
   initialize: function() {
     this.actions = {};
+    this.currentActionIndex = -1;
     this.parent.apply(this, arguments);
     var actions = this.options.actions;
     for (var name in actions) {
@@ -51,7 +52,7 @@ LSD.Module.Actions = new Class({
       var named = {name: action};
       if (actions && actions[action]) action = Object.append(actions[action], named);
       else action = named;
-    }   
+    }
     var cc = action.name.capitalize();
     var Action = LSD.Action[cc] || LSD.Action;
     return this.actions[action.name] || (this.actions[action.name] = new Action(action, action.name))
@@ -60,38 +61,48 @@ LSD.Module.Actions = new Class({
   getActionChain: function() {
     var actions = [];
     for (var name in this.options.chain) {
-      var action = this.options.chain[name].apply(this, arguments);
+      var value = this.options.chain[name];
+      var action = (value.indexOf ? this[value] : value).apply(this, arguments);
       if (action) actions.push(action);
     }
     return actions.sort(function(a, b) {
-      return (b.push ? (b[2] || 0) : 10) - (a.push ? (a[2] || 0) : 10);
+      return (b.priority || 0) - (a.priority || 0);
     });
   },
   
   getNextAction: function() {
     var actions = this.getActionChain.apply(this, arguments);
-    var index = this.currentActionIndex == null ? 0 : this.currentActionIndex + 1;
-    var action = actions[index];
-    this.currentActionIndex = action ? index : -1;
-    return action;
+    return actions[this.currentActionIndex + 1];
   },
   
   kick: function() {
-    var action = this.getNextAction.apply(this, arguments);
-    if (action) return this.execute(action, Array.prototype.splice.call(arguments, 0));
+    var chain = this.getActionChain.apply(this, arguments), action;
+    var args = Array.prototype.splice.call(arguments, 0);
+    while (link = chain[++this.currentActionIndex]) {
+      action = this.getAction(link.name || link.action || link);
+      this.execute(link, args);
+      args = null;
+      if (action.options.asynchronous) break;
+    }
+    if (this.currentActionIndex == chain.length) this.currentActionIndex = -1;
   },
   
   unkick: function() {
-    delete this.currentActionIndex;
+    this.currentActionIndex = -1;
   },
   
-  execute: function(action, args) {
-    if (action.push) var targets = action[1], action = action[0];
-    if (typeof action == 'string') action = this.getAction(action);
-    else if (action.call && (!(action = action.call(this, args)))) return;
-    if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return this.kick.apply(this, args);
+  execute: function(command, args) {
+    if (command.call && (!(command = command.apply(this, args))));
+    else if (command.indexOf) command = {name: command}
+    if (command.arguments) {
+      var cargs = command.arguments.call ? command.arguments.call(this) : command.arguments;
+      args = [].concat(cargs || [], args || []);
+    }
+    var action = command.action = this.getAction(command.name || command.action);
+    var targets = command.target;
+    if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return false;
     var perform = function(target) {
-      if (target.indexOf) target = new String(target);
+      if (target.indexOf) target = new String(target); // convert string to object to be use it as a context for call
       else if (target.localName) target = Element.retrieve(target, 'widget') || target;
       action.perform(target, target.options && target.options.states && target.options.states[action.name], args);
       delete action.document
@@ -100,12 +111,11 @@ LSD.Module.Actions = new Class({
     action.caller = this;
     var result = targets ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);  
     delete action.caller, action.document;
-    if (!action.options.asynchronous) this.kick.apply(this, args);
     return result;
   },
   
   mixin: function(mixin) {
-    if (typeof mixin == 'string') mixin = LSD.Mixin[mixin.capitalize()];
+    if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
     Class.mixin(this, mixin);
     var options = mixin.prototype.options;
     if (!options) return;
@@ -114,7 +124,7 @@ LSD.Module.Actions = new Class({
   },
 
   unmix: function(mixin) {
-    if (typeof mixin == 'string') mixin = LSD.Mixin[mixin.capitalize()];
+    if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
     var options = Object.clone(mixin.prototype.options);
     if (options) {
       for (var action in options.actions) this.removeAction(action);
@@ -129,7 +139,6 @@ LSD.Module.Actions.attach = function(doc) {
     var selector = mixin.prototype.behaviour;
     if (!selector) return;
     var watcher = function (widget, state) {
-      //console.log(selector, widget.tagName)
       widget[state ? 'mixin' : 'unmix'](mixin)
     };
     selector.split(/\s*,\s*/).each(function(bit) {
