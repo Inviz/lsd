@@ -24,7 +24,8 @@ LSD.Trait.List = new Class({
     list: {
       endless: true,
       force: false,
-      multiple: false
+      multiple: false,
+      unselect: null
     },
     proxies: {
       container: {
@@ -52,25 +53,52 @@ LSD.Trait.List = new Class({
   },
   
   selectItem: function(item) {
-    if (item && !item.select) item = this.findItemByValue(item);
-    if (!item && this.options.list.force) return false;
+    if (!(item = this.getItem(item)) && this.options.list.force) return false;
     var selected = this.selectedItem;
     this.setSelectedItem.apply(this, arguments); 
-    if ((selected != item) && selected && selected.unselect) selected.unselect();
+    this.fireEvent('set', [item, this.getItemIndex()]);
+    var unselect = (this.options.unselect !== null) ? this.options.unselect : !this.options.multiple;
+    if (unselect && (selected != item) && selected && selected.unselect) this.unselectItem(selected);
     item.select();
     return item;
   },
   
   unselectItem: function(item) {
-    if (this.selectedItem) {
-      if (this.selectedItem.unselect) this.selectedItem.unselect();
-      delete this.selectedItem;
+    item = this.getItem(item) || this.selectedItem;
+    if (item) {
+      if (item.unselect) item.unselect();
+      this.unsetSelectedItem.apply(this, arguments);
+      delete item;
     }
   },
   
-  setSelectedItem: function(item) {
-    this.selectedItem = item;
-    this.fireEvent('set', [item, this.getItemIndex()]);
+  setSelectedItem: function(item, type) {
+    var property = (type || 'selected') + 'Item';
+    if (this.options.list.multiple)  {
+      property += 's';
+      if (!this[property]) this[property] = [];
+      this[property].push(item)
+    } else this[property] = item
+  },
+  
+  unsetSelectedItem: function(item, type) {
+    var property = (type || 'selected') + 'Item';
+    if (this.options.list.multiple)  {
+      property += 's';
+      if (this[property]) this[property].erase(item)
+    } else delete this[property]
+  },
+
+  getSelectedItem: function() {
+    return this.selectedItem || (this.selectedItems ? this.selectedItems.getLast() : null);
+  },
+  
+  getSelectedItems: function(type) {
+    return this.selectedItems || (this.selectedItem ? [this.selectedItem] : null) || [];
+  },
+  
+  isItemSelected: function(item) {
+    return this.selectedItems ? this.selectedItems.indexOf(item) > -1 : (this.selectedItem == item)
   },
   
   buildItem: Macro.defaults(function(value) {
@@ -84,6 +112,10 @@ LSD.Trait.List = new Class({
       }
     });
   }),
+  
+  getItem: function(item) {
+    return (item && !item.select) ? this.findItemByValue(item) : item;
+  },
   
   setItems: function(items) {
     this.list = [];
@@ -125,10 +157,6 @@ LSD.Trait.List = new Class({
   
   hasItems: function() {
     return this.getItems() && (this.getItems().length > 0)
-  },
-  
-  getSelectedItem: function() {
-    return this.selectedItem;
   },
   
   getItemIndex: function(item) {

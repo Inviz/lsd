@@ -21,29 +21,30 @@ LSD.Trait.Choice = new Class({
   
   selectItem: function(item, temp) {
     if (temp !== true) return this.parent.apply(this, arguments)
-    if (item && !item.render) item = this.findItemByValue(item);
-    if (!item && this.options.list.force) return false;
-    
+    if (!(item = this.getItem(item)) && this.options.list.force) return false;
     var chosen = this.chosenItem;
-    this.setSelectedItem.apply(this, arguments);
+    this.setSelectedItem(item, 'chosen');
+    this.fireEvent('choose', [item, this.getItemIndex()]);
     if (item.choose() && chosen) chosen.forget();
     return item;
   },
   
-  forgetChosenItem: function() {
-    if (this.chosenItem) this.chosenItem.forget();
-    delete this.chosenItem;
-  },
-  
-  setSelectedItem: function(item, temp) {
-    if (!temp) return this.parent.apply(this, arguments);
-    this.chosenItem = item;
-    this.fireEvent('choose', [item, this.getItemIndex()]);
-    return item;
+  forgetChosenItem: function(item) {
+    item = this.getItem(item) || this.selectedItem;
+    if (item) item.forget();
+    this.unsetSelectedItem(item, 'chosen');
   },
   
   selectChosenItem: function() {
     return this.selectItem(this.chosenItem)
+  },
+
+  getChosenItems: function() {
+    return this.chosenItem || (this.chosenItems ? this.chosenItems.getLast() : null);
+  },
+  
+  getChosenItems: function(type) {
+    return this.chosenItems || (this.chosenItem && [this.chosenItem]);
   },
   
   getSelectedOptionPosition: function() {
