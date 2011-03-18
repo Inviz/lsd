@@ -8,8 +8,10 @@ description: Assign functions asyncronously to any widget
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
- 
+
+requires:
+  - LSD 
+
 provides: 
   - LSD.Module.Actions
  

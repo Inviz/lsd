@@ -46,6 +46,7 @@ LSD.Trait.Input = new Class({
           },
           resize: 'setInputSize'
         }
+      }
     }
   },
   
