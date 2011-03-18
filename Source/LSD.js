@@ -65,3 +65,25 @@ Object.append(LSD, {
     }
   }
 });
+
+Object.append(LSD, {
+  toLowerCase: function(lowercased) {
+    return function(string) { 
+      return (lowercased[string]) || (lowercased[string] = string.toLowerCase())
+    }
+  }(LSD.lowercased = {}),
+  
+  capitalize: function(capitalized) {
+    return function(string) {
+      return (capitalized[string]) || (capitalized[string] = string.capitalize())
+    }
+  }(LSD.capitalized = {}),
+  
+  toClassName: function(classnamed) {
+    return function(string) {
+      return (classnamed[string]) || (classnamed[string] = string.replace(/(^|-)([a-z])/g, function(a, b, c) { return (b ? '.' : '') + c.toUpperCase()}))
+    }
+  }(LSD.classnamed = {})
+});
+
+console.log(LSD.classnamed, 123)

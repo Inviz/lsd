@@ -48,23 +48,6 @@ LSD.Layout = function(widget, layout, options) {
   } else if (widget && widget.localName) widget = this.convert(widget);
   this.result = this.render(layout, widget);
 };
-LSD.toLowerCase = (function(lowercased) {
-  return function(string) { 
-    return (lowercased[string]) || (lowercased[string] = string.toLowerCase())
-  }
-})({});
-LSD.capitalize = (function(capitalized) {
-  return function(string) {
-    return (capitalized[string]) || (capitalized[string] = string.capitalize())
-  }
-})({});
-LSD.toClassName = (function(classnameized) {
-  return function(string) {
-    return (classnameized[string]) || (classnameized[string] = string.replace(/(^|-)([a-z])/g, function(a, b, c) { return (b ? '.' : '') + c.toUpperCase()}))
-  }
-})({});
-
-
 LSD.Layout.prototype = Object.append(new Options, {
   
   options: {
