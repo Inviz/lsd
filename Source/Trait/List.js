@@ -52,7 +52,7 @@ LSD.Trait.List = new Class({
   },
   
   selectItem: function(item) {
-    if (item && !item.render) item = this.findItemByValue(item);
+    if (item && !item.select) item = this.findItemByValue(item);
     if (!item && this.options.list.force) return false;
     var selected = this.selectedItem;
     this.setSelectedItem.apply(this, arguments); 
