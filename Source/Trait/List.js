@@ -23,7 +23,8 @@ LSD.Trait.List = new Class({
   options: {
     list: {
       endless: true,
-      force: false
+      force: false,
+      multiple: false
     },
     proxies: {
       container: {
@@ -38,15 +39,15 @@ LSD.Trait.List = new Class({
     },
     events: {
       attach: function() {
-        var items = this.items.length ? this.items : this.options.list.items;
+        var items = this.list.length ? this.list : this.options.list.items;
         if (items) this.setItems(items);
       }
     }
   },
   
   initialize: function() {
+    this.widgets = [];
     this.list = [];
-    this.items = [];
     this.parent.apply(this, arguments)
   },
   
@@ -85,8 +86,8 @@ LSD.Trait.List = new Class({
   }),
   
   setItems: function(items) {
-    this.items = [];
     this.list = [];
+    this.widgets = [];
     items.each(this.addItem.bind(this));
     if (this.options.list.force) this.selectItem(items[0]);
     return this;
@@ -94,11 +95,11 @@ LSD.Trait.List = new Class({
   
   addItem: function(item) {
     if (item.setList) var data = item.getValue(), widget = item, item = data;
-    if (!this.items.contains(item)) {
-      this.items.push(item);
+    if (!this.list.contains(item)) {
+      this.list.push(item);
       if (widget) {
         widget.listWidget = this;
-        this.list.push(widget);
+        this.widgets.push(widget);
       }
       return true;
     }
@@ -106,8 +107,8 @@ LSD.Trait.List = new Class({
   },
   
   makeItems: function() {
-    var item, i = this.list.length;
-    while (item = this.items[i++]) this.makeItem(item);
+    var item, i = this.widgets.length;
+    while (item = this.list[i++]) this.makeItem(item);
   },
 	
   makeItem: function(item) {
@@ -119,7 +120,7 @@ LSD.Trait.List = new Class({
   },
   
   getItems: function() {
-    return this.items;
+    return this.list;
   },
   
   hasItems: function() {
@@ -135,15 +136,15 @@ LSD.Trait.List = new Class({
   },
   
   findItemByValue: function(value) {
-    for (var i = 0, j = this.list.length; i < j; i++) {
-      if (this.list[i].value == value) return this.list[i];
+    for (var i = 0, j = this.widgets.length; i < j; i++) {
+      if (this.widgets[i].value == value) return this.widgets[i];
     }
     return null;
   },
   
   getItemValue: function(item) {
-    for (var i = 0, j = this.list.length; i < j; i++) {
-      if (this.list[i] == item) return this.items[i];
+    for (var i = 0, j = this.widgets.length; i < j; i++) {
+      if (this.widgets[i] == item) return this.list[i];
     }
     return null;
   },

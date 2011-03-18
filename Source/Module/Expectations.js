@@ -255,20 +255,25 @@ var Expectations = LSD.Module.Expectations = new Class({
     }, this)
   },
   
+  linkState: function(subject, from, to, state) {
+    var first = this.options.states[from];
+    var second = subject.options.states[to];
+    var events = {};
+    events[first.enabler] = second.enabler;
+    events[first.disabler] = second.disabler;
+    this[state === false ? 'removeEvents' : 'addEvents'](subject.bindEvents(events));
+    if (this[from]) subject[second.enabler]();
+  },
+  
+  unlinkState: function(subject, from, to) {
+    return this.linkState(subject, from, to, false)
+  },
+  
   addRelation: function(relation, callback) {
     if (relation.indexOf) relation = {selector: relation};
     var states = relation.states, name = relation.name, origin = relation.origin || this,
         events = relation.events, multiple = relation.multiple, chain = relation.chain;
-    if (states) {
-      for (var i = 0, pseudo; pseudo = states[i++];) {
-        var definition = States[pseudo];
-        if (definition) {
-          if (!relation.events) relation.events = events = {};
-          relation.events[definition[0]] = definition[0];
-          relation.events[definition[1]] = definition[1];
-        }
-      }
-    }  
+
     if (name && multiple) origin[name] = [];
     this.watch(relation.selector, function(widget, state) {
       if (callback) callback.call(relation.origin, widget, state);
@@ -286,15 +291,13 @@ var Expectations = LSD.Module.Expectations = new Class({
           else delete origin[name];
         }
       }
-      if (state && states) {
-        for (var i = 0, pseudo; pseudo = states[i++];) {
-          var definition = States[pseudo];
-          if (definition) if (origin.pseudos[pseudo]) widget[definition[0]]();
-        }
+      if (states) {
+        var get = states.get, set = states.set, method = state ? 'linkState' : 'unlinkState';
+        if (get) for (var from in get) widget[method](origin, from, (get[from] === true) ? from : get[from]);
+        if (set) for (var to in set) origin[method](origin, to, (set[to] === true) ? to : set[to]);
       }
       if (chain) {
         for (var label in chain) {
-          console.log(state, label, widget, widget.element, 'lol')
           if (state) widget.options.chain[label] = chain[label]
           else delete widget.options.chain[label]
         }

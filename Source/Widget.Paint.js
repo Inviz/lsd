@@ -43,7 +43,6 @@ LSD.Widget.Paint = new Class({
   ],
   
   options: {
-    //layers: ['shadow', 'stroke', 'background', 'foreground', 'icon', 'glyph']
     layers: {
       shadow:     ['size', 'radius', 'shape', 'shadow'],
       stroke:     [        'radius', 'stroke', 'shape', 'fill'],

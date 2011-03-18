@@ -55,7 +55,7 @@ LSD.Native = new Class({
           this.element.erase('disabled');
         },
         disable: function() {
-          this.element.set('disabled', true);
+          this.element.setProperty('disabled', true);
         }
       }
     }

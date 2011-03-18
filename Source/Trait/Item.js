@@ -25,7 +25,7 @@ LSD.Trait.Item = new Class({
       _item: {
         setParent: 'setList',
         select: function() {
-          this.listWidget.selectItem(this)
+          if (this.listWidget) this.listWidget.selectItem(this)
         }
       }
     }

@@ -49,9 +49,9 @@ LSD.Trait.Choice = new Class({
   getSelectedOptionPosition: function() {
     var height = 0;
     if (!this.selectedItem) return height;
-    for (var i = 0, j = this.list.length; i < j; i++) {
-      if (this.list[i] == this.selectedItem) break;
-      height += this.list[i].getLayoutHeight();
+    for (var i = 0, j = this.widgets.length; i < j; i++) {
+      if (this.widgets[i] == this.selectedItem) break;
+      height += this.widgets[i].getLayoutHeight();
     }
     return height
   }
