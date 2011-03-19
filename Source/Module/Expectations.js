@@ -279,8 +279,8 @@ var Expectations = LSD.Module.Expectations = new Class({
       if (callback) callback.call(relation.origin, widget, state);
       if (events) {
         if (state) {
-          origin.addEvents(widget.bindEvents(events))
-        } else origin.removeEvents(widget.bindEvents(events));
+          widget.addEvents(origin.bindEvents(events))
+        } else widgets.removeEvents(origin.bindEvents(events));
       }
       if (name) {
         if (multiple) {
@@ -294,7 +294,7 @@ var Expectations = LSD.Module.Expectations = new Class({
       if (states) {
         var get = states.get, set = states.set, method = state ? 'linkState' : 'unlinkState';
         if (get) for (var from in get) widget[method](origin, from, (get[from] === true) ? from : get[from]);
-        if (set) for (var to in set) origin[method](origin, to, (set[to] === true) ? to : set[to]);
+        if (set) for (var to in set) origin[method](widget, to, (set[to] === true) ? to : set[to]);
       }
       if (chain) {
         for (var label in chain) {

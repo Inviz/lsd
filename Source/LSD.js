@@ -61,7 +61,8 @@ Object.append(LSD, {
     },
     Attributes: new FastArray,
     Classes: {
-      disabled: 'disabled'
+      disabled: 'disabled',
+      selected: 'selected'
     }
   }
 });
@@ -85,5 +86,3 @@ Object.append(LSD, {
     }
   }(LSD.classnamed = {})
 });
-
-console.log(LSD.classnamed, 123)

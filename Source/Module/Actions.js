@@ -46,7 +46,7 @@ LSD.Module.Actions = new Class({
   },
   
   getAction: function(action) {
-    if (action instanceof LSD.Action) return action;
+    if (action.perform) return action;
     if (typeof action == 'string') {
       if (this.actions[action]) return this.actions[action];
       var actions = this.options.actions;
@@ -71,21 +71,20 @@ LSD.Module.Actions = new Class({
     });
   },
   
-  getNextAction: function() {
-    var actions = this.getActionChain.apply(this, arguments);
-    return actions[this.currentActionIndex + 1];
-  },
-  
   kick: function() {
-    var chain = this.getActionChain.apply(this, arguments), action;
+    var chain = this.getActionChain.apply(this, arguments), action, actions;
     var args = Array.prototype.splice.call(arguments, 0);
-    while (link = chain[++this.currentActionIndex]) {
+    for (var link; link = chain[++this.currentActionIndex];) {
       action = this.getAction(link.name || link.action || link);
-      this.execute(link, args);
+      var result = this.execute(link, args);
       args = null;
+      if (result === false) continue;
+      if (!actions) actions = [];
+      actions.push(action.options.name);
       if (action.options.asynchronous) break;
     }
     if (this.currentActionIndex == chain.length) this.currentActionIndex = -1;
+    return actions;
   },
   
   unkick: function() {
@@ -102,10 +101,11 @@ LSD.Module.Actions = new Class({
     var action = command.action = this.getAction(command.name || command.action);
     var targets = command.target;
     if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return false;
+    var state = command.state;
     var perform = function(target) {
       if (target.indexOf) target = new String(target); // convert string to object to be use it as a context for call
-      else if (target.localName) target = Element.retrieve(target, 'widget') || target;
-      action.perform(target, target.options && target.options.states && target.options.states[action.name], args);
+      var method = (state == null) ? 'perform' : ((state.call ? state(target, targets) : state) ? 'commit' : 'revert');
+      action[method](target, target.options && target.options.states && target.options.states[action.name], args);
       delete action.document
     };
     action.document =  LSD.Module.DOM.findDocument(targets ? (targets.map ? targets[0] : targets) : this)

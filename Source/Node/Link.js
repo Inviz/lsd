@@ -48,9 +48,10 @@ LSD.Node.Link = new Class({
       extract: true
     }
   },
-  
-  getCommandAction: function(event) {
-    if (event && event.preventDefault) event.preventDefault(); 
-    if (!this.isRequestURLLocal()) return 'send';
+
+  click: function(event) {
+    var kicked = this.parent.apply(this, arguments);
+    if (event && !(this.element.get('tag') == 'a' && this.getRequestMethod() == 'get' && !this.isRequestURLLocal() && kicked.indexOf('send') > -1)) event.preventDefault();
+    return kicked;
   }
 });

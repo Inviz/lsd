@@ -40,7 +40,9 @@ provides:
       parsed.each(function(expression) {
         results.push.apply(results, Slick.search(anchor || expression.anchor || (this.document ? this.document.element : document.body), expression.selector));
       }, this);
-      return results.length > 0 && results;
+      return results.length > 0 && results.map(function(result) {
+        return (result.localName && Element.retrieve(result, 'widget')) || result
+      });
     },
     
     parseTargetSelector: function(target) {

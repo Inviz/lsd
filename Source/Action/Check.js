@@ -22,15 +22,15 @@ provides:
 LSD.Action.Check = LSD.Action.build({
   enable: function(target) {
     if (!target || target == this.caller || target.element == this.caller) return;
-    if (!target.checked) target.click.apply(target, Array.prototype.splice.call(arguments, 1));
+    if (!target.checked) (target.check || target.click).apply(target, Array.prototype.splice.call(arguments, 1));
   },
   
   disable: function(target) {
     if (!target || target == this.caller || target.element == this.caller) return;
-    if (target.checked) target.click.apply(target, Array.prototype.splice.call(arguments, 1));
+    if (target.checked) (target.uncheck || target.click).apply(target, Array.prototype.splice.call(arguments, 1));
   },
   
-  getState: function(target, state) {
-    return !(state == null ? this.caller.checked : state);
+  getState: function(target, name, state) {
+    return (state !== true && state !== false) ? !this.caller.checked : state;
   }
 });

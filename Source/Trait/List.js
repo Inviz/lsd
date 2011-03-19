@@ -56,7 +56,7 @@ LSD.Trait.List = new Class({
     if (!(item = this.getItem(item)) && this.options.list.force) return false;
     var selected = this.selectedItem;
     this.setSelectedItem.apply(this, arguments); 
-    this.fireEvent('set', [item, this.getItemIndex()]);
+    this.fireEvent('set', [item, this.getItemIndex(item)]);
     var unselect = (this.options.unselect !== null) ? this.options.unselect : !this.options.multiple;
     if (unselect && (selected != item) && selected && selected.unselect) this.unselectItem(selected);
     item.select();
@@ -64,12 +64,11 @@ LSD.Trait.List = new Class({
   },
   
   unselectItem: function(item) {
-    item = this.getItem(item) || this.selectedItem;
-    if (item) {
-      if (item.unselect) item.unselect();
-      this.unsetSelectedItem.apply(this, arguments);
-      delete item;
-    }
+    if (!(item = this.getItem(item) || this.selectedItem)) return false;
+    if (item.unselect) item.unselect();
+    this.unsetSelectedItem.apply(this, arguments);
+    this.fireEvent('unset', [item, this.getItemIndex(item)]);
+    delete item;
   },
   
   setSelectedItem: function(item, type) {
@@ -77,7 +76,7 @@ LSD.Trait.List = new Class({
     if (this.options.list.multiple)  {
       property += 's';
       if (!this[property]) this[property] = [];
-      this[property].push(item)
+      this[property].push(item);
     } else this[property] = item
   },
   
@@ -85,7 +84,7 @@ LSD.Trait.List = new Class({
     var property = (type || 'selected') + 'Item';
     if (this.options.list.multiple)  {
       property += 's';
-      if (this[property]) this[property].erase(item)
+      if (this[property]) this[property].erase(item);
     } else delete this[property]
   },
 
