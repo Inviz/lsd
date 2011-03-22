@@ -277,11 +277,7 @@ var Expectations = LSD.Module.Expectations = new Class({
     if (name && multiple) origin[name] = [];
     this.watch(relation.selector, function(widget, state) {
       if (callback) callback.call(relation.origin, widget, state);
-      if (events) {
-        if (state) {
-          widget.addEvents(origin.bindEvents(events))
-        } else widgets.removeEvents(origin.bindEvents(events));
-      }
+      if (events) widget[state ? 'addEvents' : 'removeEvents'](origin.bindEvents(events));
       if (name) {
         if (multiple) {
           if (state) origin[name].push(widget)
@@ -329,7 +325,7 @@ var notify = function(widget, type, tag, state, target) {
 }
 
 var update = function(widget, tag, state) {
-  notify(this, ' ', tag, true, widget);
+  notify(this, ' ', tag, state, widget);
   var options = widget.options, id = options.id;
   if (id) check(this, 'id', id, state, widget);
   if (this.previousSibling) {

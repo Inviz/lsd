@@ -385,7 +385,7 @@ LSD.Layout.extract = function(element) {
   if (tag != 'div') options.source = tag;
   if (element.id) options.id = element.id;
   for (var i = 0, attribute; attribute = element.attributes[i++];) {
-    var value = ((attribute.value != attribute.name) && attribute.value);
+    var value = (attribute.value == attribute.name) || attribute.value;
     options.attributes[attribute.name] = (value == null) ? true : value;
   }
   if (options.attributes && options.attributes.inherit) {
@@ -415,6 +415,13 @@ LSD.Layout.extract = function(element) {
   }
   return options;
 };
+
+LSD.Layout.extractID = function(element) {
+  var id = element.id;
+  var index = id.indexOf('_');
+  if (index > -1) id = id.substr(index + 1, id.length - index)
+  return id;
+}
 
 var Converted = LSD.Layout.converted = {};
 

@@ -76,7 +76,23 @@ LSD.Document = new Class({
       brokenCheckedQSA: false,
       brokenEmptyAttributeQSA: false,
       isHTMLDocument: false,
-      nativeMatchesSelector: false
+      nativeMatchesSelector: false,
+      hasAttribute: function(node, attribute) {
+        return (attribute in node.attributes) || ((attribute in node.options.states) && (attribute in node.pseudos))
+      },
+      getAttribute: function(node, attribute) {
+        return node.attributes[attribute] || ((attribute in node.options.states) && node.pseudos[attribute]);
+      },
+      compareDocumentPosition: function(self, node) {
+        var context = node.localName ? (self.localName ? self : self.toElement()) : self;
+        if (node) do {
+        	if (node === context) return true;
+        } while ((node = node.parentNode));
+        return false;
+      },
+      documentSorter: function(a, b) {
+        return features.compareDocumentPosition(a, b) & 4 ? -1 : a === b ? 0 : 1;
+      }
     }                 
     this.events = this.options.events;
     this.dominjected = true;

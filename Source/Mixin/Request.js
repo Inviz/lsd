@@ -29,19 +29,28 @@ LSD.Mixin.Request = new Class({
   
   options: {
     request: {
-      method: 'get',
-      type: 'xhr'
+      method: 'get'
     },
     targetAction: 'update'
   },
   
+  initialize: function() {
+    this.parent.apply(this, arguments);
+    if (this.attributes.autosend) this.kick()
+  },
+  
   send: function() {
-    for (var i = 0, arg, args = Array.prototype.splice.call(arguments, 0); arg = args[i]; i++) {
-      if (arg.call) var callback = arg;
-      if (arg.call || arg.event) args.splice(i--, 1);
+    var args = Array.prototype.splice.call(arguments, 0);
+    for (var i = 0, j = args.length, arg; i < j; i++) {
+      var arg = args[i];
+      if (!arg || arg.call || arg.event) {
+        args.splice(i--, 1);
+        j--;
+      }
+      if (arg && arg.call) var callback = arg;
     }
     var request = this.getRequest.apply(this, args);
-    if (callback) request.addEvent('complete:once', callback)
+    if (callback) request.addEvent('complete:once', callback);
     return request.send.apply(request, args);
   },
   
@@ -86,7 +95,7 @@ LSD.Mixin.Request = new Class({
   },
   
   getRequestURL: function() {
-    return this.attributes.action || this.attributes.href || this.attributes.src;
+    return this.attributes.href || this.attributes.src || this.attributes.action;
   },
   
   isRequestURLLocal: function(base, host) {

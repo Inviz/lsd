@@ -75,13 +75,18 @@ LSD.Module.Actions = new Class({
     var chain = this.getActionChain.apply(this, arguments), action, actions;
     var args = Array.prototype.splice.call(arguments, 0);
     for (var link; link = chain[++this.currentActionIndex];) {
-      action = this.getAction(link.name || link.action || link);
-      var result = this.execute(link, args);
-      args = null;
-      if (result === false) continue;
+      action = link.perform ? link : link.name ? this.getAction(link.name) : null;
+      if (action) {
+        var result = this.execute(link, args);
+        args = null;
+      } else {
+        if (link.arguments) args = link.arguments;
+        if (link.callback) link.callback.call(this, args)
+      }
+      if (!action || result === false) continue;
       if (!actions) actions = [];
       actions.push(action.options.name);
-      if (action.options.asynchronous) break;
+      if (action.options.asynchronous) return actions;
     }
     if (this.currentActionIndex == chain.length) this.currentActionIndex = -1;
     return actions;
@@ -98,7 +103,7 @@ LSD.Module.Actions = new Class({
       var cargs = command.arguments.call ? command.arguments.call(this) : command.arguments;
       args = [].concat(cargs || [], args || []);
     }
-    var action = command.action = this.getAction(command.name || command.action);
+    var action = command.action = this.getAction(command.name);
     var targets = command.target;
     if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return false;
     var state = command.state;

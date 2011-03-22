@@ -20,11 +20,17 @@ provides:
 
 LSD.Action.Update = LSD.Action.build({
   enable: function(target, content) {
-    if (target.empty) target.empty();
-    if (content) {
-      if (target.setContent) target.setContent(content);
-      else target.appendChild((this.document || document).createFragment(content));
+    if (target.document) {
+      var widget = target;
+      target = widget.element
+    } else {
+      var widget = Element.get(target, 'widget');
     }
+    if (target.empty) target.empty();
+    var fragment = document.createFragment(content);
+    var children = Array.from(fragment.childNodes);
+    target.appendChild(fragment);
+    if (widget.layout) widget.layout.render(children, widget);
     return target;
   }
 });
