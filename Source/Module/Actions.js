@@ -73,7 +73,7 @@ LSD.Module.Actions = new Class({
   
   kick: function() {
     var chain = this.getActionChain.apply(this, arguments), action, actions;
-    var args = Array.prototype.splice.call(arguments, 0);
+    var args = Array.prototype.slice.call(arguments, 0);
     for (var link; link = chain[++this.currentActionIndex];) {
       action = link.perform ? link : link.name ? this.getAction(link.name) : null;
       if (action) {
@@ -108,10 +108,8 @@ LSD.Module.Actions = new Class({
     if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return false;
     var state = command.state;
     var perform = function(target) {
-      if (target.indexOf) target = new String(target); // convert string to object to be use it as a context for call
       var method = (state == null) ? 'perform' : ((state.call ? state(target, targets) : state) ? 'commit' : 'revert');
       action[method](target, target.options && target.options.states && target.options.states[action.name], args);
-      delete action.document
     };
     action.document =  LSD.Module.DOM.findDocument(targets ? (targets.map ? targets[0] : targets) : this)
     action.caller = this;

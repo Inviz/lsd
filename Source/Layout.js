@@ -158,7 +158,7 @@ LSD.Layout.prototype = Object.append(new Options, {
       if (source) tag = source + '-' + tag
     }
     mixins.unshift(tag);
-    var args = Array.prototype.splice.call(arguments, 0);
+    var args = Array.prototype.slice.call(arguments, 0);
     args.splice(1, 1); //remove parent
     var result = this.context.create.apply(this.context, [mixins].concat(args));
     result.layout = this;

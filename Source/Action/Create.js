@@ -20,7 +20,7 @@ provides:
 
 
 LSD.Action.Create = LSD.Action.build({
-  enable: function() {
+  enable: function(target) {
     
   }
 });

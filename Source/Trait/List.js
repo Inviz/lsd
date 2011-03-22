@@ -64,7 +64,7 @@ LSD.Trait.List = new Class({
   },
   
   unselectItem: function(item) {
-    if (!(item = this.getItem(item) || this.selectedItem)) return false;
+    if (!(item = this.getItem(item)) || !this.isItemSelected(item)) return false;
     if (item.unselect) item.unselect();
     this.unsetSelectedItem.apply(this, arguments);
     this.fireEvent('unset', [item, this.getItemIndex(item)]);
@@ -93,7 +93,8 @@ LSD.Trait.List = new Class({
   },
   
   getSelectedItems: function(type) {
-    return this.selectedItems || (this.selectedItem ? [this.selectedItem] : null) || [];
+    if (this.selectedItems) return Array.prototype.slice.call(this.selectedItems, 0);
+    return this.selectedItem ? [this.selectedItem] : [];
   },
   
   isItemSelected: function(item) {

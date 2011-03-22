@@ -118,7 +118,7 @@ LSD.Module.Attributes = new Class({
   },
   
   onStateChange: function(state, value, args) {
-    var args = Array.prototype.splice.call(arguments, 0);
+    var args = Array.prototype.slice.call(arguments, 0);
     args.slice(1, 2); //state + args
     this[value ? 'setState' : 'unsetState'].apply(this, args);
     this.fireEvent('stateChange', [state, args])

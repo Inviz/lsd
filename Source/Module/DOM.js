@@ -217,11 +217,12 @@ LSD.Module.DOM = new Class({
     this.walk(function(node) {
       parent.dispatchEvent('nodeRemoved', node);
       node.fireEvent('dispose')
-    })
+    });
     parent.childNodes.erase(this);
     if (parent.firstChild == this) delete parent.firstChild;
     if (parent.lastChild == this) delete parent.lastChild;
     this.fireEvent('dispose', parent);
+    if (!element) this.element.dispose();
     delete this.parentNode;
   },
   

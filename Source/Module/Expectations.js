@@ -272,12 +272,18 @@ var Expectations = LSD.Module.Expectations = new Class({
   addRelation: function(relation, callback) {
     if (relation.indexOf) relation = {selector: relation};
     var states = relation.states, name = relation.name, origin = relation.origin || this,
-        events = relation.events, multiple = relation.multiple, chain = relation.chain;
+        events = relation.events, multiple = relation.multiple, chain = relation.chain, callbacks = relation.callbacks;
 
     if (name && multiple) origin[name] = [];
+    if (callbacks) {
+      callbacks = origin.bindEvents(callbacks);
+      var onAdd = callbacks.add, onRemove = callbacks.remove;
+    }
+    if (events) events = origin.bindEvents(events);
     this.watch(relation.selector, function(widget, state) {
-      if (callback) callback.call(relation.origin, widget, state);
-      if (events) widget[state ? 'addEvents' : 'removeEvents'](origin.bindEvents(events));
+      if (events) widget[state ? 'addEvents' : 'removeEvents'](events);
+      if (callback) callback.call(origin, widget, state);
+      if (!state && onRemove) onRemove.call(origin, widget, state);
       if (name) {
         if (multiple) {
           if (state) origin[name].push(widget)
@@ -287,6 +293,7 @@ var Expectations = LSD.Module.Expectations = new Class({
           else delete origin[name];
         }
       }
+      if (state && onAdd) onAdd.call(origin, widget, state);
       if (states) {
         var get = states.get, set = states.set, method = state ? 'linkState' : 'unlinkState';
         if (get) for (var from in get) widget[method](origin, from, (get[from] === true) ? from : get[from]);
