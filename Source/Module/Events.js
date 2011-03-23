@@ -55,8 +55,8 @@ LSD.Module.Events = new Class({
         this.removeEvents(this.events);
       }
     }, true);
-    this.attach();
     this.parent.apply(this, arguments);
+    this.attach();
   },
   
   addEvents: function(events) {
@@ -247,12 +247,13 @@ LSD.Module.Events.Targets = {
       return {
         addEvents: function(events) {
           group = events;
-          if (self[state] ^ !positive) add.call(this)
+          if (positive ^ !self[state]) add.call(this);
           self.addEvent(setting[+!positive], add);
           self.addEvent(setting[+!!positive], remove);
         },
         removeEvents: function(events) {
           group = events;
+          if (positive ^ self[state]) remove.call(this);
           self.removeEvent(setting[+!positive], add);
           self.removeEvent(setting[+!!positive], remove);
         }
@@ -286,7 +287,7 @@ Event.definePseudo('on', function(split, fn, args){
   var event = args[0];
   var target = event.target;
   while (target) {
-    var widget = document.id(event.target).get('widget');
+    var widget = Element.get(event.target, 'widget');
     if (widget && widget.match(split.value)) {
       fn.apply(widget, [event, widget, target]);
       return;        

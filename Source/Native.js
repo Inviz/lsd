@@ -11,10 +11,10 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Node
+  - LSD.Module.Attributes
   - LSD.Module.Events
   - LSD.Module.Expectations
   - LSD.Module.DOM
-  - LSD.Module.Attributes
   - LSD.Module.Actions
   - LSD.Module.Command
 
@@ -35,11 +35,11 @@ LSD.Native = new Class({
   
   Includes: [
     LSD.Node,
+    LSD.Module.Attributes,
     LSD.Module.Events,
     LSD.Module.Expectations,
     LSD.Module.Layout,
     LSD.Module.DOM,
-    LSD.Module.Attributes,
     LSD.Module.Actions,
     LSD.Module.Command,
     LSD.Module.Target

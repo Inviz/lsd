@@ -30,10 +30,12 @@ LSD.Module.Attributes = new Class({
     var attributes = this.options.attributes;
     if (attributes) for (var name in attributes) if (!LSD.Attributes.Ignore[name]) this.attributes[name] = attributes[name];
     this.classes.concat(this.options.classes || []).each(function(kls) {
-      this[LSD.States.Classes[kls] ? 'setState' : 'addClass'](kls);
+      if (LSD.States.Classes[kls]) this.pseudos.push(kls);
+      else this.addClass(kls);
     }, this);
     this.pseudos.concat(this.options.pseudos || []).each(function(value) {
       if (this.options.states[value]) this.setStateTo(value, true);
+      else this.addPseudo(value);
     }, this);
   },
   

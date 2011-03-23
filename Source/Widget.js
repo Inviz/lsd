@@ -13,11 +13,11 @@ requires:
   - LSD.Node
   - LSD.Module.Layout
   - LSD.Module.Styles
+  - LSD.Module.Attributes
   - LSD.Module.Events
   - LSD.Module.DOM
   - LSD.Module.Expectations
   - LSD.Module.Container
-  - LSD.Module.Attributes
   - LSD.Module.Actions
   - LSD.Module.Command
   - LSD.Module.Target
