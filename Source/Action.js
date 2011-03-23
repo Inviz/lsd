@@ -44,12 +44,13 @@ LSD.Action = function(options, name) {
     
     commit: function(target, state, args) {
       if (state) target[state.enabler]();
-      options.enable.apply(this, [target].concat(args));
+      var result = options.enable.apply(this, [target].concat(args));
+      return result;
     },
     
     revert: function(target, state, args) {
       if (state) target[state.disabler]();
-      options.disable.apply(this, [target].concat(args));
+      return options.disable.apply(this, [target].concat(args));
     },
     
     perform: function(target, state, args) {

@@ -48,6 +48,7 @@ sources:
   - Source/Mixin/Position.js
   - Source/Mixin/Focus.js
   - Source/Mixin/Request.js
+  - Source/Mixin/Resource.js
   - Source/Mixin/Validity.js
   - Source/Mixin/Dialog.js
   - Source/Module/Container.js

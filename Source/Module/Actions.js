@@ -71,7 +71,7 @@ LSD.Module.Actions = new Class({
     });
   },
   
-  kick: function() {
+  callChain: function() {
     var chain = this.getActionChain.apply(this, arguments), action, actions;
     var args = Array.prototype.slice.call(arguments, 0);
     for (var link; link = chain[++this.currentActionIndex];) {
@@ -83,16 +83,16 @@ LSD.Module.Actions = new Class({
         if (link.arguments) args = link.arguments;
         if (link.callback) link.callback.call(this, args)
       }
-      if (!action || result === false) continue;
+      if (!action || result === true) continue;
       if (!actions) actions = [];
       actions.push(action.options.name);
-      if (action.options.asynchronous) return actions;
+      if (result === false) return actions; //action is asynchronous, stop chain
     }
     if (this.currentActionIndex == chain.length) this.currentActionIndex = -1;
     return actions;
   },
   
-  unkick: function() {
+  clearChain: function() {
     this.currentActionIndex = -1;
   },
   
@@ -105,17 +105,27 @@ LSD.Module.Actions = new Class({
     }
     var action = command.action = this.getAction(command.name);
     var targets = command.target;
-    if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return false;
+    if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return true;
     var state = command.state;
+    var promise, self = this;
     var perform = function(target) {
       var method = (state == null) ? 'perform' : ((state.call ? state(target, targets) : state) ? 'commit' : 'revert');
-      action[method](target, target.options && target.options.states && target.options.states[action.name], args);
+      var result = action[method](target, target.options && target.options.states && target.options.states[action.name], args);
+      if (result && result.callChain) {
+        if (!promise) promise = [];
+        promise.push(result);
+        result.chain(function() {
+          promise.erase(result);
+          if (promise.length == 0) self.callChain.apply(self, arguments);
+        });
+      } else if (result !== false) return;
+      return false;
     };
     action.document =  LSD.Module.DOM.findDocument(targets ? (targets.map ? targets[0] : targets) : this)
     action.caller = this;
-    var result = targets ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);  
+    var ret = (targets) ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);
     delete action.caller, action.document;
-    return result;
+    return (ret ? ret[0] : ret) !== false;
   },
   
   mixin: function(mixin) {

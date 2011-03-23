@@ -36,7 +36,7 @@ LSD.Mixin.Request = new Class({
   
   initialize: function() {
     this.parent.apply(this, arguments);
-    if (this.attributes.autosend) this.kick()
+    if (this.attributes.autosend) this.callChain()
   },
   
   send: function() {

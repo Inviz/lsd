@@ -42,6 +42,6 @@ LSD.Trait.Form = new Class({
   submit: function(event) {
     this.fireEvent('submit');
     if (event && event.event && (this.getRequestType() != 'xhr') && event && event.type == 'submit' && ['post', 'get'].contains(this.getRequestMethod())) return;
-    this.send.apply(this, arguments);
+    return this.send.apply(this, arguments);
   }
 }); 

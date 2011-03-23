@@ -31,6 +31,5 @@ LSD.Action.Update = LSD.Action.build({
     var children = Array.from(fragment.childNodes);
     target.appendChild(fragment);
     if (widget.layout) widget.layout.render(children, widget);
-    return target;
   }
 });

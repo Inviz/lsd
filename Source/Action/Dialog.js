@@ -41,20 +41,20 @@ LSD.Action.Dialog = LSD.Action.build({
       var caller = this.caller;
       dialog.addEvents({
         'submit': function() {
-          if (caller.kick) caller.kick(dialog.getData())
+          if (caller.callChain) caller.callChain(dialog.getData())
         }.bind(this),
         'cancel': function() {
-          if (caller.unkick) caller.unkick(dialog.getData())
+          if (caller.clearChain) caller.clearChain(dialog.getData())
         }.bind(this)
       })
     }
     dialog.show();
     this.store(target, dialog);
+    return false;
   },
   
   disable: function(target) {
-    
-  },
-  
-  asynchronous: true
+    var dialog = this.retrieve(target);
+    if (dialog) dialog.hide();
+  }
 });
