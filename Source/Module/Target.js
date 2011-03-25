@@ -37,7 +37,7 @@ provides:
       var parsed = this.parseTargetSelector(target);
       results = [];
       parsed.each(function(expression) {
-        results.push.apply(results, Slick.search(anchor || expression.anchor || (this.document ? this.document.element : document.body), expression.selector));
+        results.push.apply(results, Slick.search(anchor || expression.anchor || (this.document || document.body), expression.selector));
       }, this);
       return results.length > 0 && results.map(function(result) {
         if (result.localName) {

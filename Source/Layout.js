@@ -60,7 +60,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   render: function(layout, parent, method, opts) {
     if (!layout.layout) {
       var type = layout.push ? 'array' : layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : layout.indexOf ? 'string' : 'object';
-      return this[type](layout, parent, method, opts);
+      if (type) return this[type](layout, parent, method, opts);
     } else if (parent) return this.appendChild(layout, parent);
   },
   
@@ -132,17 +132,7 @@ LSD.Layout.prototype = Object.append(new Options, {
       if ('type' in attributes) tag += "-" + attributes.type;
       if ('kind' in attributes) tag += "-" + attributes.kind;
       var interpolate = this.options.interpolate;
-      for (var name in attributes) {
-        var value = attributes[name];
-        if (interpolate) value = attributes[name] = this.interpolate(value);
-        var bits = name.split('-');
-        for (var i = bits.length - 1; i > -1; i--) {
-          var obj = {};
-          obj[bits[i]] = value;
-          if (i == 0) Object.merge(options, obj);
-          else value = obj;
-        }
-      }
+      for (var name in attributes) if (interpolate) attributes[name] = this.interpolate(attributes[name]);
     }
     if (!options.layout) options.layout = {};
     if (!options.layout.instance) options.layout.instance = false;
@@ -217,7 +207,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     if (parent && parent.call) parent = parent(element);
     if (parent) {
       if (converted) {
-        converted.inject(parent);
+        converted.inject(parent[0] || parent);
       } else {
         (parent.toElement ? parent.toElement() : parent).appendChild(element.cloneNode(false));
       }
@@ -384,9 +374,18 @@ LSD.Layout.extract = function(element) {
   var tag = LSD.toLowerCase(element.tagName);
   if (tag != 'div') options.source = tag;
   if (element.id) options.id = element.id;
+  
   for (var i = 0, attribute; attribute = element.attributes[i++];) {
-    var value = (attribute.value == attribute.name) || attribute.value;
-    options.attributes[attribute.name] = (value == null) ? true : value;
+    var name = attribute.name;
+    var value = (attribute.value == name) || attribute.value;
+    options.attributes[name] = (value == null) ? true : value;
+    var bits = name.split('-'), memo = value;
+    for (var j = bits.length - 1; j > -1; j--) {
+      var obj = {};
+      obj[bits[j]] = memo;
+      if (j == 0) Object.merge(options, obj);
+      else memo = obj;
+    }
   }
   if (options.attributes && options.attributes.inherit) {
     options.inherit = options.attributes.inherit;

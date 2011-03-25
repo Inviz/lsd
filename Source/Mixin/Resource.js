@@ -10,6 +10,7 @@ license: Public domain (http://unlicense.org).
 requires:
   - LSD
   - Resource/*
+  - More/URI
   - String.Inflections/String.camelize
   
 provides: 

@@ -33,6 +33,7 @@ LSD.Action.Display = LSD.Action.build({
   },
   
   getState: function(target) {
-    return !(('hidden' in target) || (target.getStyle && (target.getStyle('display') == 'none')));
+    var element = (target.element || target);
+    return !(('hidden' in target) || (element.getStyle && (element.getStyle('display') == 'none')));
   }
 });

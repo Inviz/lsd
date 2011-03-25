@@ -114,6 +114,16 @@ LSD.Action = function(options, name) {
     
     
   };
+  for (var methods = ['enable', 'disable'], i, method; method = methods[i++];) {
+    var fn = options[method];
+    if (fn && !fn.call) {
+      var types = fn;
+      options[method] = function(target) {
+        var callback = types[typeOf(target)];
+        if (callback) return callback.apply(this, arguments);
+      }
+    }
+  }
   var events = {
     enable:  self.enable,
     disable: self.disable,

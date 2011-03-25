@@ -234,6 +234,9 @@ LSD.Module.Events.Targets = {
         if (self.parentNode) listeners.dispose(self.parentNode);
       }
     }
+  },
+  mobile: function() {
+    return this;
   }
 };
 
