@@ -20,6 +20,7 @@ LSD.Trait.Fieldset = new Class({
   options: {
     events :{
       request: {
+        request: 'validateFields',
         badRequest: 'addFieldErrors'
       }
     }
@@ -28,12 +29,9 @@ LSD.Trait.Fieldset = new Class({
   initialize: function() {
     this.elements = [];
     this.names = {};
+    this.params = {};
     this.addEvent('nodeInserted', function(node) {
-      if (node.pseudos['read-write']) {
-        this.elements.push(node);
-        var name = node.attributes.name;
-        if (name) this.addFieldByName(name, node);
-      }
+      if (node.pseudos['read-write']) this.addField(node)
     });
     this.parent.apply(this, arguments)
   },
@@ -67,15 +65,23 @@ LSD.Trait.Fieldset = new Class({
         errors.each(function(error) {
           var name = model + error[0].replace(regex, function(match) {return '[' + match + ']'});
           var field = this.names[name];
-          if (field) field.invalidate(error[1]);
+          if (field) {
+            field.invalidate(error[1]);
+            this.invalid = true;
+          }
         }, this)
       }
     }
   },
   
-  addFieldByName: function(name, widget, root) {
-    if (!root) root = this.names;
-    var object = root;
+  addField: function(widget, object) {
+    this.elements.push(widget);
+    var name = widget.attributes.name;
+    if (!name) return;
+    if (!object) {
+      this.names[name] = widget;
+      object = this.params;
+    }
     for (var regex = LSD.Trait.Fieldset.rNameParser, match, bit;;) {
       match = regex.exec(name)
       if (bit != null) {
@@ -87,7 +93,6 @@ LSD.Trait.Fieldset = new Class({
       if (!match) break;
       else bit = match[1] ||match[2];
     }
-    if (object != root) root[name] = widget;
     return object
   },
 
@@ -108,10 +113,6 @@ LSD.Trait.Fieldset = new Class({
   
   validateFields: function(fields) {
     if (!this.invalid) return;
-    //if (fields) {
-    //  var field = this.elements[name];
-    //  if (field) field.validate(force);
-    //}
     this.getElements(':read-write:invalid').each(function(field) {
       field.validate(true);
     })

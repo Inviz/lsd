@@ -81,7 +81,7 @@ LSD.Document = new Class({
         return (attribute in node.attributes) || ((attribute in node.options.states) && (attribute in node.pseudos))
       },
       getAttribute: function(node, attribute) {
-        return node.attributes[attribute] || ((attribute in node.options.states) && node.pseudos[attribute]);
+        return node.attributes[attribute] || ((attribute in node.options.states) || node.pseudos[attribute]);
       },
       compareDocumentPosition: function(self, node) {
         var context = node.localName ? (self.localName ? self : self.toElement()) : self;
