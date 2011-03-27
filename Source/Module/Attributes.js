@@ -27,12 +27,15 @@ LSD.Module.Attributes = new Class({
     this.attributes = {}
     this.parent.apply(this, arguments);
     if (this.options.id) this.id = this.options.id;
-    if (this.options.attributes) for (var name in this.options.attributes) if (!LSD.Attributes.Ignore[name]) this.attributes[name] = this.options.attributes[name];
+    var attributes = this.options.attributes;
+    if (attributes) for (var name in attributes) if (!LSD.Attributes.Ignore[name]) this.attributes[name] = attributes[name];
     this.classes.concat(this.options.classes || []).each(function(kls) {
-      this[LSD.States.Classes[kls] ? 'setState' : 'addClass'](kls);
+      if (LSD.States.Classes[kls]) this.pseudos.push(kls);
+      else this.addClass(kls);
     }, this);
     this.pseudos.concat(this.options.pseudos || []).each(function(value) {
       if (this.options.states[value]) this.setStateTo(value, true);
+      else this.addPseudo(value);
     }, this);
   },
   
@@ -87,13 +90,6 @@ LSD.Module.Attributes = new Class({
     return this.classes[name]
   },
   
-  getAttributeNode: function(attribute) {
-    return {
-      nodeName: attribute,
-      nodeValue: (attribute in this.options.states) || (attribute in this.pseudos) && this.pseudos[attribute]
-    }
-  },
-  
   setState: function(state) {
     if (LSD.States.Attributes[state]) {
       this.setAttribute(state, true)
@@ -124,7 +120,7 @@ LSD.Module.Attributes = new Class({
   },
   
   onStateChange: function(state, value, args) {
-    var args = Array.prototype.splice.call(arguments, 0);
+    var args = Array.prototype.slice.call(arguments, 0);
     args.slice(1, 2); //state + args
     this[value ? 'setState' : 'unsetState'].apply(this, args);
     this.fireEvent('stateChange', [state, args])

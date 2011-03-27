@@ -52,13 +52,22 @@ LSD.Mixin.Validity = new Class({
       if (!result) continue;
       validity[result] = true;
     }
-    for (var i in validity) {
-      this.addPseudo('invalid');
-      this.removePseudo('valid');
-      return false;
-    }
-    this.addPseudo('valid');
-    this.removePseudo('invalid');
+    for (var i in validity) return !this.invalidate();
+    return this.validate(true);
+  },
+  
+  validate: function(value) {
+    if (value !== true && !this.checkValidity()) return false;
+    this.fireEvent('valid', [i, value])
+    this.setState('valid');
+    this.unsetState('invalid');
+    return true;
+  },
+  
+  invalidate: function(value) {
+    this.setState('invalid');
+    this.unsetState('valid');
+    this.fireEvent('invalid', [i, value]);
     return true;
   },
   

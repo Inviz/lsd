@@ -47,7 +47,14 @@ var inserters = {
 
 LSD.Module.DOM = new Class({
   options: {
-    nodeType: 1
+    nodeType: 1,
+    events: {
+      _dom: {
+        element: {
+          'dispose': 'dispose'
+        }
+      }
+    }
   },
   
   initialize: function() {
@@ -80,8 +87,9 @@ LSD.Module.DOM = new Class({
       for (var name in this.attributes) 
         if (name != 'width' && name != 'height') {
           var value = this.attributes[name];
-          if (!element || element[name] != value)
+          if (!element || element[name] != value) {
             this.element.setAttribute(name, value);
+          } 
         }
 
     if (this.style) for (var property in this.style.element) this.element.setStyle(property, this.style.element[property]);
@@ -198,17 +206,24 @@ LSD.Module.DOM = new Class({
     if (this.document) callback.call(this, document.id(this.document)) 
     else this.addEvent('dominject', callback.bind(this))
   },
+  
+  destroy: function() {
+    this.dispose();
+  },
 
-  dispose: function() {
+  dispose: function(element) {
     var parent = this.parentNode;
-    if (parent) {
-      parent.childNodes.erase(this);
-      if (parent.firstChild == this) delete parent.firstChild;
-      if (parent.lastChild == this) delete parent.lastChild;
-    }
+    if (!parent) return;
+    this.walk(function(node) {
+      parent.dispatchEvent('nodeRemoved', node);
+      node.fireEvent('dispose')
+    });
+    parent.childNodes.erase(this);
+    if (parent.firstChild == this) delete parent.firstChild;
+    if (parent.lastChild == this) delete parent.lastChild;
     this.fireEvent('dispose', parent);
+    if (!element) this.element.dispose();
     delete this.parentNode;
-    return this.parent.apply(this, arguments);
   },
   
   dispatchEvent: function(type, args){
@@ -239,15 +254,7 @@ LSD.Module.DOM = new Class({
       if (!callback || callback(child)) result.push(child);
     });
     return result;
-  },
-  
-  compareDocumentPosition: function(node) {
-    var context =  (Element.type(node)) ? this.toElement() : this;
-		if (node) do {
-			if (node === context) return true;
-		} while ((node = node.parentNode));
-		return false;
-	}
+  }
 });
 
 LSD.Module.DOM.findDocument = function(target) {

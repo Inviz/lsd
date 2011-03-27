@@ -21,40 +21,46 @@ provides:
 
 LSD.Action.Dialog = LSD.Action.build({
   enable: function(target) {
-    var dialog = this.retrieve(target);
+    if (!target.localName) {
+      var dialog = target;
+      target = target.element;
+    } else var dialog = this.retrieve(target);
     if (dialog && dialog.layout.interpolated) {
       dialog.destroy();
       dialog = null;
     }
     if (!dialog) {
-      var caller = this.caller.element || this.caller;
+      var source = this.caller.element || this.caller;
+      var caller = this.caller;
       dialog = new LSD.Widget.Body.Dialog(target, {
         layout: {
           options: {
-            method: 'clone', 
+            method: target.hasClass('singlethon') ? 'augment' : 'clone', 
             interpolate: function(string) {
-              return caller.getProperty('data-' + string)
+              return source.getProperty('data-' + string)
             }
           }
+        },
+        caller: function() {
+          return caller;
         }
       });
-      var caller = this.caller;
       dialog.addEvents({
         'submit': function() {
-          if (caller.kick) caller.kick(dialog.getData())
+          if (caller.callChain) caller.callChain(dialog.getData())
         }.bind(this),
         'cancel': function() {
-          if (caller.unkick) caller.unkick(dialog.getData())
+          if (caller.clearChain) caller.clearChain(dialog.getData())
         }.bind(this)
       })
     }
     dialog.show();
     this.store(target, dialog);
+    return false;
   },
   
   disable: function(target) {
-    
-  },
-  
-  asynchronous: true
+    var dialog = this.retrieve(target);
+    if (dialog) dialog.hide();
+  }
 });

@@ -44,12 +44,13 @@ LSD.Action = function(options, name) {
     
     commit: function(target, state, args) {
       if (state) target[state.enabler]();
-      options.enable.apply(this, [target].concat(args));
+      var result = options.enable.apply(this, [target].concat(args));
+      return result;
     },
     
     revert: function(target, state, args) {
       if (state) target[state.disabler]();
-      options.disable.apply(this, [target].concat(args));
+      return options.disable.apply(this, [target].concat(args));
     },
     
     perform: function(target, state, args) {
@@ -58,7 +59,7 @@ LSD.Action = function(options, name) {
     },
 
     use: function(widget, state) {
-      var widgets = Array.prototype.splice.call(arguments, 0);
+      var widgets = Array.prototype.slice.call(arguments, 0);
       var state = widgets.pop();
       self[state ? 'enable' : 'disable'].apply(self, widgets);
     },
@@ -113,6 +114,16 @@ LSD.Action = function(options, name) {
     
     
   };
+  for (var methods = ['enable', 'disable'], i, method; method = methods[i++];) {
+    var fn = options[method];
+    if (fn && !fn.call) {
+      var types = fn;
+      options[method] = function(target) {
+        var callback = types[typeOf(target)];
+        if (callback) return callback.apply(this, arguments);
+      }
+    }
+  }
   var events = {
     enable:  self.enable,
     disable: self.disable,

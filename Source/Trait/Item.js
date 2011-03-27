@@ -28,7 +28,10 @@ LSD.Trait.Item = new Class({
           if (this.listWidget) this.listWidget.selectItem(this)
         },
         unselect: function() {
-          if (this.listWidget && this.listWidget.isItemSelected(this)) this.listWidget.unselectItem(this)
+          if (this.listWidget) this.listWidget.unselectItem(this);
+        },
+        dispose: function() {
+          if (this.listWidget) this.listWidget.unselectItem(this);
         }
       }
     }
@@ -45,7 +48,7 @@ LSD.Trait.Item = new Class({
   
   setList: function(widget) {
     if (!widget.addItem) 
-      if (Element.type(widget))
+      if (widget.localName)
         for (var parent = widget, widget = null; parent && !widget; widget = parent.retrieve('widget'), parent = parent.parentNode);
       else
         while (!widget.addItem) widget = widget.parentNode;

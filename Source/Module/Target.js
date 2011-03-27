@@ -27,21 +27,24 @@ provides:
       chain: {
         target: function() {
           var action = this.getTargetAction();
-          if (action) return {action: action, target: this.getTarget, arguments: this.getTargetArguments}
+          if (action) return {name: action, target: this.getTarget, arguments: this.getTargetArguments}
         }
       }
     },
     
     getTarget: function(target, anchor) {
       if (!target && !(target = this.attributes.target)) return false;
-      if (!target) return false;
       var parsed = this.parseTargetSelector(target);
       results = [];
       parsed.each(function(expression) {
-        results.push.apply(results, Slick.search(anchor || expression.anchor || (this.document ? this.document.element : document.body), expression.selector));
+        results.push.apply(results, Slick.search(anchor || expression.anchor || (this.document || document.body), expression.selector));
       }, this);
       return results.length > 0 && results.map(function(result) {
-        return (result.localName && Element.retrieve(result, 'widget')) || result
+        if (result.localName) {
+          var widget = Element.retrieve(result, 'widget');
+          if (widget && widget.element == result) return widget
+        }
+        return result;
       });
     },
     

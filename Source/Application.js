@@ -52,9 +52,13 @@ LSD.Application = new Class({
   
   setBody: function(element) {
     this.fireEvent('beforeBody', element);
-    var body = this.body = new LSD.Widget.Body(element);
+    var body = this.body = new (this.getBodyClass(element))(element);
     this.fireEvent('body', [body, element]);
     return body;
+  },
+  
+  getBodyClass: function() {
+    return LSD.Widget.Body
   },
   
   getBody: function() {
