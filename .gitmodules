@@ -51,3 +51,7 @@
 [submodule "Dependencies/Sheet.js"]
 	path = Dependencies/Sheet.js
 	url = git://github.com/Inviz/Sheet.js.git
+
+[submodule "Dependencies/lsd-native"]
+	path = Dependencies/lsd-native
+	url = git://github.com/Inviz/lsd-native.git
