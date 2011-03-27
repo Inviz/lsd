@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Node
   - Core/DomReady
+  - Native/LSD.Native.Body
   
 provides:
   - LSD.Application

@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
 - LSD
 - LSD.Layout
+- Slick/Slick.Finder
 
 provides: [LSD.Module.Layout]
  

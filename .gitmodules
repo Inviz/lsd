@@ -55,3 +55,15 @@
 [submodule "Dependencies/lsd-native"]
 	path = Dependencies/lsd-native
 	url = git://github.com/Inviz/lsd-native.git
+[submodule "Dependencies/slick"]
+	path = Dependencies/slick
+	url = git://github.com/lovelyscalabledrawings/slick.git
+[submodule "Dependencies/mootools-resource"]
+	path = Dependencies/mootools-resource
+	url = git://github.com/Inviz/mootools-resource.git
+[submodule "mootools-string-inflections"]
+	path = mootools-string-inflections
+	url = git://github.com/lovelyscalabledrawings/mootools-string-inflections.git
+[submodule "Dependencies/lsd-mobile"]
+	path = Dependencies/lsd-mobile
+	url = git://github.com/Inviz/lsd-mobile.git
