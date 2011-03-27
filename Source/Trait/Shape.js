@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - ART.Shape
+  - ART/ART.Shape
   - LSD
   
 provides: 

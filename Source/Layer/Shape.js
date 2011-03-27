@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Layer
-  - ART.Shape
+  - ART/ART.Shape
  
 provides: 
   - LSD.Layer.Shape

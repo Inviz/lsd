@@ -9,12 +9,12 @@ license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
-requires:
-  - ART.Shape
- 
 provides: 
   - ART/ART.Shape.Star
  
+requires:
+  - ART/ART.Shape
+
 ...
 */
 

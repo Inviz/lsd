@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
 - LSD
-- Fx.CSS
+- Core/Fx.CSS
  
 provides: [LSD.Fx ]
  
