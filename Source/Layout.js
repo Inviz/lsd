@@ -282,7 +282,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   walk: function(element, parent, method, opts) {
     var node = element.firstChild;
     while (node) {
-      if (node.nodeType) {
+      if (node.nodeType && node.nodeType != 8) {
         var rendered = this.render(node, parent, method, opts);
         if (rendered.element && rendered.element.parentNode && !node.parentNode) node = rendered.element;
       }

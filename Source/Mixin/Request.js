@@ -36,7 +36,7 @@ LSD.Mixin.Request = new Class({
   
   initialize: function() {
     this.parent.apply(this, arguments);
-    if (this.attributes.autosend) this.callChain()
+    if (this.attributes.autosend) this.callChain();
   },
   
   send: function() {
@@ -48,7 +48,11 @@ LSD.Mixin.Request = new Class({
         j--;
       }
       if (arg && arg.call) var callback = arg;
+      else if (typeof arg == 'object') {
+        if (!arg.url && !arg.data && !arg.method) args[i] = {data: arg};
+      }
     }
+    
     var request = this.getRequest.apply(this, args);
     if (callback) request.addEvent('complete:once', callback);
     return request.send.apply(request, args);
@@ -72,6 +76,11 @@ LSD.Mixin.Request = new Class({
       }
     }
     return this.request;
+  },
+  
+  onRequestSuccess: function() {
+    console.log('success', this.getCommandAction(), this.chainPhase)
+    if (this.chainPhase == -1 && this.getCommandAction() == 'send') this.callOptionalChain.apply(this, arguments);
   },
   
   getRequestData: Macro.defaults(function() {

@@ -20,7 +20,7 @@ provides:
 
 
 LSD.Action.Send = LSD.Action.build({
-  enable: function(target, data) {
-    return (target.submit || target.send).call(target, data);
+  enable: function(target, data, callback) {
+    return (target.submit || target.send).apply(target, Array.prototype.slice.call(arguments, 0));
   }
 });
