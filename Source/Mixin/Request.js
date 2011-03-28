@@ -43,12 +43,11 @@ LSD.Mixin.Request = new Class({
     var args = Array.prototype.slice.call(arguments, 0);
     for (var i = 0, j = args.length, arg; i < j; i++) {
       var arg = args[i];
-      if (!arg || arg.call || arg.event) {
+      if (arg && (arg.call || arg.event)) {
+        if (arg.call) var callback = arg;
         args.splice(i--, 1);
         j--;
-      }
-      if (arg && arg.call) var callback = arg;
-      else if (typeof arg == 'object') {
+      } else if (typeof arg == 'object') {
         if (!arg.url && !arg.data && !arg.method) args[i] = {data: arg};
       }
     }
