@@ -32,6 +32,9 @@ LSD.Trait.Item = new Class({
         },
         dispose: function() {
           if (this.listWidget) this.listWidget.unselectItem(this);
+        },
+        build: function() {
+          this.value = this.attributes.value || this.element.get('item') || $uid(this.element);
         }
       }
     }
@@ -39,7 +42,6 @@ LSD.Trait.Item = new Class({
   
   initialize: function() {
     this.parent.apply(this, arguments);
-    this.value = this.element.get('item') || $uid(this.element);
   },
   
   getValue: Macro.defaults(function() {

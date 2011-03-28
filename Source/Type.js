@@ -28,7 +28,9 @@ LSD.Type = function(name, namespace) {
   this.count = 0;
   this.namespace = namespace || 'LSD';
   var holder = Object.getFromPath(window, this.namespace);
-  if (this.storage = holder[name]) Object.append(holder[name], this);
+  if (this.storage = holder[name]) {
+    for (var key in this) this.storage[key] = (this[key].call) ? this[key].bind(this) : this;
+  }
   else this.storage = (holder[name] = this);
   this.pool = [this.storage];
   this.queries = {};
@@ -42,10 +44,11 @@ LSD.Type.prototype = {
     }
   },
   find: function(name) {
-    if (this.queries[name] != null) return this.queries[name];
+    if (!this.queries) this.queries = {};
+    else if (this.queries[name] != null) return this.queries[name];
     name = LSD.toClassName(name);
     for (var i = 0, storage; storage = this.pool[i++];) {
-      var result = Object.getFromPath(storage, name)
+      var result = Object.getFromPath(storage, name);
       if (result) return (this.queries[name] = result);
     }
     return (this.queries[name] = false);

@@ -48,6 +48,11 @@ LSD.Layout = function(widget, layout, options) {
   } else if (widget && widget.localName) widget = this.convert(widget);
   this.result = this.render(layout, widget);
 };
+
+LSD.Layout.get = function(object) {
+  return LSD.Layout.current || LSD.document.layout;
+};
+
 LSD.Layout.prototype = Object.append(new Options, {
   
   options: {
@@ -148,9 +153,8 @@ LSD.Layout.prototype = Object.append(new Options, {
     }
     var args = Array.prototype.slice.call(arguments, 0);
     args.splice(1, 1); //remove parent
-    var result = this.context.create.apply(this.context, [tag].concat(args));
-    result.layout = this;
-    return result;
+    LSD.Layout.current = this;
+    return this.context.create.apply(this.context, [tag].concat(args));
   },
   
   /*

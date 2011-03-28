@@ -162,7 +162,7 @@ var Expectations = LSD.Module.Expectations = new Class({
       if (!group) group = expectations[key] = [];
       group.push([selector, callback]);
       var state = selector.state;
-      if (this.document) this.getElements(selector.structure).each(function(widget) {
+      if (this.document && this.document.documentElement) this.getElements(selector.structure).each(function(widget) {
         if (state) widget.expect(state, callback);
         else callback(widget, true);
       });

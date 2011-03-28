@@ -148,7 +148,7 @@ LSD.Module.Actions = new Class({
     Class.mixin(this, mixin);
     var options = mixin.prototype.options;
     if (!options) return;
-    for (var action in options.actions) this.addAction(Object.clone(action));
+    for (var action in options.actions) this.addAction(action);
     if (options.events) this.addEvents(this.bindEvents(options.events));
   },
 

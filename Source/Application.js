@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Node
   - Core/DomReady
+  - More/String.QueryString
   
 provides:
   - LSD.Application
@@ -27,10 +28,12 @@ LSD.Application = new Class({
   
   initialize: function(document, options) {
     if (!LSD.application) LSD.application = this;
-    this.param = {};
+    this.param = (location.search.length > 1) ? location.search.substr(1, location.search.length - 1).parseQueryString() : {}
     this.parent.apply(this, arguments);
     document.addEvent('domready', function() {
+      if (this.param.benchmark != null) console.profile();
       this.setDocument(document);
+      if (this.param.benchmark != null) console.profileEnd();
     }.bind(this));
   },
   

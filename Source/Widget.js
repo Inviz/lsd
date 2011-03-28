@@ -68,10 +68,7 @@ LSD.Widget = new Class({
   
   States: Object.subset(LSD.States.Known, ['disabled', 'hidden', 'built', 'attached', 'dirty']),
   
-  options: {  
-    element: {
-      tag: 'div'
-    },
+  options: {
     writable: false,
     layers: true
   },

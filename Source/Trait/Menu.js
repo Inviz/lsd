@@ -92,7 +92,7 @@ LSD.Trait.Menu = new Class({
   },
   
   getMenu: Macro.getter('menu', function() {
-    return this.buildLayout(this.options.layout.menu);
+    return this.updateLayout(this.options.layout.menu);
   }),
   
   expand: function() {
