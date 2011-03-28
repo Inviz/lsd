@@ -8,10 +8,9 @@ description: Make various requests to back end
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD
+  - LSD.Mixin
   - Resource/*
   - More/URI
-  - String.Inflections/String.camelize
   
 provides: 
   - LSD.Mixin.Resource

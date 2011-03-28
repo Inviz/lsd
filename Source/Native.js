@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Node
+  - LSD.Type
   - LSD.Module.Attributes
   - LSD.Module.Events
   - LSD.Module.Expectations
@@ -72,3 +73,8 @@ LSD.Native = new Class({
     this.toElement().innerHTML = content;
   }
 });
+
+new LSD.Type('Native');
+
+// Inject native widgets into default widget pool as a fallback
+LSD.Element.pool.push(LSD.Native);

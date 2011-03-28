@@ -8,7 +8,7 @@ description: Because sometimes slider is the answer
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD
+  - LSD.Trait
   - More/Slider
   - Ext/Slider.prototype.update
   - Ext/Class.hasParent

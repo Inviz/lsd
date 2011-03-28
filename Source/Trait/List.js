@@ -8,7 +8,7 @@ description: Trait that makes it simple to work with a list of item (and select 
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD
+  - LSD.Trait
   - Core/Element
   - Ext/Element.Properties.item
  

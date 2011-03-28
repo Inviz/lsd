@@ -10,10 +10,11 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- LSD
-- More/Drag
+  - LSD.Mixin
+  - More/Drag
 
-provides: [LSD.Mixin.Draggable]
+provides: 
+  - LSD.Mixin.Draggable
  
 ...
 */

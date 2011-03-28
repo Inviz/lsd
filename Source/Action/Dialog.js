@@ -32,7 +32,7 @@ LSD.Action.Dialog = LSD.Action.build({
     if (!dialog) {
       var source = this.caller.element || this.caller;
       var caller = this.caller;
-      dialog = new LSD.Widget.Body.Dialog(target, {
+      dialog = LSD.Element.create('body-dialog', target, {
         layout: {
           options: {
             method: target.hasClass('singlethon') ? 'augment' : 'clone', 

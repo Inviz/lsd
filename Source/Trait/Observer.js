@@ -8,7 +8,7 @@ description: A wrapper around Observer to look for changes in input values
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD
+  - LSD.Trait
   - Ext/Observer
  
 provides: 

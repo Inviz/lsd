@@ -10,8 +10,8 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
+  - LSD.Trait
   - LSD.Layer
-  - ART.Shape
   - LSD.Module.Styles
 
 provides: 
@@ -58,9 +58,6 @@ LSD.Trait.Layers = new Class({
   renderLayers: function(dirty) {
     var updated = new FastArray, style = this.style, layers = style.layers, offset = this.offset;
     for (var property in dirty) if (layers[property]) updated.push.apply(updated, layers[property]);
-    
-    
-    
     
     var result = {};
     for (var name in this.layers) {

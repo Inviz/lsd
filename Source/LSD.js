@@ -29,13 +29,7 @@ provides:
 if (!window.console) window.console = {};
 if (!window.console.log) window.console.log = function() {};
 
-var LSD = new Events;
-Object.append(LSD, {
-  Module: {},  // must-have stuff for all widgets 
-  Trait: {},   // some widgets may use those
-  Mixin: {},   // these may be applied in runtime
-  
-  // Conventions
+var LSD = Object.append(new Events, {
   Events: {},
   Attributes: {
     Ignore: new FastArray,
@@ -64,6 +58,15 @@ Object.append(LSD, {
       disabled: 'disabled',
       selected: 'selected'
     }
+  },
+  Layers: {
+    shadow:     ['size', 'radius', 'shape', 'shadow'],
+    stroke:     [        'radius', 'stroke', 'shape', 'fill'],
+    background: ['size', 'radius', 'stroke', 'offset', 'shape', 'color'],
+    foreground: ['size', 'radius', 'stroke', 'offset', 'shape', 'color'],
+    reflection: ['size', 'radius', 'stroke', 'offset', 'shape', 'color'],
+    icon:       ['size', 'scale', 'color', 'stroke', 'offset', 'shape', 'position','shadow'],
+    glyph:      ['size', 'scale', 'color', 'stroke', 'offset', 'shape', 'position', 'shadow']
   }
 });
 

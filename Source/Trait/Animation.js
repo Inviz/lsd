@@ -8,7 +8,7 @@ description: Animated ways to show/hide widget
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD
+  - LSD.Trait
   - Core/Fx.Tween
  
 provides: 

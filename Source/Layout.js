@@ -80,11 +80,11 @@ LSD.Layout.prototype = Object.append(new Options, {
     if (!object) object = this.options.interpolate;
     var self = this;
     return string.replace(/\\?\{([^{}]+)\}/g, function(match, name){
-			if (match.charAt(0) == '\\') return match.slice(1);
-			var value = object.call ? object(name) : object[name];
-			self.interpolated = true;
-			return (value != undefined) ? value : '';
-		});
+      if (match.charAt(0) == '\\') return match.slice(1);
+      var value = object.call ? object(name) : object[name];
+      self.interpolated = true;
+      return (value != undefined) ? value : '';
+    });
   },
   
   parse: function(selector) {
@@ -126,8 +126,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   build: function(options, parent) {
-    var mixins = [];
-    var tag = options.source || options.tag || 'container', attributes = options.attributes;
+    var tag = options.source || options.tag, attributes = options.attributes;
     if (attributes) {
       if ('type' in attributes) tag += "-" + attributes.type;
       if ('kind' in attributes) tag += "-" + attributes.kind;
@@ -147,10 +146,9 @@ LSD.Layout.prototype = Object.append(new Options, {
       } else if (parent.indexOf) var source = parent;
       if (source) tag = source + '-' + tag
     }
-    mixins.unshift(tag);
     var args = Array.prototype.slice.call(arguments, 0);
     args.splice(1, 1); //remove parent
-    var result = this.context.create.apply(this.context, [mixins].concat(args));
+    var result = this.context.create.apply(this.context, [tag].concat(args));
     result.layout = this;
     return result;
   },
@@ -244,13 +242,12 @@ LSD.Layout.prototype = Object.append(new Options, {
       }
     } else var widget = converted;
     var child = widget || clone;
+    if (cloning) {
+      var textnode = LSD.Layout.TextNodes[LSD.toLowerCase(element.tagName)];
+      if (textnode) this.walk(element, clone ? [clone, parent] : widget || parent, method)
+    }
     if (parent && child) this.appendChild(child, parent[0] || parent);
-    
-    //if (augment && ((widget && widget.element == element) || !widget || converted)) {
-    //  if (!skip && element.childNodes.length) this.find(element, widget);
-    //} else {
-      this.walk(widget && !element.parentNode ? widget.element : element, clone ? [clone, parent] : widget || parent, method, opts);
-    //}
+    if (!textnode) this.walk(widget && !element.parentNode ? widget.element : element, clone ? [clone, parent] : widget || parent, method, opts);
     return clone || widget || element;
   },
   
@@ -340,20 +337,21 @@ LSD.Layout.prototype = Object.append(new Options, {
   // redefinable predicates
   
   isConvertable: function(element, parent) {
-    return !!this.context[LSD.toClassName(LSD.toLowerCase(element.tagName))];
+    return !!this.context.find(LSD.toLowerCase(element.tagName));
   },
   
   isAugmentable: function(element, parent, transformed) {
     if (element.nodeType != 1) return true;
     var tag = LSD.toLowerCase(element.tagName);
-    var klass = Object.getFromPath(this.context, LSD.toClassName(transformed ? transformed.source : tag));
+    var klass = this.context.find(LSD.toLowerCase(transformed ? transformed.source : tag));
     if (!klass) return;
     var opts = klass.prototype.options;
-    return !opts || ((opts.element && opts.element.tag) ? (opts.element.tag == tag) : true)
+    return !opts || !opts.element || !opts.element.tag || (opts.element.tag == tag)
   }
 });
 
 LSD.Layout.NodeTypes = {1: 'element', 3: 'textnode', 11: 'fragment'};
+LSD.Layout.TextNodes = Array.fast('script', 'button', 'textarea', 'option')
 
 /* 
   Extracts options from a DOM element.

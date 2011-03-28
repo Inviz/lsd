@@ -27,6 +27,7 @@ sources:
   - Source/Document/Resizable.js
   - Source/Document/Commands.js
   - Source/LSD.js
+  - Source/Type.js
   - Source/Layer.js
   - Source/Layer/Color.js
   - Source/Layer/Offset.js
@@ -100,4 +101,3 @@ sources:
   - Source/Sheet.js
   - Source/Native.js
   - Source/Widget.js
-  - Source/Widget.Paint.js

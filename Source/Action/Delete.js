@@ -22,6 +22,6 @@ provides:
 LSD.Action.Delete = LSD.Action.build({
   enable: function(target) {
     target.dispose();
-    if (target.getModel) return target.getModel()['new']()
+    if (target.getModel) return target.getModel()['delete']()
   }
 });

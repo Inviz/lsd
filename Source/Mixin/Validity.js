@@ -13,7 +13,7 @@ references:
   - http://www.w3.org/TR/html5/association-of-controls-and-forms.html#constraints
  
 requires:
-  - LSD
+  - LSD.Mixin
  
 provides: 
   - LSD.Mixin.Validity

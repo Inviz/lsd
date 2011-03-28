@@ -8,7 +8,7 @@ description: Work with dialog
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD
+  - LSD.Mixin
  
 provides: 
   - LSD.Mixin.Dialog

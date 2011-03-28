@@ -8,7 +8,7 @@ description: Make your widget have a real form value.
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD
+  - LSD.Trait
  
 provides: 
   - LSD.Trait.Value
@@ -21,7 +21,7 @@ LSD.Trait.Value = new Class({
     events: {
       _value: {
         dominject: function() {
-          if (!('value' in this)) !function() { this.value = this.processValue(this.getRawValue()); }.delay(5, this)
+          if (!('value' in this)) this.value = this.processValue(this.getRawValue());
         }
       }
     }

@@ -8,6 +8,7 @@ description: Make it easy to use regular native input for the widget
 license: Public domain (http://unlicense.org).
  
 requires:
+  - LSD.Trait
   - LSD.Mixin.Focus
 
 provides: 

@@ -8,7 +8,7 @@ description: Easy way to have a list of children (to select from) or something l
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD
+  - LSD.Trait
   - Ext/Class.Stateful
 
 provides: 

@@ -8,7 +8,7 @@ description: Wrapper around set of form fields
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD
+  - LSD.Trait
  
 provides: 
   - LSD.Trait.Fieldset

@@ -10,6 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
+  - LSD.Trait
   - LSD.Module.Expectations
 
 provides: 

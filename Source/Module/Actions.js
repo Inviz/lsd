@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
 
 requires:
-  - LSD
+  - LSD.Module
   - LSD.Action
 
 provides: 
@@ -164,7 +164,7 @@ LSD.Module.Actions = new Class({
 });
 
 LSD.Module.Actions.attach = function(doc) {
-  Object.each(LSD.Mixin, function(mixin, name) {
+  LSD.Mixin.each(function(mixin, name) {
     var selector = mixin.prototype.behaviour;
     if (!selector) return;
     var watcher = function (widget, state) {

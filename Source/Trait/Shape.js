@@ -9,9 +9,9 @@ license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
-requires:
-  - ART.Shape
-  - LSD
+requires: 
+  - LSD.Trait
+  - ART/ART.Shape
   
 provides: 
   - LSD.Trait.Shape
@@ -35,6 +35,12 @@ LSD.Trait.Shape = new Class({
     shape.widget = this;
     this.shape = shape;
     return shape;
-  }
+  },
+  
+  getCanvas: Macro.getter('canvas', function() {
+    var art = new ART;
+    art.toElement().inject(this.toElement(), 'top');
+    return art;
+  })
   
 });

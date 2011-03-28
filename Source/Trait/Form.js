@@ -8,7 +8,7 @@ description: Act as a form to submit data
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD
+  - LSD.Trait
   - LSD.Mixin.Request
  
 provides: 
@@ -22,7 +22,8 @@ LSD.Trait.Form = new Class({
   options: {
     request: {
       type: 'xhr'
-    }
+    },
+    pseudos: Array.fast('submittable')
   },
   
   initialize: function() {

@@ -8,7 +8,7 @@ description: A single form field
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD
+  - LSD.Trait
  
 provides: 
   - LSD.Trait.Field

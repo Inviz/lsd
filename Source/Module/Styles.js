@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD
+  - LSD.Module
   - Core/Element.Style
   - Ext/FastArray
   - Sheet/SheetParser.Styles
@@ -87,7 +87,6 @@ LSD.Module.Styles = new Class({
     }
     var result = (css || paint)[value.push ? 'apply' : 'call'](this, value);
     if (property == 'stroke') console.info(value, result, $t = this, this.element);
-    //if (property == 'glyphPosition') alert([property, JSON.stringify(result)])
     if (result === true || result === false) setStyle.call(this, css, property, value, type);
     else for (var prop in result) setStyle.call(this, css, prop, result[prop], type);
     if (expression) {

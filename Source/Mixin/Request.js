@@ -8,7 +8,7 @@ description: Make various requests to back end
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD
+  - LSD.Mixin
   - Core/Request
   - Ext/Request.Form
   - Ext/Request.Auto
@@ -48,7 +48,7 @@ LSD.Mixin.Request = new Class({
         args.splice(i--, 1);
         j--;
       } else if (typeof arg == 'object') {
-        if (!arg.url && !arg.data && !arg.method) args[i] = {data: arg};
+        if (!arg.url && !arg.data && !arg.method && !arg.data) args[i] = {data: arg};
       }
     }
     
@@ -63,14 +63,17 @@ LSD.Mixin.Request = new Class({
       this.request = this[options.type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options)
       if (!this.request.type) {
         this.request.type = options.type;
-        if (!this.events._request) this.events._request = this.bindEvents({
-          request: 'busy',
-          complete: 'idle',
-          success: 'onRequestSuccess',
-          failure: 'onRequestFailure'
-        });
+        if (!this.events._request) {
+          var events = {
+            request: 'onRequest',
+            complete: 'onRequestComplete',
+            success: 'onRequestSuccess',
+            failure: 'onRequestFailure'
+          };
+          this.events._request = this.bindEvents(events);
+        }
         if (this.events.request) this.request.addEvents(this.events.request);
-        if (this.events.$request) this.request.addEvents(this.events.$request)
+        if (this.events.$request) this.request.addEvents(this.events.$request);
         this.request.addEvents(this.events._request)
       }
     }
@@ -78,8 +81,15 @@ LSD.Mixin.Request = new Class({
   },
   
   onRequestSuccess: function() {
-    console.log('success', this.getCommandAction(), this.chainPhase)
     if (this.chainPhase == -1 && this.getCommandAction() == 'send') this.callOptionalChain.apply(this, arguments);
+  },
+  
+  onRequest: function() {
+    this.busy();
+  },
+  
+  onRequestComplete: function() {
+    this.idle();
   },
   
   getRequestData: Macro.defaults(function() {
