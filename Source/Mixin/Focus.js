@@ -28,26 +28,26 @@ LSD.Mixin.Focus = new Class({
     actions: {
       focus: {
         target: false,
-        enable: function() {
-          if (this.tabindex != null) {
-            this.attributes.tabindex = this.tabindex
-            if (this.focuser) this.element.set('tabindex', this.tabindex)
-            delete this.tabindex;
+        enable: function(target) {
+          if (target.tabindex != null) {
+            target.attributes.tabindex = target.tabindex
+            if (target.focuser) target.element.set('tabindex', target.tabindex)
+            delete target.tabindex;
           }
-          if (this.attributes.tabindex == -1) return;
-          this.getFocuser();
-          this.addEvents(this.events.focus);
-          this.element.addEvents(this.bindEvents({mousedown: 'retain'}));
+          if (target.attributes.tabindex == -1) return;
+          target.getFocuser();
+          target.addEvents(target.events.focus);
+          target.element.addEvents(target.bindEvents({mousedown: 'retain'}));
         },
         
-        disable: function() {
-          this.blur();
-          if (this.options.tabindex == -1) return;
-          this.tabindex = this.options.tabindex || 0;
-          this.element.set('tabindex', -1)
-          this.attributes.tabindex = -1;
-          this.removeEvents(this.events.focus);
-          this.element.removeEvents(this.bindEvents({mousedown: 'retain'}));
+        disable: function(target) {
+          target.blur();
+          if (target.options.tabindex == -1) return;
+          target.tabindex = target.options.tabindex || 0;
+          target.element.set('tabindex', -1)
+          target.attributes.tabindex = -1;
+          target.removeEvents(target.events.focus);
+          target.element.removeEvents(target.bindEvents({mousedown: 'retain'}));
         }
       }
     }
