@@ -58,7 +58,7 @@ LSD.Mixin.Validity = new Class({
   
   validate: function(value) {
     if (value !== true && !this.checkValidity()) return false;
-    this.fireEvent('valid', [i, value])
+    this.fireEvent('valid', value)
     this.setState('valid');
     this.unsetState('invalid');
     return true;
@@ -67,7 +67,7 @@ LSD.Mixin.Validity = new Class({
   invalidate: function(value) {
     this.setState('invalid');
     this.unsetState('valid');
-    this.fireEvent('invalid', [i, value]);
+    this.fireEvent('invalid', value);
     return true;
   },
   
