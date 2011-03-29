@@ -123,4 +123,4 @@ LSD.Trait.Menu.State = Class.Stateful({
 LSD.Trait.Menu.Stateful = [
   LSD.Trait.Menu,
   LSD.Trait.Menu.State
-]
+];

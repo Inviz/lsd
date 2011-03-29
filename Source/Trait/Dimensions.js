@@ -22,7 +22,7 @@ provides:
 LSD.Trait.Dimensions = new Class({
   events: {
     _dimensions: {
-      'render': 'render'
+      'render': 'setSize'
     }
   },
   
