@@ -21,6 +21,7 @@ requires:
   - LSD.Module.Container
   - LSD.Module.Actions
   - LSD.Module.Command
+  - LSD.Module.Render
   - LSD.Module.Target
   - LSD.Trait.Shape
   - LSD.Trait.Dimensions

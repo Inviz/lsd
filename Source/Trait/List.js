@@ -43,6 +43,13 @@ LSD.Trait.List = new Class({
         var items = this.list.length ? this.list : this.options.list.items;
         if (items) this.setItems(items);
       }
+    },
+    has: {
+      many: {
+        items: {
+          selector: 'item'
+        }
+      }
     }
   },
   
@@ -101,7 +108,8 @@ LSD.Trait.List = new Class({
     return this.selectedItems ? this.selectedItems.indexOf(item) > -1 : (this.selectedItem == item)
   },
   
-  buildItem: Macro.defaults(function(value) {
+  buildItem: function(value) {
+    if (this.options.layout.item) return this.buildLayout(this.options.layout.item);
     return new Element('div', {
       'class': 'lsd option', 
       'html': value.toString(), 
@@ -111,7 +119,7 @@ LSD.Trait.List = new Class({
         }.bind(this)
       }
     });
-  }),
+  },
   
   getItem: function(item) {
     return (item && !item.select) ? this.findItemByValue(item) : item;

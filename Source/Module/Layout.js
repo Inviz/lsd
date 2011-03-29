@@ -25,7 +25,7 @@ LSD.Module.Layout = new Class({
       instance: null,
       extract: false,
       options: {},
-      transform: null
+      transform: {}
     }
   },
   
@@ -48,16 +48,19 @@ LSD.Module.Layout = new Class({
     if (layout) LSD.Layout.converted[$uid(layout)] = this;
     this.addEvent('build', function() {
       LSD.Layout.converted[$uid(this.element)] = this;
+      if (this.options.layout.children) this.buildLayout(this.options.layout.children)
     });
     this.parent(element, options);
     if (this.options.layout.instance !== false) {
       if (layout) this.layout = new LSD.Layout(this, Array.prototype.slice.call(layout.childNodes, 0), this.options.layout.options)
     }
     if (!this.layout) this.layout = LSD.Layout.get(this);
-    if (this.options.layout.children) this.layout.render(this.options.layout.children)
     if (this.options.layout.self) this.applySelector(this.options.layout.self);
-    if (this.options.layout.transform) this.addLayoutTransformations(this.options.layout.transform);
-    this.addEvent('DOMNodeInserted', this.updateLayout.bind(this))
+    for (var i in this.options.layout.transform) {
+      this.addLayoutTransformations(this.options.layout.transform); 
+      break;
+    }
+    this.addEvent('DOMNodeInserted', this.buildLayout.bind(this))
   },
   
   applySelector: function(selector) {
@@ -92,38 +95,22 @@ LSD.Module.Layout = new Class({
     }
   },
   
-  addLayoutTransformations: function(transformations) {
+  addLayoutTransformations: function(transformations, value) {
     if (!this.layoutTransformations) this.layoutTransformations = {};
     if (!this.onLayoutTransformHandler) this.addEvent('layoutTransform', this.onLayoutTransformHandler = this.onLayoutTransform.bind(this));
     for (var selector in transformations) {
-      var parsed = Slick.parse(selector);
-      var expression = parsed.expressions[0];
-      var tag = expression[expression.length - 1].tag;
-      var group = this.layoutTransformations[tag];
-      if (!group) group = this.layoutTransformations[tag] = [];
-      group.push([parsed, transformations[selector]]);
+      selector.split(/\s*,\s*/).each(function(bit) {
+        var parsed = Slick.parse(bit);
+        var expression = parsed.expressions[0];
+        var tag = expression[expression.length - 1].tag;
+        var group = this.layoutTransformations[tag];
+        if (!group) group = this.layoutTransformations[tag] = [];
+        group.push([parsed, transformations[selector]]);
+      }, this)
     }
   },
   
-  buildLayout: function() {
-    var layout = this.createLayout.apply(this, arguments);
-    return layout.result.length == 1 ? layout.result[0] : layout.result;
-  },
-  
-  createLayout: function(layout, parent) {
-    return new LSD.Layout(parent || this, layout, this.options.layout.options);
-  },
-  
-  updateLayout: function(layout, parent) {
-    return this.layout.render(layout, parent)
-  },
-  
-  buildWidget: function(selector, options, layout) {
-    return this.layout.materialize(selector, layout, this, options)
-  },
-  
-  buildItem: function() {
-    if (!this.options.layout.item) return this.parent.apply(this, arguments);
-    return this.updateLayout(this.options.layout.item)
+  buildLayout: function(layout, parent) {
+    return this.layout.render(layout, parent || this);
   }
 });

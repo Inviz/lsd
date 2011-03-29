@@ -117,7 +117,7 @@ LSD.Mixin.Focus.Propagation = {
     }
     while (parent = parent.parentNode) {
       if (active && hierarchy.contains(parent)) break;
-      if (parent.options && $defined(parent.options.tabindex) && parent.blur) parent.blur(true);
+      if (parent.options && (parent.options.tabindex != null) && parent.blur) parent.blur(true);
     }
   }
 };

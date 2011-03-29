@@ -20,7 +20,7 @@ provides: [LSD.Layer.Shadow, LSD.Layer.Shadow.Layer]
 */
 
                               //only gecko & webkit nightlies                                       AppleWebKit/534.1+ (KHTML, ... plus means nightly
-Browser.Features.SVGFilters = Browser.Engine.name == 'gecko' || (Browser.Engine.webkit && navigator.userAgent.indexOf("+ (KHTML") > -1) 
+Browser.Features.SVGFilters = Browser.firefox || (Browser.webkit && navigator.userAgent.indexOf("+ (KHTML") > -1) 
 
 LSD.Layer.Shadow = {
   

@@ -67,7 +67,8 @@ var LSD = Object.append(new Events, {
     reflection: ['size', 'radius', 'stroke', 'offset', 'shape', 'color'],
     icon:       ['size', 'scale', 'color', 'stroke', 'offset', 'shape', 'position','shadow'],
     glyph:      ['size', 'scale', 'color', 'stroke', 'offset', 'shape', 'position', 'shadow']
-  }
+  },
+  useNative: true
 });
 
 Object.append(LSD, {

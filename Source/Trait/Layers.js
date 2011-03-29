@@ -38,7 +38,11 @@ LSD.Trait.Layers = new Class({
   },
   
   initialize: function() {
-    this.offset = {};
+    this.offset = {
+      inside: {},
+      outside: {},
+      padding: {}
+    };
     this.layers = {};
     this.shapes = {};
     this.parent.apply(this, arguments);

@@ -135,7 +135,11 @@ LSD.Module.DOM = new Class({
   },
   
   appendChild: function(widget, adoption) {
-    if (!adoption && this.canAppendChild && !this.canAppendChild(widget)) return false;
+    if (!adoption && this.canAppendChild && !this.canAppendChild(widget)) {
+      if (widget.parentNode) widget.dispose();
+      else if (widget.element.parentNode) widget.element.dispose();
+      return false;
+    }
     if (widget.id) this[widget.id] = widget;
     this.childNodes.push(widget);
     widget.setParent(this);
@@ -185,7 +189,7 @@ LSD.Module.DOM = new Class({
   inject: function(widget, where, quiet) {
     var isElement = 'localName' in widget;
     if (isElement) {
-      var instance = widget.retrieve && widget.retrieve('widget');
+      var instance = Element.retrieve(widget, 'widget');
       if (instance) {
         widget = instance;
         isElement = false;

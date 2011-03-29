@@ -71,7 +71,8 @@ LSD.Layout.prototype = Object.append(new Options, {
   
   materialize: function(selector, layout, parent, opts) {
     var widget = this.build(Object.append({}, opts, this.parse(selector)), parent);
-    if (parent) this.render(widget, parent, null, opts);
+    //debugger
+    if (parent) this.appendChild(widget, parent)
     if (layout) if (layout.charAt) widget.setContent(layout);
     else this.render(layout, widget, null, opts);
     return widget;
@@ -125,8 +126,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   make: function(element, parent, transformed, opts, reuse) {
-    var extracted = LSD.Layout.extract(element);
-    if (transformed) extracted = extracted ? this.merge(extracted, transformed) : transformed;
+    var extracted = transformed || (LSD.Layout.extract(element));
     return this.build(Object.append({}, opts, extracted), parent && parent.call ? parent(element) : parent, reuse ? element : null)
   },
   
@@ -281,12 +281,16 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   walk: function(element, parent, method, opts) {
-    var node = element.firstChild;
+    var node = element.firstChild, previous;
     while (node) {
       if (node.nodeType && node.nodeType != 8) {
         var rendered = this.render(node, parent, method, opts);
-        if (rendered.element && rendered.element.parentNode && !node.parentNode) node = rendered.element;
+        if (!node.parentNode) {
+          var el = rendered.element;
+          if (!(node = (el && element.parentNode == element) ? el : (previous || element.firstChild))) continue;
+        }
       }
+      previous = node;
       node = node.nextSibling;
     }
   },
@@ -308,11 +312,12 @@ LSD.Layout.prototype = Object.append(new Options, {
   
   appendChild: function(child, parent) {
     if (child.nodeType && (!parent.call || (child.element && (parent = parent(child.element))))) {
-      var element = parent.toElement ? parent.toElement() : parent;
-      if (child.parentNode != parent && child.parentNode != element) { 
+      if (!child.parentNode || (child.parentNode != parent && child.parentNode != parent.element)) { 
+        if (child.toElement) child.toElement();
+        if (parent.toElement) parent.toElement();
         if (child.element && parent.element) {
-          child.inject(parent, false)
-        } else element.appendChild(child.element || child);
+          child.inject(parent, child.element.parentNode ? false : 'bottom')
+        } else (parent.element || parent).appendChild(child.element || child);
       }
     }
   },

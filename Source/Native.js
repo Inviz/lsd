@@ -15,6 +15,7 @@ requires:
   - LSD.Module.Attributes
   - LSD.Module.Events
   - LSD.Module.Expectations
+  - LSD.Module.Layout
   - LSD.Module.DOM
   - LSD.Module.Actions
   - LSD.Module.Command
@@ -77,4 +78,4 @@ LSD.Native = new Class({
 new LSD.Type('Native');
 
 // Inject native widgets into default widget pool as a fallback
-LSD.Element.pool.push(LSD.Native);
+LSD.Element.pool[LSD.useNative ? 'unshift' : 'push'](LSD.Native);

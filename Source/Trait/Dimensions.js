@@ -20,19 +20,19 @@ provides:
 
 
 LSD.Trait.Dimensions = new Class({
+  events: {
+    _dimensions: {
+      'render': 'render'
+    }
+  },
+  
   initialize: function() {
     this.size = {};
     this.parent.apply(this, arguments);
   },
   
-  render: function() {
-    var old = $unlink(this.size);
-    if (!this.parent.apply(this, arguments)) return false;
-    this.setSize({height: this.getStyle('height'), width: this.getStyle('width')}, old);
-    return true;
-  },
-  
   setSize: function(size) {
+    if (!size || !(size.width || size.width)) size = {height: this.getStyle('height'), width: this.getStyle('width')}
     if (!(this.setHeight(size.height, true) + this.setWidth(size.width, true))) return false;
     var element = this.element, padding = this.offset.padding;
     if (size.height && this.style.expressed.height) element.style.height = size.height - padding.top - padding.bottom + 'px'

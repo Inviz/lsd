@@ -23,9 +23,6 @@ provides:
 
 LSD.Trait.Menu = new Class({      
   options: {
-    layout: {
-      menu: 'menu[type=context]#menu'
-    },
     shortcuts: {
       ok: 'set',
       cancel: 'cancel'
@@ -43,17 +40,20 @@ LSD.Trait.Menu = new Class({
         }
       }
     },
-    proxies: {
-      menu: {
-        container: 'menu',
-        condition: function(widget) {
-          return !!widget.setList
-        }
-      }
-    },
     menu: {
       position: 'top',
-      width: 'auto'
+      width: 'auto',
+      origin: null
+    },
+    has: {
+      one: {
+        menu: {
+          selector: 'menu[type=context]',
+          proxy: function(widget) {
+            return !!widget.setList
+          }
+        }
+      }
     }
   },
 
@@ -68,20 +68,19 @@ LSD.Trait.Menu = new Class({
   repositionMenu: function() {
     if (!this.menu || this.collapsed) return;
     var top = 0;
-    switch (this.options.menu.position) {
-      case 'bottom': 
-        top = this.getOffsetHeight() + ((this.offset.padding.top || 0) - (this.offset.inside.top || 0)) + 1;
-        break;
-      case 'center':
-        top = - (this.getOffsetHeight() + ((this.offset.padding.top || 0) - (this.offset.inside.top || 0))) / 2;
-        break;
-      case 'focus':
-        top = - this.getSelectedOptionPosition();
-        break;
-      default:
+    console.log('repositionMenu')
+    var origin = (this.options.menu.origin == 'document') ? this.document : this;
+    if (!origin.size) origin.setSize(true);
+    if (!this.menu.size) this.menu.setSize(true);
+    var position = LSD.Position.calculate(origin.size, this.menu.size)
+    if (position.x != null) {
+      position.x += (this.offset.padding.left || 0) - (this.offset.inside.left || 0) + (this.offset.outside.left || 0);
+      this.menu.setStyle('left', position.x);
     }
-    this.menu.setStyle('top', top);
-    this.menu.setStyle('left', this.offset.outside.left);
+    if (position.y != null) {
+      position.y += (this.offset.padding.top || 0) - (this.offset.inside.top || 0) + (this.offset.outside.top || 0);
+      this.menu.setStyle('top', position.y);
+    }
     switch (this.options.menu.width) {
       case "adapt": 
         this.menu.setWidth(this.getStyle('width'));
@@ -91,13 +90,14 @@ LSD.Trait.Menu = new Class({
     }
   },
   
-  getMenu: Macro.getter('menu', function() {
-    return this.updateLayout(this.options.layout.menu);
-  }),
+  buildMenu: function() {
+    return this.buildLayout(this.options.layout.menu);
+  },
   
   expand: function() {
+    console.log('expand', this.menu)
     if (!this.menu) {
-      this.getMenu();
+      this.menu = this.buildMenu();
       this.repositionMenu();
       if (this.hasItems()) this.refresh();
     } else {  

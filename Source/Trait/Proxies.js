@@ -34,30 +34,33 @@ LSD.Trait.Proxies = new Class({
     })
   }),
   
-  proxyChild: function(child, proxy) {
-    if (typeof proxy == 'string') proxy = this.options.proxies[proxy];
-    if (!proxy.condition.call(this, child)) return false;
-    var reinject = function(target) {
-      if (proxy.rewrite === false) {
-        this.appendChild(child, function() {
-          target.adopt(child);
-        });
+  proxyChild: function(child) {
+    for (var i = 0, proxies = this.getProxies(), proxy; proxy = proxies[i++];) {
+      if (typeof proxy == 'string') proxy = this.options.proxies[proxy];
+      if (!proxy.condition.call(this, child)) continue;
+      var self = this;
+      var reinject = function(target) {
+        if (proxy.rewrite === false) {
+          self.appendChild(child, function() {
+            target.adopt(child);
+          });
+        } else {
+          child.inject(target);
+            console.log(child.tagName, target.tagName, child.element, target.element)
+        }
+      };
+      var container = proxy.container;
+      if (container.call) {
+        if ((container = container.call(this, reinject))) reinject(container);
       } else {
-        child.inject(target);
+        this.use(container, reinject)
       }
-    };
-    var container = proxy.container;
-    if (container.call) {
-      reinject.call(this, container.call(this));
-    } else {
-      this.use(container, reinject.bind(this))
+      return true;
     }
-    return true;
   },
   
   canAppendChild: function(child) {
-    for (var i = 0, proxies = this.getProxies(), proxy; proxy = proxies[i++];) if (this.proxyChild(child, proxy)) return false;
-    return true;
+    return !this.proxyChild(child);
   }
   
 });

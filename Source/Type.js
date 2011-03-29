@@ -29,7 +29,7 @@ LSD.Type = function(name, namespace) {
   this.namespace = namespace || 'LSD';
   var holder = Object.getFromPath(window, this.namespace);
   if (this.storage = holder[name]) {
-    for (var key in this) this.storage[key] = (this[key].call) ? this[key].bind(this) : this;
+    for (var key in this) this.storage[key] = (this[key].call) ? this[key].bind(this) : this[key];
   }
   else this.storage = (holder[name] = this);
   this.pool = [this.storage];

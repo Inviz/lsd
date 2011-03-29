@@ -13,6 +13,7 @@ requires:
   - LSD.Document
   - LSD.Module.Layout
   - LSD.Module.Events
+  - Core/Element.Dimensions
  
 provides:
   - LSD.Document.Resizable

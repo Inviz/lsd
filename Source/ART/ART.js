@@ -38,4 +38,4 @@ ART.implement({
 
 
 ART.Features = {};
-ART.Features.Blur = Browser.Engine.gecko; //TODO: Figure it out
+ART.Features.Blur = Browser.firefox; //TODO: Figure it out

@@ -271,13 +271,29 @@ var Expectations = LSD.Module.Expectations = new Class({
   
   addRelation: function(relation, callback) {
     if (relation.indexOf) relation = {selector: relation};
-    var states = relation.states, name = relation.name, origin = relation.origin || this,
+    var states = relation.states, name = relation.name, origin = relation.origin || this, proxy = relation.proxy, transform = relation.transform,
         events = relation.events, multiple = relation.multiple, chain = relation.chain, callbacks = relation.callbacks;
 
     if (name && multiple) origin[name] = [];
     if (callbacks) {
       callbacks = origin.bindEvents(callbacks);
       var onAdd = callbacks.add, onRemove = callbacks.remove;
+    }
+    var layout = relation.layout || relation.selector;
+    this.options.layout[name] = layout;
+    if (proxy) {
+      var proxied = [];
+      this.options.proxies[name] = {
+        container: function(callback) {
+          proxied.push(callback)
+        },
+        condition: proxy
+      }
+    }
+    if (transform) {
+      var transformation = {};
+      transformation[transform] = layout;
+      this.addLayoutTransformations(transformation);
     }
     if (events) events = origin.bindEvents(events);
     this.watch(relation.selector, function(widget, state) {
@@ -292,6 +308,9 @@ var Expectations = LSD.Module.Expectations = new Class({
           if (state) origin[name] = widget;
           else delete origin[name];
         }
+      }
+      if (proxied) {
+        for (var i = 0, proxy; proxy = proxied[i++];) proxy(widget);
       }
       if (state && onAdd) onAdd.call(origin, widget, state);
       if (states) {
