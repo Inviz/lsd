@@ -72,6 +72,28 @@ var LSD = Object.append(new Events, {
 });
 
 Object.append(LSD, {
+  position: function(box, size, x, y) {
+    var position = {x: 0, y: 0};
+
+    switch (x) {
+      case "left":
+        position.x = 0;
+      case "right":
+        position.x = box.width - size.width;
+      case "center":
+        position.x = (box.width - size.width) / 2;
+    }
+    switch (y) {
+      case "top":
+        position.y = 0;
+      case "bottom":
+        position.y = box.height - size.height;
+      case "center":
+        position.y = (box.height- size.height) / 2;
+    }
+    return position;
+  },
+  
   toLowerCase: function(lowercased) {
     return function(string) { 
       return (lowercased[string]) || (lowercased[string] = string.toLowerCase())

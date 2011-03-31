@@ -72,7 +72,7 @@ LSD.Trait.Menu = new Class({
     var origin = (this.options.menu.origin == 'document') ? this.document : this;
     if (!origin.size) origin.setSize(true);
     if (!this.menu.size) this.menu.setSize(true);
-    var position = LSD.Position.calculate(origin.size, this.menu.size)
+    var position = LSD.position(origin.size, this.menu.size)
     if (position.x != null) {
       position.x += (this.offset.padding.left || 0) - (this.offset.inside.left || 0) + (this.offset.outside.left || 0);
       this.menu.setStyle('left', position.x);

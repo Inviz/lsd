@@ -288,13 +288,9 @@ LSD.Module.Events.target = function(self, name) {
 
 Event.definePseudo('on', function(split, fn, args){
   var event = args[0];
-  var target = event.target;
-  while (target) {
-    var widget = Element.get(event.target, 'widget');
-    if (widget && widget.match(split.value)) {
-      fn.apply(widget, [event, widget, target]);
-      return;        
-    }
-    target = target.parentNode;
+  var widget = Element.get(event.target, 'widget');
+  if (widget && widget.match(split.value)) {
+    fn.call(widget, event, widget, event.target);
+    return;        
   }
 });

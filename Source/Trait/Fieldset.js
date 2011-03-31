@@ -22,17 +22,43 @@ LSD.Trait.Fieldset = new Class({
       request: {
         request: 'validateFields',
         badRequest: 'addFieldErrors'
+      },
+      _fieldset: {
+        layoutTransform: function(query) {
+          var name = query.element.name;
+          if (!name || !this.names[name]) return;
+          // bump name index
+          var index, bumped = name.replace(LSD.Trait.Fieldset.rNameIndexBumper, function(match) {
+            index = parseInt(match[1])
+            return '[' + (index + 1) + ']';
+          });
+          if (bumped == name) return;
+          var transformation = query.transformation = {attributes: {name: bumped}};
+          // bump id index
+          var id = query.element.id;
+          if (id) {
+            bumped = id.replace('_' + index, '_' + (index + 1))
+            if (bumped != id) transformation.attributes.id = bumped;
+          }
+        }
+      }
+    },
+    has: {
+      many: {
+        elements: {
+          selector: ':read-write',
+          callbacks: {
+            'add': 'addField',
+            'remove': 'removeField'
+          }
+        }
       }
     }
   },
   
   initialize: function() {
-    this.elements = [];
     this.names = {};
     this.params = {};
-    this.addEvent('nodeInserted', function(node) {
-      if (node.pseudos['read-write']) this.addField(node)
-    });
     this.parent.apply(this, arguments)
   },
   
@@ -75,25 +101,27 @@ LSD.Trait.Fieldset = new Class({
   },
   
   addField: function(widget, object) {
-    this.elements.push(widget);
     var name = widget.attributes.name;
     if (!name) return;
-    if (!object) {
+    if (typeof object != 'object') {
       this.names[name] = widget;
       object = this.params;
     }
-    for (var regex = LSD.Trait.Fieldset.rNameParser, match, bit;;) {
-      match = regex.exec(name)
-      if (bit != null) {
-        if (!match) {
-          if (object[bit] && object[bit].push) object[bit].push(widget);
-          else object[bit] = widget;
-        } else object = object[bit] || (object[bit] = (bit ? {} : []));
-      }
-      if (!match) break;
-      else bit = match[1] ||match[2];
-    }
-    return object
+    //for (var regex = LSD.Trait.Fieldset.rNameParser, match, bit;;) {
+    //  match = regex.exec(name)
+    //  if (bit != null) {
+    //    if (!match) {
+    //      if (object[bit] && object[bit].push) object[bit].push(widget);
+    //      else object[bit] = widget;
+    //    } else object = object[bit] || (object[bit] = (bit ? {} : []));
+    //  }
+    //  if (!match) break;
+    //  else bit = match[1] ||match[2];
+    //}
+    //return object
+  },
+  
+  removeField: function(widget, object) {
   },
 
   invalidateFields: function(errors) {
@@ -118,6 +146,6 @@ LSD.Trait.Fieldset = new Class({
     })
   }
 });
-
-LSD.Trait.Fieldset.rNameParser = /(^[^\[]+)|\[([^\]]*)\]/ig
-LSD.Trait.Fieldset.rPrefixAppender = /^[^\[]+/i
+LSD.Trait.Fieldset.rNameIndexBumper = /\[(\d+)\]/;
+LSD.Trait.Fieldset.rNameParser = /(^[^\[]+)|\[([^\]]*)\]/ig;
+LSD.Trait.Fieldset.rPrefixAppender = /^[^\[]+/i;

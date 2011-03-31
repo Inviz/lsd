@@ -91,6 +91,7 @@ sources:
   - Source/Action/Display.js
   - Source/Action/Dialog.js
   - Source/Action/Check.js
+  - Source/Action/Clone.js
   - Source/Action.js
   - Source/Container.js
   - Source/Element.js

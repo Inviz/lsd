@@ -37,7 +37,9 @@ provides:
       var parsed = this.parseTargetSelector(target);
       results = [];
       parsed.each(function(expression) {
-        results.push.apply(results, Slick.search(anchor || expression.anchor || (this.document || document.body), expression.selector));
+        if (!anchor) anchor = expression.anchor ? expression.anchor.call(this) : (this.document || document.body);
+        if (expression.selector) results.push.apply(results, Slick.search(anchor, expression.selector));
+        else if (anchor) results.push(anchor)
       }, this);
       return results.length > 0 && results.map(function(result) {
         if (result.localName) {
@@ -61,11 +63,15 @@ provides:
       var result = {}
       if (pseudo && pseudo.type == 'element') { 
         if (Pseudo[pseudo.key]) {
-          result.anchor = Pseudo[pseudo.key].call(this, pseudo.value);
-          expression.shift();
+          result.anchor = function() {
+            return Pseudo[pseudo.key].call(this, pseudo.value);
+          }
+          if (expression.length > 1) {
+            expression.shift();
+            result.selector = {Slick: true, expressions: [expression], length: 1};
+          }
         }
       }
-      result.selector = {Slick: true, expressions: [expression], length: 1};
       return result;
     },
 
@@ -87,8 +93,14 @@ provides:
     self: function() {
       return this;
     },
+    parent: function() {
+      return this.parentNode
+    },
     element: function() {
       return this.element;
+    },
+    'parent-element': function() {
+      return this.element.parentNode
     }
   }
 

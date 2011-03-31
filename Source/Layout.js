@@ -338,7 +338,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   transform: function(element, parent) {
     if (parent && parent.transformLayout) {
       var transformation = parent.transformLayout(element, this);
-      if (transformation) return this.merge(LSD.Layout.extract(element), this.parse(transformation))
+      if (transformation) return this.merge(LSD.Layout.extract(element), transformation.indexOf ? this.parse(transformation) : transformation)
     }
     return false;
   },
@@ -360,7 +360,7 @@ LSD.Layout.prototype = Object.append(new Options, {
 });
 
 LSD.Layout.NodeTypes = {1: 'element', 3: 'textnode', 11: 'fragment'};
-LSD.Layout.TextNodes = Array.fast('script', 'button', 'textarea', 'option')
+LSD.Layout.TextNodes = Array.fast('script', 'button', 'textarea', 'option', 'input')
 
 /* 
   Extracts options from a DOM element.

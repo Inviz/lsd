@@ -20,9 +20,11 @@ provides:
 
 
 LSD.Trait.Dimensions = new Class({
-  events: {
-    _dimensions: {
-      'render': 'setSize'
+  options: {
+    events: {
+      _dimensions: {
+        'render': 'setSize'
+      }
     }
   },
   

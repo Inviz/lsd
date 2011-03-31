@@ -20,7 +20,8 @@ provides:
 
 
 LSD.Action.Dialog = LSD.Action.build({
-  enable: function(target) {
+  enable: function(target, substitutions) {
+    if (substitutions.event) substitutions = null;
     if (!target.localName) {
       var dialog = target;
       target = target.element;
@@ -37,7 +38,7 @@ LSD.Action.Dialog = LSD.Action.build({
           options: {
             method: target.hasClass('singlethon') ? 'augment' : 'clone', 
             interpolate: function(string) {
-              return source.getProperty('data-' + string)
+              return (substitutions && substitutions[string]) || source.getProperty('data-' + string.dasherize());
             }
           }
         },

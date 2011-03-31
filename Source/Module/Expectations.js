@@ -74,7 +74,6 @@ var Expectations = LSD.Module.Expectations = new Class({
   },
     
   removeClass: function(name) {
-    check(this, 'classes', name, false);
     return this.parent.apply(this, arguments);
   },
   
@@ -299,7 +298,7 @@ var Expectations = LSD.Module.Expectations = new Class({
     this.watch(relation.selector, function(widget, state) {
       if (events) widget[state ? 'addEvents' : 'removeEvents'](events);
       if (callback) callback.call(origin, widget, state);
-      if (!state && onRemove) onRemove.call(origin, widget, state);
+      if (!state && onRemove) onRemove.call(origin, widget);
       if (name) {
         if (multiple) {
           if (state) origin[name].push(widget)
@@ -312,7 +311,7 @@ var Expectations = LSD.Module.Expectations = new Class({
       if (proxied) {
         for (var i = 0, proxy; proxy = proxied[i++];) proxy(widget);
       }
-      if (state && onAdd) onAdd.call(origin, widget, state);
+      if (state && onAdd) onAdd.call(origin, widget);
       if (states) {
         var get = states.get, set = states.set, method = state ? 'linkState' : 'unlinkState';
         if (get) for (var from in get) widget[method](origin, from, (get[from] === true) ? from : get[from]);
@@ -340,7 +339,14 @@ var check = function(widget, type, value, state, target) {
   if (expectations) for (var i = 0, expectation; expectation = expectations[i++];) {
     var selector = expectation[0];
     if (selector.structure && selector.state) {
-      if (target.match(selector.structure)) target.expect(selector.state, expectation[1])
+      if (target.match(selector.structure)) {
+        if (!state) {
+          if (target.match(selector.state)) {
+            target.unexpect(selector.state, expectation[1]);
+            expectation[1](target, !!state)
+          }
+        } else target.expect(selector.state, expectation[1])
+      }
     } else if (target.match(selector)) expectation[1](target, !!state)
   }
 }

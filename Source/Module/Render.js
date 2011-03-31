@@ -37,7 +37,7 @@ LSD.Module.Render = new Class({
     this.redraws++;
     
     this.childNodes.each(function(child){
-      child.render();
+      if (child.render) child.render();
     });
   },
   
