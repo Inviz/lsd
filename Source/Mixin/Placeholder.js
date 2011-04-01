@@ -21,7 +21,7 @@ provides:
 
 
 LSD.Mixin.Placeholder = new Class({
-  behaviour: '[placeholder][placeholder!=false]',
+  behaviour: '[placeholder]',
   
   Stateful: {
     'placeholdered': ['placehold', 'unplacehold']
