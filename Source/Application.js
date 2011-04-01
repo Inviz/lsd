@@ -61,7 +61,7 @@ LSD.Application = new Class({
   },
   
   getBodyClass: function() {
-    return LSD.Mobile.Body
+    return LSD.Element.find('body');
   },
   
   getBody: function() {

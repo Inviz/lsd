@@ -21,7 +21,7 @@ LSD.Trait.Form = new Class({
   
   options: {
     request: {
-      type: 'xhr'
+      type: 'form'
     },
     pseudos: Array.fast('submittable')
   },
