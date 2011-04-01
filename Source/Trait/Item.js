@@ -34,7 +34,7 @@ LSD.Trait.Item = new Class({
           if (this.listWidget) this.listWidget.unselectItem(this);
         },
         build: function() {
-          this.value = this.attributes.value || this.element.get('item') || $uid(this.element);
+          this.value = this.attributes.value || this.attributes.itemid || $uid(this.element);
         }
       }
     }

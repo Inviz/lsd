@@ -38,7 +38,15 @@ LSD.Action.Dialog = LSD.Action.build({
           options: {
             method: target.hasClass('singlethon') ? 'augment' : 'clone', 
             interpolate: function(string) {
-              return (substitutions && substitutions[string]) || source.getProperty('data-' + string.dasherize());
+              if (substitutions) {
+                var substitution = substitutions[string];
+                if (!substitution && substitutions.callback) substitution = substitutions.callback.call(this, string)
+                if (substitution) {
+                  if (substitution.call) substitution = substitution.call(source, string, this);
+                  if (substitution) return substitution;
+                }
+              }
+              return source.getProperty('data-' + string.dasherize())
             }
           }
         },

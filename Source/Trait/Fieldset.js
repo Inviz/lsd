@@ -25,21 +25,28 @@ LSD.Trait.Fieldset = new Class({
       },
       _fieldset: {
         layoutTransform: function(query) {
-          var name = query.element.name;
-          if (!name || !this.names[name]) return;
-          // bump name index
-          var index, bumped = name.replace(LSD.Trait.Fieldset.rNameIndexBumper, function(match) {
-            index = parseInt(match[1])
-            return '[' + (index + 1) + ']';
-          });
-          if (bumped == name) return;
-          var transformation = query.transformation = {attributes: {name: bumped}};
-          // bump id index
-          var id = query.element.id;
-          if (id) {
-            bumped = id.replace('_' + index, '_' + (index + 1))
-            if (bumped != id) transformation.attributes.id = bumped;
+          var element = query.element, name = element.name, id = element.id, transformation;
+          var widget = Element.retrieve(element, 'widget');
+          if (!widget) return;
+          if (name && this.names[name]) {
+            var bumped = LSD.Trait.Fieldset.bumpName(name);
+            if (bumped) (transformation || (transformation = {attributes: {}})).attributes.name = bumped;
           }
+          // bump id index
+          if (id) {
+            bumped = LSD.Trait.Fieldset.bumpId(id);
+            if (bumped != id) (transformation || (transformation = {attributes: {}})).attributes.id = bumped;
+          }
+          // bump name index
+          if (LSD.toLowerCase(element.tagName) == 'label') {
+            var four = element.htmlFor
+            if (four) {
+              bumped = LSD.Trait.Fieldset.bumpId(four);
+              if (bumped != four) (transformation || (transformation = {attributes: {}})).attributes['for'] = bumped;
+            }
+          }
+          if (query.transformation) Object.append(query.transformation, transformation);
+          else query.transformation = transformation;
         }
       }
     },
@@ -146,6 +153,19 @@ LSD.Trait.Fieldset = new Class({
     })
   }
 });
-LSD.Trait.Fieldset.rNameIndexBumper = /\[(\d+)\]/;
-LSD.Trait.Fieldset.rNameParser = /(^[^\[]+)|\[([^\]]*)\]/ig;
-LSD.Trait.Fieldset.rPrefixAppender = /^[^\[]+/i;
+Object.append(LSD.Trait.Fieldset, {
+  rNameIndexBumper: /(\[)(\d+?)(\])/,
+  rIdIndexBumper: /(_)(\d+?)(_|$)/,
+  rNameParser:      /(^[^\[]+)|\[([^\]]*)\]/ig,
+  rPrefixAppender:  /^[^\[]+/i,
+  bumpName: function(string) {
+    return string.replace(LSD.Trait.Fieldset.rNameIndexBumper, function(m, a, index, b) { 
+      return a + (parseInt(index) + 1) + b;
+    })
+  },
+  bumpId: function(string) {
+    return string.replace(LSD.Trait.Fieldset.rIdIndexBumper, function(m, a, index, b) { 
+      return a + (parseInt(index) + 1) + b;
+    })
+  }
+});

@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD
   - More/Object.Extras
+  - LSD.Interpolate
 
 provides: 
   - LSD.Layout
@@ -58,7 +59,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   options: {
     method: 'augment',
     fallback: 'modify',
-    context: 'widget',
+    context: 'element',
     interpolate: null
   },
   
@@ -87,9 +88,9 @@ LSD.Layout.prototype = Object.append(new Options, {
     var self = this;
     return string.replace(/\\?\{([^{}]+)\}/g, function(match, name){
       if (match.charAt(0) == '\\') return match.slice(1);
-      var value = object.call ? object(name) : object[name];
+      var value = object.call ? LSD.Interpolation.interpolate(name, object) : object[string];
       self.interpolated = true;
-      return (value != undefined) ? value : '';
+      return (value != null) ? value : '';
     });
   },
   
@@ -336,11 +337,9 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   transform: function(element, parent) {
-    if (parent && parent.transformLayout) {
-      var transformation = parent.transformLayout(element, this);
-      if (transformation) return this.merge(LSD.Layout.extract(element), transformation.indexOf ? this.parse(transformation) : transformation)
-    }
-    return false;
+    if (!(parent && (parent = parent[1] || parent) && parent.transformLayout)) return false;
+    var transformation = parent.transformLayout(element, this);
+    if (transformation) return this.merge(LSD.Layout.extract(element), transformation.indexOf ? this.parse(transformation) : transformation);
   },
   
   // redefinable predicates
@@ -427,7 +426,7 @@ LSD.Layout.extractID = function(element) {
   var index = id.indexOf('_');
   if (index > -1) id = id.substr(index + 1, id.length - index)
   return id;
-}
+};
 
 var Converted = LSD.Layout.converted = {};
 

@@ -28,6 +28,7 @@ sources:
   - Source/Document/Commands.js
   - Source/LSD.js
   - Source/Type.js
+  - Source/Interpolation.js
   - Source/Layer.js
   - Source/Layer/Color.js
   - Source/Layer/Offset.js
