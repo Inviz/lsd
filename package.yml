@@ -46,6 +46,7 @@ sources:
   - Source/Mixin/Resizable.js
   - Source/Mixin/Scrollable.js
   - Source/Mixin/Touchable.js
+  - Source/Mixin/Placeholder.js
   - Source/Mixin/Position.js
   - Source/Mixin/Focus.js
   - Source/Mixin/Request.js

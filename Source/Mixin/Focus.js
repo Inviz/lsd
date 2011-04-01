@@ -82,7 +82,7 @@ LSD.Mixin.Focus = new Class({
   },
   
   retain: function(e) {
-    if (e) e.stopPropagation()
+    if (e) e.stop();
     this.focus();
   },
   
