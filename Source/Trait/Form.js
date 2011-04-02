@@ -20,9 +20,6 @@ provides:
 LSD.Trait.Form = new Class({
   
   options: {
-    request: {
-      type: 'form'
-    },
     pseudos: Array.fast('submittable')
   },
   
@@ -30,9 +27,6 @@ LSD.Trait.Form = new Class({
     this.addEvents({
       nodeInserted: function(node) {
         if (node.pseudos['read-write'] || node.pseudos['form-associated']) node.form = this;
-      },
-      build: function() {
-        this.element.submit = this.submit.bind(this);
       }
     });
     this.parent.apply(this, arguments);
