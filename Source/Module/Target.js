@@ -66,12 +66,10 @@ provides:
           result.anchor = function() {
             return Pseudo[pseudo.key].call(this, pseudo.value);
           }
-          if (expression.length > 1) {
-            expression.shift();
-            result.selector = {Slick: true, expressions: [expression], length: 1};
-          }
+          expression = expression.slice(1);
         }
-      }
+      }  
+      if (expression.length > 0) result.selector = {Slick: true, expressions: [expression], length: 1};
       return result;
     },
 
