@@ -16,7 +16,7 @@ requires:
   - Core/Browser
   - Core/Object
   - Ext/Macro
-  - Ext/Class.Stateful
+  - Ext/States
   - Ext/Class.mixin
   - Ext/FastArray
  
@@ -38,12 +38,17 @@ var LSD = Object.append(new Events, {
   Styles: {},
   States: {
     Known: {
-      'built':    ['build', 'destroy', false],
-      'attached': ['attach', 'detach', false],
-      'dirty':    ['update', 'render', false],
-      'hidden':   ['hide',    'show'],
-      'disabled': ['disable', 'enable'],
-      'focused':  ['focus',   'blur']
+      built:    {enabler: 'build',    disabler: 'destroy',   reflect: false},
+      attached: {enabler: 'attach',   disabler: 'detach',    reflect: false},
+      dirty:    {enabler: 'update',   disabler: 'render',    reflect: false},
+      hidden:   {enabler: 'hide',     disabler: 'show'},     
+      disabled: {enabler: 'disable',  disabler: 'enable'},   
+      focused:  {enabler: 'focus',    disabler: 'blur'},     
+      selected: {enabler: 'select',   disabler: 'unselect'}, 
+      checked:  {enabler: 'check',    disabler: 'uncheck',   toggler: 'toggle'},
+      expanded: {enabler: 'expand',   disabler: 'collapse',  toggler: 'toggle'},
+      working:  {enabler: 'busy',     disabler: 'idle'},
+      chosen:   {enabler: 'choose',   disabler: 'forget'}
     },
     Positive: {
       disabled: 'disabled',
@@ -112,3 +117,8 @@ Object.append(LSD, {
     }
   }(LSD.classnamed = {})
 });
+
+
+States.get = function(name) { 
+  return LSD.States.Known[name];
+}

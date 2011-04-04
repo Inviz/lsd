@@ -34,7 +34,7 @@ var Expectations = LSD.Module.Expectations = new Class({
     this.expectations = {};
     this.addEvents({
       nodeInserted: function(widget) {
-        var expectations = this.expectations, type = expectations.tag, tag = widget.options.tag;
+        var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
         if (!type) type = expectations.tag = {};
         var group = type[tag];
         if (!group) group = type[tag] = [];
@@ -45,10 +45,18 @@ var Expectations = LSD.Module.Expectations = new Class({
         update.call(this, widget, tag, true);
       },
       nodeRemoved: function(widget) {
-        var expectations = this.expectations, type = expectations.tag, tag = widget.options.tag;
+        var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
         type[tag].erase(this);
         type["*"].erase(this);
         update.call(this, widget, tag, false);
+      },
+      setParent: function(parent) {
+        notify(this, '!>', parent.tagName, true, parent);
+        for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, true, parent);
+      },
+      unsetParent: function(parent) {
+        notify(this, '!>', parent.tagName, false, parent);
+        for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, false, parent);
       }
     }, true);
     this.parent.apply(this, arguments);
@@ -254,24 +262,10 @@ var Expectations = LSD.Module.Expectations = new Class({
     }, this)
   },
   
-  linkState: function(subject, from, to, state) {
-    var first = this.options.states[from];
-    var second = subject.options.states[to];
-    var events = {};
-    events[first.enabler] = second.enabler;
-    events[first.disabler] = second.disabler;
-    this[state === false ? 'removeEvents' : 'addEvents'](subject.bindEvents(events));
-    if (this[from]) subject[second.enabler]();
-  },
-  
-  unlinkState: function(subject, from, to) {
-    return this.linkState(subject, from, to, false)
-  },
-  
   addRelation: function(relation, callback) {
     if (relation.indexOf) relation = {selector: relation};
     var states = relation.states, name = relation.name, origin = relation.origin || this, proxy = relation.proxy, transform = relation.transform,
-        events = relation.events, multiple = relation.multiple, chain = relation.chain, callbacks = relation.callbacks;
+        events = relation.events, multiple = relation.multiple, chain = relation.chain, callbacks = relation.callbacks, alias = relation.alias, relay = relation.relay;
 
     if (name && multiple) origin[name] = [];
     if (callbacks) {
@@ -289,6 +283,19 @@ var Expectations = LSD.Module.Expectations = new Class({
         condition: proxy
       }
     }
+    if (relay) {
+      var relayed = {};
+      Object.each(relay, function(callback, type) {
+        relayed[type] = function(event) {
+          for (var widget = Element.get(event.target, 'widget'); widget; widget = widget.parentNode) {
+            if (origin[name].indexOf(widget) > -1) {
+              callback.apply(widget, arguments);
+              break;
+            }
+          }
+        }
+      });
+    }
     if (transform) {
       var transformation = {};
       transformation[transform] = layout;
@@ -303,19 +310,22 @@ var Expectations = LSD.Module.Expectations = new Class({
         if (multiple) {
           if (state) origin[name].push(widget)
           else origin[name].erase(widget);
+          if (relay && (origin[name].length == (state ? 1 : 0))) origin.element[state ? 'addEvents' : 'removeEvents'](relayed);
         } else {
           if (state) origin[name] = widget;
           else delete origin[name];
         }
       }
+      if (alias) widget[alias] = origin;
       if (proxied) {
         for (var i = 0, proxy; proxy = proxied[i++];) proxy(widget);
       }
       if (state && onAdd) onAdd.call(origin, widget);
       if (states) {
-        var get = states.get, set = states.set, method = state ? 'linkState' : 'unlinkState';
+        var get = states.get, set = states.set, add = states.add, method = state ? 'linkState' : 'unlinkState';
         if (get) for (var from in get) widget[method](origin, from, (get[from] === true) ? from : get[from]);
         if (set) for (var to in set) origin[method](widget, to, (set[to] === true) ? to : set[to]);
+        if (add) for (var index in add) widget.addState(index, add[index]);
       }
       if (chain) {
         for (var label in chain) {

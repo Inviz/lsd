@@ -33,8 +33,8 @@ provides:
 LSD.Command.Checkbox = new Class({
   Extends: LSD.Command,
   
-  Stateful: {
-    checked: ['check', 'uncheck', 'toggle']
+  options: {
+    states: Array.fast('checked')
   },
 
   click: function() {

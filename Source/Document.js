@@ -44,10 +44,6 @@ LSD.Document = new Class({
     LSD.Module.Layout
   ],
   
-  States: {
-    built: ['build', 'destroy', false]
-  },
-  
   options: {
     tag: '#document',
     root: false, // topmost widget's parentNode is the document if set to true
@@ -125,6 +121,8 @@ LSD.Document = new Class({
     return fragment;
   }
 });
+
+LSD.Document.prototype.addState('built');
 
 LSD.Document.prototype.addEvents({
   initialize: function() {

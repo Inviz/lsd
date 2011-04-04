@@ -67,8 +67,6 @@ LSD.Widget = new Class({
     LSD.Trait.Layers
   ]),
   
-  States: Object.subset(LSD.States.Known, ['disabled', 'hidden', 'built', 'attached', 'dirty']),
-  
   options: {
     writable: false,
     layers: true
@@ -93,5 +91,7 @@ LSD.Widget = new Class({
     return this.toElement();
   }
 });
+
+LSD.Widget.prototype.addStates('disabled', 'hidden', 'built', 'attached', 'dirty');
 
 new LSD.Type('Widget');

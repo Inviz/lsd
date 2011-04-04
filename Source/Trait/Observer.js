@@ -37,6 +37,12 @@ LSD.Trait.Observer = new Class({
           }
         }
       }
+    },
+    states: {
+      filled: {
+        enabler: 'fill',
+        disabler: 'empty'
+      }
     }
   },
   
@@ -56,11 +62,3 @@ LSD.Trait.Observer = new Class({
     }
   }
 });
-
-LSD.Trait.Observer.State = Class.Stateful({
-  'filled': ['fill', 'empty']
-});
-LSD.Trait.Observer.Stateful = [
-  LSD.Trait.Observer.State,
-  LSD.Trait.Observer
-];

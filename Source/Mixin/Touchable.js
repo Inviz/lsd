@@ -26,10 +26,6 @@ provides:
 LSD.Mixin.Touchable = new Class({
   behaviour: ':touchable',
   
-  Stateful: {
-    'active': ['activate', 'deactivate']
-  },
-  
   options: {
     events: {
       enabled: {
@@ -38,6 +34,12 @@ LSD.Mixin.Touchable = new Class({
           'touchend': 'deactivate',
           'touchcancel': 'deactivate'
         }
+      }
+    },
+    states: {
+      active: {
+        enabler: 'activate',
+        disabler: 'deactivate'
       }
     }
   }

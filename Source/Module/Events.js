@@ -32,12 +32,9 @@ provides:
 */
 
 LSD.Module.Events = new Class({
-  Stateful: {
-    'attached': ['attach', 'detach', false],
-  },
-  
   options: {
-    events: {}
+    events: {},
+    states: Array.fast('attached')
   },
   
   initialize: function() {
@@ -251,14 +248,14 @@ LSD.Module.Events.Targets = {
         addEvents: function(events) {
           group = events;
           if (positive ^ !self[state]) add.call(this);
-          self.addEvent(setting[+!positive], add);
-          self.addEvent(setting[+!!positive], remove);
+          self.addEvent(setting[positive ? 'enabler' : 'disabler'], add);
+          self.addEvent(setting[!positive ? 'enabler' : 'disabler'], remove);
         },
         removeEvents: function(events) {
           group = events;
           if (positive ^ self[state]) remove.call(this);
-          self.removeEvent(setting[+!positive], add);
-          self.removeEvent(setting[+!!positive], remove);
+          self.removeEvent(setting[!positive ? 'enabler' : 'disabler'], add);
+          self.removeEvent(setting[positive ? 'enabler' : 'disabler'], remove);
         }
       }
     }

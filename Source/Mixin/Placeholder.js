@@ -23,10 +23,6 @@ provides:
 LSD.Mixin.Placeholder = new Class({
   behaviour: '[placeholder]',
   
-  Stateful: {
-    'placeholdered': ['placehold', 'unplacehold']
-  },
-  
   options: {
     actions: {
       placeholder: {
@@ -43,6 +39,12 @@ LSD.Mixin.Placeholder = new Class({
           'blur': 'onPlacehold',
           'keypress': 'onUnplacehold'
         }
+      }
+    },
+    states: {
+      placeholding: {
+        enabler: 'placehold',
+        disabler: 'unplacehold'
       }
     }
   },

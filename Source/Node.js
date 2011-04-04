@@ -20,13 +20,15 @@ provides:
 
 LSD.Node = new Class({
   
-  Implements: [Events, Options],  
+  Implements: [Events, Options, States],  
   
   options: {},
 
   initialize: function(element, options) {
     if (element) this.element = document.id(element)
     this.setOptions(options);
+    var states = this.options.states;
+    if (states) this.addStates(states);
   },
   
   dispose: function() {

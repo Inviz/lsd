@@ -3,7 +3,7 @@
  
 script: Value.js
  
-description: Make your widget have a real form value.
+description: Add your widget have a real form value.
  
 license: Public domain (http://unlicense.org).
  
@@ -17,6 +17,8 @@ provides:
 */
 
 LSD.Trait.Value = new Class({
+  behaviour: '[value]',
+  
   options: {
     events: {
       _value: {
@@ -40,11 +42,10 @@ LSD.Trait.Value = new Class({
   
   applyValue: function(item) {
     if (this.element.getProperty('itemprop')) this.element.set('itemvalue', item);
-    //return this.setContent(item)
   },
   
   getRawValue: function() {
-    if (this.attributes && this.attributes.value) return this.attributes.value;
+    return this.attributes.value || this.attributes.itemid || (this.element && this.element.get('text').trim())
   },
 
   getValue: function() {

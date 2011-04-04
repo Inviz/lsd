@@ -47,10 +47,26 @@ LSD.Trait.List = new Class({
     has: {
       many: {
         items: {
-          selector: 'item'
+          selector: ':item',
+          events: {
+            select: function() {
+              this.listWidget.selectItem(this)
+            },
+            unselect: function() {
+              this.listWidget.unselectItem(this);
+            },
+            dispose: function() {
+              this.listWidget.unselectItem(this);
+            }
+          },
+          alias: 'listWidget',
+          states: {
+            add: Array.fast('selected')
+          }
         }
       }
-    }
+    },
+    pseudos: Array.fast('list')
   },
   
   initialize: function() {
@@ -61,11 +77,11 @@ LSD.Trait.List = new Class({
   
   selectItem: function(item) {
     if (!(item = this.getItem(item)) && this.options.list.force) return false;
+    var unselect = (this.options.list.unselect !== null) ? this.options.list.unselect : !this.options.list.multiple;
     var selected = this.selectedItem;
+    if (unselect && (selected != item) && selected && selected.unselect) this.unselectItem(selected);
     this.setSelectedItem.apply(this, arguments); 
     this.fireEvent('set', [item, this.getItemIndex(item)]);
-    var unselect = (this.options.unselect !== null) ? this.options.unselect : !this.options.multiple;
-    if (unselect && (selected != item) && selected && selected.unselect) this.unselectItem(selected);
     item.select();
     return item;
   },
@@ -134,7 +150,7 @@ LSD.Trait.List = new Class({
   },
   
   addItem: function(item) {
-    if (item.setList) var data = item.getValue(), widget = item, item = data;
+    if (item.setList) var data = item.getValue ? item.getValue() : item.value || $uid(item), widget = item, item = data;
     if (!this.list.contains(item)) {
       this.list.push(item);
       if (widget) {

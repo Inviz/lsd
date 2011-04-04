@@ -46,7 +46,6 @@ LSD.Trait.Proxies = new Class({
           });
         } else {
           child.inject(target);
-            console.log(child.tagName, target.tagName, child.element, target.element)
         }
       };
       var container = proxy.container;

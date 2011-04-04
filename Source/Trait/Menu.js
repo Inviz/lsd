@@ -15,8 +15,6 @@ requires:
 
 provides:
   - LSD.Trait.Menu
-  - LSD.Trait.Menu.States
-  - LSD.Trait.Menu.Stateful
  
 ...
 */
@@ -50,11 +48,17 @@ LSD.Trait.Menu = new Class({
         menu: {
           selector: 'menu[type=context]',
           proxy: function(widget) {
-            return !!widget.setList
+            return widget.pseudos.item;
+          },
+          states: {
+            set: {
+              expanded: 'hidden'
+            }
           }
         }
       }
-    }
+    },
+    states: Array.fast('expanded')
   },
 
   cancel: function() {
@@ -68,7 +72,6 @@ LSD.Trait.Menu = new Class({
   repositionMenu: function() {
     if (!this.menu || this.collapsed) return;
     var top = 0;
-    console.log('repositionMenu')
     var origin = (this.options.menu.origin == 'document') ? this.document : this;
     if (!origin.size) origin.setSize(true);
     if (!this.menu.size) this.menu.setSize(true);
@@ -95,7 +98,6 @@ LSD.Trait.Menu = new Class({
   },
   
   expand: function() {
-    console.log('expand', this.menu)
     if (!this.menu) {
       this.menu = this.buildMenu();
       this.repositionMenu();
@@ -107,20 +109,7 @@ LSD.Trait.Menu = new Class({
     else this.menu.hide();
   },
   
-  collapse: function() {
-    if (this.menu) this.menu.hide();
-    //this.repositionMenu();
-  },
-  
   getSelectedOptionPosition: function() {
     return 0
   }
 });
-
-LSD.Trait.Menu.State = Class.Stateful({
-  'expanded': ['expand', 'collapse']
-});
-LSD.Trait.Menu.Stateful = [
-  LSD.Trait.Menu,
-  LSD.Trait.Menu.State
-];

@@ -134,6 +134,13 @@ LSD.Module.DOM = new Class({
     }
   },
   
+  unsetParent: function(widget) {
+    var parent = this.parentNode;
+    if (parent.firstChild == this) delete parent.firstChild;
+    if (parent.lastChild == this) delete parent.lastChild;
+    delete this.parentNode;
+  },
+  
   appendChild: function(widget, adoption) {
     if (!adoption && this.canAppendChild && !this.canAppendChild(widget)) {
       if (widget.parentNode) widget.dispose();
@@ -155,9 +162,18 @@ LSD.Module.DOM = new Class({
     return true;
   },
   
+  removeChild: function(widget) {
+    widget.unsetParent(this);
+    widget.walk(function(node) {
+      this.dispatchEvent('nodeRemoved', node);
+      node.fireEvent('dispose')
+    }.bind(this));
+    this.childNodes.erase(widget);
+  },
+  
   insertBefore: function(insertion, element) {
     return this.appendChild(insertion, function() {
-      document.id(insertion).inject(document.id(element), 'before')
+      element.parentNode.insertBefore(document.id(insertion), document.id(element))
     });
   },
   
@@ -218,16 +234,9 @@ LSD.Module.DOM = new Class({
   dispose: function(element) {
     var parent = this.parentNode;
     if (!parent) return;
-    this.walk(function(node) {
-      parent.dispatchEvent('nodeRemoved', node);
-      node.fireEvent('dispose')
-    });
-    parent.childNodes.erase(this);
-    if (parent.firstChild == this) delete parent.firstChild;
-    if (parent.lastChild == this) delete parent.lastChild;
+    parent.removeChild(this);
     this.fireEvent('dispose', parent);
-    if (!element) this.element.dispose();
-    delete this.parentNode;
+    if (!element) this.parent.apply(this, arguments);
   },
   
   dispatchEvent: function(type, args){
@@ -246,10 +255,9 @@ LSD.Module.DOM = new Class({
   },
   
   walk: function(callback) {
+    var children = this.childNodes, length = children.length;
     callback(this);
-    this.childNodes.each(function(child) {
-      child.walk(callback)
-    });
+    for (var i = 0; i < length; i++) callback(children[i])
   },
   
   collect: function(callback) {

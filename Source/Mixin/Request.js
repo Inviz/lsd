@@ -23,15 +23,17 @@ provides:
 LSD.Mixin.Request = new Class({
   behaviour: '[action], [src], [href]',
   
-  Stateful: {
-    working: ['busy', 'idle']
-  },
-  
   options: {
     request: {
       method: 'get'
     },
-    targetAction: 'update'
+    targetAction: 'update',
+    states: {
+      working: {
+        enabler: 'busy',
+        disabler: 'idle'
+      }
+    }
   },
   
   initialize: function() {

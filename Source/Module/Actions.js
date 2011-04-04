@@ -20,10 +20,9 @@ provides:
 */
 
 LSD.Module.Actions = new Class({
-  Stateful: Object.subset(LSD.States.Known, ['disabled']),
-  
   options: {
-    chain: {}
+    chain: {},
+    states: Array.fast('disabled')
   },
   
   initialize: function() {
@@ -145,11 +144,11 @@ LSD.Module.Actions = new Class({
   
   mixin: function(mixin) {
     if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
-    Class.mixin(this, mixin);
     var options = mixin.prototype.options;
-    if (!options) return;
-    for (var action in options.actions) this.addAction(action);
-    if (options.events) this.addEvents(this.bindEvents(options.events));
+    if (options && options.states) this.addStates(options.states);
+    Class.mixin(this, mixin);
+    if (options && options.actions) for (var action in options.actions) this.addAction(action);
+    if (options && options.events) this.addEvents(this.bindEvents(options.events));
   },
 
   unmix: function(mixin) {
@@ -158,6 +157,7 @@ LSD.Module.Actions = new Class({
     if (options) {
       for (var action in options.actions) this.removeAction(action);
       if (options.events) this.removeEvents(this.bindEvents(options.events));
+      if (options.states) this.removeStates(options.states);
     };
     Class.unmix(this, mixin);
   }

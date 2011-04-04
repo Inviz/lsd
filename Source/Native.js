@@ -47,8 +47,6 @@ LSD.Native = new Class({
     LSD.Module.Target
   ],
   
-  States: Object.subset(LSD.States.Known, ['built', 'attached']),
-  
   options: {
     writable: false,
     events: {
@@ -74,6 +72,8 @@ LSD.Native = new Class({
     this.toElement().innerHTML = content;
   }
 });
+
+LSD.Native.prototype.addStates('built', 'attached');
 
 new LSD.Type('Native');
 

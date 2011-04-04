@@ -20,16 +20,12 @@ provides:
 */
 
 LSD.Command = new Class({
-  Stateful: {
-    disabled: ['disable', 'enable']
-  },
-  
   options: {
     id: null,
     action: null
   },
   
-  Implements: [Options, Events],
+  Implements: [Options, Events, States],
   
   initialize: function(document, options) {
     this.setOptions(options);
@@ -63,6 +59,8 @@ LSD.Command = new Class({
     if (widget.options.events.command) this.removeEvents(widget.options.events.command);
     this.removeEvents(events);
   }
-})
+});
+
+LSD.Command.prototype.addState('disabled');
 
 LSD.Command.Command = LSD.Command;

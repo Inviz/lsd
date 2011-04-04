@@ -34,7 +34,7 @@ LSD.Module.Attributes = new Class({
       else this.addClass(kls);
     }, this);
     this.pseudos.concat(this.options.pseudos || []).each(function(value) {
-      if (this.options.states[value]) this.setStateTo(value, true);
+      if (this.$states[value]) this.setStateTo(value, true);
       else this.addPseudo(value);
     }, this);
   },

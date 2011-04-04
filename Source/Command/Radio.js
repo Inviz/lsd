@@ -35,10 +35,6 @@ provides:
 LSD.Command.Radio = new Class({
   Extends: LSD.Command,
   
-  Stateful: {
-    checked: ['check', 'uncheck']
-  },
-
   options: {
     radiogroup: false
   },
@@ -66,3 +62,5 @@ LSD.Command.Radio = new Class({
     this.check();
   }
 });
+
+LSD.Command.prototype.addState('checked');
