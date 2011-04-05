@@ -15,6 +15,8 @@ requires:
   - LSD.Module.DOM
   - LSD.Module.Events
   - LSD.Module.Layout
+  - LSD.Module.Expectations
+  - LSD.Module.Relations
  
 provides:
   - LSD.Document
@@ -40,7 +42,9 @@ LSD.Document = new Class({
     LSD.Node,
     LSD.Module.Attributes,
     LSD.Module.DOM,
-    LSD.Module.Events,
+    LSD.Module.Events,, 
+    LSD.Module.Expectations, 
+    LSD.Module.Relations,
     LSD.Module.Layout
   ],
   

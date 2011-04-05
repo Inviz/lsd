@@ -38,7 +38,7 @@ LSD.Module.Layout = new Class({
     var opts = options && options.layout && options.layout.options;
     var clone = ((opts && opts.method) || this.options.layout.method) == 'clone';
     var extract = (opts && opts.extract) || this.options.layout.extract;
-    if (clone || extract) options = Object.append(options || {}, LSD.Layout.extract(element));
+    if (element && (clone || extract)) options = Object.append(options || {}, LSD.Layout.extract(element));
     if (clone) {
       var layout = element;
       element = null

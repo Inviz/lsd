@@ -15,6 +15,7 @@ requires:
   - LSD.Module.Attributes
   - LSD.Module.Events
   - LSD.Module.Expectations
+  - LSD.Module.Relations
   - LSD.Module.Layout
   - LSD.Module.DOM
   - LSD.Module.Actions
@@ -40,6 +41,7 @@ LSD.Native = new Class({
     LSD.Module.Attributes,
     LSD.Module.Events,
     LSD.Module.Expectations,
+    LSD.Module.Relations,
     LSD.Module.Layout,
     LSD.Module.DOM,
     LSD.Module.Actions,
@@ -64,7 +66,7 @@ LSD.Native = new Class({
   initialize: function() {
     this.parent.apply(this, arguments);
     if (this.options.writable && !this.attributes.tabindex && (this.options.focusable !== false)) this.setAttribute('tabindex', 0) 
-    this.addPseudo(this.options.writable ? 'read-write' : 'read-only');
+    if (this.options.writable !== null) this.addPseudo(this.options.writable ? 'read-write' : 'read-only');
     if (this.element) this.build()
   },
   

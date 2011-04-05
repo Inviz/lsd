@@ -23,13 +23,6 @@ provides:
 !function() {
   
 var Expectations = LSD.Module.Expectations = new Class({
-  options: {
-    has: {
-      one: null,
-      many: null
-    }
-  },
-  
   initialize: function() {
     this.expectations = {};
     this.addEvents({
@@ -60,20 +53,6 @@ var Expectations = LSD.Module.Expectations = new Class({
       }
     }, true);
     this.parent.apply(this, arguments);
-    var has = this.options.has, one = has.one, many = has.many;
-    if (one) for (var name in one) {
-      var value = one[name];
-      if (value.indexOf) value = {selector: value}
-      value.name = name;
-      this.addRelation(value);
-    }
-    if (many) for (var name in many) {
-      var value = many[name];
-      if (value.indexOf) value = {selector: value}
-      value.name = name;
-      value.multiple = true;
-      this.addRelation(value);
-    }
   },
   
   getElementsByTagName: function(tag) {
@@ -260,82 +239,7 @@ var Expectations = LSD.Module.Expectations = new Class({
       }
       this.watch(selector, watcher)
     }, this)
-  },
-  
-  addRelation: function(relation, callback) {
-    if (relation.indexOf) relation = {selector: relation};
-    var states = relation.states, name = relation.name, origin = relation.origin || this, proxy = relation.proxy, transform = relation.transform,
-        events = relation.events, multiple = relation.multiple, chain = relation.chain, callbacks = relation.callbacks, alias = relation.alias, relay = relation.relay;
-
-    if (name && multiple) origin[name] = [];
-    if (callbacks) {
-      callbacks = origin.bindEvents(callbacks);
-      var onAdd = callbacks.add, onRemove = callbacks.remove;
-    }
-    var layout = relation.layout || relation.selector;
-    this.options.layout[name] = layout;
-    if (proxy) {
-      var proxied = [];
-      this.options.proxies[name] = {
-        container: function(callback) {
-          proxied.push(callback)
-        },
-        condition: proxy
-      }
-    }
-    if (relay) {
-      var relayed = {};
-      Object.each(relay, function(callback, type) {
-        relayed[type] = function(event) {
-          for (var widget = Element.get(event.target, 'widget'); widget; widget = widget.parentNode) {
-            if (origin[name].indexOf(widget) > -1) {
-              callback.apply(widget, arguments);
-              break;
-            }
-          }
-        }
-      });
-    }
-    if (transform) {
-      var transformation = {};
-      transformation[transform] = layout;
-      this.addLayoutTransformations(transformation);
-    }
-    if (events) events = origin.bindEvents(events);
-    this.watch(relation.selector, function(widget, state) {
-      if (events) widget[state ? 'addEvents' : 'removeEvents'](events);
-      if (callback) callback.call(origin, widget, state);
-      if (!state && onRemove) onRemove.call(origin, widget);
-      if (name) {
-        if (multiple) {
-          if (state) origin[name].push(widget)
-          else origin[name].erase(widget);
-          if (relay && (origin[name].length == (state ? 1 : 0))) origin.element[state ? 'addEvents' : 'removeEvents'](relayed);
-        } else {
-          if (state) origin[name] = widget;
-          else delete origin[name];
-        }
-      }
-      if (alias) widget[alias] = origin;
-      if (proxied) {
-        for (var i = 0, proxy; proxy = proxied[i++];) proxy(widget);
-      }
-      if (state && onAdd) onAdd.call(origin, widget);
-      if (states) {
-        var get = states.get, set = states.set, add = states.add, method = state ? 'linkState' : 'unlinkState';
-        if (get) for (var from in get) widget[method](origin, from, (get[from] === true) ? from : get[from]);
-        if (set) for (var to in set) origin[method](widget, to, (set[to] === true) ? to : set[to]);
-        if (add) for (var index in add) widget.addState(index, add[index]);
-      }
-      if (chain) {
-        for (var label in chain) {
-          if (state) widget.options.chain[label] = chain[label]
-          else delete widget.options.chain[label]
-        }
-      }
-    });
   }
-  
 });
 
 var pseudos = {};

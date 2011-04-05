@@ -36,14 +36,16 @@ LSD.Mixin.Dialog = new Class({
   
   getDialog: function(name) {
     if (!this.dialogs) this.dialogs = {};
-    if (!this.dialogs[name]) this.dialogs[name] = this.buildDialog.apply(this, arguments);
+    if (!this.dialogs[name]) {
+      this.dialogs[name] = this.options.layout[name] ? this.buildDialog.apply(this, arguments) : LSD.Element.create('body-dialog-' + name);
+    }
     return this.dialogs[name];
   },
   
   buildDialog: function(name) {
     var layout = {}
     layout[this.options.layout.dialog] = this.options.layout[name];
-    var dialog = this.buildLayout(layout);
+    var dialog = this.buildLayout(layout)[0];
     var events = this.options.events.dialogs;
     if (events[name]) dialog.addEvents(events[name]);
     return dialog;

@@ -147,7 +147,6 @@ LSD.Module.DOM = new Class({
       else if (widget.element.parentNode) widget.element.dispose();
       return false;
     }
-    if (widget.id) this[widget.id] = widget;
     this.childNodes.push(widget);
     widget.setParent(this);
     if (!widget.quiet && (adoption !== false) && this.toElement()) (adoption || function() {

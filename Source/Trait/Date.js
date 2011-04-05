@@ -22,7 +22,8 @@ provides:
 LSD.Trait.Date = new Class({
   options: {
     date: {
-      interval: 'month'
+      interval: 'month',
+      format: '%b-%d-%Y'
     }
   },
   
@@ -30,12 +31,17 @@ LSD.Trait.Date = new Class({
     this.date = date;
   },
   
+  formatDate: function(date) {
+    return date.format(this.options.date.format)
+  },
+  
   getDate: function() {
     if (this.date) return this.date;
     if (this.getRawDate) {
       var raw = this.getRawDate();
-      return raw ? this.parseDate(raw) : this.getDefaultDate();
+      if (raw) return this.parseDate(raw);
     }
+    return this.getDefaultDate();
   },
   
   getDefaultDate: function() {

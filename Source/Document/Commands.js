@@ -30,7 +30,7 @@ LSD.Document.Commands = new Class({
   
   /* 
     Single relay click listener is put upon document.
-    It spy for all clicks and elements finds out if 
+    It spies for all clicks on elements and finds out if 
     any links were clicked. If the link is not widget,
     the listener creates a lightweight link class instance and
     calls click on it to trigger commands and interactions.

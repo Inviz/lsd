@@ -65,6 +65,7 @@ sources:
   - Source/Module/Actions.js
   - Source/Module/Render.js
   - Source/Module/Target.js
+  - Source/Module/Relations.js
   - Source/Trait/Dimensions.js
   - Source/Trait/Proxies.js
   - Source/Trait/Layers.js

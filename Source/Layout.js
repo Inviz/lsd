@@ -71,7 +71,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   materialize: function(selector, layout, parent, opts) {
-    var widget = this.build(Object.append({}, opts, this.parse(selector)), parent);
+    var widget = this.build(Object.append({}, opts, this.parse(selector, parent)), parent);
     //debugger
     if (parent) this.appendChild(widget, parent)
     if (layout) if (layout.charAt) widget.setContent(layout);
@@ -94,7 +94,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     });
   },
   
-  parse: function(selector) {
+  parse: function(selector, parent) {
     if (!this.parsed) this.parsed = {};
     else if (this.parsed[selector]) return this.parsed[selector];
     var options = {};
@@ -106,7 +106,16 @@ LSD.Layout.prototype = Object.append(new Options, {
       options.attributes[attribute.key] = attribute.value || true;
     });
     if (parsed.classes) options.classes = parsed.classes.map(Macro.map('value'));
-    if (parsed.pseudos) options.pseudos = parsed.pseudos.map(Macro.map('key'));
+    if (parsed.pseudos) {
+      options.pseudos = [];
+      parsed.pseudos.each(function(pseudo) {
+        if (pseudo.type == 'element') {
+          var relation = (parent[0] || parent).$relations[pseudo.key];
+          if (!relation) throw "Unknown pseudo element ::" + pseudo.key
+          Object.append(options, this.parse(relation.layout, parent))
+        } else return options.pseudos.push(pseudo.key);
+      }, this);
+    }
     switch (parsed.combinator) {
       case '^':
         options.inherit = 'full';
@@ -276,7 +285,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   object: function(object, parent, method, opts) {
     var widgets = [];
     for (var selector in object) {
-      widgets.push(this.materialize(selector, object[selector], parent, opts));
+      widgets.push(this.materialize(selector, object[selector] === true ? null : object[selector], parent, opts));
     }
     return widgets;
   },
@@ -339,7 +348,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   transform: function(element, parent) {
     if (!(parent && (parent = parent[1] || parent) && parent.transformLayout)) return false;
     var transformation = parent.transformLayout(element, this);
-    if (transformation) return this.merge(LSD.Layout.extract(element), transformation.indexOf ? this.parse(transformation) : transformation);
+    if (transformation) return this.merge(LSD.Layout.extract(element), transformation.indexOf ? this.parse(transformation, parent) : transformation);
   },
   
   // redefinable predicates

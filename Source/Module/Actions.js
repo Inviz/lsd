@@ -89,20 +89,20 @@ LSD.Module.Actions = new Class({
     var chain = this.getActionChain.apply(this, arguments), action, actions;
     for (var link; link = chain[++index];) {
       action = link.perform ? link : link.name ? this.getAction(link.name) : null;
-      this.chainPhase = index;
       if (action) {
         if (callback.call(this, action, index, link.priority || 0) === false) continue;
         var result = this.execute(link, args);
         args = null;
       } else {
         if (link.arguments) args = link.arguments;
-        if (link.callback) link.callback.call(this, args);
+        if (link.callback) link.callback.apply(this, args);
       }
       if (!action || result === true) continue;
       if (!actions) actions = [];
       actions.push(action.options.name);
       if (result === false) break;//action is asynchronous, stop chain
-    }
+    }  
+    this.chainPhase = index;
     return {chain: chain, executed: actions};
   },
   

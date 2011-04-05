@@ -21,8 +21,8 @@ provides:
 
 LSD.Action.Dialog = LSD.Action.build({
   enable: function(target, substitutions) {
-    if (substitutions.event) substitutions = null;
-    if (!target.localName) {
+    if (substitutions && substitutions.event) substitutions = null;
+    if (target.element) {
       var dialog = target;
       target = target.element;
     } else var dialog = this.retrieve(target);
@@ -33,10 +33,10 @@ LSD.Action.Dialog = LSD.Action.build({
     if (!dialog) {
       var source = this.caller.element || this.caller;
       var caller = this.caller;
-      dialog = LSD.Element.create('body-dialog', target, {
+      var options = {
         layout: {
           options: {
-            method: target.hasClass('singlethon') ? 'augment' : 'clone', 
+            method: 'clone', 
             interpolate: function(string) {
               if (substitutions) {
                 var substitution = substitutions[string];
@@ -53,7 +53,13 @@ LSD.Action.Dialog = LSD.Action.build({
         caller: function() {
           return caller;
         }
-      });
+      };
+      var args = [options];
+      if (!target.indexOf) {
+        if (target.hasClass('singlethon')) options.layout.options.method = 'augment';
+        args.unshift('body-dialog', target);
+      } else args.unshift('body-dialog-' + target)
+      dialog = LSD.Element.create.apply(LSD.Element, args);
       dialog.addEvents({
         'submit': function() {
           if (caller.callChain) caller.callChain(dialog.getData())

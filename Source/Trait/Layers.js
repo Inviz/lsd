@@ -46,6 +46,7 @@ LSD.Trait.Layers = new Class({
     this.layers = {};
     this.shapes = {};
     this.parent.apply(this, arguments);
+    if (this.options.layers === true) this.options.layers = LSD.Layers;
   },
 
   addLayer: function(name, value) {

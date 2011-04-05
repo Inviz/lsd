@@ -21,6 +21,7 @@ provides:
 
 
 LSD.Module.Render = new Class({
+  dirty: true,
   
   build: function() {
     this.redraws = 0;

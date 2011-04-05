@@ -18,6 +18,7 @@ requires:
   - LSD.Module.Events
   - LSD.Module.DOM
   - LSD.Module.Expectations
+  - LSD.Module.Relations
   - LSD.Module.Container
   - LSD.Module.Actions
   - LSD.Module.Command
@@ -73,11 +74,9 @@ LSD.Widget = new Class({
   },
   
   initialize: function(element, options) {
-    this.dirty = true;
     this.parent(element, options);
     if (this.options.writable && !this.attributes.tabindex && (this.options.focusable !== false)) this.setAttribute('tabindex', 0);
     this.addPseudo(this.options.writable ? 'read-write' : 'read-only');
-    if (this.options.layers === true) this.options.layers = LSD.Layers;
   },
 
   /*
