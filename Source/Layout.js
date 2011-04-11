@@ -12,7 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD
   - More/Object.Extras
-  - LSD.Interpolate
+  - LSD.Interpolation
 
 provides: 
   - LSD.Layout

@@ -1,7 +1,7 @@
 /*
 ---
  
-script: Interpolate.js
+script: Interpolation.js
  
 description: A logic to render (and nest) widgets out of the key-value hash or dom tree
  
@@ -12,10 +12,10 @@ authors: Yaroslaff Fedin
 requires:
   - LSD
   - Sheet/SheetParser.Value
-  - StringInflections/String.pluralize
+  - String.Inflections/String.pluralize
 
 provides: 
-  - LSD.Interpolate
+  - LSD.Interpolation
  
 ...
 */
