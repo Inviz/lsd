@@ -42,7 +42,7 @@ LSD.Mixin.Placeholder = new Class({
       }
     },
     states: {
-      placeholdered: {
+      placeheld: {
         enabler: 'placehold',
         disabler: 'unplacehold'
       }
@@ -54,7 +54,7 @@ LSD.Mixin.Placeholder = new Class({
   }),
   
   onUnplacehold: function(){
-    if(this.placeholdered){
+    if(this.placeheld){
       this.applyValue('');
       this.unplacehold();
       return true;
