@@ -42,7 +42,7 @@ LSD.Mixin.Placeholder = new Class({
       }
     },
     states: {
-      placeholding: {
+      placeholdered: {
         enabler: 'placehold',
         disabler: 'unplacehold'
       }
