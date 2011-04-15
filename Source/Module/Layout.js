@@ -52,7 +52,7 @@ LSD.Module.Layout = new Class({
     });
     this.parent(element, options);
     if (this.options.layout.instance !== false) {
-      if (layout) this.layout = new LSD.Layout(this, Array.prototype.slice.call(layout.childNodes, 0), this.options.layout.options)
+      if (layout) this.getLayout(Array.prototype.slice.call(layout.childNodes, 0), this.options.layout.options)
     }
     if (!this.layout) this.layout = LSD.Layout.get(this);
     if (this.options.layout.self) this.applySelector(this.options.layout.self);
@@ -110,7 +110,11 @@ LSD.Module.Layout = new Class({
     }
   },
   
-  buildLayout: function(layout, parent) {
-    return this.layout.render(layout, parent || this);
+  getLayout: Macro.getter('layout', function(layout, options) {
+    return new LSD.Layout(this, layout, options);
+  }),
+  
+  buildLayout: function(layout, parent, options) {
+    return this.getLayout().render(layout, parent || this, null, options);
   }
 });

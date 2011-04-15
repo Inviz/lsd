@@ -66,7 +66,6 @@ LSD.Document = new Class({
     
     this.xml = true;
     this.navigator = {};
-    this.attributes = {};
     this.slickFeatures = {
       brokenStarGEBTN: false,
       starSelectsClosedQSA: false,

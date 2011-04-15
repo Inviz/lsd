@@ -70,7 +70,7 @@ LSD.Module.Events = new Class({
       if (events[i].call) { //stick to old behaviour when key: function object is passed
         old.call(this, events);
       } else {
-        for (name in events) {
+        for (var name in events) {
           var subset = events[name];
           if (!subset) continue;
           var target = convert(this, name)

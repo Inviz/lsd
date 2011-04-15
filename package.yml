@@ -93,6 +93,8 @@ sources:
   - Source/Action/Dialog.js
   - Source/Action/Check.js
   - Source/Action/Clone.js
+  - Source/Action/Append.js
+  - Source/Action/Edit.js 
   - Source/Action.js
   - Source/Container.js
   - Source/Element.js

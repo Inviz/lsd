@@ -23,7 +23,10 @@ LSD.Trait.Value = new Class({
     events: {
       _value: {
         dominject: function() {
-          if (!('value' in this)) this.value = this.processValue(this.getRawValue());
+          if (!('value' in this))
+            if (this.options.value) this.setValue(this.options.value)
+          else
+            this.value = this.processValue(this.options.value || this.getRawValue());
         }
       }
     }

@@ -30,8 +30,6 @@ LSD.Trait.Form = new Class({
       }
     });
     this.parent.apply(this, arguments);
-    
-    if (!this.getAttribute('action')) this.setAttribute('action', location.pathname);
   },
   
   submit: function(event) {
@@ -40,5 +38,9 @@ LSD.Trait.Form = new Class({
       event.preventDefault();
       return this.callChain();
     } else return this.send.apply(this, arguments);
+  },
+  
+  getRequestURL: function() {
+    return this.attributes.action || location.pathname;
   }
 }); 

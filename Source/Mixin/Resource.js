@@ -34,17 +34,16 @@ LSD.Mixin.Resource = new Class({
       var name = options.name;
       var prefix = options.prefix;
       if (!name || !prefix) {
-        var uri = this.attributes.itemscope;
+        var uri = this.attributes.itemtype.split(/\s+/).getLast();
         if (uri) {
           if (uri.toURI) uri = uri.toURI();
           prefix = uri.get('directory');
           name = uri.get('file');
-          if (!name) {
+          while (!name || !(name = name.singularize())) {
             var dirs = prefix.split('/');
             name = dirs.pop();
             prefix = dirs.join('/')
           }
-          name = name.singularize();
         }
       }
       var options = Object.clone(this.options.resource);
