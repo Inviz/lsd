@@ -24,6 +24,6 @@ LSD.Action.Update = LSD.Action.build({
     var fragment = document.createFragment(content);
     var children = Array.prototype.slice.call(fragment.childNodes, 0);
     document.id(target).empty().appendChild(fragment);
-    if (widget.layout) widget.layout.augment(children, widget);
+    if (widget.layout) widget.layout.render(children, widget, 'augment');
   }
 });

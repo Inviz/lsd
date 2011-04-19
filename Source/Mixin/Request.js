@@ -42,29 +42,26 @@ LSD.Mixin.Request = new Class({
   },
   
   send: function() {
-    var args = Array.prototype.slice.call(arguments, 0);
-    for (var i = 0, j = args.length, arg; i < j; i++) {
-      var arg = args[i];
-      if (arg && (arg.call || arg.event)) {
-        if (arg.call) var callback = arg;
-        args.splice(i--, 1);
-        j--;
-      } else if (typeof arg == 'object') {
-        if (!arg.url && !arg.data && !arg.method && !arg.data) args[i] = {data: arg};
-      }
+		var options = Object.merge({}, this.options.request, {data: this.getRequestData(), url: this.getRequestURL(), method: this.getRequestMethod()});
+		for (var i = 0, j = arguments.length, arg, opts; i < j; i++) {
+      var arg = arguments[i];
+			if (!arg) continue;
+			if (typeof arg == 'object') {
+		    if (("url" in arg) || ("method" in arg) || ("data" in arg)) opts = arg
+				else opts = {data: arg};
+      } else if (arg.call) var callback = arg;
     }
-    
-    var request = this.getRequest.apply(this, args);
+    var request = this.getRequest(options);
     if (callback) request.addEvent('complete:once', callback);
-    return request.send.apply(request, args);
+    return request.send(options);
   },
   
-  getRequest: function(opts) {
-    var options = Object.append({data: this.getRequestData(), url: this.getRequestURL()}, this.options.request, {type: this.getRequestType(), method: this.getRequestMethod()}, opts);
-    if (!this.request || this.request.type != options.type) {
-      this.request = this[options.type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options)
+  getRequest: function(options) {
+		var type = this.getRequestType();
+    if (!this.request || this.request.type != type) {
+      this.request = this[type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options)
       if (!this.request.type) {
-        this.request.type = options.type;
+        this.request.type = type;
         if (!this.events._request) {
           var events = {
             request: 'onRequest',
@@ -83,7 +80,7 @@ LSD.Mixin.Request = new Class({
   },
   
   onRequestSuccess: function() {
-    if (this.chainPhase == -1 && this.getCommandAction() == 'send') this.callOptionalChain.apply(this, arguments);
+	  if (this.chainPhase == -1 && this.getCommandAction() == 'send') this.callOptionalChain.apply(this, arguments);
   },
   
   onRequest: function() {

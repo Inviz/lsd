@@ -76,7 +76,7 @@ LSD.Action = function(options, name) {
 
     attach: function(widget) {
       target = widget;
-      state = name && widget.options.states && widget.options.states[name];
+      state = name && widget.$states && widget.$states[name];
       if (state) {
         events[state.enabler] = options.enable.bind(target);
         events[state.disabler] = options.disabler.bind(target);

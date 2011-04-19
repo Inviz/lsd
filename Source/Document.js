@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires: 
   - LSD.Node
+  - LSD.Module.Actions
   - LSD.Module.Attributes
   - LSD.Module.DOM
   - LSD.Module.Events
@@ -40,6 +41,7 @@ LSD.Document = new Class({
 
   Includes: [
     LSD.Node,
+    LSD.Module.Actions,
     LSD.Module.Attributes,
     LSD.Module.DOM,
     LSD.Module.Events,, 
@@ -77,10 +79,10 @@ LSD.Document = new Class({
       isHTMLDocument: false,
       nativeMatchesSelector: false,
       hasAttribute: function(node, attribute) {
-        return (attribute in node.attributes) || ((attribute in node.options.states) && (attribute in node.pseudos))
+        return (attribute in node.attributes) || ((attribute in node.$states) && (attribute in node.pseudos))
       },
       getAttribute: function(node, attribute) {
-        return node.attributes[attribute] || ((attribute in node.options.states) || node.pseudos[attribute]);
+        return node.attributes[attribute] || ((attribute in node.$states) || node.pseudos[attribute]);
       },
       compareDocumentPosition: function(self, node) {
         var context = node.localName ? (self.localName ? self : self.toElement()) : self;

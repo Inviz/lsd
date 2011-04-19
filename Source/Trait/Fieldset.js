@@ -21,7 +21,7 @@ LSD.Trait.Fieldset = new Class({
     events :{
       request: {
         request: 'validateFields',
-        badRequest: 'addFieldErrors'
+        badRequest: 'parseFieldErrors'
       },
       _fieldset: {
         layoutTransform: function(query) {
@@ -77,47 +77,65 @@ LSD.Trait.Fieldset = new Class({
   
   getData: function() {
     var data = {}
-    for (var name in this.names) data[name] = this.names[name].getValue();
+    for (var name in this.names) {
+      var memo = this.names[name];
+      if (memo.push) {
+        for (var i = 0, radio; radio = memo[i++];) if (radio.checked) data[name] = radio.getValue(); break;
+      } else if (memo.options.command.type != 'checkbox' || memo.checked) data[name] = memo.getValue();
+    }
     return data;
   },
 
   getRequestData: function() {
-    return this.element;
+    return this.getData();
   },
   
   reset: function() {
     
   },
   
-  addFieldErrors: function(response) {
-    var regex = LSD.Trait.Fieldset.rPrefixAppender;
-    for (var model in response) {
-      var value = response[model], errors = value.errors;
-      if (!errors) continue;
-      if (errors.each) {
-        errors.each(function(error) {
-          var name = model + error[0].replace(regex, function(match) {return '[' + match + ']'});
-          var field = this.names[name];
-          if (field) {
-            field.invalidate(error[1]);
-            this.invalid = true;
-          }
-        }, this)
+  addFieldErrors: function(errors) {
+    for (var name in errors) {
+      var field = this.names[name];
+      console.log(name, errors[name])
+      if (!field) continue;
+      field.invalidate(errors[name]);
+      this.invalid = true;
+    }
+  },
+
+  parseFieldErrors: function(response) {
+    var result = {}, errors = response.errors;
+    if (errors) { //rootless response ({errors: {}), old rails
+      for (var i = 0, error; error = errors[i++];)
+        result[LSD.Trait.Fieldset.getName(this.getModelName(error[0]), error[0])] = error[1];
+    } else { //rooted response (publication: {errors: {}}), new rails
+      var regex = LSD.Trait.Fieldset.rPrefixAppender;
+      for (var model in response) {
+        var value = response[model], errors = value.errors;
+        if (!errors) continue;
+        for (var i = 0, error; error = errors[i++];)
+          result[LSD.Trait.Fieldset.getName(model, error[0])] = error[1];
       }
     }
+    if (Object.getLength(result) > 0) this.addFieldErrors(result);
   },
   
   addField: function(widget, object) {
-    var name = widget.attributes.name;
+    var name = widget.attributes.name, radio = (widget.options.command.type == 'radio');
     if (!name) return;
     if (typeof object != 'object') {
-      this.names[name] = widget;
+      if (radio) {
+        if (!this.names[name]) this.names[name] = [];
+        this.names[name].push(widget);
+      } else this.names[name] = widget;
       object = this.params;
     }
     for (var regex = LSD.Trait.Fieldset.rNameParser, match, bit;;) {
       match = regex.exec(name)
       if (bit != null) {
         if (!match) {
+          if (!object[bit] && radio) object[bit] = [];
           if (object[bit] && object[bit].push) object[bit].push(widget);
           else object[bit] = widget;
         } else object = object[bit] || (object[bit] = (bit ? {} : []));
@@ -162,13 +180,20 @@ LSD.Trait.Fieldset = new Class({
     this.getElements(':read-write:invalid').each(function(field) {
       field.validate(true);
     })
-  }
+  },
+
+  getModelName: Macro.getter('modelName', function() {
+    for (var name in this.params) if (!this.params[name].nodeType) return name;
+  })
 });
 Object.append(LSD.Trait.Fieldset, {
   rNameIndexBumper: /(\[)(\d+?)(\])/,
   rIdIndexBumper: /(_)(\d+?)(_|$)/,
   rNameParser:      /(^[^\[]+)|\[([^\]]*)\]/ig,
   rPrefixAppender:  /^[^\[]+/i,
+  getName: function(model, name) {
+    return model + name.replace(LSD.Trait.Fieldset.rPrefixAppender, function(match) {return '[' + match + ']'});
+  },
   bumpName: function(string) {
     return string.replace(LSD.Trait.Fieldset.rNameIndexBumper, function(m, a, index, b) { 
       return a + (parseInt(index) + 1) + b;

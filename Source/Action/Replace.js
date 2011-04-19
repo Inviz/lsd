@@ -21,6 +21,10 @@ provides:
 
 LSD.Action.Replace = LSD.Action.build({
   enable: function(target, content) {
-    if (content) target.parentNode.replaceChild((this.document || document).createFragment(content), target);
+    var widget = target.localName ? Element.get(target, 'widget') : target.parentNode;
+		var fragment = document.createFragment(content);
+    var children = Array.prototype.slice.call(fragment.childNodes, 0);
+    if (content) target.parentNode.replaceChild(fragment, target);
+    if (widget.layout) widget.layout.render(children, widget, 'augment');
   }
 });

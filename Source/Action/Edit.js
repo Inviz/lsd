@@ -26,14 +26,10 @@ LSD.Action.Edit = LSD.Action.build({
   enable: function(target, content) {
     var session = this.retrieve(target);
     if (!session) {
-      $ss = session = new LSD.Native.Form.Edit(target.element || target, {
-        chain: function() {
-          
-        }
-      });
+      $ss = session = new LSD.Native.Form.Edit(target.element || target);
       this.store(target, session);
     }
-    session.start();
+    session.start(content);
   },
   
   disable: function(target) {
@@ -62,8 +58,7 @@ LSD.Native.Form.Edit = new Class({
     },
     events: {
       self: {
-        'cancel': 'finish',
-        'submit': 'finish'
+        'cancel': 'finish'
       }
     },
     states: {
@@ -76,13 +71,10 @@ LSD.Native.Form.Edit = new Class({
     has: {
       one: {
         submitter: {
-          selector: 'input[type=submit]',
-          events: {
-            click: 'submit'
-          }
+          selector: 'input[type=submit]'
         },
         canceller: {
-          selector: 'button',
+          selector: 'button.cancel',
           events: {
             click: 'cancel'
           }
@@ -97,6 +89,7 @@ LSD.Native.Form.Edit = new Class({
   },
   
   start: function(values) {
+    console.log(values)
     Element.Item.walk.call(this, this.element, function(node, prop, scope, prefix) {
       var editable = node.getProperty('editable');
       if (editable) {
@@ -130,13 +123,17 @@ LSD.Native.Form.Edit = new Class({
   },
   
   cancel: function() {
+    console.log('cancel, buyt why?')
     this.fireEvent('cancel', arguments)
   },
   
   submit: function() {
+    console.log('submit')
     if (this.getResource) {
       var Resource = this.getResource();
-      new Resource(Object.append(this.getParams(), {id: this.attributes.itemid})).save();
+      new Resource(Object.append(this.getParams(), {id: this.attributes.itemid})).save(function(html) {
+        this.execute({name: 'replace', target: this.element}, html);
+      }.bind(this));
     }
   },
   

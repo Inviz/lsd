@@ -41,7 +41,7 @@ LSD.Command = new Class({
   },
   
   attach: function(widget) {
-    var states = this.options.states;
+    var states = this.$states;
     var events = widget.events._command = {}, self = this;
     Object.each(states, function(state, name) {
       events[state.enabler] = function() {
@@ -57,7 +57,8 @@ LSD.Command = new Class({
   
   detach: function(widget) {
     if (widget.options.events.command) this.removeEvents(widget.options.events.command);
-    this.removeEvents(events);
+		var events = widget.events._command;
+		if (events) this.removeEvents(events);
   }
 });
 

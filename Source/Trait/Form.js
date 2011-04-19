@@ -26,7 +26,7 @@ LSD.Trait.Form = new Class({
   initialize: function() {
     this.addEvents({
       nodeInserted: function(node) {
-        if (node.pseudos['read-write'] || node.pseudos['form-associated']) node.form = this;
+        if (!node.form && (node.pseudos['read-write'] || node.pseudos['form-associated'])) node.form = this;
       }
     });
     this.parent.apply(this, arguments);

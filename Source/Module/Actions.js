@@ -71,11 +71,9 @@ LSD.Module.Actions = new Class({
   },
   
   callChain: function() {
-    var result = this.eachChainAction(function(action, i) {
+    return this.eachChainAction(function(action, i) {
       return true;
-    }, Array.prototype.slice.call(arguments, 0), this.chainPhase)
-    if (this.chainPhase == result.chain.length) this.chainPhase = -1;
-    return result.actions;
+    }, Array.prototype.slice.call(arguments, 0), this.chainPhase).actions
   },
   
   callOptionalChain: function() {
@@ -103,6 +101,7 @@ LSD.Module.Actions = new Class({
       if (result === false) break;//action is asynchronous, stop chain
     }  
     this.chainPhase = index;
+    if (this.chainPhase == chain.length) this.chainPhase = -1;
     return {chain: chain, executed: actions};
   },
   
@@ -124,7 +123,7 @@ LSD.Module.Actions = new Class({
     var promise, self = this;
     var perform = function(target) {
       var method = (state == null) ? 'perform' : ((state.call ? state(target, targets) : state) ? 'commit' : 'revert');
-      var result = action[method](target, target.options && target.options.states && target.options.states[action.name], args);
+      var result = action[method](target, target.$states && target.$states[action.name], args);
       if (result && result.callChain && (command.promise !== false)) {
         if (!promise) promise = [];
         promise.push(result);

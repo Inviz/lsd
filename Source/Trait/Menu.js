@@ -31,7 +31,7 @@ LSD.Trait.Menu = new Class({
           expand: 'makeItems',
           redraw: 'repositionMenu',
           focus: 'repositionMenu',
-          blur: 'collapse',
+          //blur: 'collapse',
           next: 'expand',
           previous: 'expand',
           cancel: 'collapse'

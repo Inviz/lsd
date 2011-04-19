@@ -52,9 +52,9 @@ LSD.Command.Radio = new Class({
     }
     this.addEvent('check', function() {
       group.each(function(command) {
-        if (command != this) command.uncheck()
+        if (command != this) command.uncheck();
       }, this);
-    }.bind(this))
+    })
   },
   
   click: function() {

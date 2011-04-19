@@ -138,7 +138,7 @@ LSD.Trait.List = new Class({
   },
   
   getItem: function(item) {
-    return (item && !item.select) ? this.findItemByValue(item) : item;
+    return (item && item.select) ? item : this.findItemByValue(item);
   },
   
   setItems: function(items) {

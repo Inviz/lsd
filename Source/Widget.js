@@ -75,7 +75,8 @@ LSD.Widget = new Class({
   
   initialize: function(element, options) {
     this.parent(element, options);
-    if (this.options.writable && !this.attributes.tabindex && (this.options.focusable !== false)) this.setAttribute('tabindex', 0);
+    if ((this.options.writable && !this.attributes.tabindex && (this.options.focusable !== false)) || this.options.focusable) 
+			this.setAttribute('tabindex', 0);
     this.addPseudo(this.options.writable ? 'read-write' : 'read-only');
   },
 
