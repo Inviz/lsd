@@ -81,7 +81,7 @@ LSD.Module.DOM = new Class({
     if (options.tag != tag) classes.push('lsd', options.tag || this.tagName);
     if (options.id) classes.push('id-' + options.id);
     classes.concat(this.classes);
-    this.element.store('widget', this);
+    if (!this.options.independent) this.element.store('widget', this);
     if (Object.getLength(classes)) this.element.className = classes.join(' ');
     if (this.attributes) 
       for (var name in this.attributes) 
@@ -218,9 +218,15 @@ LSD.Module.DOM = new Class({
       if (document) this.setDocument(document);
     }
     this.fireEvent('inject', this.parentNode);
-    return true;
+		return this;
   },
 
+	replaces: function(el){
+	  this.inject(el, 'after');
+	  el.dispose();
+		return this;
+	},
+	
   onDOMInject: function(callback) {
     if (this.document) callback.call(this, document.id(this.document)) 
     else this.addEvent('dominject', callback.bind(this))
@@ -228,6 +234,7 @@ LSD.Module.DOM = new Class({
   
   destroy: function() {
     this.dispose();
+		return this;
   },
 
   dispose: function(element) {
@@ -236,6 +243,7 @@ LSD.Module.DOM = new Class({
     parent.removeChild(this);
     this.fireEvent('dispose', parent);
     if (!element) this.parent.apply(this, arguments);
+		return this;
   },
   
   dispatchEvent: function(type, args){
@@ -256,7 +264,8 @@ LSD.Module.DOM = new Class({
   walk: function(callback) {
     var children = this.childNodes, length = children.length;
     callback(this);
-    for (var i = 0; i < length; i++) callback(children[i])
+    for (var i = 0; i < length; i++) callback(children[i]);
+		return this;
   },
   
   collect: function(callback) {

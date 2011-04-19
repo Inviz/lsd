@@ -114,18 +114,29 @@ LSD.Trait.Fieldset = new Class({
       this.names[name] = widget;
       object = this.params;
     }
-    //for (var regex = LSD.Trait.Fieldset.rNameParser, match, bit;;) {
-    //  match = regex.exec(name)
-    //  if (bit != null) {
-    //    if (!match) {
-    //      if (object[bit] && object[bit].push) object[bit].push(widget);
-    //      else object[bit] = widget;
-    //    } else object = object[bit] || (object[bit] = (bit ? {} : []));
-    //  }
-    //  if (!match) break;
-    //  else bit = match[1] ||match[2];
-    //}
-    //return object
+    for (var regex = LSD.Trait.Fieldset.rNameParser, match, bit;;) {
+      match = regex.exec(name)
+      if (bit != null) {
+        if (!match) {
+          if (object[bit] && object[bit].push) object[bit].push(widget);
+          else object[bit] = widget;
+        } else object = object[bit] || (object[bit] = (bit ? {} : []));
+      }
+      if (!match) break;
+      else bit = match[1] ||match[2];
+    }
+    return object
+  },
+  
+  getParams: function(object) {
+    if (!object) object = this.params;
+    var result = {};
+    for (var name in object) {
+      var value = object[name];
+      if (value && !value.indexOf) value = value.nodeType ? value.getValue() : this.getParams(value);
+      result[name] = value;
+    }
+    return result;
   },
   
   removeField: function(widget, object) {
