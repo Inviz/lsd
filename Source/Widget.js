@@ -69,6 +69,9 @@ LSD.Widget = new Class({
   ]),
   
   options: {
+    element: {
+      tag: 'div'
+    },
     writable: false,
     layers: true
   },

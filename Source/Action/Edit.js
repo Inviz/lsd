@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Action
   - Native/LSD.Native.Body
+  - Native/LSD.Native.Form
   - LSD.Trait.Form
   - LSD.Trait.Fieldset
   - LSD.Mixin.Resource
