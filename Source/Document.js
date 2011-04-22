@@ -39,63 +39,31 @@ provides:
 
 LSD.Document = new Class({
 
-  Includes: [
-    LSD.Node,
-    LSD.Module.Actions,
-    LSD.Module.Attributes,
-    LSD.Module.DOM,
-    LSD.Module.Events,, 
-    LSD.Module.Expectations, 
-    LSD.Module.Relations,
-    LSD.Module.Layout
-  ],
+  Extends: LSD.Widget,
   
   options: {
-    tag: '#document',
+    tag: 'body',
     root: false, // topmost widget's parentNode is the document if set to true
     layout: {
       method: 'augment'
+    },
+    container: {
+      enabled: false,
+      inline: false
     },
     nodeType: 9
   },
   
   initialize: function(element, options) {
     if (!LSD.document.body) LSD.document = Object.append(this, LSD.document);
-    this.parent.apply(this, [element, options]);
-    this.body = this.element;
+    this.body = this;
     this.document = this.documentElement = this;
-    if (this.nodeType != 9) this.ownerDocument = this;
-    
     this.xml = true;
     this.navigator = {};
-    this.slickFeatures = {
-      brokenStarGEBTN: false,
-      starSelectsClosedQSA: false,
-      idGetsName: false,
-      brokenMixedCaseQSA: false,
-      brokenGEBCN: false,
-      brokenCheckedQSA: false,
-      brokenEmptyAttributeQSA: false,
-      isHTMLDocument: false,
-      nativeMatchesSelector: false,
-      hasAttribute: function(node, attribute) {
-        return (attribute in node.attributes) || ((attribute in node.$states) && (attribute in node.pseudos))
-      },
-      getAttribute: function(node, attribute) {
-        return node.attributes[attribute] || ((attribute in node.$states) || node.pseudos[attribute]);
-      }
-    }                 
-    this.events = this.options.events;
+    this.slickFeatures = LSD.Document.Features;
+    if (this.nodeType != 9) this.ownerDocument = this;
+    this.parent.apply(this, arguments);
     this.dominjected = true;
-    this.build();
-  },
-  
-  setParent: function(widget) {
-    if (this.options.root) this.parent.apply(this, arguments);
-  },
-  
-  id: function(item) {
-    if (item.render) return item;
   },
   
   addStylesheet: function(sheet) {
@@ -117,10 +85,26 @@ LSD.Document = new Class({
   }
 });
 
-LSD.Document.prototype.addState('built');
+LSD.Document.Features = {
+  brokenStarGEBTN: false,
+  starSelectsClosedQSA: false,
+  idGetsName: false,
+  brokenMixedCaseQSA: false,
+  brokenGEBCN: false,
+  brokenCheckedQSA: false,
+  brokenEmptyAttributeQSA: false,
+  isHTMLDocument: false,
+  nativeMatchesSelector: false,
+  hasAttribute: function(node, attribute) {
+    return (attribute in node.attributes) || ((attribute in node.$states) && (attribute in node.pseudos))
+  },
+  getAttribute: function(node, attribute) {
+    return node.attributes[attribute] || ((attribute in node.$states) || node.pseudos[attribute]);
+  }
+};
 
 LSD.Document.prototype.addEvents({
-  initialize: function() {
+  build: function() {
     if (this.watch) {
       // Attach behaviour expectations
       LSD.Module.Expectations.attach(this);
