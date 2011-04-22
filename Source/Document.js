@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: Document.js
- 
+
 description: Provides a virtual root to all the widgets. DOM-Compatible for Slick traversals.
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Widget
- 
+
 provides:
   - LSD.Document
- 
+
 ...
 */
 
