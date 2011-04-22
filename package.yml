@@ -54,6 +54,7 @@ sources:
   - Source/Mixin/Resource.js
   - Source/Mixin/Validity.js
   - Source/Mixin/Dialog.js
+  - Source/Mixin/Value.js
   - Source/Module/Container.js
   - Source/Module/Command.js
   - Source/Module/DOM.js
@@ -66,17 +67,16 @@ sources:
   - Source/Module/Render.js
   - Source/Module/Target.js
   - Source/Module/Relations.js
-  - Source/Trait/Dimensions.js
+  - Source/Module/Dimensions.js
+  - Source/Module/Layers.js
+  - Source/Module/Shape.js
   - Source/Trait/Proxies.js
-  - Source/Trait/Layers.js
   - Source/Trait/Menu.js
-  - Source/Trait/Shape.js
   - Source/Trait/Accessibility.js
   - Source/Trait/Animation.js
   - Source/Trait/Choice.js
   - Source/Trait/List.js
   - Source/Trait/Observer.js
-  - Source/Trait/Value.js
   - Source/Trait/Input.js
   - Source/Trait/Slider.js
   - Source/Trait/Form.js
@@ -96,7 +96,6 @@ sources:
   - Source/Action/Append.js
   - Source/Action/Edit.js 
   - Source/Action.js
-  - Source/Container.js
   - Source/Element.js
   - Source/Layout.js
   - Source/Fx.js
