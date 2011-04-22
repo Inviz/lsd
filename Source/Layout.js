@@ -382,9 +382,8 @@ LSD.Layout.extract = function(element) {
   if (element.id) options.id = element.id;
   
   for (var i = 0, attribute; attribute = element.attributes[i++];) {
-    var name = attribute.name;
-    var value = attribute.value || name;
-    options.attributes[name] = (value == null) ? true : value;
+    var name = attribute.name, value = attribute.value;
+    options.attributes[name] = value || LSD.Attributes.Boolean[name] || "";
     var bits = name.split('-'), memo = value;
     for (var j = bits.length - 1; j > -1; j--) {
       var obj = {};
