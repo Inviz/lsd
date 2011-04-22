@@ -134,7 +134,8 @@ LSD.Module.Actions = new Class({
       } else if (result !== false) return;
       return false;
     };
-    action.document =  LSD.Module.DOM.findDocument(targets ? (targets.map ? targets[0] : targets) : this)
+    var probe = targets ? (targets.map ? targets[0] : targets) : this;
+    if (probe.nodeType) action.document =  LSD.Module.DOM.findDocument(probe);
     action.caller = this;
     var ret = (targets) ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);
     delete action.caller, action.document;
