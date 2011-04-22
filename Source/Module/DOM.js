@@ -228,6 +228,7 @@ LSD.Module.DOM = new Class({
     var fragment = document.createFragment(content);
     this.written = Array.prototype.slice.call(fragment.childNodes, 0);
     wrapper.appendChild(fragment);
+    if (this.layout) this.layout.render(this.written, this, 'augment');
     this.innerText = wrapper.get('text').trim();
     return this.written;
   },
