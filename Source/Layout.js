@@ -246,6 +246,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     var skip = (method === false);
     if (!method) method = this.options.method;
     var augmenting = (method == 'augment'), cloning = (method == 'clone');
+    var children = Array.prototype.slice.call(element.childNodes, 0);
     if (!converted || !augmenting) {
       var ascendant = (parent && parent[1]) || parent;
       var transformed = this.transform(element, ascendant);
@@ -258,10 +259,10 @@ LSD.Layout.prototype = Object.append(new Options, {
     var child = widget || clone;
     if (cloning) {
       var textnode = LSD.Layout.TextNodes[LSD.toLowerCase(element.tagName)];
-      if (textnode) this.walk(element, clone ? [clone, parent] : widget || parent, method)
+      if (textnode) this.render(children, clone ? [clone, parent] : widget || parent, method)
     }
     if (parent && child) this.appendChild(child, parent[0] || parent);
-    if (!textnode) this.walk(widget && !element.parentNode ? widget.element : element, clone ? [clone, parent] : widget || parent, method, opts);
+    if (!textnode) this.render(children, clone ? [clone, parent] : widget || parent, method, opts);
     return clone || widget || element;
   },
   
@@ -351,7 +352,8 @@ LSD.Layout.prototype = Object.append(new Options, {
   isAugmentable: function(element, parent, transformed) {
     if (element.nodeType != 1) return true;
     var tag = LSD.toLowerCase(element.tagName);
-    var klass = this.context.find(LSD.toLowerCase(transformed ? transformed.source : tag));
+    var source = transformed ? transformed.source : (element.type ? tag + '-' + element.type : tag)
+    var klass = this.context.find(LSD.toLowerCase(source));
     if (!klass) return;
     var opts = klass.prototype.options;
     return !opts || !opts.element || !opts.element.tag || (opts.element.tag == tag)
