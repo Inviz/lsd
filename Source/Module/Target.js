@@ -36,6 +36,7 @@ provides:
       if (!target && !(target = this.attributes.target)) return false;
       var parsed = this.parseTargetSelector(target);
       var results = [];
+      if (!parsed.each) return parsed;
       parsed.each(function(expression) {
         if (!anchor) anchor = expression.anchor ? expression.anchor.call(this) : (this.document || document.body);
         if (expression.selector) results.push.apply(results, Slick.search(anchor, expression.selector));
