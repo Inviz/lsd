@@ -103,7 +103,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     if (parsed.id) options.id = parsed.id
     if (parsed.attributes) parsed.attributes.each(function(attribute) {
       if (!options.attributes) options.attributes = {};
-      options.attributes[attribute.key] = attribute.value || LSD.Attributes.Boolean[attribute.key];
+      options.attributes[attribute.key] = attribute.value || LSD.Attributes.Boolean[attribute.key] || "";
     });
     if (parsed.classes) options.classes = parsed.classes.map(Macro.map('value'));
     if (parsed.pseudos) {
