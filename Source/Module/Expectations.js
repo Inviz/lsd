@@ -39,8 +39,8 @@ var Expectations = LSD.Module.Expectations = new Class({
       },
       nodeRemoved: function(widget) {
         var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
-        type[tag].erase(this);
-        type["*"].erase(this);
+        type[tag].erase(widget);
+        type["*"].erase(widget);
         update.call(this, widget, tag, false);
       },
       setParent: function(parent) {

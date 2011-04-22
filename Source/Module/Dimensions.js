@@ -13,32 +13,27 @@ requires:
   - LSD.Trait
 
 provides: 
-  - LSD.Trait.Dimensions
+  - LSD.Module.Dimensions
  
 ...
 */
 
 
-LSD.Trait.Dimensions = new Class({
-  options: {
-    events: {
-      _dimensions: {
-        'render': 'setSize'
-      }
-    }
-  },
-  
+LSD.Module.Dimensions = new Class({
   initialize: function() {
     this.size = {};
     this.parent.apply(this, arguments);
   },
   
   setSize: function(size) {
+    if (this.size) var old = Object.append({}, this.size)
     if (!size || !(size.width || size.width)) size = {height: this.getStyle('height'), width: this.getStyle('width')}
     if (!(this.setHeight(size.height, true) + this.setWidth(size.width, true))) return false;
+    this.fireEvent('resize', [this.size, old]);
     var element = this.element, padding = this.offset.padding;
     if (size.height && this.style.expressed.height) element.style.height = size.height - padding.top - padding.bottom + 'px'
     if (size.width && this.style.expressed.width) element.style.width = size.width - padding.left - padding.right + 'px';
+    return true;
   },
   
   setHeight: function(value, light) {

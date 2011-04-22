@@ -58,6 +58,15 @@ LSD.Trait.Proxies = new Class({
     }
   },
   
+  appendChild: function(widget, adoption) {
+    if (!adoption && this.canAppendChild && !this.canAppendChild(widget)) {
+      if (widget.parentNode) widget.dispose();
+      else if (widget.element.parentNode) widget.element.dispose();
+      return false;
+    }
+    return this.parent.apply(this, arguments);
+  },
+  
   canAppendChild: function(child) {
     return !this.proxyChild(child);
   }

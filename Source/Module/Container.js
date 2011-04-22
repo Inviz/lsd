@@ -10,8 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Module
-  - LSD.Container
+  - LSD.Module.DOM
 
 provides:
   - LSD.Module.Container
@@ -21,7 +20,14 @@ provides:
 
 LSD.Module.Container = new Class({
   options: {
-    container: false,
+    container: {
+      enabled: true,
+      position: null,
+      inline: true,
+      attributes: {
+        'class': 'container'
+      }
+    },
     
     proxies: {
       container: {
@@ -37,16 +43,14 @@ LSD.Module.Container = new Class({
     }
   },
   
-  setContent: function(item) {
-    if (item.title) item = item.title;
-    return this.getContainer().set.apply(this.container, arguments);
-  },
-  
   getContainer: Macro.getter('container', function() {
-    return new Moo.Container(this, this.options.container);
+    var options = this.options.container;
+    if (!options.enabled) return;
+    var tag = options.tag || (options.inline ? 'span' : 'div');
+    return new Element(tag, options.attributes).inject(this, options.position);
   }),
   
   getWrapper: function() {
-    return this.getContainer().toElement()
+    return this.getContainer() || this.parent.apply(this, arguments);
   }
 });

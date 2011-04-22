@@ -62,7 +62,8 @@ LSD.Trait.List = new Class({
           alias: 'listWidget',
           states: {
             add: Array.fast('selected')
-          }
+          },
+          pseudos: Array.fast('valued')
         }
       }
     },
@@ -70,9 +71,8 @@ LSD.Trait.List = new Class({
   },
   
   initialize: function() {
-    this.widgets = [];
-    this.list = [];
-    this.parent.apply(this, arguments)
+    this.parent.apply(this, arguments);
+    this.setItems(this.options.items || this.items);
   },
   
   selectItem: function(item) {
@@ -145,12 +145,12 @@ LSD.Trait.List = new Class({
     this.list = [];
     this.widgets = [];
     items.each(this.addItem.bind(this));
-    if (this.options.list.force) this.selectItem(items[0]);
     return this;
   },
   
   addItem: function(item) {
     if (item.setList) var data = item.getValue ? item.getValue() : item.value || $uid(item), widget = item, item = data;
+    if (this.options.list.force && !this.getSelectedItem()) this.selectItem(item);
     if (!this.list.contains(item)) {
       this.list.push(item);
       if (widget) {
@@ -170,7 +170,7 @@ LSD.Trait.List = new Class({
   makeItem: function(item) {
     var widget = this.buildItem.apply(this, arguments);
     widget.item = widget.value = item;
-    if (widget.setContent) widget.setContent(item)
+    if (widget.write) widget.write(item)
     else widget.set('html', item.toString());
     return widget;
   },
@@ -180,7 +180,8 @@ LSD.Trait.List = new Class({
   },
   
   hasItems: function() {
-    return this.getItems() && (this.getItems().length > 0)
+    var items = this.getItems()
+    return items && items.length > 0;
   },
   
   getItemIndex: function(item) {
@@ -188,8 +189,9 @@ LSD.Trait.List = new Class({
   },
   
   findItemByValue: function(value) {
-    for (var i = 0, j = this.widgets.length; i < j; i++) {
-      if (this.widgets[i].value == value) return this.widgets[i];
+    for (var i = 0, widget; widget = this.widgets[i++];) {
+      var val = widget.value == null ? (widget.getValue ? widget.getValue() : null) : widget.value;
+      if (val === value) return this.widgets[i];
     }
     return null;
   },

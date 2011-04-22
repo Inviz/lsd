@@ -164,7 +164,7 @@ Ok, here is an example of everyday coolness that i'm exposed to, because I'm wor
         label: ''
       },
 
-      setContent: function(content) {
+      write: function(content) {
         this.setState('text');
         return this.parent.apply(this, arguments);
       }

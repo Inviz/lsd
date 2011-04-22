@@ -21,7 +21,8 @@ provides:
 
 LSD.Action.Replace = LSD.Action.build({
   enable: function(target, content) {
-    var widget = target.localName ? Element.get(target, 'widget') : target.parentNode;
+    var widget = LSD.Module.DOM.find(target);
+    if (widget == target) widget = widget.parentNode;
 		var fragment = document.createFragment(content);
     var children = Array.prototype.slice.call(fragment.childNodes, 0);
     if (content) target.parentNode.replaceChild(fragment, target);

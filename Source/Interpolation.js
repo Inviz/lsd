@@ -69,7 +69,6 @@ provides:
         console.error(fn, ' interpoaltion function is not found');
         return "";
       }
-        console.log(fn.indexOf ? fn : '', command.arguments)
       var args = Array.prototype.slice.call(command.arguments, 0);
       for (var i = 0, j = args.length; i < j; i++) args[i] = execute(args[i], callback);
       if (command.callback) args.splice(1, 0, callback);

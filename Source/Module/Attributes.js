@@ -49,7 +49,7 @@ LSD.Module.Attributes = new Class({
   
   removeAttribute: function(attribute) {
     delete this.attributes[attribute];
-    if (this.element) this.element.removeProperty(attribute);
+    if (this.element) this.element.removeAttribute(attribute);
   },
 
   setAttribute: function(attribute, value) {
@@ -59,11 +59,8 @@ LSD.Module.Attributes = new Class({
       var logic = LSD.Attributes.Setter[attribute];
       if (logic) logic.call(this, value)
     }
-    if (value === attribute) value = true;
-    if (typeof value != 'string') value = value.toString()  //Slick compat
     this.attributes[attribute] = value;
-    if (attribute != 'slick-uniqueid')
-    if (this.element) this.element.setProperty(attribute, value);
+    if (this.element) this.element.setAttribute(attribute, value);
   },
 
   addPseudo: function(pseudo){
@@ -91,20 +88,16 @@ LSD.Module.Attributes = new Class({
   },
   
   setState: function(state) {
-    if (LSD.States.Attributes[state]) {
-      this.setAttribute(state, true)
-    } else {
-      this.addClass(LSD.States.Classes[state] ? state : 'is-' + state);
-    }
+    var attribute = LSD.States.Attributes[state];
+    if (attribute) this.setAttribute(attribute, attribute)
+    else this.addClass(LSD.States.Classes[state] || 'is-' + state);
     this.addPseudo(state);
   },
   
   unsetState: function(state) {
-    if (LSD.States.Attributes[state]) {
-      this.removeAttribute(state)
-    } else {
-      this.removeClass(LSD.States.Classes[state] ? state : 'is-' + state);
-    }
+    var attribute = LSD.States.Attributes[state];
+    if (attribute) this.removeAttribute(attribute);
+    else this.removeClass(LSD.States.Classes[state] || 'is-' + state);
     this.removePseudo(state);
   },
   
@@ -142,9 +135,5 @@ LSD.Attributes.Setter = {
       if (bits[1].indexOf('px') > -1 || (integer == bits[1])) bits[1] = integer
       //this.setStyle.apply(this, bits);
     }, this);
-  },
-  'disabled': function(value) {
-    if (value == false) this.enable()
-    else this.disable();
   }
 };

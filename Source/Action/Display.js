@@ -21,7 +21,10 @@ provides:
 LSD.Action.Display = LSD.Action.build({
   enable: function(target) {
     if (target.show) target.show();
-    else if (target.setStyle) target.setStyle('display', target.retrieve('style:display') || 'inherit');
+    else if (target.setStyle) {
+      target.setStyle('display', target.retrieve('style:display') || 'inherit');
+      target.removeAttribute('hidden');
+    }
   },
   
   disable: function(target) {
@@ -29,6 +32,7 @@ LSD.Action.Display = LSD.Action.build({
     else if (target.setStyle) {
       target.store('style:display', target.getStyle('display'));
       target.setStyle('display', 'none');
+      target.setAttribute('hidden', 'hidden');
     }
   },
   

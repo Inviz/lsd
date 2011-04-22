@@ -21,8 +21,9 @@ provides:
 
 LSD.Action.Clone = LSD.Action.build({
   enable: function(target) {
-    if (target.localName) var widget = target.get('widget'), element = target, parent = widget;
-    else var widget = target, element = widget.element, parent = widget.parentNode;
+    var widget = LSD.Module.DOM.find(target);
+    if (widget == target) var element = target, parent = widget;
+    else var element = widget.element, parent = widget.parentNode;
     var clone = this.document.layout.render(element, parent, 'clone');
     (clone.toElement ? clone.toElement() : clone).inject(target, 'after');
   }

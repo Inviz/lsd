@@ -91,7 +91,7 @@ LSD.Module.Layout = new Class({
     var element = query.element;
     var transformations = (this.layoutTransformations[LSD.toLowerCase(element.tagName)] || []).concat(this.layoutTransformations['*'] || []);
     for (var i = 0, transformation; transformation = transformations[i++];) {
-      if (Slick.matchR(element, transformation[0], this.element)) query.transformation = transformation[1];
+      if (Slick.match(element, transformation[0], this.element)) query.transformation = transformation[1];
     }
   },
   

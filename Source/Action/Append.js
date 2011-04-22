@@ -20,7 +20,7 @@ provides:
 
 LSD.Action.Append = LSD.Action.build({
   enable: function(target, content) {
-    var widget = target.localName ? Element.get(target, 'widget') : target;
+    var widget = LSD.Module.DOM.find(target);
     var fragment = document.createFragment(content);
     var children = Array.prototype.slice.call(fragment.childNodes, 0);
     document.id(target).appendChild(fragment);

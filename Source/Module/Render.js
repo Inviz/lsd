@@ -21,6 +21,10 @@ provides:
 
 
 LSD.Module.Render = new Class({
+  options: {
+    render: null
+  },
+  
   dirty: true,
   
   build: function() {
@@ -36,39 +40,10 @@ LSD.Module.Render = new Class({
     if (!this.built) this.build();
     delete this.halted;
     this.redraws++;
-    
+    this.fireEvent('render', arguments)
     this.childNodes.each(function(child){
       if (child.render) child.render();
     });
-  },
-  
-  //setDocument: function(document) {
-  //  //var halted = [];
-  //  //this.render();
-  //  this.walk(function(child) {
-  //    //if (child.halted) halted.push(child);
-  //    child.ownerDocument = child.document = document;
-  //    child.fireEvent('dominject', [child.element.parentNode, document]);
-  //    child.dominjected = true;
-  //  });
-  //  //halted.each(function(child) {
-  //  //  child.refresh();
-  //  //})
-  //},
-
-  /*
-    Halt marks widget as failed to render.
-    
-    Possible use cases:
-    
-    - Dimensions depend on child widgets that are not
-      rendered yet
-    - Dont let the widget render when it is not in DOM
-  */ 
-  halt: function() {
-    if (this.halted) return false;
-    this.halted = true;
-    return true;
   },
   
   /*
@@ -98,5 +73,21 @@ LSD.Module.Render = new Class({
   refresh: function(recursive) {
     this.update(recursive);
     return this.render();
+  },
+  
+
+  /*
+    Halt marks widget as failed to render.
+    
+    Possible use cases:
+    
+    - Dimensions depend on child widgets that are not
+      rendered yet
+    - Dont let the widget render when it is not in DOM
+  */ 
+  halt: function() {
+    if (this.halted) return false;
+    this.halted = true;
+    return true;
   }
 });

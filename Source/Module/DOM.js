@@ -120,7 +120,7 @@ LSD.Module.DOM = new Class({
   },
   
   setParent: function(widget){
-    if ('localName' in widget) widget = Element.get(widget, 'widget');
+    widget = LSD.Module.DOM.find(widget);
     this.parentNode = widget;
     this.fireEvent('setParent', [widget, widget.document])
     var siblings = widget.childNodes;
@@ -142,31 +142,24 @@ LSD.Module.DOM = new Class({
   },
   
   appendChild: function(widget, adoption) {
-    if (!adoption && this.canAppendChild && !this.canAppendChild(widget)) {
-      if (widget.parentNode) widget.dispose();
-      else if (widget.element.parentNode) widget.element.dispose();
-      return false;
-    }
     this.childNodes.push(widget);
     widget.setParent(this);
     if (!widget.quiet && (adoption !== false) && this.toElement()) (adoption || function() {
-      this.element.appendChild(document.id(widget));
+      this.element.appendChild(widget.toElement());
     }).apply(this, arguments);
     delete widget.quiet;
-    
     this.fireEvent('adopt', [widget]);
-    widget.walk(function(node) {
+    LSD.Module.DOM.walk(widget, function(node) {
       this.dispatchEvent('nodeInserted', node);
-    }.bind(this));
+    }, this);
     return true;
   },
   
   removeChild: function(widget) {
     widget.unsetParent(this);
-    widget.walk(function(node) {
+    LSD.Module.DOM.walk(widget, function(node) {
       this.dispatchEvent('nodeRemoved', node);
-      node.fireEvent('dispose')
-    }.bind(this));
+    }, this);
     this.childNodes.erase(widget);
   },
   
@@ -182,7 +175,7 @@ LSD.Module.DOM = new Class({
   },
   
   extractDocument: function(widget) {
-    var element = ('localName' in widget) ? widget : widget.element;
+    var element = widget.lsd ? widget.element : widget;;
     var isDocument = widget.documentElement || (instanceOf(widget, LSD.Document));
     var parent = this.parentNode;
     if (isDocument  // if document
@@ -194,31 +187,49 @@ LSD.Module.DOM = new Class({
   },
   
   setDocument: function(document) {
-    return this.walk(function(child) {
+    LSD.Module.DOM.walk(this, function(child) {
       child.ownerDocument = child.document = document;
       child.fireEvent('dominject', [child.element.parentNode, document]);
       child.dominjected = true;
     });
+    return this;
   },
   
   inject: function(widget, where, quiet) {
-    var isElement = 'localName' in widget;
-    if (isElement) {
-      var instance = Element.retrieve(widget, 'widget');
-      if (instance) {
-        widget = instance;
-        isElement = false;
-      }
+    if (!widget.lsd) {
+      var instance = LSD.Module.DOM.find(widget, true)
+      if (instance) widget = instance;
     }
     this.quiet = quiet || (widget.documentElement && this.element && this.element.parentNode);
     if (where === false) widget.appendChild(this, false)
-    else if (!inserters[where || 'bottom'](isElement ? this.toElement() : this, widget) && !quiet) return false;
+    else if (!inserters[where || 'bottom'](widget.lsd ? this : this.toElement(), widget) && !quiet) return false;
     if (quiet !== true || widget.document) {
       var document = widget.document || (this.documentElement ? this : this.extractDocument(widget));
       if (document) this.setDocument(document);
     }
     this.fireEvent('inject', this.parentNode);
 		return this;
+  },
+  
+  /*
+    Wrapper is where content nodes get appended. 
+    Defaults to this.element, but can be redefined
+    in other Modules or Traits (as seen in Container
+    module)
+  */
+  
+  getWrapper: function() {
+    return this.toElement();
+  },
+  
+  write: function(content) {
+    var wrapper = this.getWrapper();
+    if (this.written) for (var node; node = this.written.shift();) Element.dispose(node);
+    var fragment = document.createFragment(content);
+    this.written = Array.prototype.slice.call(fragment.childNodes, 0);
+    wrapper.appendChild(fragment);
+    this.innerText = wrapper.get('text').trim();
+    return this.written;
   },
 
 	replaces: function(el){
@@ -240,6 +251,7 @@ LSD.Module.DOM = new Class({
   dispose: function(element) {
     var parent = this.parentNode;
     if (!parent) return;
+    this.fireEvent('beforeDispose', parent);
     parent.removeChild(this);
     this.fireEvent('dispose', parent);
     if (!element) this.parent.apply(this, arguments);
@@ -259,36 +271,49 @@ LSD.Module.DOM = new Class({
       node = node.parentNode;
     }
     return this;
-  },
-  
-  walk: function(callback) {
-    var children = this.childNodes, length = children.length;
-    callback(this);
-    for (var i = 0; i < length; i++) callback(children[i]);
-		return this;
-  },
-  
-  collect: function(callback) {
-    var result = [];
-    this.walk(function(child) {
-      if (!callback || callback(child)) result.push(child);
-    });
-    return result;
   }
 });
 
-LSD.Module.DOM.findDocument = function(target) {
-  if (target.documentElement) return target;
-  if (target.document) return target.document;
-  if (!target.localName) return;
-  var body = target.ownerDocument.body;
-  var document = (target != body) && Element.retrieve(body, 'widget');
-  while (!document && (target = target.parentNode)) {
-    var widget = Element.retrieve(target, 'widget')
-    if (widget) document = (widget instanceof LSD.Document) ? widget : widget.document;
+Object.append(LSD.Module.DOM, {
+  walk: function(element, callback, bind, memo) {
+    var i = element.lsd ? -1 : 0;
+    for (var nodes = element.childNodes, node; node = (i > -1) ? nodes[i] : element; i++) {
+      if (node.nodeType != 1) continue;
+      var widget = LSD.Module.DOM.find(node, true);
+      if (widget) {
+        var result = callback.call(bind || this, widget, memo);
+        if (result) (memo || (memo = [])).push(widget);
+      }
+      if (i > -1) LSD.Module.DOM.walk(widget || node, callback, bind, memo);
+    }
+    return memo;
+  },
+  
+  find: function(target, lazy) {
+    return target.lsd ? target : ((!lazy || target.uid) && Element[lazy ? 'retrieve' : 'get'](target, 'widget'));
+  },
+  
+  findDocument: function(target) {
+    if (target.documentElement) return target;
+    if (target.document) return target.document;
+    if (target.lsd) return;
+    var body = target.ownerDocument.body;
+    var document = (target != body) && Element.retrieve(body, 'widget');
+    while (!document && (target = target.parentNode)) {
+      var widget = Element.retrieve(target, 'widget')
+      if (widget) document = (widget instanceof LSD.Document) ? widget : widget.document;
+    }
+    return document;
+  },
+  
+  getID: function(target) {
+    if (target.lsd) {
+      return target.attributes.itemid;
+    } else {
+      return target.getAttribute('itemid');
+    }
   }
-  return document;
-}
+});
 
 Element.Events.ready = {
   onAdd: function(fn) {

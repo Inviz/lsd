@@ -42,13 +42,13 @@ LSD.Mixin.Request = new Class({
   },
   
   send: function() {
-		var options = Object.merge({}, this.options.request, {data: this.getRequestData(), url: this.getRequestURL(), method: this.getRequestMethod()});
-		for (var i = 0, j = arguments.length, arg, opts; i < j; i++) {
+    var options = Object.merge({}, this.options.request, {data: this.getRequestData(), url: this.getRequestURL(), method: this.getRequestMethod()});
+    for (var i = 0, j = arguments.length, arg, opts; i < j; i++) {
       var arg = arguments[i];
-			if (!arg) continue;
-			if (typeof arg == 'object') {
-		    if (("url" in arg) || ("method" in arg) || ("data" in arg)) opts = arg
-				else opts = {data: arg};
+      if (!arg) continue;
+      if (typeof arg == 'object' && !arg.event) {
+        if (("url" in arg) || ("method" in arg) || ("data" in arg)) Object.merge(options, arg)
+        else options.data = Object.merge(options.data || {}, arg);
       } else if (arg.call) var callback = arg;
     }
     var request = this.getRequest(options);
@@ -57,7 +57,7 @@ LSD.Mixin.Request = new Class({
   },
   
   getRequest: function(options) {
-		var type = this.getRequestType();
+    var type = this.getRequestType();
     if (!this.request || this.request.type != type) {
       this.request = this[type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options)
       if (!this.request.type) {
@@ -80,7 +80,7 @@ LSD.Mixin.Request = new Class({
   },
   
   onRequestSuccess: function() {
-	  if (this.chainPhase == -1 && this.getCommandAction() == 'send') this.callOptionalChain.apply(this, arguments);
+    if (this.chainPhase == -1 && this.getCommandAction() == 'send') this.callOptionalChain.apply(this, arguments);
   },
   
   onRequest: function() {

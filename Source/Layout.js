@@ -46,7 +46,7 @@ LSD.Layout = function(widget, layout, options) {
   if (!layout) {
     layout = widget;
     widget = null;
-  } else if (widget && widget.localName) widget = this.convert(widget);
+  } else if (widget && !widget.lsd) widget = this.convert(widget);
   this.result = this.render(layout, widget);
 };
 
@@ -74,7 +74,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     var widget = this.build(Object.append({}, opts, this.parse(selector, parent)), parent);
     //debugger
     if (parent) this.appendChild(widget, parent)
-    if (layout) if (layout.charAt) widget.setContent(layout);
+    if (layout) if (layout.charAt) widget.write(layout);
     else this.render(layout, widget, null, opts);
     return widget;
   },
@@ -103,7 +103,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     if (parsed.id) options.id = parsed.id
     if (parsed.attributes) parsed.attributes.each(function(attribute) {
       if (!options.attributes) options.attributes = {};
-      options.attributes[attribute.key] = attribute.value || true;
+      options.attributes[attribute.key] = attribute.value || LSD.Attributes.Boolean[attribute.key];
     });
     if (parsed.classes) options.classes = parsed.classes.map(Macro.map('value'));
     if (parsed.pseudos) {
@@ -291,17 +291,8 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   walk: function(element, parent, method, opts) {
-    var node = element.firstChild, previous;
-    while (node) {
-      if (node.nodeType && node.nodeType != 8) {
-        var rendered = this.render(node, parent, method, opts);
-        if (!node.parentNode) {
-          var el = rendered.element;
-          if (!(node = (el && element.parentNode == element) ? el : (previous || element.firstChild))) continue;
-        }
-      }
-      previous = node;
-      node = node.nextSibling;
+    for (var nodes = Array.prototype.slice.call(element.childNodes, 0), i = 0, node; node = nodes[i++];) {
+      if (node.nodeType && node.nodeType != 8) this.render(node, parent, method, opts);
     }
   },
   
@@ -392,7 +383,7 @@ LSD.Layout.extract = function(element) {
   
   for (var i = 0, attribute; attribute = element.attributes[i++];) {
     var name = attribute.name;
-    var value = (attribute.value == name) || attribute.value;
+    var value = attribute.value || name;
     options.attributes[name] = (value == null) ? true : value;
     var bits = name.split('-'), memo = value;
     for (var j = bits.length - 1; j > -1; j--) {
@@ -428,13 +419,6 @@ LSD.Layout.extract = function(element) {
     delete options.attributes['class'];
   }
   return options;
-};
-
-LSD.Layout.extractID = function(element) {
-  var id = element.id;
-  var index = id.indexOf('_');
-  if (index > -1) id = id.substr(index + 1, id.length - index)
-  return id;
 };
 
 var Converted = LSD.Layout.converted = {};

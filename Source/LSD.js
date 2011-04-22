@@ -32,15 +32,15 @@ if (!window.console.log) window.console.log = function() {};
 var LSD = Object.append(new Events, {
   Events: {},
   Attributes: {
-    Ignore: new FastArray,
-    Numeric: new FastArray('tabindex', 'width', 'height')
+    Ignore: Array.fast(),
+    Numeric: Array.fast('tabindex', 'width', 'height'),
+    Boolean: Array.fast('readonly', 'disabled', 'hidden')
   },
   Styles: {},
   States: {
     Known: {
       built:    {enabler: 'build',    disabler: 'destroy',   reflect: false},
       attached: {enabler: 'attach',   disabler: 'detach',    reflect: false},
-      dirty:    {enabler: 'update',   disabler: 'render',    reflect: false},
       hidden:   {enabler: 'hide',     disabler: 'show'},     
       disabled: {enabler: 'disable',  disabler: 'enable'},   
       focused:  {enabler: 'focus',    disabler: 'blur'},     
@@ -48,7 +48,8 @@ var LSD = Object.append(new Events, {
       checked:  {enabler: 'check',    disabler: 'uncheck',   toggler: 'toggle'},
       expanded: {enabler: 'expand',   disabler: 'collapse',  toggler: 'toggle'},
       working:  {enabler: 'busy',     disabler: 'idle'},
-      chosen:   {enabler: 'choose',   disabler: 'forget'}
+      chosen:   {enabler: 'choose',   disabler: 'forget'},
+      empty:    {enabler: 'empty',    disabler: 'fill',      property: 'unfilled'}
     },
     Positive: {
       disabled: 'disabled',
@@ -58,9 +59,11 @@ var LSD = Object.append(new Events, {
       enabled: 'disabled',
       blured: 'focused'
     },
-    Attributes: new FastArray,
-    Classes: {
+    Attributes: {
       disabled: 'disabled',
+      hidden: 'hidden'
+    },
+    Classes: {
       selected: 'selected'
     }
   },

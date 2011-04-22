@@ -11,42 +11,43 @@ requires:
   - LSD.Trait
  
 provides: 
-  - LSD.Trait.Value
+  - LSD.Mixin.Value
  
 ...
 */
 
-LSD.Trait.Value = new Class({
-  behaviour: '[value]',
+LSD.Mixin.Value = new Class({
+  behaviour: ':read-write, :valued',
   
   options: {
     events: {
       _value: {
         dominject: function() {
           if (!('value' in this)) this.value = this.processValue(this.options.value || this.getRawValue());
-        }
+        },
+        change: 'callChain'
       }
     }
   },
   
   setValue: function(item) {
     if (item == null || (item.event && item.type)) item = this.getRawValue();
-    var value = this.value;
+    this.oldValue = this.value;
     this.value = this.processValue(item);
-    if (value !== this.value) {
+    if (this.oldValue !== this.value) {
       var result = this.applyValue(this.value);
-      this.onChange(this.value);
+      if (this.oldValue != this.value) this.onChange(this.value);
       return result;
     }
   },
   
   applyValue: function(item) {
-    if (this.element.getProperty('itemprop')) this.element.set('itemvalue', item);
+    if (this.attributes.itemprop) this.element.set('itemvalue', item);
   },
   
-  getRawValue: function() {
-    return this.attributes.value || this.attributes.itemid || (this.element && this.element.get('text').trim())
-  },
+  getRawValue: Macro.defaults(function() {
+    return this.attributes.value || LSD.Module.DOM.getID(this) || this.innerText;
+  }),
 
   getValue: function() {
     return this.formatValue(('value' in this) ? this.value : this.getRawValue());

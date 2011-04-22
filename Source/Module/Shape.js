@@ -14,14 +14,24 @@ requires:
   - ART/ART.Shape
   
 provides: 
-  - LSD.Trait.Shape
+  - LSD.Module.Shape
  
 ...
 */
 
-LSD.Trait.Shape = new Class({
+LSD.Module.Shape = new Class({
   options: {
-    shape: 'rectangle'
+    shape: 'rectangle', 
+    events: {
+      shaped: {
+        'render': function() {
+          if (this.setSize()) this.resized = true;
+        },
+        'update': function() {
+          delete this.resized;
+        }
+      }
+    }
   },
   
   getShape: Macro.getter('shape', function(name) {
@@ -33,6 +43,7 @@ LSD.Trait.Shape = new Class({
     var shape = new ART.Shape[name.camelCase().capitalize()];
     shape.name = name;
     shape.widget = this;
+    if (!this.shape) this.addEvents(this.options.events.shaped);
     this.shape = shape;
     return shape;
   },

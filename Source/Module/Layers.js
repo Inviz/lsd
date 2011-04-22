@@ -15,7 +15,7 @@ requires:
   - LSD.Module.Styles
 
 provides: 
-  - LSD.Trait.Layers
+  - LSD.Module.Layers
  
 ...
 */
@@ -23,15 +23,17 @@ provides:
 
 !function() {
 
-LSD.Trait.Layers = new Class({
+LSD.Module.Layers = new Class({
   options: {
     layers: {},
     
     events: {
-      self: {
-        attach: function() {
-          this.style.layers = {};
-          for (var name in this.options.layers) this.addLayer(name, this.options.layers[name]);
+      _layers: {
+        self: {
+          attach: function() {
+            this.style.layers = {};
+            for (var name in this.options.layers) this.addLayer(name, this.options.layers[name]);
+          }
         }
       }
     }

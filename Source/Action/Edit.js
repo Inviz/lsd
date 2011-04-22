@@ -124,12 +124,10 @@ LSD.Native.Form.Edit = new Class({
   },
   
   cancel: function() {
-    console.log('cancel, buyt why?')
     this.fireEvent('cancel', arguments)
   },
   
   submit: function() {
-    console.log('submit')
     if (this.getResource) {
       var Resource = this.getResource();
       new Resource(Object.append(this.getParams(), {id: this.attributes.itemid})).save(function(html) {

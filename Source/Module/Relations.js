@@ -95,9 +95,7 @@ LSD.Module.Relations = new Class({
         }
       }
       if (relation.alias) widget[relation.alias] = origin;
-      if (proxied) {
-        for (var i = 0, proxy; proxy = proxied[i++];) proxy(widget);
-      }
+      if (proxied) for (var i = 0, proxy; proxy = proxied[i++];) proxy(widget);
       if (state && onAdd) onAdd.call(origin, widget);
       if (relation.states) {
         var states = relation.states, get = states.get, set = states.set, add = states.add, method = state ? 'linkState' : 'unlinkState';

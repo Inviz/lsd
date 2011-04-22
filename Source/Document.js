@@ -83,16 +83,6 @@ LSD.Document = new Class({
       },
       getAttribute: function(node, attribute) {
         return node.attributes[attribute] || ((attribute in node.$states) || node.pseudos[attribute]);
-      },
-      compareDocumentPosition: function(self, node) {
-        var context = node.localName ? (self.localName ? self : self.toElement()) : self;
-        if (node) do {
-        	if (node === context) return true;
-        } while ((node = node.parentNode));
-        return false;
-      },
-      documentSorter: function(a, b) {
-        return features.compareDocumentPosition(a, b) & 4 ? -1 : a === b ? 0 : 1;
       }
     }                 
     this.events = this.options.events;
