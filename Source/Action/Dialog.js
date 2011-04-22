@@ -69,6 +69,7 @@ LSD.Action.Dialog = LSD.Action.build({
         }.bind(this)
       })
     }
+    if(substitutions.charAt) dialog.write(substitutions);
     dialog.show();
     this.store(target, dialog);
     return false;

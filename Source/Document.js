@@ -57,6 +57,7 @@ LSD.Document = new Class({
     if (this.nodeType != 9) this.ownerDocument = this;
     this.parent.apply(this, arguments);
     this.dominjected = true;
+    this.build();
   },
   
   addStylesheet: function(sheet) {
