@@ -9,15 +9,8 @@ license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
-requires: 
-  - LSD.Node
-  - LSD.Module.Actions
-  - LSD.Module.Attributes
-  - LSD.Module.DOM
-  - LSD.Module.Events
-  - LSD.Module.Layout
-  - LSD.Module.Expectations
-  - LSD.Module.Relations
+requires:
+  - LSD.Widget
  
 provides:
   - LSD.Document
