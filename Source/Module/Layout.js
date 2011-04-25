@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Module
+  - LSD.Module.Relations
   - LSD.Layout
 
 provides: 
