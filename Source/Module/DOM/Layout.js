@@ -26,6 +26,25 @@ LSD.Module.Layout = new Class({
       extract: false,
       options: {},
       transform: {}
+    },
+    events: {
+      _layout: {
+        build: function() {
+          LSD.Layout.converted[$uid(this.element)] = this;
+          if (this.options.layout.children) this.buildLayout(this.options.layout.children)
+        },
+        write: function(written) {
+          this.getLayout().render(written, this, 'augment');
+        },
+        DOMNodeInserted: 'buildLayout'
+      }
+    }
+  },
+  
+  initializers: {
+    layout: function() {
+      this.childNodes = [];
+      if (!this.layoutTransformations) this.layoutTransformations = {};
     }
   },
   
@@ -44,23 +63,20 @@ LSD.Module.Layout = new Class({
       element = null
     }
     if (!layout) layout = element;
-    this.childNodes = [];
     if (layout) LSD.Layout.converted[$uid(layout)] = this;
-    this.addEvent('build', function() {
-      LSD.Layout.converted[$uid(this.element)] = this;
-      if (this.options.layout.children) this.buildLayout(this.options.layout.children)
-    });
     this.parent(element, options);
     if (this.options.layout.instance !== false) {
       if (layout) this.getLayout(Array.prototype.slice.call(layout.childNodes, 0), this.options.layout.options)
     }
     if (!this.layout) this.layout = LSD.Layout.get(this);
-    if (this.options.layout.self) this.applySelector(this.options.layout.self);
     for (var i in this.options.layout.transform) {
       this.addLayoutTransformations(this.options.layout.transform); 
       break;
     }
-    this.addEvent('DOMNodeInserted', this.buildLayout.bind(this))
+  },
+  
+  setLayout: function(options) {
+    if (!options.layout)
   },
   
   applySelector: function(selector) {
@@ -95,19 +111,24 @@ LSD.Module.Layout = new Class({
     }
   },
   
-  addLayoutTransformations: function(transformations, value) {
-    if (!this.layoutTransformations) this.layoutTransformations = {};
-    if (!this.onLayoutTransformHandler) this.addEvent('layoutTransform', this.onLayoutTransformHandler = this.onLayoutTransform.bind(this));
-    for (var selector in transformations) {
-      selector.split(/\s*,\s*/).each(function(bit) {
-        var parsed = Slick.parse(bit);
-        var expression = parsed.expressions[0];
-        var tag = expression[expression.length - 1].tag;
-        var group = this.layoutTransformations[tag];
-        if (!group) group = this.layoutTransformations[tag] = [];
-        group.push([parsed, transformations[selector]]);
-      }, this)
-    }
+  addLayoutTransformation: function(selector, transformation) {
+    selector.split(/\s*,\s*/).each(function(bit) {
+      var parsed = Slick.parse(bit);
+      var tag = parsed.expressions[0].getLast().tag;
+      var group = this.layoutTransformations[tag];
+      if (!group) group = this.layoutTransformations[tag] = [];
+      group.push([parsed, transformation]);
+    }, this)
+  },
+  
+  removeLayoutTransformation: function(selector, transformation) {
+    selector.split(/\s*,\s*/).each(function(bit) {
+      var parsed = Slick.parse(bit);
+      var tag = parsed.expressions[0].getLast().tag;
+      var group = this.layoutTransformations[tag];
+      for (var i = 0, transformation; transformation = group[i]; i++)
+        if (group[0] == parsed && parsed[1] == transformation) group.splice(i--, 1);
+    }, this)
   },
   
   getLayout: Macro.getter('layout', function(layout, options) {

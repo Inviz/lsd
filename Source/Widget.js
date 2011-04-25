@@ -17,6 +17,7 @@ requires:
   - LSD.Module.Attributes
   - LSD.Module.Events
   - LSD.Module.DOM
+  - LSD.Module.Proxies
   - LSD.Module.Expectations
   - LSD.Module.Relations
   - LSD.Module.Container

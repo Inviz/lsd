@@ -21,18 +21,13 @@ provides:
 
 LSD.Module.Actions = new Class({
   options: {
-    chain: {},
-    states: Array.fast('disabled')
+    actions: {}
   },
   
-  initialize: function() {
-    this.actions = {};
-    this.chainPhase = -1;
-    this.parent.apply(this, arguments);
-    var actions = this.options.actions;
-    for (var name in actions) {
-      var action = actions[name];
-      if (!action.lazy && action.enable && action.disable) this.addAction(name)
+  initializers: {
+    actions: function() {
+      this.chainPhase = -1;
+      this.actions = {}
     }
   },
   
@@ -44,69 +39,14 @@ LSD.Module.Actions = new Class({
     this.getAction.apply(this, arguments).detach(this);
   },
   
-  getAction: function(action) {
-    if (action.perform) return action;
-    if (typeof action == 'string') {
-      if (this.actions[action]) return this.actions[action];
+  getAction: function(name, action) {
+    if (this.actions[name]) return this.actions[name];
+    if (!action) {
+      action = {name: name};
       var actions = this.options.actions;
-      var named = {name: action};
-      if (actions && actions[action]) action = Object.append(actions[action], named);
-      else action = named;
+      if (actions && actions[name]) Object.append(action, actions[name]);
     }
-    var cc = action.name.capitalize();
-    var Action = LSD.Action[cc] || LSD.Action;
-    return this.actions[action.name] || (this.actions[action.name] = new Action(action, action.name))
-  },
-  
-  getActionChain: function() {
-    var actions = [];
-    for (var name in this.options.chain) {
-      var value = this.options.chain[name];
-      var action = (value.indexOf ? this[value] : value).apply(this, arguments);
-      if (action) actions.push(action);
-    }
-    return actions.sort(function(a, b) {
-      return (b.priority || 0) - (a.priority || 0);
-    });
-  },
-  
-  callChain: function() {
-    return this.eachChainAction(function(action, i) {
-      return true;
-    }, Array.prototype.slice.call(arguments, 0), this.chainPhase).actions
-  },
-  
-  callOptionalChain: function() {
-    return this.eachChainAction(function(action, i, priority) {
-      if (priority > 0) return false;
-    }, Array.prototype.slice.call(arguments, 0)).actions
-  },
-  
-  eachChainAction: function(callback, args, index) {
-    if (index == null) index = -1;
-    var chain = this.getActionChain.apply(this, arguments), action, actions;
-    for (var link; link = chain[++index];) {
-      action = link.perform ? link : link.name ? this.getAction(link.name) : null;
-      if (action) {
-        if (callback.call(this, action, index, link.priority || 0) === false) continue;
-        var result = this.execute(link, args);
-        args = null;
-      } else {
-        if (link.arguments) args = link.arguments;
-        if (link.callback) link.callback.apply(this, args);
-      }
-      if (!action || result === true) continue;
-      if (!actions) actions = [];
-      actions.push(action.options.name);
-      if (result === false) break;//action is asynchronous, stop chain
-    }  
-    this.chainPhase = index;
-    if (this.chainPhase == chain.length) this.chainPhase = -1;
-    return {chain: chain, executed: actions};
-  },
-  
-  clearChain: function() {
-    this.chainPhase = -1;
+    return (this.actions[name] = new (LSD.Action[LSD.capitalize(name)] || LSD.Action)(action, name))
   },
   
   execute: function(command, args) {

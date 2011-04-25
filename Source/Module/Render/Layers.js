@@ -24,40 +24,36 @@ provides:
 !function() {
 
 LSD.Module.Layers = new Class({
-  options: {
-    layers: {},
-    
-    events: {
-      _layers: {
-        self: {
-          attach: function() {
-            this.style.layers = {};
-            for (var name in this.options.layers) this.addLayer(name, this.options.layers[name]);
-          }
-        }
-      }
+  initializers: {
+    layers: function() {
+      this.offset = {
+        inside: {},
+        outside: {},
+        padding: {}
+      };
+      this.shapes = {};
+      this.style.layers = {};
+      this.layers = {}
     }
-  },
-  
-  initialize: function() {
-    this.offset = {
-      inside: {},
-      outside: {},
-      padding: {}
-    };
-    this.layers = {};
-    this.shapes = {};
-    this.parent.apply(this, arguments);
-    if (this.options.layers === true) this.options.layers = LSD.Layers;
   },
 
   addLayer: function(name, value) {
-    var slots = this.style.layers;
+    var slots = this.style.layers || (this.style.layers = {});
     var layer = this.layers[name] = LSD.Layer.get(name, Array.concat(value));
     for (var i = 0, painter; painter = layer.painters[i++];) {
       for (var group = painter.keys, j = 0, property; property = group[j++];) {
         if (!slots[property]) slots[property] = [];
         slots[property].push(name);
+      }
+    }
+  },
+  
+  removeLayer: function(name, value) {
+    var slots = this.style.layers || (this.style.layers = {});
+    var layer = this.layers[name] = LSD.Layer.get(name, Array.concat(value));
+    for (var i = 0, painter; painter = layer.painters[i++];) {
+      for (var group = painter.keys, j = 0, property; property = group[j++];) {
+        if (slots[property]) slots[property].erase(name);
       }
     }
   },

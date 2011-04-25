@@ -21,8 +21,6 @@ provides:
 !function() {
   var cache = {};
   LSD.Module.Target = new Class({
-    behaviour: '[target][target!=_blank][target!=false]',
-
     options: {
       chain: {
         target: function() {

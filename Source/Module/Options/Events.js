@@ -33,27 +33,13 @@ provides:
 
 LSD.Module.Events = new Class({
   options: {
-    events: {},
-    states: Array.fast('attached')
-  },
-  
-  initialize: function() {
-    this.addEvents({
-      destroy: function() {
-        this.detach();
-      },
-
-      attach: function() {
-        if (!this.events) this.events = this.options.events ? this.bindEvents(this.options.events) : {};
-        this.addEvents(this.events);
-      },
-
-      detach: function() {
-        this.removeEvents(this.events);
+    events: {
+      _events: {
+        'destroy': 'detach',
+        'build': 'attach'
       }
-    }, true);
-    this.parent.apply(this, arguments);
-    this.attach();
+    },
+    states: Array.fast('attached')
   },
   
   addEvents: function(events) {

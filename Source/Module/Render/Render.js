@@ -25,11 +25,11 @@ LSD.Module.Render = new Class({
     render: null
   },
   
-  dirty: true,
-  
-  build: function() {
-    this.redraws = 0;
-    this.parent.apply(this, arguments)
+  initializers: {
+    render: function() {
+      this.redraws = 0;
+      this.dirty = true;
+    }
   },
   
   stateChange: function() {

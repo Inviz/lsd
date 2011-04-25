@@ -32,7 +32,6 @@ if (!window.console.log) window.console.log = function() {};
 var LSD = Object.append(new Events, {
   Events: {},
   Attributes: {
-    Ignore: Array.fast(),
     Numeric: Array.fast('tabindex', 'width', 'height'),
     Boolean: Array.fast('readonly', 'disabled', 'hidden')
   },

@@ -22,29 +22,6 @@ provides:
 
 
 ;(function() {
-  
-var inserters = {
-
-  before: function(context, element){
-    var parent = element.parentNode;
-    if (parent) return parent.insertBefore(context, element);
-  },
-
-  after: function(context, element){
-    var parent = element.parentNode;
-    if (parent) return parent.insertBefore(context, element.nextSibling);
-  },
-
-  bottom: function(context, element){
-    return element.appendChild(context);
-  },
-
-  top: function(context, element){
-    return element.insertBefore(context, element.firstChild);
-  }
-
-};
-
 LSD.Module.DOM = new Class({
   options: {
     nodeType: 1,
@@ -57,13 +34,11 @@ LSD.Module.DOM = new Class({
     }
   },
   
-  initialize: function() {
-    if (!this.childNodes) this.childNodes = [];
-    this.nodeType = this.options.nodeType
-    this.parentNode = this.nextSibling = this.previousSibling = null;
-    this.fireEvent('initialize')
-    this.parent.apply(this, arguments);
-    this.nodeName = this.tagName = this.options.tag;
+  initializers: {
+    dom: function() {
+      this.nodeType = this.options.nodeType;
+      this.nodeName = this.tagName = this.options.tag;
+    }
   },
   
   toElement: function(){
@@ -228,7 +203,7 @@ LSD.Module.DOM = new Class({
     var fragment = document.createFragment(content);
     this.written = Array.prototype.slice.call(fragment.childNodes, 0);
     wrapper.appendChild(fragment);
-    if (this.layout) this.layout.render(this.written, this, 'augment');
+    this.fireEvent('write', [this.written])
     this.innerText = wrapper.get('text').trim();
     return this.written;
   },
@@ -274,6 +249,30 @@ LSD.Module.DOM = new Class({
     return this;
   }
 });
+
+
+  
+var inserters = {
+
+  before: function(context, element){
+    var parent = element.parentNode;
+    if (parent) return parent.insertBefore(context, element);
+  },
+
+  after: function(context, element){
+    var parent = element.parentNode;
+    if (parent) return parent.insertBefore(context, element.nextSibling);
+  },
+
+  bottom: function(context, element){
+    return element.appendChild(context);
+  },
+
+  top: function(context, element){
+    return element.insertBefore(context, element.firstChild);
+  }
+
+};
 
 Object.append(LSD.Module.DOM, {
   walk: function(element, callback, bind, memo) {

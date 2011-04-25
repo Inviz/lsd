@@ -47,7 +47,8 @@ LSD.Module.Command = new Class({
         var action = this.getCommandAction.apply(this, arguments);
         if (action) return {name: action, priority: 10}
       }
-    }
+    },
+    states: Array.fast('disabled')
   },
 
   getCommand: function(force) {

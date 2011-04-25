@@ -26,10 +26,7 @@ LSD.Node = new Class({
 
   initialize: function(element, options) {
     this.lsd = true;
-    if (element) this.element = document.id(element)
-    this.setOptions(options);
-    var states = this.options.states;
-    if (states) this.addStates(states);
+    if (element) this.element = document.id(element);
   },
   
   dispose: function() {

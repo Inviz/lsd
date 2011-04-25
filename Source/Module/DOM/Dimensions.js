@@ -20,9 +20,10 @@ provides:
 
 
 LSD.Module.Dimensions = new Class({
-  initialize: function() {
-    this.size = {};
-    this.parent.apply(this, arguments);
+  initializers: {
+    size: function() {
+      this.size = {}
+    }
   },
   
   setSize: function(size) {

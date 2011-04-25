@@ -20,28 +20,16 @@ provides:
 */
 
 LSD.Module.Attributes = new Class({
-  
-  initialize: function() {
-    this.classes = new FastArray
-    this.pseudos = new FastArray
-    this.attributes = {}
-    this.parent.apply(this, arguments);
-    if (this.options.id) this.id = this.options.id;
-    var attributes = this.options.attributes;
-    if (attributes) for (var name in attributes) if (!LSD.Attributes.Ignore[name]) this.attributes[name] = attributes[name];
-    this.classes.concat(this.options.classes || []).each(function(kls) {
-      if (LSD.States.Classes[kls]) this.pseudos.push(kls);
-      else this.addClass(kls);
-    }, this);
-    this.pseudos.concat(this.options.pseudos || []).each(function(value) {
-      if (this.$states[value]) this.setStateTo(value, true);
-      else this.addPseudo(value);
-    }, this);
+  initializers: {
+    attributes: {
+      this.classes = new FastArray;
+      this.pseudos = new FastArray;
+      this.attributes = {};
+    }
   },
   
   getAttribute: function(attribute) {
     switch (attribute) {
-      case "id":    return this.id;
       case "class": return this.classes.join(' ');
       default:      return this.attributes[attribute] || this.pseudos[attribute]
     }
@@ -53,7 +41,6 @@ LSD.Module.Attributes = new Class({
   },
 
   setAttribute: function(attribute, value) {
-    if (LSD.Attributes.Ignore[attribute]) return;
     if (LSD.Attributes.Numeric[attribute]) value = value.toInt();
     else {
       var logic = LSD.Attributes.Setter[attribute];
@@ -123,6 +110,9 @@ LSD.Module.Attributes = new Class({
 
 
 LSD.Attributes.Setter = {
+  'id': function(id) {
+    this.id = id;
+  },
   'class': function(value) {
     value.split(' ').each(this.addClass.bind(this));
   },

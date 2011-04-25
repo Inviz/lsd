@@ -9,33 +9,33 @@ license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
-requires:
-  - LSD.Trait
-  - LSD.Module.Expectations
+extends:
+  - LSD.Module.DOM
 
 provides: 
-  - LSD.Trait.Proxies
+  - LSD.Module.Proxies
 
 ...
 */
-
-LSD.Trait.Proxies = new Class({
   
-  options: {
-    proxies: {}
+LSD.Module.Proxies = new Class({
+  initializers: {
+    proxies: function() {
+      this.proxies = [];
+    }
   },
   
-  getProxies: Macro.getter('proxies', function() {
-    var options = this.options.proxies;
-    var proxies = [];
-    for (var name in options) proxies.push(options[name]);
-    return proxies.sort(function(a, b) {
-      return (b.priority || 0) - (a.priority || 0)
-    })
-  }),
+  addProxy: function(name, proxy) {
+    for (var i = 0, other; other = this.proxies[i++] && (proxy.priority || 0) < (other.priority || 0));
+    this.proxies.splice(i, 0, proxy);
+  },
+  
+  removeProxy: function(name, proxy) {
+    this.proxies.erase(proxy);
+  },
   
   proxyChild: function(child) {
-    for (var i = 0, proxies = this.getProxies(), proxy; proxy = proxies[i++];) {
+    for (var i = 0, proxies = this.proxies, proxy; proxy = proxies[i++];) {
       if (typeof proxy == 'string') proxy = this.options.proxies[proxy];
       if (!proxy.condition.call(this, child)) continue;
       var self = this;
@@ -64,7 +64,7 @@ LSD.Trait.Proxies = new Class({
       else if (widget.element.parentNode) widget.element.dispose();
       return false;
     }
-    return this.parent.apply(this, arguments);
+    return LSD.Module.DOM.prototype.appendChild.apply(this, arguments);
   },
   
   canAppendChild: function(child) {

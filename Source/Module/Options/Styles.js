@@ -39,38 +39,32 @@ var setStyle = function(element, property, value, type) {
 }
 
 LSD.Module.Styles = new Class({
-  
-  options: {
-    styles: {},
-    events: {
-      _styles: {
-        update: function() {
-          this.style.calculated = {};
-          this.style.computed = {};
+  initializers: {
+    style: function() {
+      this.rules = [];
+      this.style = {
+        current: {},    //styles that widget currently has
+        found: {},      //styles that were found in stylesheets
+        given: {},      //styles that were manually assigned
+
+        changed: {},    //styles that came from stylesheet since last render
+        calculated: {}, //styles that are calculated in runtime
+        computed: {},   //styles that are already getStyled
+        expressed: {},  //styles that are expressed through function
+        implied: {},    //styles that are assigned by environment
+
+        element: {},    //styles that are currently assigned to element
+        paint: {}       //styles that are currently used to paint
+      };
+      return {
+        events: {
+          update: function() {
+            this.style.calculated = {};
+            this.style.computed = {};
+          }
         }
-      }
+      } 
     }
-  },
-
-  initialize: function() {
-    this.style = {
-      current: {},    //styles that widget currently has
-      found: {},      //styles that were found in stylesheets
-      given: {},      //styles that were manually assigned
-
-      changed: {},    //styles that came from stylesheet since last render
-      calculated: {}, //styles that are calculated in runtime
-      computed: {},   //styles that are already getStyled
-      expressed: {},  //styles that are expressed through function
-      implied: {},    //styles that are assigned by environment
-
-      element: {},    //styles that are currently assigned to element
-      paint: {}       //styles that are currently used to paint
-    };
-    this.rules = [];
-    this.parent.apply(this, arguments);
-    Object.append(this.style.current, this.options.styles);
-    for (var property in this.style.current) this.setStyle(property, this.style.current[property])
   },
 
   setStyle: function(property, value) {
@@ -86,7 +80,6 @@ LSD.Module.Styles = new Class({
       value = value.call(this, property);
     }
     var result = (css || paint)[value.push ? 'apply' : 'call'](this, value);
-    if (property == 'stroke') console.info(value, result, $t = this, this.element);
     if (result === true || result === false) setStyle.call(this, css, property, value, type);
     else for (var prop in result) setStyle.call(this, css, prop, result[prop], type);
     if (expression) {

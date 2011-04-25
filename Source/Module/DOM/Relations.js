@@ -19,29 +19,6 @@ provides:
 */
 
 LSD.Module.Relations = new Class({
-  options: {
-    has: {
-      one: null,
-      many: null
-    }
-  },
-  
-  initialize: function() {
-    this.parent.apply(this, arguments);
-    var has = this.options.has, one = has.one, many = has.many;
-    if (one) for (var name in one) {
-      var value = one[name];
-      if (value.indexOf) value = {selector: value}
-      this.addRelation(name, value);
-    }
-    if (many) for (var name in many) {
-      var value = many[name];
-      if (value.indexOf) value = {selector: value}
-      value.multiple = true;
-      this.addRelation(name, value);
-    }
-  },
-  
   addRelation: function(name, relation, callback) {
     if (!this.$relations) this.$relations = {};
     this.$relations[name] = relation = Object.append({name: name}, relation.indexOf ? {selector: relation} : relation);
@@ -72,11 +49,7 @@ LSD.Module.Relations = new Class({
         }
       });
     }
-    if (relation.transform) {
-      var transformation = {};
-      transformation[relation.transform] = relation.layout;
-      this.addLayoutTransformations(transformation);
-    }
+    if (relation.transform) this.addLayoutTransformation(relation.transform, relation.layout);
     relation.watcher = function(widget, state) {
       if (relation.events) {
         if (!events) events = origin.bindEvents(relation.events);

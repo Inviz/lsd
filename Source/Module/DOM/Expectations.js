@@ -23,36 +23,9 @@ provides:
 !function() {
   
 var Expectations = LSD.Module.Expectations = new Class({
-  initialize: function() {
-    this.expectations = {};
-    this.addEvents({
-      nodeInserted: function(widget) {
-        var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
-        if (!type) type = expectations.tag = {};
-        var group = type[tag];
-        if (!group) group = type[tag] = [];
-        group.push(widget);
-        group = type['*'];
-        if (!group) group = type['*'] = [];
-        group.push(widget);
-        update.call(this, widget, tag, true);
-      },
-      nodeRemoved: function(widget) {
-        var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
-        type[tag].erase(widget);
-        type["*"].erase(widget);
-        update.call(this, widget, tag, false);
-      },
-      setParent: function(parent) {
-        notify(this, '!>', parent.tagName, true, parent);
-        for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, true, parent);
-      },
-      unsetParent: function(parent) {
-        notify(this, '!>', parent.tagName, false, parent);
-        for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, false, parent);
-      }
-    }, true);
-    this.parent.apply(this, arguments);
+  
+  options: {
+    _expectations: Expectations.events
   },
   
   getElementsByTagName: function(tag) {
@@ -241,6 +214,34 @@ var Expectations = LSD.Module.Expectations = new Class({
     }, this)
   }
 });
+
+Expectations.events = {
+  nodeInserted: function(widget) {
+    var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
+    if (!type) type = expectations.tag = {};
+    var group = type[tag];
+    if (!group) group = type[tag] = [];
+    group.push(widget);
+    group = type['*'];
+    if (!group) group = type['*'] = [];
+    group.push(widget);
+    update.call(this, widget, tag, true);
+  },
+  nodeRemoved: function(widget) {
+    var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
+    type[tag].erase(widget);
+    type["*"].erase(widget);
+    update.call(this, widget, tag, false);
+  },
+  setParent: function(parent) {
+    notify(this, '!>', parent.tagName, true, parent);
+    for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, true, parent);
+  },
+  unsetParent: function(parent) {
+    notify(this, '!>', parent.tagName, false, parent);
+    for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, false, parent);
+  }
+};
 
 var pseudos = {};
 var check = function(widget, type, value, state, target) {
