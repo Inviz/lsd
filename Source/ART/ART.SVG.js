@@ -116,7 +116,7 @@ ART.SVG.Base.implement({
     this.element.setAttribute('filter', 'url(#' + id + ')');
   
     return filter;
-  },
+  }
 });
 
 }();

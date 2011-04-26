@@ -121,10 +121,17 @@ Object.append(LSD, {
     return (object.lsd = ++LSD.UID); 
   },
   
-  UID: 0
+  UID: 0,
+  
+  slice: (Browser.ie ? function(list, start) {
+    for (var i = start || 0, j = list.length, ary = []; i < j; i++) ary.push(list[i]);
+    return ary;
+  } : function(list, start) {
+    return Array.prototype.slice.call(list, start || 0);
+  })
 });
 
 
 States.get = function(name) { 
   return LSD.States.Known[name];
-}
+};

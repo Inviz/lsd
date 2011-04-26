@@ -167,7 +167,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   */
   
   translate: function(method) {
-    var args = Array.prototype.splice.call(arguments, 1);
+    var args = Array.prototype.slice.call(arguments, 1);
     return this[method].apply(this, args) || (this.options.fallback && this[this.options.fallback].apply(this, args));
   },
   
@@ -239,7 +239,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     var skip = (method === false);
     if (!method) method = this.options.method;
     var augmenting = (method == 'augment'), cloning = (method == 'clone');
-    var children = Array.prototype.slice.call(element.childNodes, 0);
+    var children = LSD.slice(element.childNodes);
     if (!converted || !augmenting) {
       var ascendant = (parent && parent[1]) || parent;
       var mutated = this.mutate(element, ascendant);
