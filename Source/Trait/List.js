@@ -63,11 +63,18 @@ LSD.Trait.List = new Class({
           states: {
             add: Array.fast('selected')
           },
-          pseudos: Array.fast('valued')
+          pseudos: Array.fast('valued'),
+          callbacks: {
+            'fill': 'fill',
+            'empty': 'empty'
+          }
         }
       }
     },
-    pseudos: Array.fast('list')
+    pseudos: Array.fast('list'),
+    states: {
+      empty: true
+    }
   },
   
   initialize: function() {
@@ -152,7 +159,6 @@ LSD.Trait.List = new Class({
     if (item.setList) var data = item.getValue ? item.getValue() : item.value || $uid(item), widget = item, item = data;
     if (this.options.list.force && !this.getSelectedItem()) this.selectItem(item);
     if (!this.list.contains(item)) {
-      this.list.push(item);
       if (widget) {
         widget.listWidget = this;
         this.widgets.push(widget);

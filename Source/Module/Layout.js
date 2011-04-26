@@ -66,7 +66,7 @@ LSD.Module.Layout = new Class({
   applySelector: function(selector) {
     var parsed = Slick.parse(selector).expressions[0][0];
     if (parsed.classes) {
-      var klasses = parsed.classes.map(function(klass) { return klass.value })
+      var klasses = parsed.classes.map(function(klass) { return klass.value });
       this.classes.push.apply(this.classes, klasses);
       klasses.each(this.addClass.bind(this));
     }

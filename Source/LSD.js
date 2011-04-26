@@ -49,7 +49,7 @@ var LSD = Object.append(new Events, {
       expanded: {enabler: 'expand',   disabler: 'collapse',  toggler: 'toggle'},
       working:  {enabler: 'busy',     disabler: 'idle'},
       chosen:   {enabler: 'choose',   disabler: 'forget'},
-      empty:    {enabler: 'empty',    disabler: 'fill',      property: 'unfilled'}
+      empty:    {enabler: 'empty',    disabler: 'fill',      property: 'unfilled', initial: true}
     },
     Positive: {
       disabled: 'disabled',
@@ -64,7 +64,8 @@ var LSD = Object.append(new Events, {
       hidden: 'hidden'
     },
     Classes: {
-      selected: 'selected'
+      selected: 'selected',
+      empty: 'empty'
     }
   },
   Layers: {

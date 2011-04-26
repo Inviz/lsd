@@ -212,7 +212,7 @@ var Expectations = LSD.Module.Expectations = new Class({
       this.unexpect(expressions[depth], callback, function(widget) {
         if (expressions[depth + 1]) widget.unwatch(selector, callback, depth + 1)
         else callback(widget, false)
-      })
+      });
     }, this);
   },
   
