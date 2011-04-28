@@ -21,9 +21,12 @@ provides:
 
 LSD.Action.Delete = LSD.Action.build({
   enable: function(target) {
-    if (!target.lsd) LSD.Module.DOM.walk(target, function(node) {
-      widget.dispatchEvent('nodeRemoved', node);
-    })
+    if (!target.lsd) {
+      var widget = LSD.Module.DOM.find(target);
+      LSD.Module.DOM.walk(target, function(node) {
+        widget.dispatchEvent('nodeRemoved', node);
+      });
+    }
     target.dispose();
     if (target.getModel) return target.getModel()['delete']()
   }
