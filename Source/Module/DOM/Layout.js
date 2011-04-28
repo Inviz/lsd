@@ -22,79 +22,50 @@ provides:
 LSD.Module.Layout = new Class({
   options: {
     layout: {
-      instance: null,
+      render: true,
       extract: false,
-      options: {},
-      transform: {}
-    },
-    events: {
-      _layout: {
-        build: function() {
-          LSD.Layout.converted[$uid(this.element)] = this;
-          if (this.options.layout.children) this.buildLayout(this.options.layout.children)
-        },
-        write: function(written) {
-          this.getLayout().render(written, this, 'augment');
-        },
-        DOMNodeInserted: 'buildLayout'
-      }
+      transform: {},
+      options: {}
     }
   },
   
   initializers: {
-    layout: function() {
+    layout: function(options, element) {
       this.childNodes = [];
-      if (!this.layoutTransformations) this.layoutTransformations = {};
-    }
-  },
-  
-  initialize: function(element, options) {
-    if ((element && !element.tagName) || (options && options.tagName)) {
-      var el = options;
-      options = element;
-      element = el;
-    }
-    var opts = options && options.layout && options.layout.options;
-    var clone = ((opts && opts.method) || this.options.layout.method) == 'clone';
-    var extract = (opts && opts.extract) || this.options.layout.extract;
-    if (element && (clone || extract)) options = Object.append(options || {}, LSD.Layout.extract(element));
-    if (clone) {
-      var layout = element;
-      element = null
-    }
-    if (!layout) layout = element;
-    if (layout) LSD.Layout.converted[$uid(layout)] = this;
-    this.parent(element, options);
-    if (this.options.layout.instance !== false) {
-      if (layout) this.getLayout(Array.prototype.slice.call(layout.childNodes, 0), this.options.layout.options)
-    }
-    if (!this.layout) this.layout = LSD.Layout.get(this);
-    for (var i in this.options.layout.transform) {
-      this.addLayoutTransformations(this.options.layout.transform); 
-      break;
+      var layout = options.layout, clone = (layout.options.method == 'clone');
+      if (!element) return;
+      if (clone || layout.render) layout.template = Array.prototype.slice.call(element.childNodes, 0);
+      if (clone)  delete this.element;
+      
+      return {
+        events: {
+          build: function() {
+            LSD.Layout.converted[$uid(this.element)] = this;
+            this.setLayout(this.options.layout);
+          },
+          write: function(written) {
+            this.getLayout().render(written, this, 'augment');
+          },
+          DOMNodeInserted: 'buildLayout'
+        }
+      }
     }
   },
   
   setLayout: function(options) {
-    if (!options.layout)
+    if (options.extract) options.extracted = LSD.Layout.extract(element);
+    if (options.extracted) this.setOptions(options.extracted);
+    if (options.template) this.buildLayout(options.template);
+    if (options.children) this.buildLayout(options.children);
   },
   
   applySelector: function(selector) {
     var parsed = Slick.parse(selector).expressions[0][0];
-    if (parsed.classes) {
-      var klasses = parsed.classes.map(function(klass) { return klass.value })
-      this.classes.push.apply(this.classes, klasses);
-      klasses.each(this.addClass.bind(this));
-    }
-    var options = {};
-    if (parsed.id) options.id = parsed.id;
-    if (parsed.attributes) {
-      if (parsed.attributes) parsed.attributes.each(function(attribute) {
-        options[attribute.key] = attribute.value || true;
-      });
-    }  
-    if (parsed.attributes || parsed.id) Object.append(this.options, options);
-    this.fireEvent('selector', [parsed, selector]);
+    if (parsed.classes) parsed.classes.map(function(klass) { return klass.value }).each(this.addClass, this);
+    if (parsed.id) this.setAttribute('id', parsed.id);
+    if (parsed.attributes) parsed.attributes.each(function(attribute) {
+      this.setAttribute(attribute.key, attribute.value);
+    }, this);
   },
   
   transformLayout: function(element, layout) {
@@ -112,6 +83,7 @@ LSD.Module.Layout = new Class({
   },
   
   addLayoutTransformation: function(selector, transformation) {
+    if (!this.layoutTransformations) this.layoutTransformations = {};
     selector.split(/\s*,\s*/).each(function(bit) {
       var parsed = Slick.parse(bit);
       var tag = parsed.expressions[0].getLast().tag;

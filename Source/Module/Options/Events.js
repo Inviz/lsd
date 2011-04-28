@@ -33,43 +33,18 @@ provides:
 
 LSD.Module.Events = new Class({
   options: {
-    events: {
-      _events: {
-        'destroy': 'detach',
-        'build': 'attach'
-      }
-    },
     states: Array.fast('attached')
   },
   
-  addEvents: function(events) {
-    return this.setEvents(events, true);
-  },
-  
-  removeEvents: function(events) {
-    return this.setEvents(events, false);
-  },
-  
-  setEvents: function(events, state) {
-    var convert = LSD.Module.Events.target, method = state ? 'addEvents' : 'removeEvents', old = Events.prototype[method];
-    for (var i in events) { 
-      if (events[i].call) { //stick to old behaviour when key: function object is passed
-        old.call(this, events);
-      } else {
-        for (var name in events) {
-          var subset = events[name];
-          if (!subset) continue;
-          var target = convert(this, name)
-          if (!target) continue;
-          if (target != this) {
-            if (target == true) target = this;
-            target[method](subset);
-          } else old.call(this, subset);
+  initializers: {
+    events: function() {
+      return {
+        events: {
+          'destroy': 'detach',
+          'build': 'attach'
         }
-      };  
-      break;
+      }
     }
-    return events;
   },
   
   bindEvents: function(tree) {

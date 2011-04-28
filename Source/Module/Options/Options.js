@@ -22,7 +22,29 @@ provides:
 */
 
 LSD.Module.Options = new Class({
-  Implements: [LSD.Module.Attributes, LSD.Module.Events, LSD.Module.Shortcuts, LSD.Module.Styles, Shortcuts],
+  Implements: [LSD.Module.Attributes, LSD.Module.Events, LSD.Module.Styles, Shortcuts],
+  
+  options: {},
+  
+  initialize: function(element, options) {
+    if ((element && !element.tagName) || (options && options.tagName)) {
+      var el = options;
+      options = element;
+      element = el;
+    }
+    this.element = element;
+    Object.merge(this.options, options)
+    var initialized = []
+    for (var name in this.initializers) {
+      var initializer = this.initializers[name];
+      if (initializer) {
+        var result = initializer.call(this, this.options, this.element);
+        if (result) initialized.push(result);
+      }
+    }
+    this.parent(element, options);
+    initialized.each(this.setOptions, this);
+  },
   
   setOptions: function(options, remove) {
     for (var name in options) {
@@ -33,6 +55,16 @@ LSD.Module.Options = new Class({
         }
         var mode = remove ? 'remove' : 'add';
         var method = setter[mode];
+        if (setter.target) for (var i in value) {
+          if (!value.indexOf && !value.call) method = (function(old, target) {
+            return function(name, value) {
+              var object = target.call(this, name, value);
+              if (object === true) target = this;
+              if (object) (old.charAt ? target[old] : old).call(target, value);
+            }
+          }(method, setter.target));
+          break;
+        }
         if (method.charAt) method = this[method];
         if (setter.iterate) {
           if (value.each) for (var i = 0, j = value.length; i < j; i++) method.call(this, value[i]);
@@ -82,9 +114,10 @@ Object.append(LSD.Options, {
     iterate: true
   },
   events: {
-    add: 'addEvents'
-    remove: 'removeEvents'
-    process: 'bindEvents'
+    add: 'addEvents',
+    remove: 'removeEvents',
+    process: 'bindEvents',
+    target: LSD.Module.Events.target
   },
   shortcuts: {
     add: 'addShortcut',

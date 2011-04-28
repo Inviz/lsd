@@ -24,8 +24,12 @@ provides:
   
 var Expectations = LSD.Module.Expectations = new Class({
   
-  options: {
-    _expectations: Expectations.events
+  initializers: {
+    expectations: function() {
+      return {
+        events: Expectations.events
+      }
+    }
   },
   
   getElementsByTagName: function(tag) {

@@ -50,10 +50,6 @@ LSD.Layout = function(widget, layout, options) {
   this.result = this.render(layout, widget);
 };
 
-LSD.Layout.get = function(object) {
-  return LSD.Layout.current || LSD.document.layout;
-};
-
 LSD.Layout.prototype = Object.append(new Options, {
   
   options: {

@@ -20,8 +20,8 @@ provides:
 ...
 */
 
+!function() {
 
-;(function() {
 LSD.Module.DOM = new Class({
   options: {
     nodeType: 1,
@@ -35,9 +35,9 @@ LSD.Module.DOM = new Class({
   },
   
   initializers: {
-    dom: function() {
-      this.nodeType = this.options.nodeType;
-      this.nodeName = this.tagName = this.options.tag;
+    dom: function(options) {
+      this.nodeType = options.nodeType;
+      this.nodeName = this.tagName = options.tag;
     }
   },
   
@@ -335,4 +335,4 @@ Element.Events.contentready = {
   }
 };
 
-})();
+}();
