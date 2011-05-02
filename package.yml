@@ -67,14 +67,14 @@ sources:
   - Source/Module/Behavior/Actions.js
   - Source/Module/Behavior/Target.js
   - Source/Module/Behavior.js
-  - Source/Module/State/Styles.js
-  - Source/Module/State/Attributes.js
-  - Source/Module/State/Events.js
-  - Source/Module/State/Dimensions.js
-  - Source/Module/State/Shortcuts.js
-  - Source/Module/State/Options.js
-  - Source/Module/State/States.js
-  - Source/Module/State/Element.js
+  - Source/Module/Accessories/Styles.js
+  - Source/Module/Accessories/Attributes.js
+  - Source/Module/Accessories/Events.js
+  - Source/Module/Accessories/Dimensions.js
+  - Source/Module/Accessories/Shortcuts.js
+  - Source/Module/Accessories/Options.js
+  - Source/Module/Accessories/States.js
+  - Source/Module/Accessories/Element.js
   - Source/Module/State.js
   - Source/Module/Graphics/Render.js
   - Source/Module/Graphics/Layers.js

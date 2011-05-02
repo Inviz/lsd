@@ -1,7 +1,7 @@
 /*
 ---
 
-script: State.js
+script: Acessories.js
 
 description: Things that change the widget in one module
 
@@ -20,13 +20,20 @@ requires:
   - LSD.Module.Element
 
 provides: 
-  - LSD.Module.State
+  - LSD.Module.Acessories
 
 ...
 */
 
-LSD.Module.State = new Class;
-
-['Options', 'States', 'Attributes', 'Events', 'Dimensions', 'Styles', 'Shortcuts', 'Element'].each(function(name) {
-  Object.merge(LSD.Module.State.prototype, LSD.Module[name].prototype);
+LSD.Module.Accessories = new Class({
+  Implements: [
+    LSD.Module.Options,
+    LSD.Module.States,
+    LSD.Module.Attributes,
+    LSD.Module.Events,
+    LSD.Module.Dimensions,
+    LSD.Module.Styles,
+    LSD.Module.Shortcuts,
+    LSD.Module.Element
+  ]
 });
