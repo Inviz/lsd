@@ -345,16 +345,17 @@ LSD.Layout.prototype = Object.append(new Options, {
   isAugmentable: function(element, parent, mutated) {
     if (element.nodeType != 1) return true;
     var tag = LSD.toLowerCase(element.tagName);
-    var source = mutated ? mutated.source : (element.type ? tag + '-' + element.type : tag)
+    var source = mutated ? mutated.source : (element.type ? tag + '-' + element.type : tag);
     var klass = this.context.find(LSD.toLowerCase(source));
     if (!klass) return;
     var opts = klass.prototype.options;
-    return !opts || !opts.element || !opts.element.tag || (opts.element.tag == tag)
+    return !opts || !opts.element || !opts.element.tag || (opts.element.tag == tag);
   }
+  
 });
 
 LSD.Layout.NodeTypes = {1: 'element', 3: 'textnode', 11: 'fragment'};
-LSD.Layout.TextNodes = Array.fast('script', 'button', 'textarea', 'option', 'input')
+LSD.Layout.TextNodes = Array.fast('script', 'button', 'textarea', 'option', 'input');
 
 /* 
   Extracts options from a DOM element.

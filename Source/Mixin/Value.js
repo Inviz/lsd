@@ -41,9 +41,9 @@ LSD.Mixin.Value = new Class({
     }
   },
   
-  applyValue: function(item) {
+  applyValue: Macro.defaults(function(item) {
     if (this.attributes.itemprop) this.element.set('itemvalue', item);
-  },
+  }),
   
   getRawValue: Macro.defaults(function() {
     return this.attributes.value || LSD.Module.DOM.getID(this) || this.innerText;

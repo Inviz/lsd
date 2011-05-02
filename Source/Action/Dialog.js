@@ -20,8 +20,13 @@ provides:
 
 
 LSD.Action.Dialog = LSD.Action.build({
-  enable: function(target, substitutions) {
-    if (substitutions && substitutions.event) substitutions = null;
+  enable: function(target, data) {
+    if (data && !data.event) {
+      if (data.charAt) {
+        var content = data;
+        delete data;
+      }
+    } else delete data;
     if (target.element) {
       var dialog = target;
       target = target.element;
@@ -38,8 +43,8 @@ LSD.Action.Dialog = LSD.Action.build({
           options: {
             method: 'clone', 
             interpolate: function(string) {
-              if (substitutions) {
-                var substitution = substitutions[string];
+              if (data) {
+                var substitution = data[string];
                 if (!substitution && substitutions.callback) substitution = substitutions.callback.call(this, string)
                 if (substitution) {
                   if (substitution.call) substitution = substitution.call(source, string, this);
@@ -69,6 +74,7 @@ LSD.Action.Dialog = LSD.Action.build({
         }.bind(this)
       })
     }
+    if (content) dialog.write(content);
     dialog.show();
     this.store(target, dialog);
     return false;

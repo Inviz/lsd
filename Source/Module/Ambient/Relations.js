@@ -23,9 +23,9 @@ LSD.Module.Relations = new Class({
     if (!this.$relations) this.$relations = {};
     this.$relations[name] = relation = Object.append({name: name}, relation.indexOf ? {selector: relation} : relation);
     var origin = relation.origin || this, events;
+    var callbacks = relation.callbacks ? origin.bindEvents(relation.callbacks) : {}
     if (!relation.layout) relation.layout = relation.selector || name;
     if (name && relation.multiple) origin[name] = [];
-    if (relation.callbacks) var cb = origin.bindEvents(relation.callbacks), onAdd = cb.add, onRemove = cb.remove;
     this.options.layout[name] = relation.layout;
     if (relation.proxy) {
       var proxied = [];
@@ -57,11 +57,14 @@ LSD.Module.Relations = new Class({
         widget[state ? 'addEvents' : 'removeEvents'](events);
       }
       if (callback) callback.call(origin, widget, state);
-      if (!state && onRemove) onRemove.call(origin, widget);
+      if (!state && callbacks.remove) callbacks.remove.call(origin, widget);
       if (name) {
         if (relation.multiple) {
-          if (state) origin[name].push(widget)
-          else origin[name].erase(widget);
+          if (state) {
+            if (origin[name].push(widget) == 1) if (callbacks.fill) callbacks.fill.call(origin, widget)
+          } else {
+            if (origin[name].erase(widget).length == 0) if (callbacks.empty) callbacks.empty.call(origin, widget)
+          }
           if (relayed && (origin[name].length == +state)) origin.element[state ? 'addEvents' : 'removeEvents'](relayed);
         } else {
           if (state) origin[name] = widget;
@@ -70,7 +73,7 @@ LSD.Module.Relations = new Class({
       }
       if (relation.alias) widget[relation.alias] = origin;
       if (proxied) for (var i = 0, proxy; proxy = proxied[i++];) proxy(widget);
-      if (state && onAdd) onAdd.call(origin, widget);
+      if (state && callbacks.add) callbacks.add.call(origin, widget);
       if (relation.states) {
         var states = relation.states, get = states.get, set = states.set, add = states.add, method = state ? 'linkState' : 'unlinkState';
         if (get) for (var from in get) widget[method](origin, from, (get[from] === true) ? from : get[from]);
