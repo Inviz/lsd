@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Module
+  - LSD.Module.DOM
 
 provides: 
   - LSD.Module.Render
@@ -31,7 +31,7 @@ LSD.Module.Render = new Class({
       this.dirty = true;
       return {
         events: {
-          'stateChange': function() {
+          stateChange: function() {
             if (this.redraws > 0) this.refresh(true);
           }
         }
@@ -58,7 +58,7 @@ LSD.Module.Render = new Class({
   */
   
   update: function(recursive) {
-    if (recursive) this.walk(function(widget) {
+    if (recursive) LSD.Module.DOM.walk(this, function(widget) {
       widget.update();
     });
   },

@@ -25,7 +25,7 @@ provides:
       chain: {
         target: function() {
           var action = this.getTargetAction();
-          if (action) return {name: action, target: this.getTarget, arguments: this.getTargetArguments}
+          if (action) return {action: action, target: this.getTarget, arguments: this.getTargetArguments}
         }
       }
     },
@@ -73,7 +73,7 @@ provides:
     },
 
     getTargetAction: function() {
-      return this.attributes.interaction || this.options.targetAction;
+      return this.attributes.interaction;
     }
   });
   

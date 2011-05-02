@@ -40,7 +40,7 @@ LSD.Trait.List = new Class({
     },
     events: {
       attach: function() {
-        var items = this.list.length ? this.list : this.options.list.items;
+        var items = this.list && this.list.length ? this.list : this.options.list.items;
         if (items) this.setItems(items);
       }
     },
@@ -149,7 +149,7 @@ LSD.Trait.List = new Class({
   },
   
   addItem: function(item) {
-    if (item.setList) var data = item.getValue ? item.getValue() : item.value || $uid(item), widget = item, item = data;
+    if (item.setList) var data = item.getValue ? item.getValue() : item.value || LSD.uid(item), widget = item, item = data;
     if (this.options.list.force && !this.getSelectedItem()) this.selectItem(item);
     if (!this.list.contains(item)) {
       this.list.push(item);

@@ -1,13 +1,45 @@
+/*
+---
+ 
+script: Chain.js
+ 
+description: A dynamic state machine with a trigger
+ 
+license: Public domain (http://unlicense.org).
+
+authors: Yaroslaff Fedin
+
+requires:
+  - LSD.Module.Actions
+
+provides: 
+  - LSD.Module.Chain
+ 
+...
+*/
+
 LSD.Module.Chain = new Class({
-  options: {
-    chain: {}
+  initializers: {
+    chain: function() {
+      this.chains = [];
+      this.chainPhase = -1;
+    }
+  },
+  
+  addChain: function(name, chain) {
+
+    if (!chain.name) chain.name = name;
+    this.chains.push(chain);
+  },
+  
+  removeChain: function(name, chain) {
+    this.chains.erase(chain);
   },
   
   getActionChain: function() {
     var actions = [];
-    for (var name in this.options.chain) {
-      var value = this.options.chain[name];
-      var action = (value.indexOf ? this[value] : value).apply(this, arguments);
+    for (var i = 0, chain; chain = this.chains[i++];) {
+      var action = (chain.indexOf ? this[chain] : chain).apply(this, arguments);
       if (action) actions.push(action);
     }
     return actions.sort(function(a, b) {
@@ -29,9 +61,9 @@ LSD.Module.Chain = new Class({
   
   eachChainAction: function(callback, args, index) {
     if (index == null) index = -1;
-    var chain = this.getActionChain.apply(this, arguments), action, actions;
+    var chain = this.getActionChain.apply(this, args), action, actions;
     for (var link; link = chain[++index];) {
-      action = link.perform ? link : link.name ? this.getAction(link.name) : null;
+      action = link.perform ? link : link.action ? this.getAction(link.action) : null;
       if (action) {
         if (callback.call(this, action, index, link.priority || 0) === false) continue;
         var result = this.execute(link, args);
@@ -53,4 +85,10 @@ LSD.Module.Chain = new Class({
   clearChain: function() {
     this.chainPhase = -1;
   }
-})
+});
+
+LSD.Options.chain = {
+  add: 'addChain',
+  remove: 'removeChain',
+  iterate: true
+}

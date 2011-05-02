@@ -10,13 +10,14 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Node
   - Core/Element
   - Core/Request
   - Sheet/Sheet
   - Sheet/SheetParser.Value
   - Sheet/SheetParser.Property
   - Sheet/SheetParser.Styles
+  - LSD.Module.Element
+  - LSD.Module.Options
   
 provides:
   - LSD.Sheet
@@ -27,7 +28,7 @@ provides:
 !function() {
   
 LSD.Sheet = new Class({
-  Extends: LSD.Node,
+  Implements: [LSD.Module.Element, LSD.Module.Options],
   
   options: {
     compile: false,
@@ -35,8 +36,8 @@ LSD.Sheet = new Class({
   },
   
   initialize: function(element, callback) {
-    this.parent.apply(this, arguments);
-    this.rules = []
+    LSD.Module.Options.initialize.call(element);
+    this.rules = [];
     this.callback = callback;
     if (this.element) this.fetch();
     else if (callback) callback(this);

@@ -25,50 +25,26 @@ provides:
 LSD.Module.DOM = new Class({
   options: {
     nodeType: 1,
-    events: {
-      _dom: {
-        element: {
-          'dispose': 'dispose'
-        }
-      }
-    }
   },
   
   initializers: {
     dom: function(options) {
+      this.childNodes = [];
       this.nodeType = options.nodeType;
       this.nodeName = this.tagName = options.tag;
-    }
-  },
-  
-  toElement: function(){
-    if (!this.built) this.build();
-    return this.element;
-  },
-  
-  build: function() {
-    var options = this.options, attrs = Object.append({}, options.element);
-    var tag = attrs.tag || options.tag;
-    delete attrs.tag;
-    if (!this.element) this.element = new Element(tag, attrs);
-    else var element = this.element.set(attrs);
-    var classes = new FastArray;
-    if (options.tag != tag) classes.push('lsd', options.tag || this.tagName);
-    if (options.id) classes.push('id-' + options.id);
-    classes.concat(this.classes);
-    if (!this.options.independent) this.element.store('widget', this);
-    if (Object.getLength(classes)) this.element.className = classes.join(' ');
-    if (this.attributes) 
-      for (var name in this.attributes) 
-        if (name != 'width' && name != 'height') {
-          var value = this.attributes[name];
-          if (!element || element[name] != value) {
-            this.element.setAttribute(name, value);
-          } 
+      return {
+        events: {
+          element: {
+            'dispose': 'dispose'
+          },
+          self: {
+            'destroy': function() {
+              if (this.parentNode) this.dispose();
+            }
+          }
         }
-
-    if (this.style) for (var property in this.style.element) this.element.setStyle(property, this.style.element[property]);
-    this.element.fireEvent('build', [this, this.element]);
+      }
+    }
   },
   
   getElements: function(selector) {
@@ -144,11 +120,6 @@ LSD.Module.DOM = new Class({
     });
   },
   
-  grab: function(el, where){
-    inserters[where || 'bottom'](document.id(el, true), this);
-    return this;
-  },
-  
   extractDocument: function(widget) {
     var element = widget.lsd ? widget.element : widget;;
     var isDocument = widget.documentElement || (instanceOf(widget, LSD.Document));
@@ -183,7 +154,12 @@ LSD.Module.DOM = new Class({
       if (document) this.setDocument(document);
     }
     this.fireEvent('inject', this.parentNode);
-		return this;
+    return this;
+  },
+
+  grab: function(el, where){
+    inserters[where || 'bottom'](document.id(el, true), this);
+    return this;
   },
   
   /*
@@ -208,20 +184,15 @@ LSD.Module.DOM = new Class({
     return this.written;
   },
 
-	replaces: function(el){
-	  this.inject(el, 'after');
-	  el.dispose();
-		return this;
-	},
-	
-  onDOMInject: function(callback) {
-    if (this.document) callback.call(this, document.id(this.document)) 
-    else this.addEvent('dominject', callback.bind(this))
+  replaces: function(el){
+    this.inject(el, 'after');
+    el.dispose();
+    return this;
   },
   
-  destroy: function() {
-    this.dispose();
-		return this;
+  onDOMInject: function(callback) {
+    if (this.document) callback.call(this, this.document.element) 
+    else this.addEvent('dominject', callback.bind(this))
   },
 
   dispose: function(element) {
@@ -230,28 +201,10 @@ LSD.Module.DOM = new Class({
     this.fireEvent('beforeDispose', parent);
     parent.removeChild(this);
     this.fireEvent('dispose', parent);
-    if (!element) this.parent.apply(this, arguments);
-		return this;
-  },
-  
-  dispatchEvent: function(type, args){
-    var node = this;
-    type = type.replace(/^on([A-Z])/, function(match, letter) {
-      return letter.toLowerCase();
-    });
-    while (node) {
-      var events = node.$events;
-      if (events && events[type]) events[type].each(function(fn){
-        return fn[args.push ? 'apply' : 'call'](node, args);
-      }, node);
-      node = node.parentNode;
-    }
     return this;
   }
 });
 
-
-  
 var inserters = {
 
   before: function(context, element){
@@ -314,25 +267,5 @@ Object.append(LSD.Module.DOM, {
     }
   }
 });
-
-Element.Events.ready = {
-  onAdd: function(fn) {
-    var widget = this.retrieve('widget');
-    if (widget) {
-      fn.call(this, widget)
-    } else {
-      this.addEvent('build', function(widget) {
-        fn.call(this, widget);
-      }.bind(this));
-    }
-  }
-};
-
-Element.Events.contentready = {
-  onAdd: function(fn) {
-    fn.call(this, this)
-    this.addEvent('update', fn)
-  }
-};
 
 }();

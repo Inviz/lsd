@@ -29,7 +29,7 @@ var setStyle = function(element, property, value, type) {
   delete this.style.calculated[property];
   if (value === false) {
     if (element && this.element) delete this.element.style[property];
-    delete this.style[element ? 'element' : 'paint'][property], this.style.current[property];
+    delete this.style[element ? 'element' : 'paint'][property], delete this.style.current[property];
     if (type) delete this.style[type][property];
   } else {
     if (element && this.element) this.element.style[property] = (typeof value == 'number') ? value + 'px' : value;
@@ -216,5 +216,8 @@ LSD.Module.Styles = new Class({
   }
 });
 
-
+LSD.Options.styles = {
+  add: 'setStyles',
+  remove: 'unsetStyles'
+};
 }();

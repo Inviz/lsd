@@ -48,7 +48,7 @@ LSD.Native.Form.Edit = new Class({
   ],
   
   options: {
-    independent: true,
+    key: null,
     layout: {
       extract: true,
       instance: true,
@@ -131,7 +131,7 @@ LSD.Native.Form.Edit = new Class({
     if (this.getResource) {
       var Resource = this.getResource();
       new Resource(Object.append(this.getParams(), {id: this.attributes.itemid})).save(function(html) {
-        this.execute({name: 'replace', target: this.element}, html);
+        this.execute({action: 'replace', target: this.element}, html);
       }.bind(this));
     }
   },

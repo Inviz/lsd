@@ -26,7 +26,6 @@ LSD.Module.Actions = new Class({
   
   initializers: {
     actions: function() {
-      this.chainPhase = -1;
       this.actions = {}
     }
   },
@@ -51,12 +50,12 @@ LSD.Module.Actions = new Class({
   
   execute: function(command, args) {
     if (command.call && (!(command = command.apply(this, args))));
-    else if (command.indexOf) command = {name: command}
+    else if (command.indexOf) command = {action: command}
     if (command.arguments) {
       var cargs = command.arguments.call ? command.arguments.call(this) : command.arguments;
       args = [].concat(cargs || [], args || []);
     }
-    var action = command.action = this.getAction(command.name);
+    var action = command.action = this.getAction(command.action);
     var targets = command.target;
     if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return true;
     var state = command.state;
@@ -78,27 +77,25 @@ LSD.Module.Actions = new Class({
     if (probe.nodeType) action.document =  LSD.Module.DOM.findDocument(probe);
     action.caller = this;
     var ret = (targets) ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);
-    delete action.caller, action.document;
+    delete action.caller, delete action.document;
     return (ret ? ret[0] : ret) !== false;
   },
   
   mixin: function(mixin) {
     if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
     var options = mixin.prototype.options;
-    if (options && options.states) this.addStates(options.states);
     Class.mixin(this, mixin);
-    if (options && options.actions) for (var action in options.actions) this.addAction(action);
-    if (options && options.events) this.addEvents(this.bindEvents(options.events));
+    if (options) {
+      Object.merge(this.options, options); //merge!
+      this.setOptions(options);
+    }
+    var initializers = mixin.prototype.initializers;
+    if (initializers) for (var name in initializers) initializers[name].call(this);
   },
 
   unmix: function(mixin) {
     if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
-    var options = Object.clone(mixin.prototype.options);
-    if (options) {
-      for (var action in options.actions) this.removeAction(action);
-      if (options.events) this.removeEvents(this.bindEvents(options.events));
-      if (options.states) this.removeStates(options.states);
-    };
+    this.unsetOptions(mixin.prototype.options);
     Class.unmix(this, mixin);
   }
 });
@@ -114,4 +111,10 @@ LSD.Module.Actions.attach = function(doc) {
       doc.watch(bit, watcher)
     })
   });
+};
+
+LSD.Options.actions = {
+  add: 'addAction',
+  remove: 'removeAction',
+  iterate: true
 };

@@ -26,7 +26,7 @@ LSD.Mixin.Dialog = new Class({
     chain: {
       dialog: function() {
         var target = this.getDialogTarget();
-        if (target) return {name: 'dialog', target: target, priority: 50};
+        if (target) return {action: 'dialog', target: target, priority: 50};
       }
     },
     events: {

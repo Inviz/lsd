@@ -36,7 +36,7 @@ LSD.Mixin.Value = new Class({
     this.value = this.processValue(item);
     if (this.oldValue !== this.value) {
       var result = this.applyValue(this.value);
-      if (this.oldValue != this.value) this.onChange(this.value);
+      this.onChange(this.value, this.oldValue);
       return result;
     }
   },

@@ -9,7 +9,7 @@ license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
-extends:
+requires:
   - LSD.Module.DOM
 
 provides: 
@@ -26,7 +26,7 @@ LSD.Module.Proxies = new Class({
   },
   
   addProxy: function(name, proxy) {
-    for (var i = 0, other; other = this.proxies[i++] && (proxy.priority || 0) < (other.priority || 0));
+    for (var i = 0, other; (other = this.proxies[i]) && ((proxy.priority || 0) < (other.priority || 0)); i++);
     this.proxies.splice(i, 0, proxy);
   },
   
@@ -35,8 +35,7 @@ LSD.Module.Proxies = new Class({
   },
   
   proxyChild: function(child) {
-    for (var i = 0, proxies = this.proxies, proxy; proxy = proxies[i++];) {
-      if (typeof proxy == 'string') proxy = this.options.proxies[proxy];
+    for (var i = 0, proxy; proxy = this.proxies[i++];) {
       if (!proxy.condition.call(this, child)) continue;
       var self = this;
       var reinject = function(target) {
@@ -72,3 +71,9 @@ LSD.Module.Proxies = new Class({
   }
   
 });
+
+LSD.Options.proxies = {
+  add: 'addProxy',
+  remove: 'removeProxy',
+  iterate: true
+};

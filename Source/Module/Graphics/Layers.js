@@ -139,4 +139,25 @@ LSD.Module.Layers = new Class({
   }
 });
 
+if (!LSD.Layers) LSD.Layers =  {
+  shadow:     ['size', 'radius', 'shape', 'shadow'],
+  stroke:     [        'radius', 'stroke', 'shape', 'fill'],
+  background: ['size', 'radius', 'stroke', 'offset', 'shape', 'color'],
+  foreground: ['size', 'radius', 'stroke', 'offset', 'shape', 'color'],
+  reflection: ['size', 'radius', 'stroke', 'offset', 'shape', 'color'],
+  icon:       ['size', 'scale', 'color', 'stroke', 'offset', 'shape', 'position','shadow'],
+  glyph:      ['size', 'scale', 'color', 'stroke', 'offset', 'shape', 'position', 'shadow']
+};
+
+for (var layer in LSD.Layers) LSD.Layer.get(layer, LSD.Layers[layer]);
+
+LSD.Options.layers = {
+  add: 'addLayer',
+  remove: 'removeLayer',
+  iterate: true,
+  process: function(value) {
+    return (value === true) ? LSD.Layers : value;
+  }
+};
+
 }();

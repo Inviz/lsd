@@ -10,8 +10,9 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Node
   - Core/DomReady
+  - Core/Options
+  - Core/Events
   - More/String.QueryString
   
 provides:
@@ -20,7 +21,7 @@ provides:
 ...
 */
 LSD.Application = new Class({
-  Extends: LSD.Node,
+  Implements: [Options, Events],
   
   options: {
     method: 'augment'
@@ -29,7 +30,8 @@ LSD.Application = new Class({
   initialize: function(document, options) {
     if (!LSD.application) LSD.application = this;
     this.param = (location.search.length > 1) ? location.search.substr(1, location.search.length - 1).parseQueryString() : {}
-    this.parent.apply(this, arguments);
+    if (document) this.element = document.id(document);
+    if (options) this.setOptions(options);
     document.addEvent('domready', function() {
       if (this.param.benchmark != null) console.profile();
       this.setDocument(document);

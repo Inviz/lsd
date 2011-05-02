@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires: 
   - LSD.Document
-  - LSD.Node.Link
+  - Native/LSD.Native.Anchor
  
 provides:
   - LSD.Document.Commands
@@ -43,7 +43,7 @@ LSD.Document.Commands = new Class({
     if (!link) return;
     if (link.retrieve('widget')) return;
     var node = link.retrieve('node')
-    if (!node) link.store('node', node = new LSD.Node.Link(link));
+    if (!node) link.store('node', node = new LSD.Native.Anchor(link));
     node.click(event);
   }
 });

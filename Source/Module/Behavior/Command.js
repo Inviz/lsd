@@ -38,17 +38,23 @@ provides:
 LSD.Module.Command = new Class({
   options: {
     command: {},
-    expectations: {
-      '[radiogroup]': ['getCommand', true],
-      '[command]': ['getCommand', true],
-    },
     chain: {
       commandaction: function() {
         var action = this.getCommandAction.apply(this, arguments);
-        if (action) return {name: action, priority: 10}
+        if (action) return {action: action, priority: 10}
       }
     },
-    states: Array.fast('disabled')
+  },
+  
+  initializers: {
+    command: function() {
+      return {
+        expectations: {
+          '[radiogroup]': ['getCommand', true],
+          '[command]': ['getCommand', true],
+        }
+      }
+    }
   },
 
   getCommand: function(force) {

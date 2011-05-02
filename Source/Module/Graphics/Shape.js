@@ -21,14 +21,21 @@ provides:
 
 LSD.Module.Shape = new Class({
   options: {
-    shape: 'rectangle', 
-    events: {
-      shaped: {
-        'render': function() {
-          if (this.setSize()) this.resized = true;
-        },
-        'update': function() {
-          delete this.resized;
+    shape: 'rectangle'
+  },
+  
+  initializers: {
+    shape: function() {
+      return {
+        events: {
+          shaped: {
+            'render': function() {
+              if (this.setSize()) this.resized = true;
+            },
+            'update': function() {
+              delete this.resized;
+            }
+          }
         }
       }
     }

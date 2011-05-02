@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Trait
+  - LSD.Module
 
 provides: 
   - LSD.Module.Dimensions
@@ -21,7 +21,7 @@ provides:
 
 LSD.Module.Dimensions = new Class({
   initializers: {
-    size: function() {
+    dimensions: function() {
       this.size = {}
     }
   },

@@ -25,28 +25,28 @@ LSD.Trait.Fieldset = new Class({
       },
       _fieldset: {
         layoutTransform: function(query) {
-          var element = query.element, name = element.name, id = element.id, transformation;
+          var element = query.element, name = element.name, id = element.id, mutation;
           var widget = Element.retrieve(element, 'widget');
           if (!widget) return;
           if (name && this.names[name]) {
             var bumped = LSD.Trait.Fieldset.bumpName(name);
-            if (bumped) (transformation || (transformation = {attributes: {}})).attributes.name = bumped;
+            if (bumped) (mutation || (mutation = {attributes: {}})).attributes.name = bumped;
           }
           // bump id index
           if (id) {
             bumped = LSD.Trait.Fieldset.bumpId(id);
-            if (bumped != id) (transformation || (transformation = {attributes: {}})).attributes.id = bumped;
+            if (bumped != id) (mutation || (mutation = {attributes: {}})).attributes.id = bumped;
           }
           // bump name index
           if (LSD.toLowerCase(element.tagName) == 'label') {
             var four = element.htmlFor
             if (four) {
               bumped = LSD.Trait.Fieldset.bumpId(four);
-              if (bumped != four) (transformation || (transformation = {attributes: {}})).attributes['for'] = bumped;
+              if (bumped != four) (mutation || (mutation = {attributes: {}})).attributes['for'] = bumped;
             }
           }
-          if (query.transformation) Object.append(query.transformation, transformation);
-          else query.transformation = transformation;
+          if (query.mutation) Object.append(query.mutation, mutation);
+          else query.mutation = mutation;
         }
       }
     },
@@ -97,7 +97,7 @@ LSD.Trait.Fieldset = new Class({
   addFieldErrors: function(errors) {
     for (var name in errors) {
       var field = this.names[name];
-      console.log(name, errors[name])
+      console.log(name, field, errors[name])
       if (!field) continue;
       field.invalidate(errors[name]);
       this.invalid = true;

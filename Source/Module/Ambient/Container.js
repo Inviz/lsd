@@ -47,10 +47,10 @@ LSD.Module.Container = new Class({
     var options = this.options.container;
     if (!options.enabled) return;
     var tag = options.tag || (options.inline ? 'span' : 'div');
-    return new Element(tag, options.attributes).inject(this, options.position);
+    return new Element(tag, options.attributes).inject(this.element, options.position);
   }),
   
   getWrapper: function() {
-    return this.getContainer() || this.parent.apply(this, arguments);
+    return this.getContainer() || this.toElement();
   }
 });

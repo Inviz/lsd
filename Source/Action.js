@@ -26,7 +26,7 @@ LSD.Action = function(options, name) {
     
     enable: function() {
       if (self.enabled) return false;
-      this.commit(target, state, arguments, target);
+      self.commit(target, state, arguments, target);
       if (options.events) target.addEvents(target.events[options.events]);
       if (self.enabled == null) target.addEvents(events);
       self.enabled = true;
@@ -35,7 +35,7 @@ LSD.Action = function(options, name) {
 
     disable: function() {
       if (!self.enabled) return false;
-      this.revert(target, state, arguments, target);
+      self.revert(target, state, arguments, target);
       if (options.events) target.removeEvents(target.events[options.events]);
       if (self.enabled != null) target.removeEvents(events);
       self.enabled = false;
@@ -86,7 +86,10 @@ LSD.Action = function(options, name) {
         target.use(options.uses, self.use);
       } else if (options.watches) {
         target.watch(options.watches, self.watch);
-      } else if (!state || (name && target[name])) target.onDOMInject(self.inject);
+      } else if (!state || (name && target[name])) {
+        if (target.onDOMInject) target.onDOMInject(self.inject);
+        else self.inject()
+      }
     },
 
     detach: function(widget) {
@@ -102,17 +105,15 @@ LSD.Action = function(options, name) {
     
     store: function(key, value) {
       if (!this.storage) this.storage = {};
-      if (!key.indexOf && (typeof key !== 'number')) key = $uid(key);
+      if (!key.indexOf && (typeof key !== 'number')) key = LSD.uid(key);
       this.storage[key] = value;
      },
     
     retrieve: function(key) {
       if (!this.storage) return;
-      if (!key.indexOf && (typeof key !== 'number')) key = $uid(key);
+      if (!key.indexOf && (typeof key !== 'number')) key = LSD.uid(key);
       return this.storage[key];
     }
-    
-    
   };
   for (var methods = ['enable', 'disable'], i, method; method = methods[i++];) {
     var fn = options[method];

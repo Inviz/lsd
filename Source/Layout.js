@@ -43,11 +43,11 @@ provides:
 LSD.Layout = function(widget, layout, options) {
   this.setOptions(options);
   this.context = LSD[this.options.context.capitalize()];
-  if (!layout) {
+  if (!layout && !widget.lsd) {
     layout = widget;
     widget = null;
-  } else if (widget && !widget.lsd) widget = this.convert(widget);
-  this.result = this.render(layout, widget);
+  } else if (!widget.lsd) widget = this.convert(widget);
+  if (layout) this.result = this.render(layout, widget);
 };
 
 LSD.Layout.prototype = Object.append(new Options, {
@@ -60,7 +60,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   render: function(layout, parent, method, opts) {
-    if (!layout.layout) {
+    if (!layout.lsd) {
       var type = layout.push ? 'array' : layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : layout.indexOf ? 'string' : 'object';
       if (type) return this[type](layout, parent, method, opts);
     } else if (parent) return this.appendChild(layout, parent);
@@ -122,17 +122,17 @@ LSD.Layout.prototype = Object.append(new Options, {
     return (this.parsed[selector] = options);
   },
   
-  convert: function(element, parent, transformed, opts) {
-    if (transformed == null) transformed = this.transform(element, parent);
-    if (transformed || this.isConvertable(element, parent)) return this.make(element, parent, transformed, opts);
+  convert: function(element, parent, mutated, opts) {
+    if (mutated == null) mutated = this.mutate(element, parent);
+    if (mutated || this.isConvertable(element, parent)) return this.make(element, parent, mutated, opts);
   },
   
-  patch: function(element, parent, transformed, opts) {
-    if (this.isAugmentable(element, parent, transformed)) return this.make(element, parent, transformed, opts, true);
+  patch: function(element, parent, mutated, opts) {
+    if (this.isAugmentable(element, parent, mutated)) return this.make(element, parent, mutated, opts, true);
   },
   
-  make: function(element, parent, transformed, opts, reuse) {
-    var extracted = transformed || (LSD.Layout.extract(element));
+  make: function(element, parent, mutated, opts, reuse) {
+    var extracted = mutated || (LSD.Layout.extract(element));
     return this.build(Object.append({}, opts, extracted), parent && parent.call ? parent(element) : parent, reuse ? element : null)
   },
   
@@ -144,8 +144,7 @@ LSD.Layout.prototype = Object.append(new Options, {
       var interpolate = this.options.interpolate;
       for (var name in attributes) if (interpolate) attributes[name] = this.interpolate(attributes[name]);
     }
-    if (!options.layout) options.layout = {};
-    if (!options.layout.instance) options.layout.instance = false;
+    Object.merge(options, {layout: {render: false}});
     if (options.inherit && parent) {
       if (parent.options) {
         var source = parent.options.source;
@@ -178,8 +177,8 @@ LSD.Layout.prototype = Object.append(new Options, {
     Replaces an element with a widget. Also replaces
     all children widgets when possible. 
   */
-  modify: function(element, parent, transformed) {
-    var converted = this.convert(element, parent, transformed);
+  modify: function(element, parent, mutated) {
+    var converted = this.convert(element, parent, mutated);
     if (converted) {
       var replacement = converted.toElement();
       replacement.replaces(element);
@@ -197,10 +196,8 @@ LSD.Layout.prototype = Object.append(new Options, {
     at all costs and tries to use the whole tree. Used
     as a primary method in regular HTML applications.
   */
-  augment: function(element, parent, transformed, opts) {
-    var converted = this.patch(element, parent, transformed, opts)
-    if (converted && converted.element) Converted[converted.element.uid] = converted;
-    return converted;
+  augment: function(element, parent, mutated, opts) {
+    return this.patch(element, parent, mutated, opts);
   },
   
   /*
@@ -210,8 +207,8 @@ LSD.Layout.prototype = Object.append(new Options, {
     many times after. Textnodes are cloned too.
   */
   
-  clone: function(element, parent, transformed, opts) {
-    var converted = this.convert(element, parent, transformed, opts)
+  clone: function(element, parent, mutated, opts) {
+    var converted = this.convert(element, parent, mutated, opts)
     if (parent && parent.call) parent = parent(element);
     if (parent) {
       if (converted) {
@@ -238,16 +235,16 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   element: function(element, parent, method, opts) {
-    var converted = element.uid && Converted[element.uid];
+    var converted = element.uid && Element.retrieve(element, 'widget');
     var skip = (method === false);
     if (!method) method = this.options.method;
     var augmenting = (method == 'augment'), cloning = (method == 'clone');
     var children = Array.prototype.slice.call(element.childNodes, 0);
     if (!converted || !augmenting) {
       var ascendant = (parent && parent[1]) || parent;
-      var transformed = this.transform(element, ascendant);
-      if (transformed || this.isConvertable(element, ascendant)) {
-        var widget = this.translate(method, element, ascendant, transformed, opts);
+      var mutated = this.mutate(element, ascendant);
+      if (mutated || this.isConvertable(element, ascendant)) {
+        var widget = this.translate(method, element, ascendant, mutated, opts);
       } else if (cloning) {  
         var clone = element.cloneNode(false);
       }
@@ -320,7 +317,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     }
   },
   
-  // transformations
+  // mutations
   
   merge: function(first, second) {
     var result = {layout: first.layout}, id, combinator;
@@ -333,10 +330,10 @@ LSD.Layout.prototype = Object.append(new Options, {
     return result;
   },
   
-  transform: function(element, parent) {
-    if (!(parent && (parent = parent[1] || parent) && parent.transformLayout)) return false;
-    var transformation = parent.transformLayout(element, this);
-    if (transformation) return this.merge(LSD.Layout.extract(element), transformation.indexOf ? this.parse(transformation, parent) : transformation);
+  mutate: function(element, parent) {
+    if (!(parent && (parent = parent[1] || parent) && parent.mutateLayout)) return false;
+    var mutation = parent.mutateLayout(element, this);
+    if (mutation) return this.merge(LSD.Layout.extract(element), mutation.indexOf ? this.parse(mutation, parent) : mutation);
   },
   
   // redefinable predicates
@@ -345,10 +342,10 @@ LSD.Layout.prototype = Object.append(new Options, {
     return !!this.context.find(LSD.toLowerCase(element.tagName));
   },
   
-  isAugmentable: function(element, parent, transformed) {
+  isAugmentable: function(element, parent, mutated) {
     if (element.nodeType != 1) return true;
     var tag = LSD.toLowerCase(element.tagName);
-    var source = transformed ? transformed.source : (element.type ? tag + '-' + element.type : tag)
+    var source = mutated ? mutated.source : (element.type ? tag + '-' + element.type : tag)
     var klass = this.context.find(LSD.toLowerCase(source));
     if (!klass) return;
     var opts = klass.prototype.options;
@@ -417,8 +414,6 @@ LSD.Layout.extract = function(element) {
   }
   return options;
 };
-
-var Converted = LSD.Layout.converted = {};
 
 ['modify', 'augment', 'clone'].each(function(method) {
   LSD.Layout[method] = function(element, layout, options) {

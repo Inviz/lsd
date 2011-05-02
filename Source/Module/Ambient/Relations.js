@@ -29,27 +29,28 @@ LSD.Module.Relations = new Class({
     this.options.layout[name] = relation.layout;
     if (relation.proxy) {
       var proxied = [];
-      this.options.proxies[name] = {
+      this.addProxy(name, {
         container: function(callback) {
-          proxied.push(callback)
+          proxied.push(callback);
         },
         condition: relation.proxy
-      }
+      });
     }
+    
     if (relation.relay) {
       var relayed = {};
-      Object.each(relation.relay, function(callback, type) {
+      for (var type in relation.relay) {
         relayed[type] = function(event) {
           for (var widget = Element.get(event.target, 'widget'); widget; widget = widget.parentNode) {
             if (origin[name].indexOf(widget) > -1) {
-              callback.apply(widget, arguments);
+              this.apply(widget, arguments);
               break;
             }
           }
-        }
-      });
+        }.bind(relation.relay[type])
+      }
     }
-    if (relation.transform) this.addLayoutTransformation(relation.transform, relation.layout);
+    if (relation.mutation) this.addMutation(relation.mutation, relation.layout);
     relation.watcher = function(widget, state) {
       if (relation.events) {
         if (!events) events = origin.bindEvents(relation.events);
@@ -61,7 +62,7 @@ LSD.Module.Relations = new Class({
         if (relation.multiple) {
           if (state) origin[name].push(widget)
           else origin[name].erase(widget);
-          if (relayed && (origin[name].length == (state ? 1 : 0))) origin.element[state ? 'addEvents' : 'removeEvents'](relayed);
+          if (relayed && (origin[name].length == +state)) origin.element[state ? 'addEvents' : 'removeEvents'](relayed);
         } else {
           if (state) origin[name] = widget;
           else delete origin[name];
@@ -77,10 +78,7 @@ LSD.Module.Relations = new Class({
         if (add) for (var index in add) widget.addState(index, add[index]);
       }
       if (relation.chain) {
-        for (var label in relation.chain) {
-          if (state) widget.options.chain[label] = relation.chain[label]
-          else delete widget.options.chain[label]
-        }
+        for (var label in relation.chain) widget[state ? 'addChain' : 'removeChain'](label, relation.chain[label]);
       }
     };
     this.watch(relation.selector, relation.watcher);
@@ -90,3 +88,18 @@ LSD.Module.Relations = new Class({
     
   }
 });
+
+LSD.Options.relations = {
+  add: 'addRelation',
+  remove: 'removeRelation',
+  iterate: true
+};
+
+LSD.Options.has = Object.append({
+  process: function(has) {
+    var one = has.one, many = has.many, relations = {};
+    if (one) for (var name in one) relations[name] = one[name];
+    if (many) for (var name in many) relations[name] = Object.append(many[name], {multiple: true});
+    return relations;
+  }
+}, LSD.Options.relations);

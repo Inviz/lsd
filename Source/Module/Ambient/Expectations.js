@@ -26,6 +26,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   
   initializers: {
     expectations: function() {
+      this.expectations = {}
       return {
         events: Expectations.events
       }
@@ -35,39 +36,6 @@ var Expectations = LSD.Module.Expectations = new Class({
   getElementsByTagName: function(tag) {
     var cache = this.expectations.tag;
     return (cache && cache[tag.toLowerCase()]) || [];
-  },
-    
-  removeClass: function(name) {
-    return this.parent.apply(this, arguments);
-  },
-  
-  addClass: function(name) {
-    var result = this.parent.apply(this, arguments);
-    check(this, 'classes', name, true);
-    return result;
-  },
-  
-  removePseudo: function(pseudo) {
-    check(this, 'pseudos', pseudo, false);
-    return this.parent.apply(this, arguments);
-  },
-  
-  addPseudo: function(pseudo) {
-    var result = this.parent.apply(this, arguments);
-    check(this, 'pseudos', pseudo, true);
-    return result;
-  },
-  
-  setAttribute: function(name) {
-    check(this, 'attributes', name, false);
-    var result = this.parent.apply(this, arguments);
-    check(this, 'attributes', name, true);
-    return result;
-  },
-  
-  removeAttribute: function(name) {
-    check(this, 'attributes', name, false);
-    return this.parent.apply(this, arguments);
   },
   
   match: function(selector) {
@@ -219,40 +187,12 @@ var Expectations = LSD.Module.Expectations = new Class({
   }
 });
 
-Expectations.events = {
-  nodeInserted: function(widget) {
-    var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
-    if (!type) type = expectations.tag = {};
-    var group = type[tag];
-    if (!group) group = type[tag] = [];
-    group.push(widget);
-    group = type['*'];
-    if (!group) group = type['*'] = [];
-    group.push(widget);
-    update.call(this, widget, tag, true);
-  },
-  nodeRemoved: function(widget) {
-    var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
-    type[tag].erase(widget);
-    type["*"].erase(widget);
-    update.call(this, widget, tag, false);
-  },
-  setParent: function(parent) {
-    notify(this, '!>', parent.tagName, true, parent);
-    for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, true, parent);
-  },
-  unsetParent: function(parent) {
-    notify(this, '!>', parent.tagName, false, parent);
-    for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, false, parent);
-  }
-};
-
 var pseudos = {};
-var check = function(widget, type, value, state, target) {
-  var expectations = widget.expectations
+var check = function(type, value, state, target) {
+  var expectations = this.expectations
   if (!target) {
     expectations = expectations.self;
-    target = widget;
+    target = this;
   }
   expectations = expectations && expectations[type] && expectations[type][value];
   if (expectations) for (var i = 0, expectation; expectation = expectations[i++];) {
@@ -271,14 +211,14 @@ var check = function(widget, type, value, state, target) {
 }
 
 var notify = function(widget, type, tag, state, target) {
-  check(widget, type, tag, state, target)
-  check(widget, type, "*", state, target)
+  check.call(widget, type, tag, state, target)
+  check.call(widget, type, "*", state, target)
 }
 
 var update = function(widget, tag, state) {
   notify(this, ' ', tag, state, widget);
   var options = widget.options, id = options.id;
-  if (id) check(this, 'id', id, state, widget);
+  if (id) check.call(this, 'id', id, state, widget);
   if (this.previousSibling) {
     notify(this.previousSibling, '!+', options.tag, state, widget);
     notify(this.previousSibling, '++', options.tag, state, widget);
@@ -323,50 +263,70 @@ var separate = function(selector) {
   return separated;
 }
 
-Expectations.behaviours = {};
-Expectations.behave = function(selector, events) {
-  Expectations.behaviours[selector] = function(widget, state) {
-    var behaviours = widget.expectations.behaviours;
-    if (!behaviours) behaviours = widget.expectations.behaviours = {};
-    var behaviour = behaviours[selector];
-    if (!behaviour) behaviour = behaviours[selector] = widget.bindEvents(events);
-    widget[state ? 'addEvents' : 'removeEvents'](behaviour);
-  };
-}
 
-Expectations.attach = function(document) {
-  for (selector in Expectations.behaviours) document.watch(selector, Expectations.behaviours[selector]);
-}
+
+Expectations.events = {
+  nodeInserted: function(widget) {
+    var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
+    if (!type) type = expectations.tag = {};
+    var group = type[tag];
+    if (!group) group = type[tag] = [];
+    group.push(widget);
+    group = type['*'];
+    if (!group) group = type['*'] = [];
+    group.push(widget);
+    update.call(this, widget, tag, true);
+  },
+  nodeRemoved: function(widget) {
+    var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
+    type[tag].erase(widget);
+    type["*"].erase(widget);
+    update.call(this, widget, tag, false);
+  },
+  setParent: function(parent) {
+    notify(this, '!>', parent.tagName, true, parent);
+    for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, true, parent);
+  },
+  unsetParent: function(parent) {
+    notify(this, '!>', parent.tagName, false, parent);
+    for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, false, parent);
+  },
+  optionChange: check 
+};
 
 LSD.Module.Events.Targets.expected = function() {
   var self = this, Targets = LSD.Module.Events.Targets;
   return {
-    addEvents: function(events) {
-      Object.each(events, function(value, key) {
-        if (!self.watchers) self.watchers = {};
-        self.watchers[key] = function(widget, state) {
-          value = Object.append({}, value)
-          for (var name in value) {
-            if (typeof value[name] == 'object') continue;
-            widget.addEvent(name, value[name]);
-            delete value[name];
-          }
-          for (var name in value) {
-            target = (Targets[name] || Targets.expected).call(widget);
-            target[state ? 'addEvents' : 'removeEvents'](value);
-            break;
-          }
-        };
-        self.watch(key, self.watchers[key]);
-      });
+    addEvent: function(key, value) {
+      if (!self.watchers) self.watchers = {};
+      self.watchers[key] = function(widget, state) {
+        value = Object.append({}, value)
+        for (var name in value) {
+          if (typeof value[name] == 'object') continue;
+          widget.addEvent(name, value[name]);
+          delete value[name];
+        }
+        for (var name in value) {
+          target = (Targets[name] || Targets.expected).call(widget);
+          target[state ? 'addEvents' : 'removeEvents'](value);
+          break;
+        }
+      };
+      self.watch(key, self.watchers[key]);
     },
-    removeEvents: function(events) {
-      Object.each(events, function(value, key) {
-        self.unwatch(key, self.watchers[key]);
-      });
+    removeEvent: function(key, event) {
+      self.unwatch(key, self.watchers[key]);
     }
   }
-}
+};
+
+
+//LSD.Options.expectations = {
+//  add: 'expect',
+//  remove: 'unexpect',
+//  iterate: true,
+//  process: 'bindEvents'
+//};
 
 var States = LSD.States.Known;
   

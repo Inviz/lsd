@@ -210,5 +210,4 @@ LSD.Layer.get = function(name) {
   else return (Cache[key] = LSD.Layer.generate.apply(LSD.Layer, arguments))
 }
 
-
 }();

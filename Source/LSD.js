@@ -19,6 +19,7 @@ requires:
   - Ext/States
   - Ext/Class.mixin
   - Ext/FastArray
+  - Ext/Class.Mutators.Includes
  
 provides: 
   - LSD
@@ -66,15 +67,7 @@ var LSD = Object.append(new Events, {
       selected: 'selected'
     }
   },
-  Layers: {
-    shadow:     ['size', 'radius', 'shape', 'shadow'],
-    stroke:     [        'radius', 'stroke', 'shape', 'fill'],
-    background: ['size', 'radius', 'stroke', 'offset', 'shape', 'color'],
-    foreground: ['size', 'radius', 'stroke', 'offset', 'shape', 'color'],
-    reflection: ['size', 'radius', 'stroke', 'offset', 'shape', 'color'],
-    icon:       ['size', 'scale', 'color', 'stroke', 'offset', 'shape', 'position','shadow'],
-    glyph:      ['size', 'scale', 'color', 'stroke', 'offset', 'shape', 'position', 'shadow']
-  },
+  Options: {},
   useNative: true
 });
 
@@ -117,7 +110,15 @@ Object.append(LSD, {
     return function(string) {
       return (classnamed[string]) || (classnamed[string] = string.replace(/(^|-)([a-z])/g, function(a, b, c) { return (b ? '.' : '') + c.toUpperCase()}))
     }
-  }(LSD.classnamed = {})
+  }(LSD.classnamed = {}),
+  
+  uid: function(object) {
+    if (object.lsd) return object.lsd;
+    if (object.localName) return $uid(object);
+    return (object.lsd = ++LSD.UID); 
+  },
+  
+  UID: 0
 });
 
 

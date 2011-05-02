@@ -32,7 +32,7 @@ LSD.Trait.Input = new Class({
             this.getInput().addEvents({
               blur: this.onBlur.bind(this),
               focus: this.onFocus.bind(this)
-            }).addEvents(this.events.input);
+            });
           },
           build: function() {
             this.getInput().inject(this.element);
@@ -57,7 +57,9 @@ LSD.Trait.Input = new Class({
   },
   
   getInput: Macro.getter('input', function() {
-    return new Element('input', $extend({'type': 'text'}, this.options.input));
+    var input = new Element('input', Object.append({'type': 'text'}, this.options.input));
+    this.fireEvent('register', ['input', resizer]);
+    return input;
   }),
   
   setInputSize: function(size) {

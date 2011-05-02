@@ -27,18 +27,22 @@ LSD.Mixin.Request = new Class({
     request: {
       method: 'get'
     },
-    targetAction: 'update',
     states: {
       working: {
         enabler: 'busy',
         disabler: 'idle'
       }
+    },
+    actions: {
+      request: {
+        enable: function() {
+          if (this.attributes.autosend) this.send();
+        },
+        disable: function() {
+          
+        }
+      }
     }
-  },
-  
-  initialize: function() {
-    this.parent.apply(this, arguments);
-    if (this.attributes.autosend) this.callChain();
   },
   
   send: function() {
@@ -59,21 +63,16 @@ LSD.Mixin.Request = new Class({
   getRequest: function(options) {
     var type = this.getRequestType();
     if (!this.request || this.request.type != type) {
-      this.request = this[type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options)
+      if (!this.request) this.addEvent('request', {
+        request: 'onRequest',
+        complete: 'onRequestComplete',
+        success: 'onRequestSuccess',
+        failure: 'onRequestFailure'
+      });
+      this.request = this[type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options);
       if (!this.request.type) {
         this.request.type = type;
-        if (!this.events._request) {
-          var events = {
-            request: 'onRequest',
-            complete: 'onRequestComplete',
-            success: 'onRequestSuccess',
-            failure: 'onRequestFailure'
-          };
-          this.events._request = this.bindEvents(events);
-        }
-        if (this.events.request) this.request.addEvents(this.events.request);
-        if (this.events.$request) this.request.addEvents(this.events.$request);
-        this.request.addEvents(this.events._request)
+        this.fireEvent('register', ['request', this.request, type]);
       }
     }
     return this.request;
@@ -124,5 +123,9 @@ LSD.Mixin.Request = new Class({
   
   getCommandAction: function() {
     if (!this.isRequestURLLocal()) return 'send';
+  },
+  
+  getTargetAction: function() {
+    return (this.getCommandAction() == 'send') ? 'update' : this.parent.apply(this, arguments);
   }
 });

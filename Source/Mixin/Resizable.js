@@ -54,7 +54,7 @@ LSD.Mixin.Resizable = new Class({
           this.onStateChange('resizable', false);
           if (this.resizer) this.resizer.detach();
           if (handle) document.id(handle).removeEvent('mousedown', this.resizer.bound.start);
-          delete this.resized, this.handle;
+          delete this.resized, delete this.handle;
         },
       }
     }
@@ -81,7 +81,7 @@ LSD.Mixin.Resizable = new Class({
       return this.resizer.element = element;
     }
     var resizer = this.resizer = new Drag(element, Object.append(this.options, this.options.resizer));
-    resizer.addEvents(this.events.resizer);
+    this.fireEvent('register', ['resizer', resizer]);
     resizer.addEvents({
       'beforeStart': this.onBeforeResize.bind(this),
       'start': this.onResizeStart.bind(this),

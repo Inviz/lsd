@@ -55,24 +55,32 @@ sources:
   - Source/Mixin/Validity.js
   - Source/Mixin/Dialog.js
   - Source/Mixin/Value.js
-  - Source/Module/Container.js
-  - Source/Module/Command.js
-  - Source/Module/DOM.js
-  - Source/Module/Expectations.js
-  - Source/Module/Layout.js
-  - Source/Module/Styles.js
-  - Source/Module/Attributes.js
-  - Source/Module/Events.js
-  - Source/Module/Actions.js
-  - Source/Module/Render.js
-  - Source/Module/Target.js
-  - Source/Module/Relations.js
-  - Source/Module/Dimensions.js
-  - Source/Module/Layers.js
-  - Source/Module/Shape.js
-  - Source/Trait/Proxies.js
+  - Source/Module/Ambient/Container.js
+  - Source/Module/Ambient/DOM.js
+  - Source/Module/Ambient/Expectations.js
+  - Source/Module/Ambient/Layout.js
+  - Source/Module/Ambient/Relations.js
+  - Source/Module/Ambient/Proxies.js
+  - Source/Module/Ambient.js
+  - Source/Module/Behavior/Command.js
+  - Source/Module/Behavior/Chain.js
+  - Source/Module/Behavior/Actions.js
+  - Source/Module/Behavior/Target.js
+  - Source/Module/Behavior.js
+  - Source/Module/State/Styles.js
+  - Source/Module/State/Attributes.js
+  - Source/Module/State/Events.js
+  - Source/Module/State/Dimensions.js
+  - Source/Module/State/Shortcuts.js
+  - Source/Module/State/Options.js
+  - Source/Module/State/States.js
+  - Source/Module/State/Element.js
+  - Source/Module/State.js
+  - Source/Module/Graphics/Render.js
+  - Source/Module/Graphics/Layers.js
+  - Source/Module/Graphics/Shape.js
+  - Source/Module/Graphics.js
   - Source/Trait/Menu.js
-  - Source/Trait/Accessibility.js
   - Source/Trait/Animation.js
   - Source/Trait/Choice.js
   - Source/Trait/List.js
@@ -96,11 +104,8 @@ sources:
   - Source/Action/Append.js
   - Source/Action/Edit.js 
   - Source/Action.js
-  - Source/Element.js
   - Source/Layout.js
   - Source/Fx.js
-  - Source/Node.js
-  - Source/Node/Link.js
   - Source/Sheet.js
   - Source/Native.js
   - Source/Widget.js

@@ -99,8 +99,6 @@ LSD.Document.Features = {
 LSD.Document.prototype.addEvents({
   build: function() {
     if (this.watch) {
-      // Attach behaviour expectations
-      LSD.Module.Expectations.attach(this);
       // Attach action expectations
       LSD.Module.Actions.attach(this);
     }

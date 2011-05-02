@@ -25,21 +25,17 @@ LSD.Document.Resizable = new Class({
 	
 	options: {
   	events: {
-  	  window: {
-  	    resize: 'onResize'
+  	  _resizable: {
+  	    window: {
+  	      resize: 'onResize'
+  	    },
+  	    self: {
+  	      build: 'onResize'
+  	    }
   	  }
   	},
   	root: true
   },
-
-	initialize: function() {
-	  this.style = {
-	    current: {}
-	  };
-	  this.parent.apply(this, arguments);
-	  this.attach();
-	  this.onResize();
-	},
 	
 	onResize: function() {
 	  if (document.getCoordinates) Object.append(this.style.current, document.getCoordinates());
