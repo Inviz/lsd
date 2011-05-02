@@ -54,9 +54,10 @@ LSD.Module.Element = new Class({
       } else this.element = document.id(element);
     }
     if (!this.built) this.build();
-    if (this.options.key) this.element.store(this.options.key, this).fireEvent('attach', this)
+    if (this.options.key) this.element.store(this.options.key, this).fireEvent('attach', this);
+    return this.element;
   },
-  
+
   detach: function(element) {
     if (this.options.key) this.element.eliminate(this.options.key, this).fireEvent('detach', this)
     delete this.element;
