@@ -126,6 +126,6 @@ LSD.Mixin.Request = new Class({
   },
   
   getTargetAction: function() {
-    return (this.getCommandAction() == 'send') ? 'update' : this.parent.apply(this, arguments);
+    return this.parent.apply(this, arguments) || ((this.getCommandAction() == 'send') && 'update')
   }
 });
