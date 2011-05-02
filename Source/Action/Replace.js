@@ -26,6 +26,6 @@ LSD.Action.Replace = LSD.Action.build({
 		var fragment = document.createFragment(content);
     var children = Array.prototype.slice.call(fragment.childNodes, 0);
     if (content) target.parentNode.replaceChild(fragment, target);
-    if (widget.layout) widget.layout.render(children, widget, 'augment');
+    widget.fireEvent('DOMNodeInserted', children);
   }
 });
