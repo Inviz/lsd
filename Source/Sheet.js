@@ -36,7 +36,7 @@ LSD.Sheet = new Class({
   },
   
   initialize: function(element, callback) {
-    LSD.Module.Options.initialize.call(element);
+    LSD.Module.Options.initialize.call(this, element);
     this.rules = [];
     this.callback = callback;
     if (this.element) this.fetch();

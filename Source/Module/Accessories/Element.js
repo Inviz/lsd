@@ -21,7 +21,8 @@ provides:
 LSD.Module.Element = new Class({
   options: {
     key: 'node',
-    reusable: true
+    reusable: true,
+    inline: null
   },
   
   initializers: {
@@ -69,7 +70,9 @@ LSD.Module.Element = new Class({
   },
   
   build: function() {
-    var options = this.options, attrs = Object.append({tag: options.tag, element: this.element}, options.element);
+    var options = this.options, attrs = Object.append({element: this.element}, options.element);
+    if (!attrs.tag)
+      attrs.tag = ((this.options.inline == null) && options.tag) || (options.inline ? 'span' : 'div'); 
     this.fireEvent('beforeBuild', attrs);
     var stop = (attrs.convert === false), tag = attrs.tag;
     delete attrs.convert, delete attrs.tag, delete attrs.element;

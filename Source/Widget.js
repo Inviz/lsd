@@ -44,12 +44,10 @@ LSD.Widget = new Class({
   ],
   
   options: {
-    element: {
-      tag: 'div'
-    },
     key: 'widget',
     writable: false,
     layers: true,
+    inline: false
   },
   
   initializers: {
