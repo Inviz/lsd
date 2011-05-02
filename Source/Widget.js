@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Type
-  - LSD.Module.Acessories
+  - LSD.Module.Accessories
   - LSD.Module.Ambient
   - LSD.Module.Behavior
   - LSD.Module.Graphics
@@ -37,7 +37,7 @@ provides:
 LSD.Widget = new Class({
   
   Implements: [
-    LSD.Module.Acessories,
+    LSD.Module.Accessories,
     LSD.Module.Ambient,
     LSD.Module.Behavior,
     LSD.Module.Graphics

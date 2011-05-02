@@ -1,7 +1,7 @@
 /*
 ---
 
-script: Acessories.js
+script: Accessories.js
 
 description: Things that change the widget in one module
 
@@ -20,7 +20,7 @@ requires:
   - LSD.Module.Element
 
 provides: 
-  - LSD.Module.Acessories
+  - LSD.Module.Accessories
 
 ...
 */

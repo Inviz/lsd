@@ -75,7 +75,7 @@ sources:
   - Source/Module/Accessories/Options.js
   - Source/Module/Accessories/States.js
   - Source/Module/Accessories/Element.js
-  - Source/Module/State.js
+  - Source/Module/Accessories.js
   - Source/Module/Graphics/Render.js
   - Source/Module/Graphics/Layers.js
   - Source/Module/Graphics/Shape.js
