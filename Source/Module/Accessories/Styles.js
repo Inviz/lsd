@@ -42,19 +42,19 @@ LSD.Module.Styles = new Class({
   initializers: {
     style: function() {
       this.rules = [];
-      this.style = {
-        current: {},    //styles that widget currently has
-        found: {},      //styles that were found in stylesheets
-        given: {},      //styles that were manually assigned
+      this.style = {    // Styles that...
+        current: {},    // ... widget currently has
+        found: {},      // ... were found in stylesheets
+        given: {},      // ... were manually assigned
 
-        changed: {},    //styles that came from stylesheet since last render
-        calculated: {}, //styles that are calculated in runtime
-        computed: {},   //styles that are already getStyled
-        expressed: {},  //styles that are expressed through function
-        implied: {},    //styles that are assigned by environment
+        changed: {},    // ... came from stylesheet since last render
+        calculated: {}, // ... are calculated in runtime
+        computed: {},   // ... are already getStyled
+        expressed: {},  // ... are expressed through function
+        implied: {},    // ... are assigned by environment
 
-        element: {},    //styles that are currently assigned to element
-        paint: {}       //styles that are currently used to paint
+        element: {},    // ... are currently assigned to element
+        paint: {}       // ... are currently used to paint
       };
       return {
         events: {
@@ -166,7 +166,8 @@ LSD.Module.Styles = new Class({
     var rules = this.rules;
     if (rules.indexOf(rule) > -1) return
     for (var i = 0, other;  other = rules[i++];) {
-      if ((other.specificity > rule.specificity) || ((other.specificity == rule.specificity) && (other.index > rule.index))) break;
+      if ((other.specificity > rule.specificity) || (other.specificity == rule.specificity)) 
+        if (other.index > rule.index) break;
     }
     rules.splice(--i, 0, rule);
     this.combineRules(rule);
@@ -178,7 +179,7 @@ LSD.Module.Styles = new Class({
     rules.splice(index, 1);
     this.combineRules();
     var style = this.style, found = style.found, changed = style.changed, setting = rule.style;
-    if (setting) for (var property in setting) if (!Object.equals(found[property], setting[property])) changed[property] = found[property];
+    for (var property in setting) if (!Object.equals(found[property], setting[property])) changed[property] = found[property];
  },
   
   inheritStyle: function(property) {
