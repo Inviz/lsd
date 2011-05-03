@@ -30,8 +30,9 @@ LSD.Module.Attributes = new Class({
   
   getAttribute: function(attribute) {
     switch (attribute) {
-      case "class": return this.classes.join(' ');
-      default:      return this.attributes[attribute] || this.pseudos[attribute]
+      case "class":           return this.classes.join(' ');
+      case "slick-uniqueid":  return this.lsd;
+      default:                return this.attributes[attribute];
     }
   },
   
