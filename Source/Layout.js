@@ -344,7 +344,9 @@ LSD.Layout.prototype = Object.append(new Options, {
   isAugmentable: function(element, parent, mutated) {
     if (element.nodeType != 1) return true;
     var tag = LSD.toLowerCase(element.tagName);
-    var source = mutated ? mutated.source : (element.type ? tag + '-' + element.type : tag);
+    if (!mutated) {
+     var source = (element.type && element.type != tag) ? tag + '-' + element.type : tag;
+    } else var source = mutated.source;
     var klass = this.context.find(LSD.toLowerCase(source));
     if (!klass) return;
     var opts = klass.prototype.options;
