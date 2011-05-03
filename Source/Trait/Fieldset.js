@@ -24,7 +24,7 @@ LSD.Trait.Fieldset = new Class({
         badRequest: 'parseFieldErrors'
       },
       _fieldset: {
-        layoutTransform: function(query) {
+        mutateLayout: function(query) {
           var element = query.element, name = element.name, id = element.id, mutation;
           var widget = Element.retrieve(element, 'widget');
           if (!widget) return;
@@ -121,17 +121,14 @@ LSD.Trait.Fieldset = new Class({
     if (Object.getLength(result) > 0) this.addFieldErrors(result);
   },
   
-  addField: function(widget, object) {
+  addField: function(widget) {
     var name = widget.attributes.name, radio = (widget.options.command.type == 'radio');
     if (!name) return;
-    if (typeof object != 'object') {
-      if (radio) {
-        if (!this.names[name]) this.names[name] = [];
-        this.names[name].push(widget);
-      } else this.names[name] = widget;
-      object = this.params;
-    }
-    for (var regex = LSD.Trait.Fieldset.rNameParser, match, bit;;) {
+    if (radio) {
+      if (!this.names[name]) this.names[name] = [];
+      this.names[name].push(widget);
+    } else this.names[name] = widget;
+    for (var regex = LSD.Trait.Fieldset.rNameParser, object = this.params, match, bit;;) {
       match = regex.exec(name)
       if (bit != null) {
         if (!match) {
@@ -157,7 +154,23 @@ LSD.Trait.Fieldset = new Class({
     return result;
   },
   
-  removeField: function(widget, object) {
+  removeField: function(widget) {
+    var name = widget.attributes.name, radio = (widget.options.command.type == 'radio');
+    if (!name) return;
+    if (radio) this.names[name].erase(widget);
+    else delete this.names[name];
+    for (var regex = LSD.Trait.Fieldset.rNameParser, object = this.params, match, bit;;) {
+      match = regex.exec(name)
+      if (bit != null) {
+        if (!match) {
+          if (radio) object[bit].erase(widget)
+          else delete object[bit];
+        } else object = object[bit];
+      }
+      if (!match) break;
+      else bit = match[1] ||match[2];
+    }
+    return object
   },
 
   invalidateFields: function(errors) {

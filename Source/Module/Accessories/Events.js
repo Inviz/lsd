@@ -226,14 +226,17 @@ LSD.Module.Events.Targets = {
       'unsetParent': false
     }
   },
+  document: {
+    getter: 'document',
+    events: {
+      'setDocument': true
+    }
+  },
   self: function() { 
     return this
   },
   window: function() {
     return window;
-  },
-  document: function() {
-    return this.document;
   },
   mobile: function() {
     return this;

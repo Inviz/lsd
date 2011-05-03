@@ -96,17 +96,17 @@ LSD.Layout.prototype = Object.append(new Options, {
     var options = {};
     var parsed = Slick.parse(selector).expressions[0][0]
     if (parsed.tag != '*') options.source = parsed.tag;
-    if (parsed.id) options.id = parsed.id
+    if (parsed.id) (options.attributes || (options.attributes = {})).id = parsed.id
     if (parsed.attributes) parsed.attributes.each(function(attribute) {
-      if (!options.attributes) options.attributes = {};
-      options.attributes[attribute.key] = attribute.value || LSD.Attributes.Boolean[attribute.key] || "";
+      var value = attribute.value || LSD.Attributes.Boolean[attribute.key] || "";
+      (options.attributes || (options.attributes = {}))[attribute.key] = value;
     });
     if (parsed.classes) options.classes = parsed.classes.map(Macro.map('value'));
     if (parsed.pseudos) {
       options.pseudos = [];
       parsed.pseudos.each(function(pseudo) {
         if (pseudo.type == 'element') {
-          var relation = (parent[0] || parent).$relations[pseudo.key];
+          var relation = (parent[0] || parent).relations[pseudo.key];
           if (!relation) throw "Unknown pseudo element ::" + pseudo.key
           Object.append(options, this.parse(relation.layout, parent))
         } else return options.pseudos.push(pseudo.key);
@@ -322,7 +322,6 @@ LSD.Layout.prototype = Object.append(new Options, {
   merge: function(first, second) {
     var result = {layout: first.layout}, id, combinator;
     result.source = second.source || first.source;
-    if (id = (second.id || first.id)) result.id = id;
     if (combinator = (second.combinator || first.combinator)) result.combinator = combinator;
     if (second.attributes || first.attributes) result.attributes = Object.append({}, first.attributes, second.attributes);
     if (second.classes || first.classes) result.classes = Array.concat([], first.classes || [], second.classees || []);
@@ -375,23 +374,17 @@ LSD.Layout.extract = function(element) {
   };
   var tag = LSD.toLowerCase(element.tagName);
   if (tag != 'div') options.source = tag;
-  if (element.id) options.id = element.id;
   
-  for (var i = 0, attribute; attribute = element.attributes[i++];) {
-    var name = attribute.name, value = attribute.value;
-    options.attributes[name] = value || LSD.Attributes.Boolean[name] || "";
-    var bits = name.split('-'), memo = value;
-    for (var j = bits.length - 1; j > -1; j--) {
-      var obj = {};
-      obj[bits[j]] = memo;
-      if (j == 0) Object.merge(options, obj);
-      else memo = obj;
-    }
-  }
+  for (var i = 0, attribute, name; (attribute = element.attributes[i++]) && (name = attribute.name);)
+    options.attributes[name] = attribute.value || LSD.Attributes.Boolean[name] || "";
+    
   if (options.attributes && options.attributes.inherit) {
     options.inherit = options.attributes.inherit;
     delete options.attributes.inherit;
   }
+  
+  if (element.id) options.attributes.id = element.id;
+  
   var klass = options.attributes['class'];
   if (klass) {
     klass = klass.replace(/^lsd\s+(?:tag-)?([a-zA-Z0-9-_]+)\s?/, function(m, tag) {
@@ -405,7 +398,7 @@ LSD.Layout.extract = function(element) {
           options.pseudos.push(name.substr(3, name.length - 3));
           break;
         case "id-":
-          options.id = name.substr(3, name.length - 3);
+          options.attributes.id = name.substr(3, name.length - 3);
           break;
         default:
           return true;

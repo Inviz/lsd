@@ -27,7 +27,6 @@ LSD.Module.Chain = new Class({
   },
   
   addChain: function(name, chain) {
-
     if (!chain.name) chain.name = name;
     this.chains.push(chain);
   },

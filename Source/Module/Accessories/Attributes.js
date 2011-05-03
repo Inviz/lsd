@@ -99,10 +99,10 @@ LSD.Module.Attributes = new Class({
     var parent = this.parentNode;
     var selector = (parent && parent.getSelector) ? parent.getSelector() + ' ' : '';
     selector += this.options.tag;
-    if (this.options.id) selector += '#' + this.options.id;
+    if (this.attributes.id) selector += '#' + this.attributes.id;
     for (var klass in this.classes)  if (this.classes.hasOwnProperty(klass))  selector += '.' + klass;
     for (var pseudo in this.pseudos) if (this.pseudos.hasOwnProperty(pseudo)) selector += ':' + pseudo;
-    if (this.attributes) for (var name in this.attributes) selector += '[' + name + '=' + this.attributes[name] + ']';
+    for (var name in this.attributes) if (name != 'id') selector += '[' + name + '=' + this.attributes[name] + ']';
     return selector;
   }
 });

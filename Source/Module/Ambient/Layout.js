@@ -88,15 +88,6 @@ LSD.Module.Layout = new Class({
     }
   },
   
-  applySelector: function(selector) {
-    var parsed = Slick.parse(selector).expressions[0][0];
-    if (parsed.classes) parsed.classes.map(function(klass) { return klass.value }).each(this.addClass, this);
-    if (parsed.id) this.setAttribute('id', parsed.id);
-    if (parsed.attributes) parsed.attributes.each(function(attribute) {
-      this.setAttribute(attribute.key, attribute.value);
-    }, this);
-  },
-  
   mutateLayout: function(element, layout) {
     var query = {element: element, layout: layout, parent: this};
     this.dispatchEvent('mutateLayout', query);

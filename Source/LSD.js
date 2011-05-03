@@ -39,17 +39,19 @@ var LSD = Object.append(new Events, {
   Styles: {},
   States: {
     Known: {
-      built:    {enabler: 'build',    disabler: 'destroy',   reflect: false},
-      attached: {enabler: 'attach',   disabler: 'detach',    reflect: false},
-      hidden:   {enabler: 'hide',     disabler: 'show'},     
-      disabled: {enabler: 'disable',  disabler: 'enable'},   
-      focused:  {enabler: 'focus',    disabler: 'blur'},     
-      selected: {enabler: 'select',   disabler: 'unselect'}, 
-      checked:  {enabler: 'check',    disabler: 'uncheck',   toggler: 'toggle'},
-      expanded: {enabler: 'expand',   disabler: 'collapse',  toggler: 'toggle'},
-      working:  {enabler: 'busy',     disabler: 'idle'},
-      chosen:   {enabler: 'choose',   disabler: 'forget'},
-      empty:    {enabler: 'empty',    disabler: 'fill',      property: 'unfilled', initial: true}
+      built:    {enabler: 'build',      disabler: 'destroy',   reflect: false},
+      attached: {enabler: 'attach',     disabler: 'detach',    reflect: false},
+      hidden:   {enabler: 'hide',       disabler: 'show'},     
+      disabled: {enabler: 'disable',    disabler: 'enable'},   
+      focused:  {enabler: 'focus',      disabler: 'blur'},     
+      selected: {enabler: 'select',     disabler: 'unselect'}, 
+      checked:  {enabler: 'check',      disabler: 'uncheck',   toggler: 'toggle'},
+      expanded: {enabler: 'expand',     disabler: 'collapse',  toggler: 'toggle'},
+      working:  {enabler: 'busy',       disabler: 'idle'},
+      chosen:   {enabler: 'choose',     disabler: 'forget'},
+      empty:    {enabler: 'empty',      disabler: 'fill',      property: 'unfilled', initial: true},
+      invalid:  {enabler: 'invalidate', disabler: 'validate',   events: {enabler: 'invalid', disabler: 'valid'}},
+      valid:    {enabler: 'validate',   disabler: 'invalidate', events: {enabler: 'valid', disabler: 'invalid'}}
     },
     Positive: {
       disabled: 'disabled',

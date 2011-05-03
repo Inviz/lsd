@@ -80,7 +80,6 @@ LSD.Module.Element = new Class({
     else var element = this.element.set(attrs);
     var classes = new FastArray;
     if (options.tag != tag) classes.push('lsd', options.tag || this.tagName);
-    if (options.id) classes.push('id-' + options.id);
     classes.concat(this.classes);
     if (Object.getLength(classes)) this.element.className = classes.join(' ');
     if (this.attributes) 

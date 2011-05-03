@@ -42,7 +42,7 @@ var Expectations = LSD.Module.Expectations = new Class({
     if (typeof selector == 'string') selector = Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
     if (selector.tag && (selector.tag != '*') && (this.options.tag != selector.tag)) return false;
-    if (selector.id && (this.options.id != selector.id)) return false;
+    if (selector.id && (this.attributes.id != selector.id)) return false;
     if (selector.attributes) for (var i = 0, j; j = selector.attributes[i]; i++) 
       if (j.operator ? !j.test(this.attributes[j.key] && this.attributes[j.key].toString()) : !(j.key in this.attributes)) return false;
     if (selector.classes) for (var i = 0, j; j = selector.classes[i]; i++) if (!this.classes[j.value]) return false;
@@ -76,7 +76,7 @@ var Expectations = LSD.Module.Expectations = new Class({
     var combinator = selector.combinator || 'self';
     var id = selector.id;
     var index = (combinator == ' ' && id) ? 'id' : combinator; 
-    expectations = this.expectations[index];
+    var expectations = this.expectations[index];
     if (!expectations) expectations = this.expectations[index] = {};
     if (selector.combinator) {
       /*
@@ -217,7 +217,7 @@ var notify = function(widget, type, tag, state, target) {
 
 var update = function(widget, tag, state) {
   notify(this, ' ', tag, state, widget);
-  var options = widget.options, id = options.id;
+  var options = widget.options, id = widget.id;
   if (id) check.call(this, 'id', id, state, widget);
   if (this.previousSibling) {
     notify(this.previousSibling, '!+', options.tag, state, widget);

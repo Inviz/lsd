@@ -135,6 +135,7 @@ LSD.Module.DOM = new Class({
   setDocument: function(document) {
     LSD.Module.DOM.walk(this, function(child) {
       child.ownerDocument = child.document = document;
+      child.fireEvent('setDocument', document);
       child.fireEvent('dominject', [child.element.parentNode, document]);
       child.dominjected = true;
     });
