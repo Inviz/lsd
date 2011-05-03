@@ -32,9 +32,8 @@ LSD.Module.Options = new Class({
     if (setter.process) {
       value = (setter.process.charAt ? this[setter.process] : setter.process).call(this, value);
     }
-    var mode = unset ? 'remove' : 'add';
-    var method = setter[mode];
     if (setter.events) LSD.Module.Events.setEventsByRegister.call(this, name, !unset, setter.events);
+    var mode = unset ? 'remove' : 'add', method = setter[mode];
     if (method.charAt) method = this[method];
     if (setter.iterate) {
       if (value.each) for (var i = 0, j = value.length; i < j; i++) method.call(this, value[i]);

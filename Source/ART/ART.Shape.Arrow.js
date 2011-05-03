@@ -10,9 +10,10 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- ART/ART.Shape
+  - ART/ART.Shape
  
-provides: [ART.Shape.Arrow]
+provides: 
+  - ART.Shape.Arrow
  
 ...
 */

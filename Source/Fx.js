@@ -10,10 +10,11 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-- LSD
-- Fx.CSS
+  - LSD
+  - Core/Fx.CSS
  
-provides: [LSD.Fx ]
+provides: 
+  - LSD.Fx
  
 ...
 */
