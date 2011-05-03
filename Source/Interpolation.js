@@ -25,8 +25,8 @@ provides:
   LSD.Interpolation = {}
   var helpers = LSD.Interpolation.helpers = {
     pluralize: function(count, singular, plural) {
-      if (count == 1) return singular;
-      return plural || (singular.pluralize())
+      var value = (count == 1) ? singular : (plural || (singular.pluralize()));
+      return value.replace("%", count);
     },
     auto_pluralize: function(count, singular, plural) {
       return count + " " + helpers.pluralize(count, singular, plural);
