@@ -28,7 +28,7 @@ LSD.Module.Dimensions = new Class({
   
   setSize: function(size) {
     if (this.size) var old = Object.append({}, this.size)
-    if (!size || !(size.width || size.width)) size = {height: this.getStyle('height'), width: this.getStyle('width')}
+    if (!size || !(size.height || size.width)) size = {height: this.getStyle('height'), width: this.getStyle('width')}
     if (!(this.setHeight(size.height, true) + this.setWidth(size.width, true))) return false;
     this.fireEvent('resize', [this.size, old]);
     var element = this.element, padding = this.offset.padding;
