@@ -71,7 +71,7 @@ LSD.Module.Relations = new Class({
         (widget[relation.collection] || (widget[relation.collection] = []))[state ? 'include' : 'erase'](origin);
         
       if (relation.alias) widget[relation.alias] = origin;
-      if (relation.proxied) relation.proxied.each(proxy);
+      if (relation.proxied) relation.proxied.invoke('call', this, widget)
       if (state && callbacks.add) callbacks.add.call(origin, widget);
       if (relation.states) {
         var states = relation.states, get = states.get, set = states.set, add = states.add;
