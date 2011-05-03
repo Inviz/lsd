@@ -116,10 +116,12 @@ Object.append(LSD.Module.Events, {
         if (!target.addEvent && !(target.call && (target = target.call(this)))) {
           if (target.events && !events) Object.each(target.events, function(value, event) {
             this.addEvent(event, function(object) {
+              if (target.getter === false) object = this;
               LSD.Module.Events.setStoredEvents.call(object, events, value);
             });
           }, this);
           if (target.condition && target.condition.call(this)) target = this;
+          else if (target.getter && this[target.getter]) target = this[target.getter];
         }
       }
       if (!events) events = this.events[name] = {};
@@ -231,7 +233,7 @@ LSD.Module.Events.Targets = {
     getter: 'document',
     events: {
       'setDocument': true,
-      'unsetDocument': false
+      'unsetDocument  ': false
     }
   },
   self: function() { 
@@ -248,9 +250,10 @@ LSD.Module.Events.Targets = {
 !function(Events, Known, Positive, Negative) {
   Object.each(Object.append({}, Positive, Negative), function(name, condition) {
     var events = {}, positive = !!Positive[name], state = Known[name];
-    events[state[ positive ? 'enabler' : 'disabler']] = true;
-    events[state[!positive ? 'enabler' : 'disabler']] = false;
+    events[state[!positive ? 'enabler' : 'disabler']] = true;
+    events[state[ positive ? 'enabler' : 'disabler']] = false;
     LSD.Module.Events.Targets[condition] = {
+      getter: false,
       condition: function() {
         return positive ^ this[state.property || name]
       },
