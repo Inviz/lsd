@@ -44,7 +44,7 @@ provides:
       if (!base) base = this.document || document.body;
       var add = function(expression) {
         var anchor = (expression.anchor || base);
-        if (anchor.indexOf) anchor = Pseudo[anchor];
+        if (anchor.indexOf) anchor = Pseudo[anchor] || this[anchor];
         if (anchor && anchor.call) anchor = anchor.call(this);
         console.log(expression.anchor, anchor, this)
         if (expression.selector) results.push.apply(results, Slick.search(anchor, expression.selector));
