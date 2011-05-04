@@ -39,7 +39,7 @@ LSD.Module.Chain = new Class({
     var actions = [];
     for (var i = 0, chain; chain = this.chains[i++];) {
       var action = (chain.indexOf ? this[chain] : chain).apply(this, arguments);
-      if (action) actions.push(action);
+      if (action) actions.push[action.push ? 'apply' : 'call'](actions, action);
     }
     return actions.sort(function(a, b) {
       return (b.priority || 0) - (a.priority || 0);
