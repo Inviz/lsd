@@ -55,7 +55,7 @@ LSD.Module.Actions = new Class({
       var cargs = command.arguments.call ? command.arguments.call(this) : command.arguments;
       args = [].concat(cargs || [], args || []);
     }
-    var action = this.getAction(command.action);
+    var action = command.action = this.getAction(command.action);
     var targets = command.target;
     if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return true;
     var state = command.state;
@@ -104,8 +104,16 @@ LSD.Module.Actions.attach = function(doc) {
   LSD.Mixin.each(function(mixin, name) {
     var selector = mixin.prototype.behaviour;
     if (!selector) return;
+    var attached = {};
     var watcher = function (widget, state) {
-      widget[state ? 'mixin' : 'unmix'](mixin)
+      if (state) {
+        if (attached[widget.lsd]) return;
+        else attached[widget.lsd] = true;
+        widget.mixin(mixin);
+      } else if (attached[widget.lsd]) {
+        delete attached[widget.lsd];
+        widget.unmix(mixin);
+      }
     };
     selector.split(/\s*,\s*/).each(function(bit) {
       doc.watch(bit, watcher)
