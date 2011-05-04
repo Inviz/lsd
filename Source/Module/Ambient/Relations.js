@@ -22,7 +22,7 @@ LSD.Module.Relations = new Class({
   addRelation: function(name, relation, callback) {
     if (!this.relations) this.relations = {};
     this.relations[name] = relation = Object.append({name: name}, relation.indexOf ? {selector: relation} : relation);
-    var origin = relation.origin || this, events;
+    var origin = relation.origin || this, collection = relation.collection, events;
     var callbacks = relation.callbacks ? origin.bindEvents(relation.callbacks) : {}
     if (!relation.layout) relation.layout = relation.selector || name;
     if (name && relation.multiple) origin[name] = [];
@@ -45,6 +45,10 @@ LSD.Module.Relations = new Class({
     }
     if (relation.mutation) this.addMutation(relation.mutation, relation.layout);
     relation.watcher = function(widget, state) {
+      if (widget == origin) return;
+      if (relation.has) {
+        widget.setOption('has', relation.has, !state);
+      }
       if (relation.events) {
         if (!events) events = origin.bindEvents(relation.events);
         widget[state ? 'addEvents' : 'removeEvents'](events);
@@ -60,15 +64,13 @@ LSD.Module.Relations = new Class({
         }
         if (relation.relayed && (origin[name].length == +state)) 
           origin.element[state ? 'addEvents' : 'removeEvents'](relation.relayed);
-        origin[name].push(widget);
-        if (relation.collection) (widget[relation.collection] || (widget[relation.collection] = [])).push(origin);
+        origin[name][state ? 'push' : 'erase'](widget);
       } else {
         if (state) origin[name] = widget;
         else delete origin[name];
       }
       
-      if (relation.collection) 
-        (widget[relation.collection] || (widget[relation.collection] = []))[state ? 'include' : 'erase'](origin);
+      if (collection) (widget[collection] || (widget[collection] = []))[state ? 'include' : 'erase'](origin);
         
       if (relation.alias) widget[relation.alias] = origin;
       if (relation.proxied) relation.proxied.invoke('call', this, widget)
@@ -83,6 +85,7 @@ LSD.Module.Relations = new Class({
       if (relation.chain) {
         for (var label in relation.chain) widget[state ? 'addChain' : 'removeChain'](label, relation.chain[label]);
       }
+      origin.fireEvent(state ? 'relate' : 'unrelate', [widget, name]);
     };
     var watch = function(widget, state) {
       if (relation.selector) {
@@ -95,18 +98,49 @@ LSD.Module.Relations = new Class({
         relation.watcher.apply(this, arguments)
       }
     }
-    var target = relation.target || this;
-    if (target.call) target = target.call(this);
-    else if (target.indexOf) target = LSD.Module.Events.Targets[target];
-    if (target) {
-      if (!target.addEvent && !(target.call && (target = target.call(this)))) {
-        if (target.events && !events) Object.each(target.events, function(value, event) {
-          this.addEvent(event, function(object) {
-            watch(object, value);
+    var through = relation.through;
+    if (through) {
+      var from = relation.from || name;
+      if (!relation.updaters) relation.updaters = {
+        relate: function(object, type) {
+          if (type == from) watch(object, true);
+        },
+        unrelate: function(object, type) {
+          if (type == from) watch(object, false);
+        }
+      }
+      if (!relation.relators) relation.relators = {
+        relate: function(object, type) {
+          if (type != through) return;
+          object.addEvents(relation.updaters);
+          if (object[type]) object[type].each(function(widget) {
+            watch(widget, true)
           });
-        }, this);
-      } else {
-        watch(target, true);
+        },
+        unrelate: function(object, type) {
+          if (type != through) return
+          object.removeEvents(relation.updaters);
+          object[type].each(function(widget) {
+            watch(widget, false)
+          });
+        }
+      };
+      this.addEvents(relation.relators);
+    } else {
+      var target = relation.target || this;
+      if (target.call) target = target.call(this);
+      else if (target.indexOf) target = LSD.Module.Events.Targets[target];
+      else 
+      if (target) {
+        if (!target.addEvent && !(target.call && (target = target.call(this)))) {
+          if (target.events && !events) Object.each(target.events, function(value, event) {
+            this.addEvent(event, function(object) {
+              watch(object, value);
+            });
+          }, this);
+        } else {
+          watch(target, true);
+        }
       }
     }
   },
