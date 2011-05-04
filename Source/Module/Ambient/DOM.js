@@ -107,10 +107,10 @@ LSD.Module.DOM = new Class({
   },
   
   removeChild: function(widget) {
-    widget.unsetParent(this);
     LSD.Module.DOM.walk(widget, function(node) {
       this.dispatchEvent('nodeRemoved', node);
     }, this);
+    widget.unsetParent(this);
     this.childNodes.erase(widget);
   },
   
@@ -230,16 +230,13 @@ var inserters = {
 
 Object.append(LSD.Module.DOM, {
   walk: function(element, callback, bind, memo) {
-    var i = element.lsd ? -1 : 0;
-    for (var nodes = element.childNodes, node; node = (i > -1) ? nodes[i] : element; i++) {
-      if (node.nodeType != 1) continue;
-      var widget = LSD.Module.DOM.find(node, true);
-      if (widget) {
-        var result = callback.call(bind || this, widget, memo);
-        if (result) (memo || (memo = [])).push(widget);
-      }
-      if (i > -1) LSD.Module.DOM.walk(widget || node, callback, bind, memo);
+    var widget = element.lsd ? element : LSD.Module.DOM.find(element, true);
+    if (widget) {
+      var result = callback.call(bind || this, widget, memo);
+      if (result) (memo || (memo = [])).push(widget);
     }
+    for (var nodes = element.childNodes, node, i = 0; node = nodes[i]; i++) 
+      if (node.nodeType == 1) LSD.Module.DOM.walk(node, callback, bind, memo); 
     return memo;
   },
   
