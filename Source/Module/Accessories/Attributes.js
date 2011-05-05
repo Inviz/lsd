@@ -42,26 +42,26 @@ LSD.Module.Attributes = new Class({
     if (this.element) this.element.removeAttribute(attribute);
   },
 
-  setAttribute: function(attribute, value) {
-    if (LSD.Attributes.Numeric[attribute]) value = value.toInt();
+  setAttribute: function(name, value) {
+    if (LSD.Attributes.Numeric[name]) value = value.toInt();
     else {
-      var logic = LSD.Attributes.Setter[attribute];
+      var logic = LSD.Attributes.Setter[name];
       if (logic) logic.call(this, value)
     }
     this.fireEvent('selectorChange', ['attributes', name, false]);
-    this.attributes[attribute] = value;    
+    this.attributes[name] = value;    
     this.fireEvent('selectorChange', ['attributes', name, true]);
-    if (this.element) this.element.setAttribute(attribute, value);
+    if (this.element) this.element.setAttribute(name, value);
   },
 
-  addPseudo: function(pseudo){
-    this.pseudos.include(pseudo);
+  addPseudo: function(name){
+    this.pseudos.include(name);
     this.fireEvent('selectorChange', ['pseudos', name, true]);
   },
 
-  removePseudo: function(pseudo){
+  removePseudo: function(name){
     this.fireEvent('selectorChange', ['pseudos', name, false]);
-    this.pseudos.erase(pseudo);
+    this.pseudos.erase(name);
   },
 
   addClass: function(name) {

@@ -291,7 +291,7 @@ Expectations.events = {
     notify(this, '!>', parent.tagName, false, parent);
     for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, false, parent);
   },
-  optionChange: check 
+  selectorChange: check 
 };
 
 LSD.Module.Events.Targets.expected = function() {
