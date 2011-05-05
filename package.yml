@@ -57,6 +57,7 @@ sources:
   - Source/Mixin/Value.js
   - Source/Module/Ambient/Container.js
   - Source/Module/Ambient/DOM.js
+  - Source/Module/Ambient/Selectors.js
   - Source/Module/Ambient/Expectations.js
   - Source/Module/Ambient/Layout.js
   - Source/Module/Ambient/Relations.js

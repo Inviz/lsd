@@ -18,7 +18,7 @@ requires:
   - LSD.Module.Styles
   - LSD.Module.Shortcuts
   - LSD.Module.Element
-
+  - LSD.Module.Selectors
 provides: 
   - LSD.Module.Accessories
 
@@ -34,6 +34,7 @@ LSD.Module.Accessories = new Class({
     LSD.Module.Dimensions,
     LSD.Module.Styles,
     LSD.Module.Shortcuts,
-    LSD.Module.Element
+    LSD.Module.Element,
+    LSD.Module.Selectors
   ]
 });

@@ -27,10 +27,10 @@ provides:
           if (!this.attributes.target) return;
           var action;
           return this.parseTargetSelector(this.attributes.target).map(function(chain) {
-            console.log(Object.clone(chain), this.attributes.target)
             if (!chain.action) chain.action = this.getTargetAction();
+            if (!chain.action) return;
             if (chain.selector) chain.target = function() {
-              return this.getTarget(chain.selector, chain.anchor);
+              return this.getTarget(chain.selector);
             }
             return chain;
           }.bind(this));
@@ -38,22 +38,9 @@ provides:
       }
     },
     
-    getTarget: function(target, base) {
-      if (!target && !(target = this.attributes.target)) return false;
-      var results = [];
-      if (!base) base = this.document || document.body;
-      var add = function(expression) {
-        var anchor = (expression.anchor || base);
-        if (anchor.indexOf) anchor = Pseudo[anchor] || this[anchor];
-        if (anchor && anchor.call) anchor = anchor.call(this);
-        console.log(expression.anchor, anchor, this)
-        if (expression.selector) results.push.apply(results, Slick.search(anchor, expression.selector));
-        else if (expression.anchor) results.push(anchor)
-      };
-      if (target.Slick) add.call(this, {selector: target})
-      else if (target.indexOf) this.parseTargetSelector(target).each(add, this);
-      else add.call(target, base);
-      console.log(target, results.length);
+    getTarget: function(selector) {
+      if (!selector && !(selector = this.attributes.target)) return false;
+      var results = this.getElements(selector)
       return results.length > 0 && results.map(function(result) {
         if (result.localName) {
           var widget = Element.retrieve(result, 'widget');
@@ -76,29 +63,17 @@ provides:
   
   var Parser = LSD.Module.Target.Parser = {
     build: function(expression, start, end) {      
-      var built = {};
-      var first = expression[start];
-      if (!first.classes && !first.attributes && first.tag == '*' && !first.id && first.pseudos.length == 1) {
-        var pseudo = first.pseudos[0];
-        if (pseudo.type == 'element') {
-          built.anchor = pseudo.key;
-          start++;
-        }
-      }
-      if (end > start  + (!built.anchor)) {
-        var last = expression[end - start - (!built.anchor)];
-        if (!last.classes && !last.attributes && last.tag == '*' && !last.id && last.pseudos[0].type == 'class') {
-          var actions = last.pseudos
-          end--;
-        };
-      }
-      if (start != end) built.selector = Parser.slice(expression, start, end);
-      return !actions ? built : actions.map(function(pseudo, i) {
-        var object = (i == 0) ? built : Object.clone(built)
-        object.action = pseudo.key;
-        if (pseudo.value) object.arguments = pseudo.value;
-        return object;
-      });
+      var last = expression[end - start - 1];
+      if (!last.classes && !last.attributes && last.tag == '*' && !last.id && last.pseudos[0].type == 'class') {
+        var actions = last.pseudos
+        end--;
+      };
+      var built = (start < end) ? {selector: Parser.slice(expression, start, end)} : {}
+      if (actions) return actions.map(function(pseudo, i) {
+          var object = Object.append({action: pseudo.key}, built);
+          if (pseudo.value) object.arguments = pseudo.value;
+          return object;
+      }); else return built;
     },
     
     slice: function(expressions, start, end) {
@@ -109,7 +84,6 @@ provides:
     },
     
     exec: function(selector) {
-    console.log(selector)
       var parsed = selector.Slick ? selector : Slick.parse(selector), expressions = [];
       for (var i = 0, expression; expression = parsed.expressions[i]; i++) {
         var started = 0;
@@ -132,30 +106,5 @@ provides:
     '|': function(a, b) {
       return a() || b()
     }
-  }
-  
-  var Pseudo = LSD.Module.Target.Pseudo = {
-    document: function() {
-      return this.document;
-    },
-    body: function() {
-      return this.document.element;
-    },
-    page: function() {
-      return document.body;
-    },
-    self: function() {
-      return this;
-    },
-    parent: function() {
-      return this.parentNode
-    },
-    element: function() {
-      return this.element;
-    },
-    'parent-element': function() {
-      return this.element.parentNode
-    }
-  }
-
+  };
 }();

@@ -43,7 +43,7 @@ provides:
 LSD.Layout = function(widget, layout, options) {
   this.setOptions(options);
   this.context = LSD[this.options.context.capitalize()];
-  if (!layout && !widget.lsd) {
+  if (widget) if (!layout && !widget.lsd) {
     layout = widget;
     widget = null;
   } else if (!widget.lsd) widget = this.convert(widget);

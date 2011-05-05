@@ -47,14 +47,6 @@ LSD.Module.DOM = new Class({
     }
   },
   
-  getElements: function(selector) {
-    return Slick.search(this, selector)
-  },
-  
-  getElement: function(selector) {
-    return Slick.find(this, selector)
-  },
-  
   contains: function(element) {
     while (element = element.parentNode) if (element == this) return true;
     return false;

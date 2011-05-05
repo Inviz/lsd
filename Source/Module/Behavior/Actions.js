@@ -55,7 +55,7 @@ LSD.Module.Actions = new Class({
       var cargs = command.arguments.call ? command.arguments.call(this) : command.arguments;
       args = [].concat(cargs || [], args || []);
     }
-    var action = command.action = this.getAction(command.action);
+    var action = this.getAction(command.action);
     var targets = command.target;
     if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return true;
     var state = command.state;

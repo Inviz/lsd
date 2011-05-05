@@ -53,7 +53,7 @@ LSD.Document = new Class({
     this.document = this.documentElement = this;
     this.xml = true;
     this.navigator = {};
-    this.slickFeatures = LSD.Document.Features;
+    this.slickFeatures = LSD.Module.Selectors.Features;
     if (this.nodeType != 9) this.ownerDocument = this;
     this.parent.apply(this, arguments);
     this.dominjected = true;
@@ -77,24 +77,6 @@ LSD.Document = new Class({
     return fragment;
   }
 });
-
-LSD.Document.Features = {
-  brokenStarGEBTN: false,
-  starSelectsClosedQSA: false,
-  idGetsName: false,
-  brokenMixedCaseQSA: false,
-  brokenGEBCN: false,
-  brokenCheckedQSA: false,
-  brokenEmptyAttributeQSA: false,
-  isHTMLDocument: false,
-  nativeMatchesSelector: false,
-  hasAttribute: function(node, attribute) {
-    return (attribute in node.attributes) || ((attribute in node.$states) && (attribute in node.pseudos))
-  },
-  getAttribute: function(node, attribute) {
-    return node.attributes[attribute] || ((attribute in node.$states) || node.pseudos[attribute]);
-  }
-};
 
 LSD.Document.prototype.addEvents({
   build: function() {
