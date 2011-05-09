@@ -43,6 +43,7 @@ LSD.Type.prototype = {
       if (value && value.$family && value.$family() == 'class') callback.call(bind || this, value, name)
     }
   },
+  
   find: function(name) {
     if (!this.queries) this.queries = {};
     else if (this.queries[name] != null) return this.queries[name];
@@ -85,13 +86,9 @@ LSD.Type.prototype = {
   },
   
   convert: function(element, options) {
-    var source = options && options.source;
-    if (!source) {
-      source = LSD.toLowerCase(element.tagName);
-      if (element.type && (element.type != source)) source += '-' + element.type;
-    }
+    var source = (options && options.source) || LSD.Layout.getSource(element);
     var klass = this.find(source);
-    if (klass) return new klass(element);
+    if (klass) return new klass(element, options);
   }
 }
 // must-have stuff for all widgets 

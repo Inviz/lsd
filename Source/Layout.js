@@ -166,7 +166,7 @@ Object.append(LSD.Layout, {
   parse: function(selector, parent) {
     var options = {};
     var parsed = (selector.Slick ? selector : Slick.parse(selector)).expressions[0][0]
-    if (parsed.tag != '*') options.tag = parsed.tag;
+    if (parsed.tag != '*') options.source = parsed.tag;
     if (parsed.id) (options.attributes || (options.attributes = {})).id = parsed.id
     if (parsed.attributes) for (var all = parsed.attributes, attribute, i = 0; attribute = all[i++];) {
       var value = attribute.value || LSD.Attributes.Boolean[attribute.key] || "";
@@ -193,9 +193,6 @@ Object.append(LSD.Layout, {
       attributes: {},
       origin: element
     };
-    var tag = LSD.toLowerCase(element.tagName);
-    if (tag != 'div') options.tag = tag;
-
     for (var i = 0, attribute, name; (attribute = element.attributes[i++]) && (name = attribute.name);)
       options.attributes[name] = attribute.value || LSD.Attributes.Boolean[name] || "";
 
@@ -229,6 +226,12 @@ Object.append(LSD.Layout, {
   mutate: function(element, parent) {
     var mutation = (parent[1] || parent).mutateLayout(element);
     if (mutation && mutation.indexOf) return LSD.Layout.parse(mutation, parent);
+  },
+  
+  getSource: function(element) {
+    source = LSD.toLowerCase(element.tagName);
+    if (element.type && (element.type != source)) source += '-' + element.type;
+    return source;
   }
 });
 
