@@ -48,6 +48,6 @@ LSD.Module.Shortcuts = new Class({
 LSD.Options.shortcuts = {
   add: 'addShortcut',
   remove: 'removeShortcut',
-  process: 'bindEvents',
+  //process: 'bindEvents',
   iterate: true
 };

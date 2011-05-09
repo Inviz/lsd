@@ -38,12 +38,6 @@ LSD.Trait.List = new Class({
       previous: 'previous',
       next: 'next'
     },
-    events: {
-      attach: function() {
-        var items = this.list && this.list.length ? this.list : this.options.list.items;
-        if (items) this.setItems(items);
-      }
-    },
     has: {
       many: {
         items: {
@@ -77,9 +71,17 @@ LSD.Trait.List = new Class({
     }
   },
   
-  initialize: function() {
-    this.parent.apply(this, arguments);
-    this.setItems(this.options.items || this.items);
+  initializers: {
+    list: function() {
+      return {
+        events: {
+          attach: function() {
+            var items = this.list && this.list.length ? this.list : this.options.list.items;
+            if (items) this.setItems(items);
+          }
+        }
+      }
+    }
   },
   
   selectItem: function(item) {

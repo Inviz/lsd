@@ -31,13 +31,11 @@ LSD.Module.Element = new Class({
       return {
         events: {
           'initialize': function(options, element) {
+            console.log('init', options, element)
             if (element) this.attach(element);
           },
           'build': 'attach',
-          'destroy': 'detach',
-          'dispose': function() {
-            if (this.element) this.element.dispose();
-          }
+          'destroy': 'detach'
         }
       }
     }

@@ -31,8 +31,6 @@ provides:
 */
 
 LSD.Document = new Class({
-
-  Extends: LSD.Widget,
   
   options: {
     tag: 'body',
@@ -47,16 +45,27 @@ LSD.Document = new Class({
     nodeType: 9
   },
   
-  initialize: function(element, options) {
-    if (!LSD.document.body) LSD.document = Object.append(this, LSD.document);
-    this.body = this;
-    this.document = this.documentElement = this;
-    this.xml = true;
-    this.navigator = {};
-    this.slickFeatures = LSD.Module.Selectors.Features;
-    if (this.nodeType != 9) this.ownerDocument = this;
-    this.parent.apply(this, arguments);
-    this.dominjected = true;
+  initializers: {
+    document: function() {
+      if (!LSD.document.body) LSD.document = Object.append(this, LSD.document);
+      this.body = this;
+      this.document = this.documentElement = this;
+      this.xml = true;
+      this.navigator = {};
+      this.slickFeatures = LSD.Module.Selectors.Features;
+      if (this.nodeType != 9) this.ownerDocument = this;
+      this.dominjected = true;
+      return {
+        events: {
+          build: function() {
+            // Attach action expectations
+            LSD.Module.Actions.attach(this);
+            // Attach stylesheets, if there are stylesheets loaded
+            if (LSD.Sheet && LSD.Sheet.stylesheets) for (var i = 0, sheet; sheet = LSD.Sheet.stylesheets[i++];) this.addStylesheet(sheet);
+          }
+        }
+      }
+    }
   },
   
   addStylesheet: function(sheet) {
@@ -75,17 +84,6 @@ LSD.Document = new Class({
     var fragment = document.createFragment(content)
     this.fireEvent('DOMNodeInserted', fragment);
     return fragment;
-  }
-});
-
-LSD.Document.prototype.addEvents({
-  build: function() {
-    if (this.watch) {
-      // Attach action expectations
-      LSD.Module.Actions.attach(this);
-    }
-    // Attach stylesheets, if there are stylesheets loaded
-    if (LSD.Sheet && LSD.Sheet.stylesheets) for (var i = 0, sheet; sheet = LSD.Sheet.stylesheets[i++];) this.addStylesheet(sheet);
   }
 });
 

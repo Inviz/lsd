@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires: 
   - LSD.Document
-  - Native/LSD.Native.Anchor
+  - Widgets/LSD.Native.Anchor
  
 provides:
   - LSD.Document.Commands

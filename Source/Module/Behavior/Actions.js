@@ -79,24 +79,6 @@ LSD.Module.Actions = new Class({
     var ret = (targets) ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);
     delete action.caller, delete action.document;
     return (ret ? ret[0] : ret) !== false;
-  },
-  
-  mixin: function(mixin) {
-    if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
-    var options = mixin.prototype.options;
-    Class.mixin(this, mixin);
-    if (options) {
-      Object.merge(this.options, options); //merge!
-      this.setOptions(options);
-    }
-    var initializers = mixin.prototype.initializers;
-    if (initializers) for (var name in initializers) initializers[name].call(this);
-  },
-
-  unmix: function(mixin) {
-    if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
-    this.unsetOptions(mixin.prototype.options);
-    Class.unmix(this, mixin);
   }
 });
 

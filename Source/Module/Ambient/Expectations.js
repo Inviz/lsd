@@ -210,32 +210,32 @@ var check = function(type, value, state, target) {
   }
 }
 
-var notify = function(widget, type, tag, state, target) {
-  check.call(widget, type, tag, state, target)
-  check.call(widget, type, "*", state, target)
+var notify = function(widget, type, tag, state, target, single) {
+  check.call(widget, type, tag, state, target);
+  if (single) check.call(widget, type, "*", state, target)
 }
 
-var update = function(widget, tag, state) {
-  notify(this, ' ', tag, state, widget);
+var update = function(widget, tag, state, single) {
+  notify(this, ' ', tag, state, widget, single);
   var options = widget.options, id = widget.id;
   if (id) check.call(this, 'id', id, state, widget);
   if (this.previousSibling) {
-    notify(this.previousSibling, '!+', options.tag, state, widget);
-    notify(this.previousSibling, '++', options.tag, state, widget);
+    notify(this.previousSibling, '!+', options.tag, state, widget, single);
+    notify(this.previousSibling, '++', options.tag, state, widget, single);
     for (var sibling = this; sibling = sibling.previousSibling;) {
-      notify(sibling, '!~', tag, state, widget);
-      notify(sibling, '~~', tag, state, widget);
+      notify(sibling, '!~', tag, state, widget, single);
+      notify(sibling, '~~', tag, state, widget, single);
     }
   }
   if (this.nextSibling) {
-    notify(this.nextSibling, '+',  tag, state, widget);
-    notify(this.nextSibling, '++', tag, state, widget);
+    notify(this.nextSibling, '+',  tag, state, widget, single);
+    notify(this.nextSibling, '++', tag, state, widget, single);
     for (var sibling = this; sibling = sibling.nextSibling;) {
-      notify(sibling, '~',  tag, state, widget);
-      notify(sibling, '~~', tag, state, widget);
+      notify(sibling, '~',  tag, state, widget, single);
+      notify(sibling, '~~', tag, state, widget, single);
     }
   }
-  if (widget.parentNode == this) notify(this, '>', options.tag, state, widget);
+  if (widget.parentNode == this) notify(this, '>', options.tag, state, widget, single);
 }
 
 var remove = function(array, callback) {
@@ -283,6 +283,14 @@ Expectations.events = {
     type["*"].erase(widget);
     update.call(this, widget, tag, false);
   },
+  nodeTagChanged: function(widget, old, tag) {
+    var expectations = this.expectations, type = expectations.tag;
+    type[old].erase(widget);
+    update.call(this, widget, old, false);
+    if (!group) group = type[tag] = [];
+    group.push(widget);
+    update.call(this, widget, tag, true);
+  },
   setParent: function(parent) {
     notify(this, '!>', parent.tagName, true, parent);
     for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, true, parent);
@@ -291,7 +299,12 @@ Expectations.events = {
     notify(this, '!>', parent.tagName, false, parent);
     for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, false, parent);
   },
-  selectorChange: check 
+  selectorChange: check,
+  tagChanged: function(tag, old) {
+    check.call(this, 'tag', old, false);
+    check.call(this, 'tag', tag, true);
+    if (this.parentNode) this.dispatchEvent('nodeTagChanged', [this, tag, old]);
+  }
 };
 
 LSD.Module.Events.Targets.expected = function() {

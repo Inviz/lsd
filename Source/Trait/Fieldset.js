@@ -18,38 +18,6 @@ provides:
 
 LSD.Trait.Fieldset = new Class({
   options: {
-    events :{
-      request: {
-        request: 'validateFields',
-        badRequest: 'parseFieldErrors'
-      },
-      _fieldset: {
-        mutateLayout: function(query) {
-          var element = query.element, name = element.name, id = element.id, mutation;
-          var widget = Element.retrieve(element, 'widget');
-          if (!widget) return;
-          if (name && this.names[name]) {
-            var bumped = LSD.Trait.Fieldset.bumpName(name);
-            if (bumped) (mutation || (mutation = {attributes: {}})).attributes.name = bumped;
-          }
-          // bump id index
-          if (id) {
-            bumped = LSD.Trait.Fieldset.bumpId(id);
-            if (bumped != id) (mutation || (mutation = {attributes: {}})).attributes.id = bumped;
-          }
-          // bump name index
-          if (LSD.toLowerCase(element.tagName) == 'label') {
-            var four = element.htmlFor
-            if (four) {
-              bumped = LSD.Trait.Fieldset.bumpId(four);
-              if (bumped != four) (mutation || (mutation = {attributes: {}})).attributes['for'] = bumped;
-            }
-          }
-          if (query.mutation) Object.append(query.mutation, mutation);
-          else query.mutation = mutation;
-        }
-      }
-    },
     has: {
       many: {
         elements: {
@@ -63,10 +31,45 @@ LSD.Trait.Fieldset = new Class({
     }
   },
   
-  initialize: function() {
-    this.names = {};
-    this.params = {};
-    this.parent.apply(this, arguments)
+  initializers: {
+    fieldset: function() {
+      this.names = {};
+      this.params = {};
+      return {
+        events: {
+          request: {
+            request: 'validateFields',
+            badRequest: 'parseFieldErrors'
+          },
+          self: {
+            mutateLayout: function(query) {
+              var element = query.element, name = element.name, id = element.id, mutation;
+              var widget = Element.retrieve(element, 'widget');
+              if (!widget) return;
+              if (name && this.names[name]) {
+                var bumped = LSD.Trait.Fieldset.bumpName(name);
+                if (bumped) (mutation || (mutation = {attributes: {}})).attributes.name = bumped;
+              }
+              // bump id index
+              if (id) {
+                bumped = LSD.Trait.Fieldset.bumpId(id);
+                if (bumped != id) (mutation || (mutation = {attributes: {}})).attributes.id = bumped;
+              }
+              // bump name index
+              if (LSD.toLowerCase(element.tagName) == 'label') {
+                var four = element.htmlFor
+                if (four) {
+                  bumped = LSD.Trait.Fieldset.bumpId(four);
+                  if (bumped != four) (mutation || (mutation = {attributes: {}})).attributes['for'] = bumped;
+                }
+              }
+              if (query.mutation) Object.append(query.mutation, mutation);
+              else query.mutation = mutation;
+            }
+          }
+        }
+      }
+    }
   },
   
   checkValidity: function() {

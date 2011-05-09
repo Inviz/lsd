@@ -100,6 +100,7 @@ Object.append(LSD.Module.Events, {
       for (var i = 0, fn, group = events[evt]; fn = group[i++];)
         this[state ? 'addEvent' : 'removeEvent'](evt, fn.indexOf ? this.bindEvent(fn) : fn);
   },
+  
   setEvent: function(name, fn, revert) {
     if (fn.indexOf) fn = this.bindEvent(fn);
     var method = revert ? 'removeEvent' : 'addEvent';

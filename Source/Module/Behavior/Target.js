@@ -25,7 +25,6 @@ provides:
       chain: {
         target: function() {
           if (!this.attributes.target) return;
-          var action;
           return this.parseTargetSelector(this.attributes.target).map(function(chain) {
             if (!chain.action) chain.action = this.getTargetAction();
             if (!chain.action) return;

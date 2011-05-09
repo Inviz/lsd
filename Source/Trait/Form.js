@@ -23,13 +23,16 @@ LSD.Trait.Form = new Class({
     pseudos: Array.fast('submittable')
   },
   
-  initialize: function() {
-    this.addEvents({
-      nodeInserted: function(node) {
-        if (!node.form && (node.pseudos['read-write'] || node.pseudos['form-associated'])) node.form = this;
+  initializers: {
+    form: function() {
+      return {
+        events: {
+          nodeInserted: function(node) {
+            if (!node.form && (node.pseudos['read-write'] || node.pseudos['form-associated'])) node.form = this;
+          }
+        }
       }
-    });
-    this.parent.apply(this, arguments);
+    }
   },
   
   submit: function(event) {

@@ -11,8 +11,8 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Action
-  - Native/LSD.Native.Body
-  - Native/LSD.Native.Form
+  - Widgets/LSD.Widget.Body
+  - Widgets/LSD.Widget.Form
   - LSD.Trait.Form
   - LSD.Trait.Fieldset
   - LSD.Mixin.Resource
@@ -27,7 +27,7 @@ LSD.Action.Edit = LSD.Action.build({
   enable: function(target, content) {
     var session = this.retrieve(target);
     if (!session) {
-      $ss = session = new LSD.Native.Form.Edit(target.element || target);
+      $ss = session = new LSD.Widget.Form.Edit(target.element || target);
       this.store(target, session);
     }
     session.start(content);
@@ -39,9 +39,10 @@ LSD.Action.Edit = LSD.Action.build({
   }
 });
 
-LSD.Native.Form.Edit = new Class({
-  Includes: [
-    LSD.Native.Body,
+LSD.Widget.define('Form.Edit', {
+  Extends: LSD.Widget.Body,
+  
+  Implements: [
     LSD.Trait.Fieldset,
     LSD.Trait.Form,
     LSD.Mixin.Resource
@@ -72,7 +73,8 @@ LSD.Native.Form.Edit = new Class({
     has: {
       one: {
         submitter: {
-          selector: 'input[type=submit]'
+          selector: '[type=submit]',
+          layout: 'input[type=submit]'
         },
         canceller: {
           selector: 'button.cancel',
@@ -107,11 +109,10 @@ LSD.Native.Form.Edit = new Class({
   },
 
   finish: function() {
+    console.log('revert', [].concat(this.objects))
     for (var object; object = this.objects.shift();) this.revert(object);
-    this.controls = this.getElements(':not(:read-write)').map(function(child) {
-      child.element.parentNode.removeChild(child.element)
-      return child;
-    });
+    this.submitter.dispose();
+    this.canceller.dispose();
   },
   
   convert: function(element, name, type) {
@@ -139,11 +140,12 @@ LSD.Native.Form.Edit = new Class({
   getReplacement: function(element, name, type) {
     var widget = Element.retrieve(element, 'widget:edit');
     if (!widget) {
-      var options = {name: name};
+      var options = {attributes: {name: name}};
       widget = this.buildLayout(type == 'area' ? 'textarea' : ('input-' + (type || 'text')), this, options);
+      
       Element.store(element, 'widget:edit', widget);
     }
-    widget.setValue(Element.get(element, 'itemvalue'));
+    //widget.setValue(Element.get(element, 'itemvalue'));
     return widget;
   }
 })

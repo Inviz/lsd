@@ -30,14 +30,19 @@ LSD.Module.DOM = new Class({
   initializers: {
     dom: function(options) {
       this.childNodes = [];
-      this.nodeType = options.nodeType;
-      this.nodeName = this.tagName = options.tag;
       return {
         events: {
           element: {
-            'dispose': 'dispose'
+            /*
+              When dispose event comes from the element, 
+              it is is already removed from dom
+            */
+            'dispose': ['dispose', true]
           },
           self: {
+            'dispose': function(parent, light) {
+              if (light !== true && this.element) this.element.dispose();
+            },
             'destroy': function() {
               if (this.parentNode) this.dispose();
             }
@@ -188,12 +193,12 @@ LSD.Module.DOM = new Class({
     else this.addEvent('dominject', callback.bind(this))
   },
 
-  dispose: function(element) {
+  dispose: function(mode) {
     var parent = this.parentNode;
     if (!parent) return;
     this.fireEvent('beforeDispose', parent);
     parent.removeChild(this);
-    this.fireEvent('dispose', parent);
+    this.fireEvent('dispose', [parent, mode]);
     return this;
   }
 });

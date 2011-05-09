@@ -76,13 +76,13 @@ sources:
   - Source/Module/Accessories/Options.js
   - Source/Module/Accessories/States.js
   - Source/Module/Accessories/Element.js
+  - Source/Module/Accessories/Tag.js
   - Source/Module/Accessories.js
   - Source/Module/Graphics/Render.js
   - Source/Module/Graphics/Layers.js
   - Source/Module/Graphics/Shape.js
   - Source/Module/Graphics.js
   - Source/Trait/Menu.js
-  - Source/Trait/Animation.js
   - Source/Trait/Choice.js
   - Source/Trait/List.js
   - Source/Trait/Observer.js

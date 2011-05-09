@@ -23,7 +23,7 @@ LSD.Module.Layout = new Class({
   options: {
     layout: {
       render: true,
-      extract: false,
+      extract: true,
       options: {}
     }
   },
@@ -34,19 +34,18 @@ LSD.Module.Layout = new Class({
         events: {
           self: {
             /*
-              Extracts and sets layout options from attach element
+              Extracts and sets layout options from attached element
             */
             attach: function(element) {
-              if (this.extracted || !options.layout.extract) return;
-              this.extracted = LSD.Layout.extract(element);
-              this.setOptions(this.extracted)
+              if (!this.extracted && options.layout.extract) 
+                this.extractLayout(element);
             },
             /*
               Unsets options previously extracted from the detached element
             */
             detach: function() {
               if (!this.extracted) return;
-              this.unsetOptions(this.extracted)
+              this.unsetOptions(this.extracted);
               delete this.extracted;
             },
             /*
@@ -55,8 +54,7 @@ LSD.Module.Layout = new Class({
             beforeBuild: function(options) {
               var layout = this.options.layout, clone = layout.options.method == 'clone';
               if (!options.element || !(clone || layout.extract)) return;
-              this.extracted = LSD.Layout.extract(options.element);
-              this.setOptions(this.extracted);
+              this.extractLayout(options.element);
               this.origin = options.element;
               if (clone) options.convert = false;
             },
@@ -76,10 +74,17 @@ LSD.Module.Layout = new Class({
             /*
               Augments all inserted nodes that come from partial html updates
             */
-            DOMNodeInserted: 'augmentLayout'
+            DOMNodeInserted: 'augmentLayout',
+            /**/
+            extractLayout: function(options, element) {
+              if (this.tagName) return;
+              var source = options.source;
+              var klass = LSD
+              this.setRole
+            }
           },
           
-          //applied only when mutations are set
+          //applied when mutations are added
           mutations: {
             mutateLayout: 'onMutateLayout'
           }
@@ -88,8 +93,8 @@ LSD.Module.Layout = new Class({
     }
   },
   
-  mutateLayout: function(element, layout) {
-    var query = {element: element, layout: layout, parent: this};
+  mutateLayout: function(element) {
+    var query = {element: element, parent: this};
     this.dispatchEvent('mutateLayout', query);
     if (query.mutation) return query.mutation;
   },
@@ -135,6 +140,12 @@ LSD.Module.Layout = new Class({
   
   augmentLayout: function(layout, parent, options) {
     return this.getLayout().render(layout, parent || this, 'augment', options);
+  },
+  
+  extractLayout: function(element) {
+    this.extracted = LSD.Layout.extract(element);
+    this.setOptions(this.extracted);
+    this.fireEvent('extractLayout', [this.extracted, element])
   }
 });
 

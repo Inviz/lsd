@@ -53,11 +53,45 @@ LSD.Type.prototype = {
     }
     return (this.queries[name] = false);
   },
+  
   create: function(name, a, b, c, d) {
     var widget = this.find(name);
-    if (!widget) throw 'Class named LSD.' + LSD.toClassName(this.name) + '.' + LSD.toClassName(name) + ' was not found';
+    if (!widget) throw 'Class named ' + this.namespace + '.' + LSD.toClassName(this.name) + '.' + LSD.toClassName(name) + ' was not found';
     this.count++;
     return new widget(a, b, c, d);
+  },
+  
+  define: function(name, definition) {
+    var self = window[this.namespace][this.name];
+    if (definition.Extends && definition.Extends.klass) definition.Extends = definition.Extends.klass
+    var Klass = new Class(definition)
+    var wrapper = function(a, b, c, d) {
+      console.info(name, Klass.prototype.options)
+      return (new LSD.Widget(a, b, c, d)).mixin(Klass);
+    }
+    wrapper.klass = Klass;
+    wrapper.prototype = Klass.prototype;
+    var obj = self;
+    for (var bits = name.split('.'), i = 0, j = bits.length, bit; (bit = bits[i]) && (++i < j);) 
+      obj = (obj[bit] || (obj[bit] = {}));
+    obj[bit] = wrapper;
+    return wrapper
+  },
+  
+  use: function(element, options, parent) {
+    if (parent) var mutation = LSD.Layout.mutate(element, parent);
+    options = mutation && options ? Object.merge(mutation, options) : mutation || options;
+    return this.convert(element, options);
+  },
+  
+  convert: function(element, options) {
+    var source = options && options.source;
+    if (!source) {
+      source = LSD.toLowerCase(element.tagName);
+      if (element.type && (element.type != source)) source += '-' + element.type;
+    }
+    var klass = this.find(source);
+    if (klass) return new klass(element);
   }
 }
 // must-have stuff for all widgets 

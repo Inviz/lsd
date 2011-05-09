@@ -29,29 +29,39 @@ LSD.Mixin.Dialog = new Class({
         if (target) return {action: 'dialog', target: target, priority: 50};
       }
     },
-    events: {
-      dialogs: {}
+    dialogs: {
+      
     }
   },
   
+  initializers: {
+    dialog: function() {
+      this.dialogs = {};
+    }
+  },
+    
   getDialog: function(name) {
     if (!this.dialogs) this.dialogs = {};
-    if (!this.dialogs[name]) {
-      this.dialogs[name] = this.options.layout[name] ? this.buildDialog.apply(this, arguments) : LSD.Element.create('body-dialog-' + name);
-    }
+    if (!this.dialogs[name]) this.dialogs[name] = this.buildDialog(name);
     return this.dialogs[name];
   },
   
-  buildDialog: function(name) {
-    var layout = {}
-    layout[this.options.layout.dialog] = this.options.layout[name];
-    var dialog = this.buildLayout(layout)[0];
-    var events = this.options.events.dialogs;
-    if (events[name]) dialog.addEvents(events[name]);
-    return dialog;
+  getDialogOptions: function(name) {
+    return {events: this.options.events[name]};
+  },
+  
+  buildDialog: function(options) {
+    if (options.indexOf) options = this.options.dialogs[options] || {};
+    if (!options.layout) options.layout = 'body-dialog+' + name;
+    if (!options.root) options.root = this.document;
+    return options.root.buildLayout(options.layout, null, this.getDialogOptions());
   },
   
   getDialogTarget: function() {
-    return this.attributes.dialog && this.getTarget(this.attributes.dialog);
+    return this.attributes.dialog && this.getTarget(this.attributes.dialog)
+  },
+  
+  getDialogWrapper: function() {
+    return document.body;
   }
-})
+});

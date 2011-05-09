@@ -45,46 +45,55 @@ LSD.Module.Options = new Class({
   unsetOptions: function(options) {
     for (var name in options) this.setOption(name, options[name], true);
     return this;
+  },
+  
+  construct: function(object) {
+    if (!object) object = this;
+    var initialized = object.$constructed = [];
+    /*
+      Run module initializers and keep return values
+    */
+    for (var name in object.initializers) {
+      var initializer = object.initializers[name];
+      if (initializer) {
+        var result = initializer.call(this, object.options);
+        if (result) initialized.push(result);
+      }
+    }
+    /*
+      Set options returned from initializers
+    */
+    for (var i = 0, value; value = initialized[i++];) this.setOptions(value);
+    return object.options;
+  },
+  
+  destruct: function(object) {
+    if (!object) object = this;
+    var initialized = object.$constructed;
+    if (initialized)
+      for (var i = 0, value; value = initialized[i++];) this.unsetOptions(value);
+    return object.options;
   }
 });
 
 LSD.Module.Options.initialize = function(element, options) {
-  /* 
-    Rearrange arguments if they are in the wrong order
-  */
+  // Rearrange arguments if they are in the wrong order
   if ((element && !element.tagName) || (options && options.tagName)) {
     var el = options;
     options = element, element = el;
   }
-  /*
-    Merge given options object into this.options
-  */
-  options = options ? Object.merge(this.options, options) : this.options;
-  var initialized = [];
-  /*
-    Run module initializers and keep return values
-  */
-  for (var name in this.initializers) {
-    var initializer = this.initializers[name];
-    if (initializer) {
-      var result = initializer.call(this, options, element);
-      if (result) initialized.push(result);
-    }
-  }
-  /*
-    Set options returned from initializers
-  */
-  for (var i = 0, value; value = initialized[i++];) this.setOptions(value);
-  /*
-    Call parent class initializer (if set)
-  */
+  // Merge given options object into this.options
+  if (options) Object.merge(this.options, options);
+  
+  // Collection options off initializers
+  options = this.construct();
+  
+  // Call parent class initializer (if set)
   if (Class.hasParent(this)) this.parent(element, options);
-  /* 
-    Run callbacks for all the options set
-  */
+  
+  // Run callbacks for all the options set
   this.setOptions(options);
-  /*
-    Attach to a given element
-  */
+  
+  // Attach to a given element
   this.fireEvent('initialize', [options, element])
 };

@@ -38,8 +38,20 @@ LSD.Module.Selectors = new Class({
   
   getElement: function(selector) {
     return Slick.find(this, selector)
+  },
+  
+  getPseudoElementsByName: function(name) {
+    var handler = Pseudos[name];
+    if (handler && (handler = handler.apply(this, arguments))) return handler;
+    return this[name];
   }
 });
+
+var Pseudos = LSD.Module.Selectors.PseudoElements = {
+  dialog: function(type) {
+    return 
+  }
+}
 
 var Combinators = LSD.Module.Selectors.Combinators = {
   '$': function(node, tag, id, classes, attributes, pseudos) { //this element
@@ -74,7 +86,7 @@ LSD.Module.Selectors.Features = {
     return node.attributes[attribute] || ((attribute in node.$states) || node.pseudos[attribute]);
   },
   getPseudoElementsByName: function(node, name, value) {
-    var collection = node[name];
+    var collection = node.getPseudoElementsByName ? node.getPseudoElementsByName(name) : node[name];
     return collection ? (collection.push ? collection : [collection]) : [];
   }
 };
