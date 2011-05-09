@@ -345,7 +345,8 @@ LSD.Layout.prototype = Object.append(new Options, {
     if (element.nodeType != 1) return true;
     var tag = LSD.toLowerCase(element.tagName);
     if (!mutated) {
-     var source = (element.type && element.type != tag) ? tag + '-' + element.type : tag;
+      var type = element.getAttribute('type');
+      var source = (type && type != tag) ? tag + '-' + type : tag;
     } else var source = mutated.source;
     var klass = this.context.find(LSD.toLowerCase(source));
     if (!klass) return;
