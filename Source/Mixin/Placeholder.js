@@ -63,7 +63,7 @@ LSD.Mixin.Placeholder = new Class({
   
   onPlacehold: function(){
     var value = this.getRawValue();
-    if(value.match(/^\s*$/) || value == this.getPlaceholder()){
+    if(!value || value.match(/^\s*$/) || value == this.getPlaceholder()){
       this.applyValue(this.getPlaceholder());
       this.placehold();
       return true;

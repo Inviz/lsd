@@ -130,7 +130,6 @@ LSD.Module.Relations = new Class({
       var target = relation.target || this;
       if (target.call) target = target.call(this);
       else if (target.indexOf) target = LSD.Module.Events.Targets[target];
-      else 
       if (target) {
         if (!target.addEvent && !(target.call && (target = target.call(this)))) {
           if (target.events && !events) Object.each(target.events, function(value, event) {
