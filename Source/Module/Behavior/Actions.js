@@ -81,10 +81,10 @@ LSD.Module.Actions = new Class({
     return (ret ? ret[0] : ret) !== false;
   },
   
-  mixin: function(mixin) {
+  mixin: function(mixin, light) {
     if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
     var options = mixin.prototype.options;
-    Class.mixin(this, mixin);
+    Class.mixin(this, mixin, light);
     if (options) {
       Object.merge(this.options, options); //merge!
       this.setOptions(options);
@@ -93,10 +93,10 @@ LSD.Module.Actions = new Class({
     if (initializers) for (var name in initializers) initializers[name].call(this);
   },
 
-  unmix: function(mixin) {
+  unmix: function(mixin, light) {
     if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
     this.unsetOptions(mixin.prototype.options);
-    Class.unmix(this, mixin);
+    Class.unmix(this, mixin, light);
   }
 });
 

@@ -167,6 +167,7 @@ LSD.Module.DOM = new Class({
   },
   
   write: function(content) {
+    if (!content || !(content = content.toString())) return;
     var wrapper = this.getWrapper();
     if (this.written) for (var node; node = this.written.shift();) Element.dispose(node);
     var fragment = document.createFragment(content);

@@ -149,12 +149,12 @@ LSD.Layout.prototype = Object.append(new Options, {
       if (parent.options) {
         var source = parent.options.source;
         if (!source) {
-          var bits = [parent.tagName, parent.getAttribute('type')]
-          if (options.inherit == 'full') bits.push(parent.getAttribute('kind'))
+          var bits = [parent.tagName, parent.getAttribute('type')];
+          if (options.inherit == 'full') bits.push(parent.getAttribute('kind'));
           source = bits.filter(function(bit) { return bit }).join('-');
         }
       } else if (parent.indexOf) var source = parent;
-      if (source) tag = source + '-' + tag
+      if (source) tag = source + '-' + tag;
     }
     var args = Array.prototype.slice.call(arguments, 0);
     args.splice(1, 1); //remove parent
