@@ -90,7 +90,6 @@ LSD.Native.Form.Edit = new Class({
   },
   
   start: function(values) {
-    console.log(values)
     Element.Item.walk.call(this, this.element, function(node, prop, scope, prefix) {
       var editable = node.getProperty('editable');
       if (editable) {

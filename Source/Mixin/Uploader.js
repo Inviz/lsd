@@ -144,7 +144,6 @@ LSD.Widget.Filelist.File = new Class({
         this.write(this.name)
       },
       progress: function() {
-        console.log('rpgoress', this.progress, this);
         this.meter.write(this.progress.percentLoaded)
       }
     },

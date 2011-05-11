@@ -89,7 +89,6 @@ LSD.Mixin.Value = new Class({
       this.previousValue = this.value;
       if (unset) delete this.value;
       else this.value = value;
-      console.error(value, input, unset)
       input.set('value', unset ? '' : value);
       this.applyValue(this.value);
     }

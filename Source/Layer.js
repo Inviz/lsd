@@ -169,7 +169,6 @@ LSD.Layer.prepare = function(name, layers, callback) {
         if (simple) var style = prefix
         else return;
       } else var style = prefix + property.capitalize()
-      if (style == 'stroke') console.error(123, '!!!!!!!!!!!!!!!!!!!!', [].concat(properties), layer, property, value, prefix)
       definition.styles[style] = styles[style] = Property.compile(value, properties);
       definition.keys.push(style);
     });
