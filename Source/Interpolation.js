@@ -36,8 +36,8 @@ provides:
   var regex = SheetParser.Value.tokenize;
   var parsed = {};
   
-  var interpolate = LSD.Interpolation.interpolate = function(name, callback, simple) {
-    if (!simple || (name.indexOf('(') > -1)) return execute(translate(name), callback);
+  var interpolate = LSD.Interpolation.execute = function(name, callback, simple) {
+    if (!simple || (name.indexOf('(') > -1)) return run(translate(name), callback);
     return callback(name);
   }
   
@@ -61,7 +61,7 @@ provides:
     return (parsed[value] = (result.length == 1 ? result[0] : result));
   }
   
-  var execute = LSD.Interpolation.execute = function(command, callback) {
+  var run = LSD.Interpolation.run = function(command, callback) {
     var fn = command.fn;
     if (fn) {
       var func = fn.indexOf ? (helpers[fn] || (callback(fn))) : fn;
@@ -70,7 +70,7 @@ provides:
         return "";
       }
       var args = Array.prototype.slice.call(command.arguments, 0);
-      for (var i = 0, j = args.length; i < j; i++) args[i] = execute(args[i], callback);
+      for (var i = 0, j = args.length; i < j; i++) args[i] = run(args[i], callback);
       if (command.callback) args.splice(1, 0, callback);
       return func.apply(this, args);
     }

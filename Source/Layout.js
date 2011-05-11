@@ -53,8 +53,6 @@ LSD.Layout = function(widget, layout, options) {
 LSD.Layout.prototype = Object.append(new Options, {
   
   options: {
-    method: 'augment',
-    fallback: 'modify',
     context: 'element',
     interpolate: null
   },
@@ -67,7 +65,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   materialize: function(selector, layout, parent, opts) {
-    var widget = this.build(Object.append({}, opts, LSD.Layout.parse(selector, parent)), parent);
+    var widget = this.build(Object.append({}, opts, ), parent);
     //debugger
     if (parent) this.appendChild(widget, parent)
     if (layout) if (layout.charAt) widget.write(layout);
@@ -80,7 +78,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     var self = this;
     return string.replace(/\\?\{([^{}]+)\}/g, function(match, name){
       if (match.charAt(0) == '\\') return match.slice(1);
-      var value = object.call ? LSD.Interpolation.interpolate(name, object) : object[string];
+      var value = object.call ? LSD.Interpolation.execute(name, object) : object[string];
       self.interpolated = true;
       return (value != null) ? value : '';
     });
@@ -166,6 +164,7 @@ Object.append(LSD.Layout, {
   parse: function(selector, parent) {
     var options = {};
     var parsed = (selector.Slick ? selector : Slick.parse(selector)).expressions[0][0]
+    if (parsed.combinator != ' ') options.combinator = parsed.combinator;
     if (parsed.tag != '*') options.source = parsed.tag;
     if (parsed.id) (options.attributes || (options.attributes = {})).id = parsed.id
     if (parsed.attributes) for (var all = parsed.attributes, attribute, i = 0; attribute = all[i++];) {

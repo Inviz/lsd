@@ -51,12 +51,8 @@ LSD.Widget.define('Form.Edit', {
   options: {
     key: null,
     layout: {
-      extract: true,
-      instance: true,
-      children: {
-        '::canceller': 'Cancel',
-        '::submitter': 'Save'
-      }
+      '::canceller': 'Cancel',
+      '::submitter': 'Save'
     },
     events: {
       self: {

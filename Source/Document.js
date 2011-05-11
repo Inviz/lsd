@@ -35,9 +35,6 @@ LSD.Document = new Class({
   options: {
     tag: 'body',
     root: false, // topmost widget's parentNode is the document if set to true
-    layout: {
-      method: 'augment'
-    },
     container: {
       enabled: false,
       inline: false

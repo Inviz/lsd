@@ -20,9 +20,6 @@ LSD.Mixin.Dialog = new Class({
   behaviour: '[dialog]',
   
   options: {
-    layout: {
-      dialog: "body[type=dialog]"
-    },
     chain: {
       dialog: function() {
         var target = this.getDialogTarget();

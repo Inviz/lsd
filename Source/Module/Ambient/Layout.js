@@ -21,15 +21,13 @@ provides:
   
 LSD.Module.Layout = new Class({
   options: {
-    layout: {
-      render: true,
-      extract: true,
-      options: {}
-    }
+    render: 'augment',
+    context: 'element',
   },
   
   initializers: {
     layout: function(options) {
+      this.rendered = {};
       return {
         events: {
           self: {
@@ -52,18 +50,17 @@ LSD.Module.Layout = new Class({
               Mutate element when layout is set to clone.
             */
             beforeBuild: function(options) {
-              var layout = this.options.layout, clone = layout.options.method == 'clone';
-              if (!options.element || !(clone || layout.extract)) return;
+              if (!options.element || render != 'clone')) return;
               this.extractLayout(options.element);
               this.origin = options.element;
-              if (clone) options.convert = false;
+              if (render == 'clone') options.convert = false;
             },
             /*
               Builds more dependent layout when element is built
             */
             build: function() {
               var layout = this.options.layout;
-              if (this.origin || layout.render) 
+              if (layout.render) 
                 this.buildLayout(Array.prototype.slice.call((this.origin || this.element).childNodes, 0));
               if (layout.children) this.buildLayout(layout.children);
             },
@@ -74,14 +71,7 @@ LSD.Module.Layout = new Class({
             /*
               Augments all inserted nodes that come from partial html updates
             */
-            DOMNodeInserted: 'augmentLayout',
-            /**/
-            extractLayout: function(options, element) {
-              if (this.tagName) return;
-              var source = options.source;
-              var klass = LSD
-              this.setRole
-            }
+            DOMNodeInserted: 'augmentLayout'
           },
           
           //applied when mutations are added
@@ -131,7 +121,11 @@ LSD.Module.Layout = new Class({
   },
   
   getLayout: Macro.getter('layout', function() {
-    return new LSD.Layout(this, null, this.options.layout.options);
+    var options = {
+      method: this.options.render,
+      interpolate: this.options.interpolate
+    };
+    return new LSD.Layout(this, null, options);
   }),
   
   buildLayout: function(layout, parent, options) {

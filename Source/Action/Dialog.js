@@ -39,21 +39,17 @@ LSD.Action.Dialog = LSD.Action.build({
       var source = this.caller.element || this.caller;
       var caller = this.caller;
       var options = {
-        layout: {
-          options: {
-            method: 'clone', 
-            interpolate: function(string) {
-              if (data) {
-                var substitution = data[string];
-                if (!substitution && substitutions.callback) substitution = substitutions.callback.call(this, string)
-                if (substitution) {
-                  if (substitution.call) substitution = substitution.call(source, string, this);
-                  if (substitution) return substitution;
-                }
-              }
-              return source.getProperty('data-' + string.dasherize())
+        render: 'clone',
+        interpolate: function(string) {
+          if (data) {
+            var substitution = data[string];
+            if (!substitution && substitutions.callback) substitution = substitutions.callback.call(this, string)
+            if (substitution) {
+              if (substitution.call) substitution = substitution.call(source, string, this);
+              if (substitution) return substitution;
             }
           }
+          return source.getProperty('data-' + string.dasherize())
         },
         caller: function() {
           return caller;
