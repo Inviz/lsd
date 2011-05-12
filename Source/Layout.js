@@ -65,7 +65,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   materialize: function(selector, layout, parent, opts) {
-    var widget = this.build(Object.append({}, opts, ), parent);
+    var widget = this.build(Object.append({}, opts, LSD.Layout.parse(selector)), parent);
     //debugger
     if (parent) this.appendChild(widget, parent)
     if (layout) if (layout.charAt) widget.write(layout);

@@ -50,7 +50,7 @@ LSD.Module.Layout = new Class({
               Mutate element when layout is set to clone.
             */
             beforeBuild: function(options) {
-              if (!options.element || render != 'clone')) return;
+              if (!options.element || render != 'clone') return;
               this.extractLayout(options.element);
               this.origin = options.element;
               if (render == 'clone') options.convert = false;
