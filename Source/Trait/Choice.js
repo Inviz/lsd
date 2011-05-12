@@ -30,7 +30,7 @@ LSD.Trait.Choice = new Class({
   },
   
   forgetChosenItem: function(item) {
-    item = this.getItem(item) || this.selectedItem;
+    item = this.getItem(item) || this.chosenItem;
     if (item) item.forget();
     this.unsetSelectedItem(item, 'chosen');
   },

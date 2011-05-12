@@ -34,10 +34,7 @@ LSD.Module.Element = new Class({
             if (element) this.attach(element);
           },
           'build': 'attach',
-          'destroy': 'detach',
-          'dispose': function() {
-            if (this.element) this.element.dispose();
-          }
+          'destroy': 'detach'
         }
       }
     }

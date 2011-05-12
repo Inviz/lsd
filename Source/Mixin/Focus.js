@@ -112,12 +112,11 @@ LSD.Mixin.Focus.Propagation = {
     var active = parent.document.activeElement;
     var hierarchy = [];
     if (active) {
-      var widget = active;
-      while (widget.parentNode) hierarchy.unshift(widget = widget.parentNode);
+      for (var widget = active; widget.parentNode && hierarchy.push(widget); widget = widget.parentNode);
     }
     while (parent = parent.parentNode) {
       if (active && hierarchy.contains(parent)) break;
-      if (parent.options && (parent.options.tabindex != null) && parent.blur) parent.blur(true);
+      if (parent.options && (parent.attributes.tabindex != null) && parent.blur) parent.blur(true);
     }
   }
 };
