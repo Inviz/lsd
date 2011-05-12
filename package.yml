@@ -57,6 +57,7 @@ sources:
   - Source/Mixin/Value.js
   - Source/Mixin/Animation.js
   - Source/Mixin/Uploader.js
+  - Source/Mixin/ContentEditable.js
   - Source/Module/Ambient/Container.js
   - Source/Module/Ambient/DOM.js
   - Source/Module/Ambient/Selectors.js
