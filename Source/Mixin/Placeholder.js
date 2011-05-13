@@ -29,6 +29,9 @@ LSD.Mixin.Placeholder = new Class({
         enable: function(){
           this.element.set('autocomplete', 'off');
           this.onPlacehold();
+        },
+        disable: function(){
+          this.onUnplacehold();
         }
       }
     },
