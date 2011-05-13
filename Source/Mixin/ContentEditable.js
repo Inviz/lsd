@@ -39,11 +39,46 @@ LSD.Mixin.ContentEditable = new Class({
     }
   },
   
-  getEditor: Macro.getter('ckeditor', function() {
-    var element = new Element('div').inject(document.body);
-    var ckeditor = new CKEDITOR.editor( this.options.ckeditor, element, 2);
-    return ckeditor;
+  getEditor: Macro.getter('editor', function() {
+    var element = new Element('div', {styles: {position: 'absolute', top: -1000, left: -2000}}).inject(document.body);
+    var editor = new CKEDITOR.editor( this.options.ckeditor, element, 2);
+    
+    //sometimes it may happen too quickly
+    //if (editor.document && editor.container) hide();
+    //if (editor.document) show();
+    editor.on('focus', function() {
+      if (this.editor) this.getEditorContainer().addClass('focus');
+    }.bind(this));
+    editor.on('blur', function() {
+      if (this.editor) this.getEditorContainer().removeClass('focus');
+    }.bind(this));
+    editor.on('contentDom', function() {
+      this.fireEvent('editorReady');
+      console.log(this.getEditorContainer())
+      this.getEditorContainer().replaces(this.element);
+    }.bind(this));
+    //editor.on('themeLoaded', hide);
+    //editor.on('contentDom', show);
+    //editor.on('afterSetData', function() {
+    //  this.getEditorBody()
+    //}.create({bind: this, delay: 100}))
+    
+    return editor;
   }),
+  
+  useEditor: function(callback) {
+    if (this.editor && this.editor.document) callback.call(this.editor);
+    this.addEvent('editorReady:once', callback);
+    this.getEditor();
+  },
+  
+  getEditorContainer: function() {
+    return $(this.editor.container.$);
+  },
+  
+  getEditorBody: function() {
+    return this.editor.document.$.body;
+  },
   
   getEditedElement: function() {
     return this.element;
