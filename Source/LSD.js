@@ -135,6 +135,8 @@ States.get = function(name) {
   return LSD.States.Known[name];
 };
 
-Type.isEnumerable = function(item){
-	return (item != null && typeof item.length == 'number' && !item.nodeType && toString.call(item) != '[object Function]' );
-};
+(function(toString) {
+  Type.isEnumerable = function(item){
+  	return (item != null && typeof item.length == 'number' && toString.call(item) != '[object Function]' && !item.localName && !item.nodeType);
+  };
+})(Object.prototype.toString);
