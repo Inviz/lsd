@@ -12,6 +12,40 @@ requires:
   - CKEditor/core._bootstrap
   - CKEditor/skins.ias.skin
   - CKEditor/lang.en
+  - CKEditor/themes.default.theme
+  - CKEditor/plugins.basicstyles.plugin
+  - CKEditor/plugins.button.plugin
+  - CKEditor/plugins.clipboard.plugin
+  - CKEditor/plugins.contextmenu.plugin
+  - CKEditor/plugins.enterkey.plugin
+  - CKEditor/plugins.htmldataprocessor.plugin
+  - CKEditor/plugins.iframe.plugin
+  - CKEditor/plugins.indent.plugin
+  - CKEditor/plugins.link.plugin
+  - CKEditor/plugins.list.plugin
+  - CKEditor/plugins.pastefromword.plugin
+  - CKEditor/plugins.pastetext.plugin
+  - CKEditor/plugins.removeformat.plugin
+  - CKEditor/plugins.stylescombo.plugin
+  - CKEditor/plugins.tab.plugin
+  - CKEditor/plugins.toolbar.plugin
+  - CKEditor/plugins.wysiwygarea.plugin
+  - CKEditor/plugins.autogrow.plugin
+  - CKEditor/plugins.styles.plugin
+  - CKEditor/plugins.dialog.plugin
+  - CKEditor/plugins.menu.plugin
+  - CKEditor/plugins.fakeobjects.plugin
+  - CKEditor/plugins.domiterator.plugin
+  - CKEditor/plugins.richcombo.plugin
+  - CKEditor/plugins.editingblock.plugin
+  - CKEditor/plugins.dialogui.plugin
+  - CKEditor/plugins.dialog.plugin
+  - CKEditor/plugins.keystrokes.plugin
+  - CKEditor/plugins.htmlwriter.plugin
+  - CKEditor/plugins.selection.plugin
+  - CKEditor/plugins.floatpanel.plugin
+  - CKEditor/plugins.listblock.plugin
+  - CKEditor/plugins.panel.plugin
  
 provides: 
   - LSD.Mixin.ContentEditable

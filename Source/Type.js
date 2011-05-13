@@ -65,6 +65,10 @@ LSD.Type.prototype = {
     return (this.queries[name] = false);
   },
   
+  create: function(element, options) {
+    return new LSD.Widget(element, options)
+  },
+  
   use: function(element, options, parent) {
     if (parent) var mutation = LSD.Layout.mutate(element, parent);
     options = mutation && options ? Object.merge(mutation, options) : mutation || options;

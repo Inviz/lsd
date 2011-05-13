@@ -55,8 +55,6 @@ LSD.Document = new Class({
       return {
         events: {
           build: function() {
-            // Attach action expectations
-            LSD.Module.Actions.attach(this);
             // Attach stylesheets, if there are stylesheets loaded
             if (LSD.Sheet && LSD.Sheet.stylesheets) for (var i = 0, sheet; sheet = LSD.Sheet.stylesheets[i++];) this.addStylesheet(sheet);
           }

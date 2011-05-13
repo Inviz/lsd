@@ -53,7 +53,7 @@ LSD.Mixin.Value = new Class({
   
   isValueDifferent: function(value) {
     if (this.attributes.multiple) {
-      return this.values.indexOf == -1
+      return this.values.indexOf(value) == -1
     } else {
       return this.value != value;
     }
@@ -80,7 +80,7 @@ LSD.Mixin.Value = new Class({
       } else {  
         this.previousValue = this.values.clone();
         this.values.push(value);
-        (this.valueInputs || (this.valueInputs = [])).push(this.getValueInput());
+        (this.valueInputs || (this.valueInputs = [])).push(this.getValueInput().set('value', value));
         this.applyValue(this.values);
       }
     } else {

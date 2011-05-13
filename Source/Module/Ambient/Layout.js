@@ -63,7 +63,7 @@ LSD.Module.Layout = new Class({
             build: function() {
               if (options.traverse) 
                 this.buildLayout(Array.prototype.slice.call((this.origin || this.element).childNodes, 0));
-              //if (layout.children) this.buildLayout(layout.children);
+              if (options.layout) this.buildLayout(options.layout);
             },
             /*
               Augments all parsed HTML that goes through standart .write() interface

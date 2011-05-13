@@ -65,7 +65,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   materialize: function(selector, layout, parent, opts) {
-    var widget = this.build(Object.append({}, opts, LSD.Layout.parse(selector)), parent);
+    var widget = this.context.create(Object.append({}, opts, LSD.Layout.parse(selector, parent)));
     if (parent) this.appendChild(widget, parent)
     if (layout) if (layout.charAt) widget.write(layout);
     else this.render(layout, widget, null, opts);
@@ -174,6 +174,7 @@ Object.append(LSD.Layout, {
     if (parsed.pseudos) {
       for (var all = parsed.pseudos, pseudo, i = 0; pseudo = all[i++];) {
         if (pseudo.type == 'element') {
+          console.log(parent, parent[0], pseudo.key)
           var relation = (parent[0] || parent).relations[pseudo.key];
           if (!relation) throw "Unknown pseudo element ::" + pseudo.key
           Object.append(options, LSD.Layout.parse(relation.layout, parent))

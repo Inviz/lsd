@@ -52,9 +52,7 @@ LSD.Mixin.Uploader = new Class({
         fileProgress: 'onFileProgress'
       }
     },
-    layout: {
-      children: Array.fast('::list')
-    },
+    layout: Array.fast('::list'),
     has: {
       one: {
         list: {
@@ -99,7 +97,7 @@ LSD.Mixin.Uploader = new Class({
   },
   
   onFileRemove: function(file, blob) {
-    this.setValue(this.blobs[file.id], true);
+    if (this.blobs && this.blobs[file.id]) this.setValue(this.blobs[file.id], true);
   },
   
   getStoredBlobs: function() {
@@ -127,10 +125,8 @@ LSD.Widget.Filelist.File = new Class({
   options: {
     tag: 'file',
     layout: {
-      children: {
-        '::meter': true,
-        '::canceller': 'Cancel'
-      }
+      '::canceller': 'Cancel',
+      '::meter': true
     },
     events: {
       setBase: function(base) {
@@ -138,7 +134,7 @@ LSD.Widget.Filelist.File = new Class({
         this.write(this.name)
       },
       progress: function() {
-        this.meter.write(this.progress.percentLoaded)
+        this.meter.set(this.progress.percentLoaded)
       },
       start: function() {
         this.setState('started');
@@ -174,12 +170,18 @@ LSD.Widget.Filelist.File = new Class({
 });
 
 LSD.Widget.Progress = new Class({
-  Extends: LSD.Widget,
-  
   options: {
     tag: 'progress',
     inline: null,
     pseudos: Array.fast(':valued')
+  },
+  
+  getBar: Macro.getter('bar', function() {
+    return new Element('span').inject(this.element);
+  }),
+  
+  set: function(value) {
+    this.getBar().setStyle('width', Math.round(value) + '%')
   }
 });
 
