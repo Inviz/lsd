@@ -83,7 +83,7 @@ LSD.Module.Command = new Class({
   },
   
   getCommandAction: function() {
-    return this.attributes.commandaction;
+    return this.attributes.commandaction || this.captureEvent('getCommandAction', arguments);
   }
   
 });

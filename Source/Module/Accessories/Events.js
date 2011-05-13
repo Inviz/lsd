@@ -91,6 +91,15 @@ LSD.Module.Events = new Class({
       node = node.parentNode;
     }
     return this;
+  },
+  
+  captureEvent: function(type, args) {
+		var events = this.$events[type];
+		if (!events) return;
+		for (var i = 0, event; event = events[i++];) {
+		  var result = event.apply(this, arguments);
+		  if (result) return result;
+		}
   }
 });
 

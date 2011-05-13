@@ -42,6 +42,15 @@ LSD.Mixin.Request = new Class({
           
         }
       }
+    },
+    events: {
+      getCommandAction: function() {
+        if (!this.isRequestURLLocal()) return 'send';
+      },
+      
+      getTargetAction: function() {
+        if (this.getCommandAction() == 'send') return 'update';
+      }
     }
   },
   
@@ -119,13 +128,5 @@ LSD.Mixin.Request = new Class({
     if (!base) base = location.pathname;
     var url = this.getRequestURL();
     return (url.charAt(0) == "#") || url.match(new RegExp('(?:' + host + ')?' + base + '/?#'));
-  },
-  
-  getCommandAction: function() {
-    if (!this.isRequestURLLocal()) return 'send';
-  },
-  
-  getTargetAction: function() {
-    return this.parent.apply(this, arguments) || ((this.getCommandAction() == 'send') && 'update')
   }
 });
