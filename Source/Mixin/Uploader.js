@@ -145,6 +145,16 @@ LSD.Widget.Filelist.File = new Class({
       },
       progress: function() {
         this.meter.write(this.progress.percentLoaded)
+      },
+      start: function() {
+        this.setState('started');
+      },
+      complete: function() {
+        this.unsetState('started');
+        this.setState('complete');
+      },
+      stop: function() {
+        this.unsetState('started');
       }
     },
     has: {
@@ -153,7 +163,7 @@ LSD.Widget.Filelist.File = new Class({
           selector: 'progress'
         },
         canceller: {
-          selector: 'button',
+          selector: 'button.cancel',
           events: {
             click: 'cancel'
           }
