@@ -109,10 +109,10 @@ LSD.Module.Actions.attach = function(doc) {
       if (state) {
         if (attached[widget.lsd]) return;
         else attached[widget.lsd] = true;
-        widget.mixin(mixin);
+        widget.mixin(mixin, true);
       } else if (attached[widget.lsd]) {
         delete attached[widget.lsd];
-        widget.unmix(mixin);
+        widget.unmix(mixin, true);
       }
     };
     selector.split(/\s*,\s*/).each(function(bit) {
