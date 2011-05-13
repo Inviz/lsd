@@ -44,12 +44,14 @@ LSD.Mixin.Request = new Class({
       }
     },
     events: {
-      getCommandAction: function() {
-        if (!this.isRequestURLLocal()) return 'send';
-      },
-      
-      getTargetAction: function() {
-        if (this.getCommandAction() == 'send') return 'update';
+      self: {
+        getCommandAction: function() {
+          if (!this.isRequestURLLocal()) return 'send';
+        },
+
+        getTargetAction: function() {
+          if (this.getCommandAction() == 'send') return 'update';
+        }
       }
     }
   },
