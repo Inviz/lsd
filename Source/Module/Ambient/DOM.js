@@ -39,7 +39,7 @@ LSD.Module.DOM = new Class({
             When dispose event comes from the element, 
             it is is already removed from dom
             */
-            'dispose': ['dispose', true]
+            //'dispose': ['dispose', true]
           },
           self: {
             'dispose': function(parent, light) {
