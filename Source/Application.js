@@ -45,7 +45,7 @@ LSD.Application = new Class({
       if (type) {
         if (!this[type]) this[type] = {};
         var content = el.getAttribute('content')
-        this[type][el.getAttribute('name')] = (content.charAt(0) =="{") ? JSON.decode(content) : content;
+        if (content) this[type][el.getAttribute('name')] = (content.charAt(0) =="{") ? JSON.decode(content) : content;
       }
     }
   },
