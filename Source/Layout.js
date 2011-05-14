@@ -134,7 +134,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   walk: function(element, parent, method, opts) {
-    for (var nodes = LSD.slice.call(element.childNodes, 0), i = 0, node; node = nodes[i++];) {
+    for (var nodes = LSD.slice(element.childNodes, 0), i = 0, node; node = nodes[i++];) {
       if (node.nodeType && node.nodeType != 8) this.render(node, parent, method, opts);
     }
   },
