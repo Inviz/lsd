@@ -67,12 +67,14 @@ LSD.Module.Element = new Class({
   },
   
   build: function() {
-    var options = this.options, attrs = Object.append({element: this.element}, options.element);
-    if (!attrs.tag)
-      attrs.tag = ((options.inline == null) && this.tagName) || (options.inline ? 'span' : 'div'); 
+    var options = this.options, attrs = {element: this.element};
     this.fireEvent('beforeBuild', attrs);
-    var stop = (attrs.convert === false), tag = attrs.tag;
-    delete attrs.convert, delete attrs.tag, delete attrs.element;
+    var stop = (attrs.convert === false)
+    delete attrs.element, delete attrs.convert;
+    var attrs = Object.merge({}, options.element, attrs);
+    if (!attrs.tag) attrs.tag = ((options.inline == null) && this.tagName) || (options.inline ? 'span' : 'div');
+    var tag = attrs.tag;
+    delete attrs.tag;
     if (!this.element || stop) this.element = new Element(tag, attrs);
     else var element = this.element.set(attrs);
     var classes = new FastArray;

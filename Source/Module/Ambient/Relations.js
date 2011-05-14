@@ -56,14 +56,12 @@ LSD.Module.Relations = new Class({
       if (!state && callbacks.remove) callbacks.remove.call(origin, widget);
       
       if (relation.multiple) {
-        if (state)
-          if (callbacks.fill && origin[name].push(widget) == 1) callbacks.fill.call(origin, widget)
-        else {
-          if (callbacks.empty && !origin[name].erase(widget).length) callbacks.empty.call(origin, widget)
+        origin[name][state ? 'include' : 'erase'](widget);
+        if (origin[name].length == +state) {
+          console.log(callbacks[state ? 'fill' : 'empty'], state, state ? 'fill' : 'empty', callbacks, name, relation)
+          if (callbacks[state ? 'fill' : 'empty']) callbacks[state ? 'fill' : 'empty'].call(origin, widget);
+          if (relation.relayed) origin.element[state ? 'addEvents' : 'removeEvents'](relation.relayed)
         }
-        origin[name][state ? 'push' : 'erase'](widget);
-        if (relation.relayed && (origin[name].length == +state)) 
-          origin.element[state ? 'addEvents' : 'removeEvents'](relation.relayed);
       } else {
         if (state) origin[name] = widget;
         else delete origin[name];

@@ -59,8 +59,8 @@ LSD.Mixin.List = new Class({
           },
           pseudos: Array.fast('valued'),
           callbacks: {
-            'fill': 'fill',
-            'empty': 'empty'
+            fill: 'fill',
+            empty: 'empty'
           }
         }
       }

@@ -52,7 +52,9 @@ LSD.Module.Layout = new Class({
             beforeBuild: function(query) {
               if (!query.element || (options.traverse != 'clone' && !options.extract)) return;
               this.extractLayout(query.element);
-              if (options.traverse == 'clone') {
+              var tag = options.element && options.element.tag;
+              console.log(this.options.element && this.options.element.tag, this.extracted.tag, options.traverse == 'clone' || (tag && this.extracted.tag != tag), this.element)
+              if (options.traverse == 'clone' || (tag && this.extracted.tag != tag)) {
                 this.origin = query.element;
                 query.convert = false;
               }
@@ -61,6 +63,10 @@ LSD.Module.Layout = new Class({
               Builds more dependent layout when element is built
             */
             build: function() {
+              if (this.origin && options.traverse != 'clone') {
+                console.info('replace', this.element, this.origin);
+                this.element.replaces(this.origin);
+              }
               if (options.traverse) 
                 this.buildLayout(Array.prototype.slice.call((this.origin || this.element).childNodes, 0));
               if (options.layout) this.buildLayout(options.layout);

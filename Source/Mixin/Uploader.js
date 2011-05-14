@@ -107,9 +107,10 @@ LSD.Mixin.Uploader = new Class({
 });
 
 LSD.Widget.Filelist = new Class({
+  Implements: LSD.Mixin.List,
+  
   options: {
     tag: 'filelist',
-    pseudos: Array.fast('list'),
     has: {
       many: {
         items: {

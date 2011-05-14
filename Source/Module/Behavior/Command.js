@@ -61,12 +61,8 @@ LSD.Module.Command = new Class({
     if (!force && this.command) return this.command;
     if (!this.attributes.command || !this.document.commands) {
       var options = this.options.command || {};
-      var type = options.type || 'command', command;
-      options = Object.append({id: this.options.id, name: this.attributes.name}, options);
-      if (this.attributes.radiogroup) {
-        options.radiogroup = this.attributes.radiogroup;
-        type = 'radio'
-      };
+      var type = this.getCommandType(), command;
+      options = Object.append(this.getCommandOptions(), options);
       if (!command) command = new LSD.Command[type.capitalize()](this.document, options);
     } else command = this.document.commands[this.attributes.command];
     command.attach(this);
@@ -84,6 +80,14 @@ LSD.Module.Command = new Class({
   
   getCommandAction: function() {
     return this.attributes.commandaction || this.captureEvent('getCommandAction', arguments);
+  },
+  
+  getCommandType: function() {
+    return this.attributes.commandtype || this.options.command.type || (this.attributes.radiogroup ? 'radio' : 'command');
+  },
+  
+  getCommandOptions: function() {
+    return {id: this.options.id, name: this.attributes.name, radiogroup: this.attributes.radiogroup};
   }
   
 });
