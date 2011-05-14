@@ -174,7 +174,6 @@ Object.append(LSD.Layout, {
     if (parsed.pseudos) {
       for (var all = parsed.pseudos, pseudo, i = 0; pseudo = all[i++];) {
         if (pseudo.type == 'element') {
-          console.log(parent, parent[0], pseudo.key)
           var relation = (parent[0] || parent).relations[pseudo.key];
           if (!relation) throw "Unknown pseudo element ::" + pseudo.key
           Object.append(options, LSD.Layout.parse(relation.layout, parent))
