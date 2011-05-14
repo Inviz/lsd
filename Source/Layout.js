@@ -149,46 +149,6 @@ LSD.Layout.prototype = Object.append(new Options, {
         } else (parent.element || parent).appendChild(child.element || child);
       }
     }
-<<<<<<< HEAD
-=======
-  },
-  
-  // mutations
-  
-  merge: function(first, second) {
-    var result = {layout: first.layout}, id, combinator;
-    result.source = second.source || first.source;
-    if (combinator = (second.combinator || first.combinator)) result.combinator = combinator;
-    if (second.attributes || first.attributes) result.attributes = Object.append({}, first.attributes, second.attributes);
-    if (second.classes || first.classes) result.classes = Array.concat([], first.classes || [], second.classees || []);
-    if (second.pseudos || first.pseudos) result.pseudos = Array.concat([], first.pseudos || [], second.pseudos || []);
-    return result;
-  },
-  
-  mutate: function(element, parent) {
-    if (!(parent && (parent = parent[1] || parent) && parent.mutateLayout)) return false;
-    var mutation = parent.mutateLayout(element, this);
-    if (mutation) return this.merge(LSD.Layout.extract(element), mutation.indexOf ? this.parse(mutation, parent) : mutation);
-  },
-  
-  // redefinable predicates
-  
-  isConvertable: function(element, parent) {
-    return !!this.context.find(LSD.toLowerCase(element.tagName));
-  },
-  
-  isAugmentable: function(element, parent, mutated) {
-    if (element.nodeType != 1) return true;
-    var tag = LSD.toLowerCase(element.tagName);
-    if (!mutated) {
-      var type = element.getAttribute('type');
-      var source = (type && type != tag) ? tag + '-' + type : tag;
-    } else var source = mutated.source;
-    var klass = this.context.find(LSD.toLowerCase(source));
-    if (!klass) return;
-    var opts = klass.prototype.options;
-    return !opts || !opts.element || !opts.element.tag || (opts.element.tag == tag);
->>>>>>> master
   }
 });
 
