@@ -122,8 +122,12 @@ LSD.Mixin.Value = new Class({
   },
   
   onChange: function() {
-    this.fireEvent('change', arguments)
+    if (this.isValueChangable()) this.fireEvent('change', arguments)
     return true;
+  },
+  
+  isValueChangable: function() {
+    return this.getCommandType ? (this.getCommandType == 'command') : true;
   }
 });
 
