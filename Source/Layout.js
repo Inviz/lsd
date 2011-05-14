@@ -102,12 +102,11 @@ LSD.Layout.prototype = Object.append(new Options, {
     if (!method) method = this.options.method;
     var converted = element.uid && Element.retrieve(element, 'widget');
     if (converted && (method != 'clone')) var widget = converted;
-    else var widget = this.context.use(element, opts, parent, method);
-    var children = LSD.slice(element.childNodes);
-    if (!widget && method == 'clone') var clone = element = element.cloneNode(false);
-    if ((widget || clone) && parent) this.appendChild(widget || element, parent[0] || parent);
-    this.render(children, clone ? [clone, parent] : widget || parent, method, opts);
-    return widget || element;
+    else var widget = this.context.use(element, Object.append({traverse: false}, opts), parent, method);
+    if (!widget && method == 'clone') var clone = element.cloneNode(false);
+    if ((widget || clone) && parent) this.appendChild(widget || clone || element, parent[0] || parent);
+    this.walk(element, clone ? [clone, parent] : widget || parent, method, opts);
+    return widget || clone || element;
   },
   
   textnode: function(element, parent, method) {
@@ -190,7 +189,8 @@ Object.append(LSD.Layout, {
   extract: function(element) {
     var options = {
       attributes: {},
-      origin: element
+      origin: element,
+      tag: LSD.toLowerCase(element.tagName)
     };
     for (var i = 0, attribute, name; (attribute = element.attributes[i++]) && (name = attribute.name);)
       options.attributes[name] = attribute.value || LSD.Attributes.Boolean[name] || "";

@@ -29,9 +29,13 @@ LSD.Type = function(name, namespace) {
   this.namespace = namespace || 'LSD';
   var holder = Object.getFromPath(window, this.namespace);
   if (this.storage = holder[name]) {
-    for (var key in this) this.storage[key] = (this[key].call) ? this[key].bind(this) : this[key];
+    
+    for (var key in this) {
+      this.storage[key] = (this[key].call) ? this[key].bind(this) : this[key];
+    }
   }
   else this.storage = (holder[name] = this);
+  if (typeOf(this.storage) == 'class') this.klass = this.storage;
   this.pool = [this.storage];
   this.queries = {};
 };
@@ -45,6 +49,13 @@ LSD.Type.prototype = {
   },
   
   find: function(name) {
+    if (name.push) {
+      for (; name.length; name.pop()) {
+        var found = this.find(name.join('-'));
+        if (found) return found;
+      }
+      return false;
+    }
     if (!this.queries) this.queries = {};
     else if (this.queries[name] != null) return this.queries[name];
     name = LSD.toClassName(name);
@@ -66,17 +77,11 @@ LSD.Type.prototype = {
     var self = window[this.namespace][this.name];
     if (definition.Extends && definition.Extends.klass) definition.Extends = definition.Extends.klass
     var Klass = new Class(definition)
-    var wrapper = function(a, b, c, d) {
-      console.info(name, Klass.prototype.options)
-      return (new LSD.Widget(a, b, c, d)).mixin(Klass);
-    }
-    wrapper.klass = Klass;
-    wrapper.prototype = Klass.prototype;
     var obj = self;
     for (var bits = name.split('.'), i = 0, j = bits.length, bit; (bit = bits[i]) && (++i < j);) 
       obj = (obj[bit] || (obj[bit] = {}));
-    obj[bit] = wrapper;
-    return wrapper
+    obj[bit] = Klass;
+    return Klass
   },
   
   use: function(element, options, parent) {
@@ -87,8 +92,9 @@ LSD.Type.prototype = {
   
   convert: function(element, options) {
     var source = (options && options.source) || LSD.Layout.getSource(element);
-    var klass = this.find(source);
-    if (klass) return new klass(element, options);
+    if (!this.find(source)) return;
+    var klass = this.klass || LSD.Widget;
+    return new klass(element, options);
   }
 }
 // must-have stuff for all widgets 

@@ -26,7 +26,6 @@ LSD.Module.Relations = new Class({
     var callbacks = relation.callbacks ? origin.bindEvents(relation.callbacks) : {}
     if (!relation.layout) relation.layout = relation.selector || name;
     if (name && relation.multiple) origin[name] = [];
-    this.options.layout[name] = relation.layout;
     if (relation.proxy) this.addProxy(name, {
       container: function(object) {
         (relation.proxied || (relation.proxied = [])).push(object)
@@ -86,7 +85,7 @@ LSD.Module.Relations = new Class({
         for (var label in relation.chain) widget[state ? 'addChain' : 'removeChain'](label, relation.chain[label]);
       }
       origin.fireEvent(state ? 'relate' : 'unrelate', [widget, name]);
-    };
+    };  ;
     var watch = function(widget, state) {
       if (relation.selector) {
         widget.watch(relation.selector, relation.watcher);
@@ -130,7 +129,6 @@ LSD.Module.Relations = new Class({
       var target = relation.target || this;
       if (target.call) target = target.call(this);
       else if (target.indexOf) target = LSD.Module.Events.Targets[target];
-      else 
       if (target) {
         if (!target.addEvent && !(target.call && (target = target.call(this)))) {
           if (target.events && !events) Object.each(target.events, function(value, event) {

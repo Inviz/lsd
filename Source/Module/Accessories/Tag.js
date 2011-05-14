@@ -20,43 +20,84 @@ provides:
 */
 
 LSD.Module.Tag = new Class({
+  options: {
+    context: 'element',
+    namespace: 'LSD'
+  },
   
   initializers: {
     tag: function(options) {
+      this.setContext(options.context)
       this.nodeType = options.nodeType;
     }
   },
   
-  setSource: function() {
-    if (this.role) this.unsetTag(this.role);
-    this.role = LSD.
-    
+  getSource: function(raw) {
+    var attributes = this.attributes, source = attributes.source;
+    if (source) return source;
+    source = [this.tagName];
+    var type = attributes.type;
+    if (type) source.push(type);
+    var kind = attributes.kind;
+    if (kind) source.push(kind);
+    return raw ? source : source.join('-');
   },
   
-  unsetSource: function() {
-    
+  setSource: function(source) {
+    if (!source) source = this.getSource();
+    var role = this.context.find(source);
+    if (role && role != this.role) {
+      if (this.role) this.unmix(this.role);
+      this.role = role;
+      this.mixin(role);
+    }
+    this.source = source;
+    return this;
+  },
+  
+  unsetSource: function(source) {
+    if (source != this.source) return;
+    if (this.role) this.unmix(this.role);
+    delete this.source;
+    delete this.role;
+    return this;
+  },
+  
+  setContext: function(name) {
+    name = LSD.toClassName(name)
+    if (this.context && this.context.name == name) return;
+    if (this.source) {
+      var source = this.source;
+      this.unsetSource();
+    }
+    this.context = window[this.options.namespace][LSD.toClassName(name)];
+    if (source) this.setSource(source);
+    return this;
   },
   
   setTag: function(tag) {
+  console.log('set', tag, this.extracted)
     var old = this.tagName;
-    if (old) this.unsetTag(this.tag);
+    if (old) {
+      if (old == tag) return;
+      this.unsetTag(old);
+    }
     this.nodeName = this.tagName = tag;
-    this.tag = tag;
-    console.log('set tag', this.tag)
     this.fireEvent('tagChanged', [this.tagName, old]);
+    this.setSource();
   },
   
   unsetTag: function(tag) {
-    
+    this.unsetSource();
+    delete this.tagName;
+    delete this.nodeName;
   },
 
   mixin: function(mixin) {
     if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
     Class.mixin(this, mixin);
-    if (mixin.prototype.options) {
-      Object.merge(this.options, mixin.prototype.options); //merge!
-      this.setOptions(this.construct(mixin.prototype));
-    }
+    if (mixin.prototype.options) Object.merge(this.options, mixin.prototype.options); //merge!
+    this.setOptions(this.construct(mixin.prototype));
     return this;
   },
 
@@ -69,7 +110,19 @@ LSD.Module.Tag = new Class({
   
 });
 
-LSD.Options.tag = {
-  add: 'setTag',
-  remove: 'unsetTag'
-}
+Object.append(LSD.Options, {
+  tag: {
+    add: 'setTag',
+    remove: 'unsetTag'
+  },
+  
+  context: {
+    add: 'setContext',
+    remove: 'unsetContext'
+  },
+  
+  source: {
+    add: 'setSource',
+    remove: 'unsetSource'
+  }
+});

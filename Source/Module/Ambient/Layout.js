@@ -21,8 +21,8 @@ provides:
   
 LSD.Module.Layout = new Class({
   options: {
-    render: 'augment',
-    context: 'element',
+    traverse: 'augment',
+    extract: true
   },
   
   initializers: {
@@ -35,7 +35,7 @@ LSD.Module.Layout = new Class({
               Extracts and sets layout options from attached element
             */
             attach: function(element) {
-              if (!this.extracted && options.layout.extract) 
+              if (!this.extracted && options.extract) 
                 this.extractLayout(element);
             },
             /*
@@ -49,20 +49,21 @@ LSD.Module.Layout = new Class({
             /*
               Mutate element when layout is set to clone.
             */
-            beforeBuild: function(options) {
-              if (!options.element || render != 'clone') return;
-              this.extractLayout(options.element);
-              this.origin = options.element;
-              if (render == 'clone') options.convert = false;
+            beforeBuild: function(query) {
+              if (!query.element || (options.render != 'clone' && !options.extract)) return;
+              this.extractLayout(query.element);
+              if (options.render == 'clone') {
+                this.origin = query.element;
+                query.convert = false;
+              }
             },
             /*
               Builds more dependent layout when element is built
             */
             build: function() {
-              var layout = this.options.layout;
-              if (layout.render) 
+              if (options.traverse) 
                 this.buildLayout(Array.prototype.slice.call((this.origin || this.element).childNodes, 0));
-              if (layout.children) this.buildLayout(layout.children);
+              //if (layout.children) this.buildLayout(layout.children);
             },
             /*
               Augments all parsed HTML that goes through standart .write() interface
@@ -122,9 +123,11 @@ LSD.Module.Layout = new Class({
   
   getLayout: Macro.getter('layout', function() {
     var options = {
-      method: this.options.render,
-      interpolate: this.options.interpolate
+      method: this.options.traverse,
+      interpolate: this.options.interpolate,
+      context: this.options.context
     };
+    console.error('new layout', options, this.element, this.options.traverse)
     return new LSD.Layout(this, null, options);
   }),
   
@@ -138,6 +141,7 @@ LSD.Module.Layout = new Class({
   
   extractLayout: function(element) {
     this.extracted = LSD.Layout.extract(element);
+    if (this.tagName || this.options.source) delete this.extracted.tag;
     this.setOptions(this.extracted);
     this.fireEvent('extractLayout', [this.extracted, element])
   }

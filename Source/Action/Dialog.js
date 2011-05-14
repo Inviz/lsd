@@ -39,7 +39,7 @@ LSD.Action.Dialog = LSD.Action.build({
       var source = this.caller.element || this.caller;
       var caller = this.caller;
       var options = {
-        render: 'clone',
+        traverse: 'clone',
         interpolate: function(string) {
           if (data) {
             var substitution = data[string];

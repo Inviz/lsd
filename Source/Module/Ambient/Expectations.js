@@ -41,7 +41,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   match: function(selector) {
     if (typeof selector == 'string') selector = Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
-    if (selector.tag && (selector.tag != '*') && (this.options.tag != selector.tag)) return false;
+    if (selector.tag && (selector.tag != '*') && (this.tagName != selector.tag)) return false;
     if (selector.id && (this.attributes.id != selector.id)) return false;
     if (selector.attributes) for (var i = 0, j; j = selector.attributes[i]; i++) 
       if (j.operator ? !j.test(this.attributes[j.key] && this.attributes[j.key].toString()) : !(j.key in this.attributes)) return false;
@@ -212,7 +212,7 @@ var check = function(type, value, state, target) {
 
 var notify = function(widget, type, tag, state, target, single) {
   check.call(widget, type, tag, state, target);
-  if (single) check.call(widget, type, "*", state, target)
+  if (!single) check.call(widget, type, '*', state, target)
 }
 
 var update = function(widget, tag, state, single) {
@@ -220,8 +220,8 @@ var update = function(widget, tag, state, single) {
   var options = widget.options, id = widget.id;
   if (id) check.call(this, 'id', id, state, widget);
   if (this.previousSibling) {
-    notify(this.previousSibling, '!+', options.tag, state, widget, single);
-    notify(this.previousSibling, '++', options.tag, state, widget, single);
+    notify(this.previousSibling, '!+', widget.tagName, state, widget, single);
+    notify(this.previousSibling, '++', widget.tagName, state, widget, single);
     for (var sibling = this; sibling = sibling.previousSibling;) {
       notify(sibling, '!~', tag, state, widget, single);
       notify(sibling, '~~', tag, state, widget, single);
@@ -235,7 +235,7 @@ var update = function(widget, tag, state, single) {
       notify(sibling, '~~', tag, state, widget, single);
     }
   }
-  if (widget.parentNode == this) notify(this, '>', options.tag, state, widget, single);
+  if (widget.parentNode == this) notify(this, '>', widget.tagName, state, widget, single);
 }
 
 var remove = function(array, callback) {
@@ -280,7 +280,7 @@ Expectations.events = {
   nodeRemoved: function(widget) {
     var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
     type[tag].erase(widget);
-    type["*"].erase(widget);
+    type['*'].erase(widget);
     update.call(this, widget, tag, false);
   },
   nodeTagChanged: function(widget, old, tag) {
@@ -334,12 +334,12 @@ LSD.Module.Events.Targets.expected = function() {
 };
 
 
-//LSD.Options.expectations = {
-//  add: 'expect',
-//  remove: 'unexpect',
-//  iterate: true,
-//  process: 'bindEvents'
-//};
+LSD.Options.expectations = {
+  add: 'expect',
+  remove: 'unexpect',
+  iterate: true,
+  process: 'bindEvents'
+};
 
 var States = LSD.States.Known;
   

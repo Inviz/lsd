@@ -135,3 +135,9 @@ Object.append(LSD, {
 States.get = function(name) { 
   return LSD.States.Known[name];
 };
+
+(function(toString) {
+  Type.isEnumerable = function(item){
+    return (item != null && typeof item.length == 'number' && toString.call(item) != '[object Function]' && !item.localName && !item.nodeType);
+  };
+})(Object.prototype.toString);

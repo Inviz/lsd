@@ -49,7 +49,7 @@ LSD.Module.Options = new Class({
   
   construct: function(object) {
     if (!object) object = this;
-    var initialized = object.$constructed = [];
+    var initialized = object.$initialized = [];
     /*
       Run module initializers and keep return values
     */
@@ -69,7 +69,7 @@ LSD.Module.Options = new Class({
   
   destruct: function(object) {
     if (!object) object = this;
-    var initialized = object.$constructed;
+    var initialized = object.$initialized;
     if (initialized)
       for (var i = 0, value; value = initialized[i++];) this.unsetOptions(value);
     return object.options;
@@ -82,6 +82,7 @@ LSD.Module.Options.initialize = function(element, options) {
     var el = options;
     options = element, element = el;
   }
+  
   // Merge given options object into this.options
   if (options) Object.merge(this.options, options);
   
@@ -91,6 +92,8 @@ LSD.Module.Options.initialize = function(element, options) {
   // Call parent class initializer (if set)
   if (Class.hasParent(this)) this.parent(element, options);
   
+  
+  console.error(this.options.source)
   // Run callbacks for all the options set
   this.setOptions(options);
   

@@ -31,7 +31,6 @@ LSD.Module.Element = new Class({
       return {
         events: {
           'initialize': function(options, element) {
-            console.log('init', options, element)
             if (element) this.attach(element);
           },
           'build': 'attach',
@@ -70,14 +69,14 @@ LSD.Module.Element = new Class({
   build: function() {
     var options = this.options, attrs = Object.append({element: this.element}, options.element);
     if (!attrs.tag)
-      attrs.tag = ((this.options.inline == null) && options.tag) || (options.inline ? 'span' : 'div'); 
+      attrs.tag = ((options.inline == null) && this.tagName) || (options.inline ? 'span' : 'div'); 
     this.fireEvent('beforeBuild', attrs);
     var stop = (attrs.convert === false), tag = attrs.tag;
     delete attrs.convert, delete attrs.tag, delete attrs.element;
     if (!this.element || stop) this.element = new Element(tag, attrs);
     else var element = this.element.set(attrs);
     var classes = new FastArray;
-    if (options.tag != tag) classes.push('lsd', options.tag || this.tagName);
+    if (this.tagName != tag) classes.push('lsd', this.tagName);
     classes.concat(this.classes);
     if (Object.getLength(classes)) this.element.className = classes.join(' ');
     if (this.attributes) 
