@@ -93,18 +93,18 @@ LSD.Module.Tag = new Class({
     delete this.nodeName;
   },
 
-  mixin: function(mixin) {
+  mixin: function(mixin, light) {
     if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
-    Class.mixin(this, mixin);
+    Class.mixin(this, mixin, light);
     if (mixin.prototype.options) Object.merge(this.options, mixin.prototype.options); //merge!
     this.setOptions(this.construct(mixin.prototype));
     return this;
   },
 
-  unmix: function(mixin) {
+  unmix: function(mixin, light) {
     if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
     this.unsetOptions(this.destruct(mixin.prototype));
-    Class.unmix(this, mixin);
+    Class.unmix(this, mixin, light);
     return this;
   }
   

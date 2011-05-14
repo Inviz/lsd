@@ -41,7 +41,7 @@ var LSD = Object.append(new Events, {
     Known: {
       built:    {enabler: 'build',      disabler: 'destroy',   reflect: false},
       attached: {enabler: 'attach',     disabler: 'detach',    reflect: false},
-      hidden:   {enabler: 'hide',       disabler: 'show'},     
+      hidden:   {enabler: 'hide',       disabler: 'show'},
       disabled: {enabler: 'disable',    disabler: 'enable'},   
       focused:  {enabler: 'focus',      disabler: 'blur'},     
       selected: {enabler: 'select',     disabler: 'unselect'}, 
@@ -130,7 +130,6 @@ Object.append(LSD, {
     return Array.prototype.slice.call(list, start || 0);
   })
 });
-
 
 States.get = function(name) { 
   return LSD.States.Known[name];

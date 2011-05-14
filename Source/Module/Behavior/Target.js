@@ -55,7 +55,7 @@ provides:
     },
 
     getTargetAction: function() {
-      return this.attributes.interaction;
+      return this.attributes.interaction || this.captureEvent('getTargetAction', arguments);
     }
   });
   

@@ -29,9 +29,15 @@ LSD.Trait.Menu = new Class({
       _menu: {
         self: {
           expand: 'makeItems',
+<<<<<<< HEAD
           //redraw: 'repositionMenu',
           //focus: 'repositionMenu',
           //blur: 'collapse',
+=======
+          redraw: 'repositionMenu',
+          focus: 'repositionMenu',
+          blur: 'collapse',
+>>>>>>> master
           next: 'expand',
           previous: 'expand',
           cancel: 'collapse',
@@ -50,11 +56,6 @@ LSD.Trait.Menu = new Class({
           selector: 'menu[type=context]',
           proxy: function(widget) {
             return widget.pseudos.item;
-          },
-          states: {
-            set: {
-              expanded: 'hidden'
-            }
           }
         }
       }
@@ -90,6 +91,24 @@ LSD.Trait.Menu = new Class({
     return this.buildLayout(this.options.layout.menu);
   },
   
+<<<<<<< HEAD
+=======
+  expand: function() {
+    if (!this.menu) {
+      this.menu = this.buildMenu();
+      this.repositionMenu();
+      if (this.hasItems()) this.refresh();
+    } else {  
+      this.repositionMenu();
+    }
+    this.menu.show();
+  },
+  
+  collapse: function() {
+    if(this.menu) this.menu.hide();
+  },
+  
+>>>>>>> master
   getSelectedOptionPosition: function() {
     return 0
   }

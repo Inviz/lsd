@@ -57,5 +57,9 @@ LSD.Trait.Input = new Class({
     var input = new Element('input', Object.append({'type': 'text'}, this.options.input));
     this.fireEvent('register', ['input', resizer]);
     return input;
-  })
+  }),
+  
+  getValueInput: function() {
+    return this.input
+  }
 });

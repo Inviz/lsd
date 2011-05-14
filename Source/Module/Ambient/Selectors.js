@@ -23,15 +23,22 @@ provides:
 
 LSD.Module.Selectors = new Class({
   getElements: function(selector, origin) {
+    return Slick.search(origin || this.getSelectorOrigin(selector), selector)
+  },
+  
+  getElement: function(selector, origin) {
+    return Slick.find(origin || this.getSelectorOrigin(selector), selector)
+  },
+  
+  // we have to figure the document before we do a .search  
+  getSelectorOrigin: function(selector) {
     if (!selector.Slick) selector = Slick.parse(selector);
     var first = selector.expressions[0][0];
-    // we have to figure the document before we do a .search
-    if (!origin) switch (first.combinator) {
+    switch (first.combinator) {
       case "$": case "$$":
-        origin = this.element;
-        break;
+        return this.element;
       case "&": case "&&": default:
-        origin = this;
+        return this;
     }
     return Slick.search(origin, selector)
   },
