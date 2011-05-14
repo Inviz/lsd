@@ -257,7 +257,7 @@ Object.append(LSD.Module.DOM, {
   
   findDocument: function(target) {
     if (target.documentElement) return target;
-    if (target.document) return target.document;
+    if (target.document && target.document.lsd) return target.document;
     if (target.lsd) return;
     var body = target.ownerDocument.body;
     var document = (target != body) && Element.retrieve(body, 'widget');
