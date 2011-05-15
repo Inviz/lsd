@@ -25,7 +25,8 @@ LSD.Mixin.Request = new Class({
   
   options: {
     request: {
-      method: 'get'
+      method: 'get',
+      evalScripts: true
     },
     states: {
       working: {
