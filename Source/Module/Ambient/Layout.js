@@ -143,6 +143,10 @@ LSD.Module.Layout = new Class({
     if (this.tagName || this.options.source) delete this.extracted.tag;
     this.setOptions(this.extracted);
     this.fireEvent('extractLayout', [this.extracted, element])
+  },
+  
+  clone: function() {
+    
   }
 });
 

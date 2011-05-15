@@ -3,24 +3,22 @@
  
 script: Choice.js
  
-description: Trait that completes List. Allows one item to be chosen and one selected (think navigating to a menu item to select)
+description: Mixin that adds List. Allows one item to be chosen and one selected (think navigating to a menu item to select)
  
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD.Trait.List
+  - LSD.Mixin.List
  
 provides: 
-  - LSD.Trait.Choice
+  - LSD.Mixin.Choice
  
 ...
 */
 
 
-LSD.Trait.Choice = new Class({
-  
-  selectItem: function(item, temp) {
-    if (temp !== true) return this.parent.apply(this, arguments)
+LSD.Mixin.Choice = new Class({
+  chooseItem: function(item, temp) {
     if (!(item = this.getItem(item)) && this.options.list.force) return false;
     var chosen = this.chosenItem;
     this.setSelectedItem(item, 'chosen');
@@ -45,15 +43,8 @@ LSD.Trait.Choice = new Class({
   
   getChosenItems: function(type) {
     return this.chosenItems || (this.chosenItem && [this.chosenItem]);
-  },
-  
-  getSelectedOptionPosition: function() {
-    var height = 0;
-    if (!this.selectedItem) return height;
-    for (var i = 0, j = this.widgets.length; i < j; i++) {
-      if (this.widgets[i] == this.selectedItem) break;
-      height += this.widgets[i].getLayoutHeight();
-    }
-    return height
   }
 });
+
+
+LSD.Behavior.define(':choice', LSD.Mixin.Choice);

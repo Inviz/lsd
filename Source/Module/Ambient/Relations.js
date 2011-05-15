@@ -61,9 +61,9 @@ LSD.Module.Relations = new Class({
         else {
           if (callbacks.empty && !origin[name].erase(widget).length) callbacks.empty.call(origin, widget)
         }
+        origin[name][state ? 'push' : 'erase'](widget);
         if (relation.relayed && (origin[name].length == +state)) 
           origin.element[state ? 'addEvents' : 'removeEvents'](relation.relayed);
-        origin[name][state ? 'push' : 'erase'](widget);
       } else {
         if (state) origin[name] = widget;
         else delete origin[name];

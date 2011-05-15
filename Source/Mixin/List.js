@@ -3,23 +3,23 @@
  
 script: List.js
  
-description: Trait that makes it simple to work with a list of item (and select one of them)
+description: Mixin that makes it simple to work with a list of item (and select one of them)
  
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD.Trait
+  - LSD.Mixin
   - Core/Element
   - Ext/Element.Properties.item
  
 provides: 
-  - LSD.Trait.List
+  - LSD.Mixin.List
  
 ...
 */
 
 
-LSD.Trait.List = new Class({  
+LSD.Mixin.List = new Class({  
   options: {
     list: {
       endless: true,
@@ -65,7 +65,6 @@ LSD.Trait.List = new Class({
         }
       }
     },
-    pseudos: Array.fast('list'),
     states: {
       empty: true
     }
@@ -248,3 +247,5 @@ LSD.Trait.List = new Class({
   }
   
 });
+
+LSD.Behavior.define(':list', LSD.Mixin.List);

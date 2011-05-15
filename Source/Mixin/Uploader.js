@@ -11,7 +11,7 @@ requires:
   - LSD.Mixin
   - Widgets/LSD.Widget.Button
   - Uploader/*
-  - LSD.Trait.List
+  - LSD.Mixin.List
   - Core/JSON
   
 provides: 
@@ -109,13 +109,9 @@ LSD.Mixin.Uploader = new Class({
 });
 
 LSD.Widget.Filelist = new Class({
-  Includes: [
-    LSD.Widget,
-    LSD.Trait.List
-  ],
-  
   options: {
     tag: 'filelist',
+    pseudos: Array.fast('list'),
     has: {
       many: {
         items: {

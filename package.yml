@@ -58,6 +58,8 @@ sources:
   - Source/Mixin/Animation.js
   - Source/Mixin/Uploader.js
   - Source/Mixin/ContentEditable.js
+  - Source/Mixin/Choice.js
+  - Source/Mixin/List.js
   - Source/Module/Ambient/Container.js
   - Source/Module/Ambient/DOM.js
   - Source/Module/Ambient/Selectors.js
@@ -86,8 +88,6 @@ sources:
   - Source/Module/Graphics/Shape.js
   - Source/Module/Graphics.js
   - Source/Trait/Menu.js
-  - Source/Trait/Choice.js
-  - Source/Trait/List.js
   - Source/Trait/Observer.js
   - Source/Trait/Input.js
   - Source/Trait/Slider.js
