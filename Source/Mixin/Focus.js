@@ -22,8 +22,6 @@ provides:
 */
   
 LSD.Mixin.Focus = new Class({
-  behaviour: '[tabindex][tabindex!=-1]',
-  
   options: {
     actions: {
       focus: {
@@ -86,17 +84,17 @@ LSD.Mixin.Focus = new Class({
     this.focus();
   },
   
-  onFocus: Macro.defaults(function() {
+  onFocus: function() {
     this.focus(false);
     this.document.activeElement = this;
-  }),
+  },
   
-  onBlur: Macro.defaults(function() {
+  onBlur: function() {
     var active = this.document.activeElement;
     if (active == this) delete this.document.activeElement;
     while (active && (active = active.parentNode)) if (active == this) return;
     this.blur();
-  }),
+  },
   
   getKeyListener: function() {
     return this.getFocuser().getKeyListener()
@@ -120,3 +118,5 @@ LSD.Mixin.Focus.Propagation = {
     }
   }
 };
+
+LSD.Behavior.define('[tabindex][tabindex!=-1]', LSD.Mixin.Focus);

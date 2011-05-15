@@ -39,7 +39,7 @@ LSD.Action.Edit = LSD.Action.build({
   }
 });
 
-LSD.Widget.define('Form.Edit', {
+LSD.Widget.Form.Edit = new Class({
   Extends: LSD.Widget.Body,
   
   Implements: [

@@ -36,8 +36,7 @@ LSD.Action.Dialog = LSD.Action.build({
       dialog = null;
     }
     if (!dialog) {
-      var source = this.caller.element || this.caller;
-      var caller = this.caller;
+      var source = this.caller.toElement();
       var options = {
         traverse: 'clone',
         interpolate: function(string) {
@@ -52,23 +51,18 @@ LSD.Action.Dialog = LSD.Action.build({
           return source.getProperty('data-' + string.dasherize())
         },
         caller: function() {
-          return caller;
+          return this;
+        }.bind(this.caller),
+        tag: 'body',
+        attributes: {
+          type: 'dialog'
         }
       };
-      var args = [options];
       if (!target.indexOf) {
-        if (target.hasClass('singlethon')) options.layout.options.method = 'augment';
-        args.unshift('body-dialog', target);
-      } else args.unshift('body-dialog-' + target)
-      dialog = LSD.Element.create.apply(LSD.Element, args);
-      dialog.addEvents({
-        'submit': function() {
-          if (caller.callChain) caller.callChain(dialog.getData())
-        }.bind(this),
-        'cancel': function() {
-          if (caller.clearChain) caller.clearChain(dialog.getData())
-        }.bind(this)
-      })
+        if (target.hasClass('singlethon')) options.traverse = 'augment';
+        var element = target;
+      } else options.attribute.kind = target;
+      var dialog = new LSD.Widget(options, element);
     }
     if (content) dialog.write(content);
     dialog.show();

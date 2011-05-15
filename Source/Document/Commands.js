@@ -44,7 +44,6 @@ LSD.Document.Commands = new Class({
     if (link.retrieve('widget')) return;
     var node = link.retrieve('node')
     if (!node) link.store('node', node = new LSD.Widget.Anchor(link));
-    console.log('click', link, node)
     node.click(event);
   }
 });

@@ -20,8 +20,6 @@ provides:
 
 
 LSD.Mixin.Resizable = new Class({
-  behaviour: '[resizable][resizable!=false]',
-  
   options: {
     resizer: {
       modifiers: {
@@ -180,3 +178,5 @@ LSD.Mixin.Resizable = new Class({
     return this.resized.getWrapper();
   }
 });
+
+LSD.Behavior.define('[resizable][resizable!=false]', LSD.Mixin.Resizable);

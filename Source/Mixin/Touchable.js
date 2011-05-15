@@ -24,8 +24,6 @@ provides:
 
 
 LSD.Mixin.Touchable = new Class({
-  behaviour: ':touchable',
-  
   options: {
     events: {
       enabled: {
@@ -44,3 +42,5 @@ LSD.Mixin.Touchable = new Class({
     }
   }
 });
+
+LSD.Behavior.define(':touchable', LSD.Mixin.Touchable);

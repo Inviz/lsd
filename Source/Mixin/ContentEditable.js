@@ -19,8 +19,6 @@ provides:
 */
 
 LSD.Mixin.ContentEditable = new Class({
-  behaviour: '[contentEditable=editor]',
-  
   options: {
     ckeditor: {
       toolbarCanCollapse: false,
@@ -84,3 +82,5 @@ LSD.Mixin.ContentEditable = new Class({
     return this.element;
   }
 });
+
+LSD.Behavior.define('[contentEditable=editor]', LSD.Mixin.ContentEditable);

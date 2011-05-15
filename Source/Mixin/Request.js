@@ -21,8 +21,6 @@ provides:
 */
 
 LSD.Mixin.Request = new Class({
-  behaviour: '[action], [src], [href]',
-  
   options: {
     request: {
       method: 'get'
@@ -132,3 +130,5 @@ LSD.Mixin.Request = new Class({
     return (url.charAt(0) == "#") || url.match(new RegExp('(?:' + host + ')?' + base + '/?#'));
   }
 });
+
+LSD.Behavior.define('[action], [src], [href]', LSD.Mixin.Request);

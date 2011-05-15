@@ -20,8 +20,6 @@ provides:
 */
 
 LSD.Mixin.Draggable = new Class({
-  behaviour: '[draggable][draggable!=false]',
-  
   options: {
     dragger: {
       modifiers: {
@@ -110,3 +108,5 @@ LSD.Mixin.Draggable = new Class({
   }
   
 });
+
+LSD.Behavior.define('[draggable]', LSD.Mixin.Draggable);

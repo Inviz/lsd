@@ -26,7 +26,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   
   initializers: {
     expectations: function() {
-      this.expectations = {}
+      if (!this.expectations) this.expectations = {}
       return {
         events: Expectations.events
       }
@@ -73,6 +73,7 @@ var Expectations = LSD.Module.Expectations = new Class({
     Then it's time to match the dynamic part. 
   */
   expect: function(selector, callback) {
+    if (!this.expectations) this.expectations = {}
     var combinator = selector.combinator || 'self';
     var id = selector.id;
     var index = (combinator == ' ' && id) ? 'id' : combinator; 
@@ -113,7 +114,7 @@ var Expectations = LSD.Module.Expectations = new Class({
           group.push([selector, callback]);
         }
       }
-      if (this.match(selector)) callback(this, true);
+      if (this.tagName && this.match(selector)) callback(this, true);
     }
   },
   

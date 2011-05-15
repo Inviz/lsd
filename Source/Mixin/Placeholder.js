@@ -74,3 +74,5 @@ LSD.Mixin.Placeholder = new Class({
   }
   
 });
+
+LSD.Behavior.define('[placeholder]', LSD.Mixin.Placeholder);

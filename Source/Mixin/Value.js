@@ -17,8 +17,6 @@ provides:
 */
 
 LSD.Mixin.Value = new Class({
-  behaviour: ':read-write, :valued',
-  
   options: {
     events: {
       _value: {
@@ -127,3 +125,5 @@ LSD.Mixin.Value = new Class({
     return true;
   }
 });
+
+LSD.Behavior.define(':read-write, :valued', LSD.Mixin.Value);

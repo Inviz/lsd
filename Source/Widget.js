@@ -19,7 +19,6 @@ requires:
 
 provides: 
   - LSD.Widget
-  - LSD.Widget.create
  
 ...
 */
@@ -54,7 +53,7 @@ LSD.Widget = new Class({
     widget: function(){
       return {
         events: {
-          build: function() {
+          initialize: function() {
             if ((this.options.writable && !this.attributes.tabindex && (this.options.focusable !== false)) || this.options.focusable) 
               this.setAttribute('tabindex', 0);
             this.addPseudo(this.options.writable ? 'read-write' : 'read-only');
@@ -68,5 +67,7 @@ LSD.Widget = new Class({
 });
 
 LSD.Widget.prototype.addStates('disabled', 'hidden', 'built', 'attached');
+
+LSD.Behavior.attach(LSD.Widget);
 
 new LSD.Type('Widget');

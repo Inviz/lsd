@@ -26,23 +26,23 @@ LSD.Trait.Input = new Class({
     input: function() {
       return {
         events: {
-          attach: function() {
-            this.getInput().addEvents({
-              blur: this.onBlur.bind(this),
-              focus: this.onFocus.bind(this)
-            });
+          self: {
+            build: function() {
+              this.getInput().inject(this.element);
+            },
+            focus: function() {
+              this.document.activeElement = this;
+              if (LSD.Mixin.Focus) LSD.Mixin.Focus.Propagation.focus(this);
+            },
+            blur: function() {
+                if (this.document.activeElement == this) delete this.document.activeElement;
+             //   if (LSD.Mixin.Focus) LSD.Mixin.Focus.Propagation.blur.delay(10, this, this);
+            }
           },
-          build: function() {
-            this.getInput().inject(this.element);
+          input: {
+            focus: 'onFocus',
+            blur: 'onBlur'
           },
-          focus: function() {
-            this.document.activeElement = this;
-            if (LSD.Mixin.Focus) LSD.Mixin.Focus.Propagation.focus(this);
-          },
-          blur: function() {
-              if (this.document.activeElement == this) delete this.document.activeElement;
-           //   if (LSD.Mixin.Focus) LSD.Mixin.Focus.Propagation.blur.delay(10, this, this);
-          }
         }
       }
     }
@@ -55,7 +55,7 @@ LSD.Trait.Input = new Class({
   
   getInput: Macro.getter('input', function() {
     var input = new Element('input', Object.append({'type': 'text'}, this.options.input));
-    this.fireEvent('register', ['input', resizer]);
+    this.fireEvent('register', ['input', input]);
     return input;
   }),
   

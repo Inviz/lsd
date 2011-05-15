@@ -20,8 +20,6 @@ provides:
 */
 
 LSD.Mixin.Scrollable = new Class({
-  behaviour: '[scrollable][scrollable!=false]',
-  
   options: {
     events: {
       self: {
@@ -66,3 +64,5 @@ LSD.Mixin.Scrollable = new Class({
     return this.getWrapper();
   })
 });
+
+LSD.Behavior.define('[scrollable]', LSD.Mixin.Scrollable);

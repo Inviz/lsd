@@ -22,8 +22,7 @@ provides:
 LSD.Command = new Class({
   options: {
     id: null,
-    action: null,
-    states: Array.fast('disabled')
+    action: null
   },
   
   Implements: [Options, Events, States],
@@ -42,18 +41,16 @@ LSD.Command = new Class({
   },
   
   attach: function(widget) {
-    Object.each(this.$states, function(state, name) {
-      widget.linkState(this, name, name, true);
-    }, this);
-    widget.fireEvent('register', ['command', self]);
+    for (var name in this.$states) this.linkState(widget, name, name, true);
+    widget.fireEvent('register', ['command', this]);
   },
   
   detach: function(widget) {
-    widget.fireEvent('unregister', ['command', self])
-    Object.each(this.$states, function(state, name) {
-      widget.linkState(this, name, name, false);
-    }, this);
+    widget.fireEvent('unregister', ['command', this]);
+    for (var name in this.$states) this.linkState(widget, name, name, false);
   }
 });
+
+LSD.Command.prototype.addState('disabled');
 
 LSD.Command.Command = LSD.Command;

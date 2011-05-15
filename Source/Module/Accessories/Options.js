@@ -92,8 +92,6 @@ LSD.Module.Options.initialize = function(element, options) {
   // Call parent class initializer (if set)
   if (Class.hasParent(this)) this.parent(element, options);
   
-  
-  console.error(this.options.source)
   // Run callbacks for all the options set
   this.setOptions(options);
   

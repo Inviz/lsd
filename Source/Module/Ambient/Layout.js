@@ -50,9 +50,9 @@ LSD.Module.Layout = new Class({
               Mutate element when layout is set to clone.
             */
             beforeBuild: function(query) {
-              if (!query.element || (options.render != 'clone' && !options.extract)) return;
+              if (!query.element || (options.traverse != 'clone' && !options.extract)) return;
               this.extractLayout(query.element);
-              if (options.render == 'clone') {
+              if (options.traverse == 'clone') {
                 this.origin = query.element;
                 query.convert = false;
               }
@@ -127,7 +127,6 @@ LSD.Module.Layout = new Class({
       interpolate: this.options.interpolate,
       context: this.options.context
     };
-    console.error('new layout', options, this.element, this.options.traverse)
     return new LSD.Layout(this, null, options);
   }),
   

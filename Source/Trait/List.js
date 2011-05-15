@@ -161,6 +161,7 @@ LSD.Trait.List = new Class({
     if (item.setList) var data = item.getValue ? item.getValue() : item.value || LSD.uid(item), widget = item, item = data;
     if (this.options.list.force && !this.getSelectedItem()) this.selectItem(item);
     if (!this.list.contains(item)) {
+      this.list.push(item);
       if (widget) {
         widget.listWidget = this;
         this.widgets.push(widget);
@@ -184,7 +185,7 @@ LSD.Trait.List = new Class({
   },
   
   getItems: function() {
-    return this.list;
+    return this.items;
   },
   
   hasItems: function() {

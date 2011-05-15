@@ -76,7 +76,6 @@ LSD.Module.Tag = new Class({
   },
   
   setTag: function(tag) {
-  console.log('set', tag, this.extracted)
     var old = this.tagName;
     if (old) {
       if (old == tag) return;

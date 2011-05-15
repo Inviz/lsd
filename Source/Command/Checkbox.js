@@ -32,13 +32,11 @@ provides:
 
 LSD.Command.Checkbox = new Class({
   Extends: LSD.Command,
-  
-  options: {
-    states: Array.fast('checked')
-  },
 
   click: function() {
     this.parent.apply(this, arguments);
     this.toggle();
   }
 });
+
+LSD.Command.Checkbox.prototype.addState('checked');

@@ -35,8 +35,6 @@ provides:
 !function() {
 
 LSD.Mixin.Validity = new Class({
-  behaviour: ':read-write',
-  
   initialize: function() {
     this.parent.apply(this, arguments);
     this.addClass(this.attributes.required ? 'required' : 'optional');
@@ -97,6 +95,6 @@ var Attributes = LSD.Mixin.Validity.Attributes = {
   }
 }
 
+LSD.Behavior.define(':read-write', LSD.Mixin.Validity);
 
-  
 }();

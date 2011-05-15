@@ -21,8 +21,6 @@ provides:
 */
 
 LSD.Mixin.Uploader = new Class({
-  behaviour: ':uploading',
-  
   options: {
     actions: {
       uploader: {
@@ -188,3 +186,5 @@ LSD.Widget.Progress = new Class({
     pseudos: Array.fast(':valued')
   }
 });
+
+LSD.Behavior.define(':uploading', LSD.Mixin.Uploader);

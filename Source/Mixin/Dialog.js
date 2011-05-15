@@ -62,3 +62,5 @@ LSD.Mixin.Dialog = new Class({
     return document.body;
   }
 });
+
+LSD.Behavior.define('[dialog]', LSD.Mixin.Dialog);

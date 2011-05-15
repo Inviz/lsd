@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD
+  - LSD.Behavior
   - More/Object.Extras
   
 provides:
@@ -25,7 +25,6 @@ provides:
 
 LSD.Type = function(name, namespace) {
   this.name = name;
-  this.count = 0;
   this.namespace = namespace || 'LSD';
   var holder = Object.getFromPath(window, this.namespace);
   if (this.storage = holder[name]) {
@@ -66,24 +65,6 @@ LSD.Type.prototype = {
     return (this.queries[name] = false);
   },
   
-  create: function(name, a, b, c, d) {
-    var widget = this.find(name);
-    if (!widget) throw 'Class named ' + this.namespace + '.' + LSD.toClassName(this.name) + '.' + LSD.toClassName(name) + ' was not found';
-    this.count++;
-    return new widget(a, b, c, d);
-  },
-  
-  define: function(name, definition) {
-    var self = window[this.namespace][this.name];
-    if (definition.Extends && definition.Extends.klass) definition.Extends = definition.Extends.klass
-    var Klass = new Class(definition)
-    var obj = self;
-    for (var bits = name.split('.'), i = 0, j = bits.length, bit; (bit = bits[i]) && (++i < j);) 
-      obj = (obj[bit] || (obj[bit] = {}));
-    obj[bit] = Klass;
-    return Klass
-  },
-  
   use: function(element, options, parent) {
     if (parent) var mutation = LSD.Layout.mutate(element, parent);
     options = mutation && options ? Object.merge(mutation, options) : mutation || options;
@@ -94,7 +75,7 @@ LSD.Type.prototype = {
     var source = (options && options.source) || LSD.Layout.getSource(element);
     if (!this.find(source)) return;
     var klass = this.klass || LSD.Widget;
-    return new klass(element, options);
+    return new LSD.Widget(element, options);
   }
 }
 // must-have stuff for all widgets 
@@ -103,5 +84,5 @@ new LSD.Type('Module');
 new LSD.Type('Trait');
 // these may be applied in runtime
 new LSD.Type('Mixin');
-// these may be applied in runtime
+// a widget holder
 new LSD.Type('Element');

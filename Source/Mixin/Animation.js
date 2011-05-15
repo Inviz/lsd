@@ -17,9 +17,7 @@ provides:
 ...
 */
 
-
 LSD.Mixin.Animation = new Class({
-  behaviour: '[animation]',
   
   options: {
     animation: {}
@@ -75,3 +73,5 @@ LSD.Mixin.Animation = new Class({
   }
   
 });
+
+LSD.Behavior.define('[animation]', LSD.Mixin.Animation);

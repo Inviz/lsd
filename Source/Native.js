@@ -18,12 +18,6 @@ provides:
 ...
 */
 
-LSD.Native = new Class({
-  Extends: LSD.Widget,
-  options: {
-    inline: null //use widget tag when no element tag specified
-  }
-});
 new LSD.Type('Native');
 
 // Inject native widgets into default widget pool as a fallback

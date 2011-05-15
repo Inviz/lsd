@@ -19,8 +19,6 @@ provides:
 */
 
 LSD.Mixin.Resource = new Class({
-  behaviour: ":resourceful, [itemscope]",
-  
   options: {
     resource: {
       prefix: null,
@@ -61,3 +59,5 @@ LSD.Mixin.Resource = new Class({
     return this.getResource().init(this.getResourceID() || this.element);
   }
 });
+
+LSD.Behavior.define(':resourceful', LSD.Mixin.Resource);
