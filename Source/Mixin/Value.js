@@ -60,8 +60,9 @@ LSD.Mixin.Value = new Class({
   },
   
   getValueInput: function() {
+    var tag = LSD.toLowerCase(this.element.tagName)
     if (!this.attributes.multiple && this.attributes.type != 'file' 
-      && LSD.toLowerCase(this.element.tagName) == 'input') return this.element;
+      && (tag == 'input' || tag == 'textarea')) return this.element;
 
     var name = this.attributes.name;
     if (this.attributes.miltiple) name += '[]';
