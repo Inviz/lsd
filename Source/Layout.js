@@ -100,11 +100,12 @@ LSD.Layout.prototype = Object.append(new Options, {
   element: function(element, parent, method, opts) {
     if (!method) method = this.options.method;
     var converted = element.uid && Element.retrieve(element, 'widget');
+    var children = LSD.slice(element.childNodes)
     if (converted && (method != 'clone')) var widget = converted;
     else var widget = this.context.use(element, Object.append({traverse: false}, opts), parent, method);
     if (!widget && method == 'clone') var clone = element.cloneNode(false);
     if ((widget || clone) && parent) this.appendChild(widget || clone || element, parent[0] || parent);
-    this.walk(element, clone ? [clone, parent[1] || parent] : widget || parent, method, opts);
+    this.render(children, clone ? [clone, parent[1] || parent] : widget || parent, method, opts);
     return widget || clone || element;
   },
   
