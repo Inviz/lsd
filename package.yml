@@ -108,6 +108,7 @@ sources:
   - Source/Action/Clone.js
   - Source/Action/Append.js
   - Source/Action/Edit.js 
+  - Source/Action/History.js
   - Source/Action.js
   - Source/Layout.js
   - Source/Fx.js
