@@ -59,11 +59,14 @@ LSD.Mixin.Value = new Class({
     }
   },
   
-  getValueInput: function() {
+  canElementHoldValue: function() {
     var tag = LSD.toLowerCase(this.element.tagName)
-    if (!this.attributes.multiple && this.attributes.type != 'file' 
-      && (tag == 'input' || tag == 'textarea')) return this.element;
-
+    return (!this.attributes.multiple && this.attributes.type != 'file' 
+      && (tag == 'input' || tag == 'textarea')) 
+  },
+  
+  getValueInput: function() {
+    if (this.canElementHoldValue()) return this.element;
     var name = this.attributes.name;
     if (this.attributes.miltiple) name += '[]';
     return new Element('input[type=hidden]', {name: name}).inject(this.element);

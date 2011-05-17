@@ -27,22 +27,15 @@ LSD.Mixin.Uploader = new Class({
         enable: function() {
           if (this.attributes.multiple) this.options.uploader.multiple = true;
           this.fireEvent('register', ['uploader', this.getUploader()]);
+          var adapter = Uploader.getAdapter();
           this.getUploader().attach(this.getUploaderTarget());
-          this.getStoredBlobs();
+          this.getStoredBlobs().each(this.addFile, this);
         },
         disable: function() {
           this.getUploader().removeEvents(this.events.uploader);
           this.getUploader().detach(this.getUploaderTarget())
           this.fireEvent('unregister', ['uploader', this.getUploader()]);
         }
-      }
-    },
-    uploader: {
-      getFileClass: function(adapter, Klass) { 
-        if (!Klass.File.Widget) Klass.File.Widget = new Class({
-          Includes: [Klass.File, LSD.Widget, LSD.Widget.Filelist.File]
-        });
-        return Klass.File.Widget;
       }
     },
     events: {
@@ -62,8 +55,16 @@ LSD.Mixin.Uploader = new Class({
     }
   },
   
+  initializers: {
+    uploader: function() {
+      this.blobs = {};
+    }
+  },
+  
   getUploader: Macro.getter('uploader', function() {
-    var uploader = new Uploader(this.options.uploader);
+    var options = Object.append({}, this.options.uploader);
+    if (!options.fileClass) options.fileClass = this.getUploaderFileClass(Uploader.getAdapter());
+    var uploader = new Uploader(options);
     uploader.widget = this;
     return uploader;
   }),
@@ -71,15 +72,18 @@ LSD.Mixin.Uploader = new Class({
   getUploaderTarget: function() {
     return this.element;
   },
-  
-  processFileResponse: function(response) {
-    response = JSON.decode(response);
-    if (response && Object.getLength(response) == 1) response = response[Object.keys(response)[0]];
-    return response;
+
+  getUploaderFileClass: function(adapter) {
+    if (!adapter) adapter = Uploader.getAdapter();
+    if (adapter.indexOf) adapter = Uploader[LSD.toClassName(adapter)];
+    if (!adapter.File.Widget) adapter.File.Widget = new Class({
+      Includes: [adapter.File, LSD.Widget, LSD.Widget.Filelist.File]
+    });
+    return adapter.File.Widget;
   },
   
   onFileComplete: function(file) {
-    var blob = this.processFileResponse(file.response.text);
+    var blob = this.processStoredBlob(file.response.text);
     if (blob && !blob.errors) {
       this.onFileSuccess(file, blob);
     } else {
@@ -87,22 +91,56 @@ LSD.Mixin.Uploader = new Class({
     }
   },
   
-  processValue: function(blob) {
-    return blob.id || blob.uid;
+  processValue: function(file) {
+    return file.id || file.uid;
   },
   
   onFileSuccess: function(file, blob) {
-    (this.blobs || (this.blobs = {}))[file.id] = blob;
-    this.setValue(blob);
+    this.addBlob(file, blob);
   },
   
-  onFileRemove: function(file, blob) {
-    if (this.blobs && this.blobs[file.id]) this.setValue(this.blobs[file.id], true);
+  onFileRemove: function(file) {
+    this.removeBlob(file);
+  },
+  
+  getBlob: function(file) {
+    return this.blobs[file.id];
+  },
+  
+  addBlob: function(file, blob) {
+    this.setValue(blob);
+    this.blobs[file.id] = blob;
+  },
+  
+  removeBlob: function(file) {
+    this.setValue(this.blobs[file.id], true);
+    delete this.blobs[file.id];    
+  },
+  
+  retrieveStoredBlobs: function() {
+    var attrs = this.attributes;
+    return attrs.file || attrs.files || attrs.blobs || blob;
+  },
+
+  processStoredBlob: function(response) {
+    if (response.indexOf) response = JSON.decode(response);
+    if (response && Object.getLength(response) == 1) response = response[Object.keys(response)[0]];
+    return response;
   },
   
   getStoredBlobs: function() {
-    var attribute = this.attributes.blob || this.attributes.blobs;
-    return attribute ? Array.from(JSON.decode(blobs)) : [];
+    var files = this.retrieveStoredBlobs();
+    return files ? Array.from(JSON.decode(files)).map(this.processStoredBlob.bind(this)) : [];
+  },
+  
+  addFile: function(blob) {
+    var widget = (new (this.getUploaderFileClass()));
+    widget.widget = this;
+    widget.setState('complete');
+    widget.build();
+    widget.setBase(this.getUploader());
+    widget.setFile(blob);
+    this.addBlob(widget, blob);
   }
 });
 
@@ -130,9 +168,14 @@ LSD.Widget.Filelist.File = new Class({
       '::meter': true
     },
     events: {
-      setBase: function(base) {
-        this.inject(this.base.widget.list);
-        this.write(this.name)
+      setBase: function() {
+        this.build();
+      },
+      setFile: function() {
+        this.write(this.name);
+      },
+      build: function() {
+        this.inject(this.getWidget().list);
       },
       progress: function() {
         this.meter.set(this.progress.percentLoaded)
@@ -161,6 +204,10 @@ LSD.Widget.Filelist.File = new Class({
         }
       }
     }
+  },
+  
+  getWidget: function() {
+    return (this.widget || this.base.widget);
   },
   
   cancel: function() {

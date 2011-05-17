@@ -22,29 +22,34 @@ provides:
 */
 
 LSD.Document.Resizable = new Class({
-	
-	options: {
-  	events: {
-  	  _resizable: {
-  	    window: {
-  	      resize: 'onResize'
-  	    },
-  	    self: {
-  	      build: 'onResize'
-  	    }
-  	  }
-  	},
-  	root: true
+  
+  options: {
+    root: true
   },
-	
-	onResize: function() {
-	  if (this.element.getCoordinates) Object.append(this.style.current, this.element.getCoordinates());
-	  this.render()
-	},
-	
-	render: function() {
-		this.childNodes.each(function(child){
-		  if (child.refresh) child.refresh();
-		});
-	}
+  
+  initializers: {
+    resizable: function() {
+      return {
+        events: {
+          window: {
+            resize: 'onResize'
+          },
+          self: {
+            build: 'onResize'
+          }
+        } 
+      }
+    }
+  },
+  
+  onResize: function() {
+    if (this.element.getCoordinates) Object.append(this.style.current, this.element.getCoordinates());
+    this.render()
+  },
+  
+  render: function() {
+    this.childNodes.each(function(child){
+      if (child.refresh) child.refresh();
+    });
+  }
 });

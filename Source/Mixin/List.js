@@ -133,16 +133,7 @@ LSD.Mixin.List = new Class({
   },
   
   buildItem: function(value) {
-    if (this.options.layout.item) return this.buildLayout(this.options.layout.item);
-    return new Element('div', {
-      'class': 'lsd option', 
-      'html': value.toString(), 
-      'events': {
-        click: function() {
-          this.selectItem(value);
-        }.bind(this)
-      }
-    });
+    return this.buildLayout(this.relations.item.layout);
   },
   
   getItem: function(item) {

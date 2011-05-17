@@ -58,7 +58,6 @@ LSD.Module.Relations = new Class({
       if (relation.multiple) {
         origin[name][state ? 'include' : 'erase'](widget);
         if (origin[name].length == +state) {
-          console.log(callbacks[state ? 'fill' : 'empty'], state, state ? 'fill' : 'empty', callbacks, name, relation)
           if (callbacks[state ? 'fill' : 'empty']) callbacks[state ? 'fill' : 'empty'].call(origin, widget);
           if (relation.relayed) origin.element[state ? 'addEvents' : 'removeEvents'](relation.relayed)
         }
