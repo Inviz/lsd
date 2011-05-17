@@ -22,8 +22,8 @@ LSD.Action.Update = LSD.Action.build({
   enable: function(target, content) {
     var widget = LSD.Module.DOM.find(target);
     var fragment = document.createFragment(content);
-    var children = Array.prototype.slice.call(fragment.childNodes, 0);
+    var children = LSD.slice(fragment.childNodes);
     document.id(target).empty().appendChild(fragment);
-    widget.fireEvent('DOMNodeInserted', children);
+    widget.fireEvent('DOMNodeInserted', [children]);
   }
 });

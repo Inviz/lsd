@@ -116,12 +116,15 @@ LSD.Module.DOM = new Class({
   
   insertBefore: function(insertion, element) {
     return this.appendChild(insertion, function() {
-      element.parentNode.insertBefore(document.id(insertion), document.id(element))
-    });
+      if (element)
+        document.id(element.parentNode).insertBefore(document.id(insertion), document.id(element))
+      else
+        document.id(this).insertBefore(document.id(insertion))
+    }.bind(this));
   },
-  
+
   extractDocument: function(widget) {
-    var element = widget.lsd ? widget.element : widget;;
+    var element = widget.lsd ? widget.element : widget;
     var isDocument = widget.documentElement || (instanceOf(widget, LSD.Document));
     var parent = this.parentNode;
     if (isDocument  // if document
@@ -251,7 +254,7 @@ Object.append(LSD.Module.DOM, {
   
   findDocument: function(target) {
     if (target.documentElement) return target;
-    if (target.document) return target.document;
+    if (target.document && target.document.lsd) return target.document;
     if (target.lsd) return;
     var body = target.ownerDocument.body;
     var document = (target != body) && Element.retrieve(body, 'widget');
