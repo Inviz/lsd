@@ -105,7 +105,7 @@ LSD.Layout.prototype = Object.append(new Options, {
         element.parentNode.replaceChild(widget.toElement(), element);
         var replaced = true;
       }
-      var position = (!replaced && (widget.toElement().parentNode != ascendant) && "bottom")
+      var position = (!replaced && (widget.toElement().parentNode != container) && "bottom")
       widget.inject(ascendant, position);
     } else {
       if (cloning) var clone = element.cloneNode(false);
