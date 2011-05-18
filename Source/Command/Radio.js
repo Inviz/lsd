@@ -63,4 +63,4 @@ LSD.Command.Radio = new Class({
   }
 });
 
-LSD.Command.prototype.addState('checked');
+LSD.Command.Radio.prototype.addState('checked');

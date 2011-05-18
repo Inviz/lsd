@@ -104,7 +104,7 @@ LSD.Widget.Form.Edit = new Class({
   },
 
   finish: function() {
-    console.log('revert', [].concat(this.objects))
+    //console.log('revert', [].concat(this.objects))
     for (var object; object = this.objects.shift();) this.revert(object);
     this.submitter.dispose();
     this.canceller.dispose();
