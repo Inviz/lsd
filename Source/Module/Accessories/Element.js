@@ -72,8 +72,8 @@ LSD.Module.Element = new Class({
     var stop = (attrs.convert === false)
     delete attrs.element, delete attrs.convert;
     var attrs = Object.merge({}, options.element, attrs);
-    if (!attrs.tag) attrs.tag = ((options.inline == null) && this.tagName) || (options.inline ? 'span' : 'div');
-    var tag = attrs.tag;
+    var tag = attrs.tag || this.getElementTag();
+    if (stop) console.error(this.element, tag);
     delete attrs.tag;
     if (!this.element || stop) this.element = new Element(tag, attrs);
     else var element = this.element.set(attrs);
@@ -90,6 +90,21 @@ LSD.Module.Element = new Class({
 
     if (this.style) for (var property in this.style.element) this.element.setStyle(property, this.style.element[property]);
     return this.element;
+  },
+  
+  getElementTag: function(soft) {
+    var options = this.options, inline = options.inline, element = options.element;
+    if (element && element.tag) return element.tag;
+    if (!soft) switch (inline) {
+      case null:
+        return this.tagName;
+      case true:
+        return "span";
+      case false:
+        return "div"
+      default:
+        return inline;
+    }
   },
   
   destroy: function() {

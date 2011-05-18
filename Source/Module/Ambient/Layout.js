@@ -44,7 +44,7 @@ LSD.Module.Layout = new Class({
             detach: function() {
               if (!this.extracted) return;
               this.unsetOptions(this.extracted);
-              delete this.extracted;
+              delete this.extracted, delete this.origin;
             },
             /*
               Mutate element when layout is set to clone.
@@ -52,8 +52,8 @@ LSD.Module.Layout = new Class({
             beforeBuild: function(query) {
               if (!query.element || (options.traverse != 'clone' && !options.extract)) return;
               this.extractLayout(query.element);
-              var tag = options.element && options.element.tag;
-              if (options.traverse == 'clone' || (tag && this.extracted.tag != tag)) {
+              var tag = this.getElementTag(true);
+              if (options.traverse == 'clone' || (tag && LSD.toLowerCase(this.element.tagName) != tag)) {
                 this.origin = query.element;
                 query.convert = false;
               }
@@ -62,8 +62,10 @@ LSD.Module.Layout = new Class({
               Builds more dependent layout when element is built
             */
             build: function() {
-              if (this.origin && options.traverse != 'clone') this.element.replaces(this.origin);
-              if (options.traverse) this.buildLayout(LSD.slice((this.origin || this.element).childNodes));
+              if (options.traverse) {
+                if (this.origin && options.traverse != 'clone') this.element.replaces(this.origin);
+                this.buildLayout(LSD.slice((this.origin || this.element).childNodes));
+              }
               if (options.layout) this.buildLayout(options.layout);
             },
             /*

@@ -45,8 +45,7 @@ LSD.Widget = new Class({
   options: {
     key: 'widget',
     writable: false,
-    layers: true,
-    inline: false
+    layers: true
   },
   
   initializers: {

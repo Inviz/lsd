@@ -58,15 +58,13 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   render: function(layout, parent, method, opts) {
-    if (!layout.lsd) {
-      var type = layout.push ? 'array' : layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : layout.indexOf ? 'string' : 'object';
-      if (type) return this[type](layout, parent, method, opts);
-    } else if (parent) return this.appendChild(layout, parent);
+    var type = layout.push ? 'array' : layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : layout.indexOf ? 'string' : 'object';
+    if (type) return this[type](layout, parent, method, opts);
   },
   
   materialize: function(selector, layout, parent, opts) {
     var widget = this.context.create(Object.append({}, opts, LSD.Layout.parse(selector, parent)));
-    if (parent) this.appendChild(widget, parent)
+    if (parent) this.appendChild(parent, widget)
     if (layout) if (layout.charAt) widget.write(layout);
     else this.render(layout, widget, null, opts);
     return widget;
@@ -90,22 +88,35 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   array: function(array, parent, method, opts) {
-    return array.map(function(widget) { return this.render(widget, parent, method, opts)}.bind(this));
-  },
-  
-  elements: function(elements, parent, method, opts) {
-    return elements.map(function(widget) { return this.render(widget, parent, method, opts)}.bind(this));
+    for (var i = 0, result = [], length = array.length; i < length; i++) 
+      result[i] = this.render(array[i], parent, method, opts)
+    return result;
   },
   
   element: function(element, parent, method, opts) {
     if (!method) method = this.options.method;
     var converted = element.uid && Element.retrieve(element, 'widget');
-    var children = LSD.slice(element.childNodes)
-    if (converted && (method != 'clone')) var widget = converted;
+    var children = LSD.slice(element.childNodes), cloning = (method == 'clone');
+    if (converted && !cloning) var widget = converted;
     else var widget = this.context.use(element, Object.append({traverse: false}, opts), parent, method);
-    if (!widget && method == 'clone') var clone = element.cloneNode(false);
-    if ((widget || clone) && parent) this.appendChild(widget || clone || element, parent[0] || parent);
-    this.render(children, clone ? [clone, parent[1] || parent] : widget || parent, method, opts);
+    var ascendant = parent[0] || parent.toElement();
+    if (widget) {
+      if (widget.origin == element && element.parentNode && !cloning) {
+        element.parentNode.replaceChild(widget.toElement(), element);
+        var replaced = true;
+      }
+      var position = (!replaced && (widget.toElement().parentNode != ascendant) && "bottom")
+      widget.inject(parent[1] || parent, position);
+    } else {
+      if (cloning) var clone = element.cloneNode(false);
+      this.appendChild(ascendant, clone || element);
+    }
+    ascendant = [clone || (widget && widget.element) || element, widget || parent[1] || parent];
+    for (var i = 0, child; child = children[i]; i++) {
+      if (child.nodeType != 8)
+        this[child.nodeType == 1 ? "element" : "textnode"](child, ascendant, method, opts);
+      
+    }
     return widget || clone || element;
   },
   
@@ -116,9 +127,11 @@ LSD.Layout.prototype = Object.append(new Options, {
       if (this.options.interpolate) var interpolated = this.interpolate(value);
       var textnode = element.ownerDocument.createTextNode(interpolated || value);
       if (method != 'clone') {
-        if (interpolated != null && interpolated != value) element.parentNode.replaceChild(textnode)
-      } else this.appendChild(textnode, parent[0] || parent)
+        if (interpolated != null && interpolated != value) 
+          element.parentNode.replaceChild(textnode, element);
+      }
     }
+    this.appendChild(parent[0] || parent.toElement(), textnode || element)
     return textnode || element;
   },
   
@@ -139,17 +152,8 @@ LSD.Layout.prototype = Object.append(new Options, {
       if (node.nodeType && node.nodeType != 8) this.render(node, parent, method, opts);
     }
   },
-  
-  appendChild: function(child, parent) {
-    if (child.nodeType && (!parent.call || (child.element && (parent = parent(child.element))))) {
-      if (!child.parentNode || (child.parentNode != parent && child.parentNode != parent.element)) { 
-        if (child.toElement) child.toElement();
-        if (parent.toElement) parent.toElement();
-        if (child.element && parent.element) {
-          child.inject(parent, child.element.parentNode ? false : 'bottom')
-        } else (parent.element || parent).appendChild(child.element || child);
-      }
-    }
+  appendChild: function(parent, child, arg) {
+    if (child.parentNode != parent) parent.appendChild(child, arg)
   }
 });
 
