@@ -55,7 +55,7 @@ LSD.Mixin.Dialog = new Class({
   },
   
   getDialogTarget: function() {
-    return this.attributes.dialog && this.getTarget(this.attributes.dialog)
+    return this.attributes.dialog && this.getElement(this.attributes.dialog)
   },
   
   getDialogWrapper: function() {

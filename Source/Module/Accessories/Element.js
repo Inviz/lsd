@@ -73,7 +73,6 @@ LSD.Module.Element = new Class({
     delete attrs.element, delete attrs.convert;
     var attrs = Object.merge({}, options.element, attrs);
     var tag = attrs.tag || this.getElementTag();
-    if (stop) console.error(this.element, tag);
     delete attrs.tag;
     if (!this.element || stop) this.element = new Element(tag, attrs);
     else var element = this.element.set(attrs);

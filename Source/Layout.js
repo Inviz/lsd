@@ -99,24 +99,22 @@ LSD.Layout.prototype = Object.append(new Options, {
     var children = LSD.slice(element.childNodes), cloning = (method == 'clone');
     if (converted && !cloning) var widget = converted;
     else var widget = this.context.use(element, Object.append({traverse: false}, opts), parent, method);
-    var ascendant = parent[0] || parent.toElement();
+    var ascendant = parent[1] || parent, container = parent[0] || parent.toElement();
     if (widget) {
-      if (widget.origin == element && element.parentNode && !cloning) {
+      if (widget.origin == element && element.parentNode && !cloning && element.parentNode == container) {
         element.parentNode.replaceChild(widget.toElement(), element);
         var replaced = true;
       }
       var position = (!replaced && (widget.toElement().parentNode != ascendant) && "bottom")
-      widget.inject(parent[1] || parent, position);
+      widget.inject(ascendant, position);
     } else {
       if (cloning) var clone = element.cloneNode(false);
-      this.appendChild(ascendant, clone || element);
+      this.appendChild(container, clone || element);
     }
-    ascendant = [clone || (widget && widget.element) || element, widget || parent[1] || parent];
-    for (var i = 0, child; child = children[i]; i++) {
+    var newParent = [clone || (widget && widget.element) || element, widget || ascendant];
+    for (var i = 0, child; child = children[i]; i++) 
       if (child.nodeType != 8)
-        this[child.nodeType == 1 ? "element" : "textnode"](child, ascendant, method, opts);
-      
-    }
+        this[child.nodeType == 1 ? "element" : "textnode"](child, newParent, method, opts);
     return widget || clone || element;
   },
   

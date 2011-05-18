@@ -47,13 +47,13 @@ LSD.Module.Layout = new Class({
               delete this.extracted, delete this.origin;
             },
             /*
-              Mutate element when layout is set to clone.
+              Mutate element and extract options off it.
             */
             beforeBuild: function(query) {
-              if (!query.element || (options.traverse != 'clone' && !options.extract)) return;
-              this.extractLayout(query.element);
+              if (!query.element) return;
+              if (options.extract || options.traverse == 'clone') this.extractLayout(query.element);
               var tag = this.getElementTag(true);
-              if (options.traverse == 'clone' || (tag && LSD.toLowerCase(this.element.tagName) != tag)) {
+              if (options.traverse == 'clone' || (tag && LSD.toLowerCase(query.element.tagName) != tag)) {
                 this.origin = query.element;
                 query.convert = false;
               }
