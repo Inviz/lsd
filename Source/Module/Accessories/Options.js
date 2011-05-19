@@ -36,8 +36,11 @@ LSD.Module.Options = new Class({
     var mode = unset ? 'remove' : 'add', method = setter[mode];
     if (method.charAt) method = this[method];
     if (setter.iterate) {
-      if (value.each) for (var i = 0, j = value.length; i < j; i++) method.call(this, value[i]);
-      else for (var i in value) method.call(this, i, value[i])
+      if (value.each) {
+        var length = value.length;
+        if (length != null) for (var i = 0, j = value.length; i < j; i++) method.call(this, value[i]);
+        else value.each(method, this);
+      } else for (var i in value) method.call(this, i, value[i])
     } else method.call(this, value);
     return this;
   },
@@ -96,5 +99,6 @@ LSD.Module.Options.initialize = function(element, options) {
   this.setOptions(options);
   
   // Attach to a given element
-  this.fireEvent('initialize', [options, element])
+  this.fireEvent('prepare', [options, element]);
+  this.fireEvent('initialize', [options, this.element]);
 };

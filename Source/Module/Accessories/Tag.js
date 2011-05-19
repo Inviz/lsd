@@ -29,6 +29,19 @@ LSD.Module.Tag = new Class({
     tag: function(options) {
       this.setContext(options.context)
       this.nodeType = options.nodeType;
+      return {
+        events: {
+          tagChanged: function() {
+            if (this.source != null) this.setSource();
+          },
+          initialize: function() {
+            this.setSource();
+          },
+          build: function() {
+            if (this.source == null) this.setSource();
+          }
+        }
+      }
     }
   },
   
@@ -47,14 +60,16 @@ LSD.Module.Tag = new Class({
   
   setSource: function(source) {
     if (!source) source = this.getSource();
-    if (source && this.source != source) {
-      var role = this.context.find(source);
-      if (role && role != this.role) {
-        if (this.role) this.unmix(this.role);
-        this.role = role;
-        this.mixin(role);
+    if (this.source != source) {
+      if (source) {
+        var role = this.context.find(source);
+        if (role && role != this.role) {
+          if (this.role) this.unmix(this.role);
+          this.role = role;
+          this.mixin(role);
+        }
       }
-      this.source = source; 
+      this.source = source || false; 
     }
     return this;
   },
@@ -80,14 +95,14 @@ LSD.Module.Tag = new Class({
   },
   
   setTag: function(tag) {
+//    console.log(tag)
     var old = this.tagName;
     if (old) {
       if (old == tag) return;
       this.unsetTag(old);
     }
     this.nodeName = this.tagName = tag;
-    if (old) this.fireEvent('tagChanged', [this.tagName, old]);
-    this.setSource();
+    this.fireEvent('tagChanged', [this.tagName, old]);
   },
   
   unsetTag: function(tag) {

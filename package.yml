@@ -60,6 +60,7 @@ sources:
   - Source/Mixin/ContentEditable.js
   - Source/Mixin/Choice.js
   - Source/Mixin/List.js
+  - Source/Module/Ambient/Allocations.js
   - Source/Module/Ambient/Container.js
   - Source/Module/Ambient/DOM.js
   - Source/Module/Ambient/Selectors.js

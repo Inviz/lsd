@@ -13,6 +13,7 @@ requires:
   - LSD.Module.DOM
   - LSD.Module.Layout
   - LSD.Module.Expectations
+  - LSD.Module.Allocations
   - LSD.Module.Relations
   - LSD.Module.Proxies
   - LSD.Module.Container
@@ -28,6 +29,7 @@ LSD.Module.Ambient = new Class({
     LSD.Module.DOM, 
     LSD.Module.Layout,
     LSD.Module.Expectations,
+    LSD.Module.Allocations,
     LSD.Module.Relations,
     LSD.Module.Proxies,
     LSD.Module.Container

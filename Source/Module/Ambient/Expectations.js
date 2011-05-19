@@ -26,7 +26,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   
   initializers: {
     expectations: function() {
-      if (!this.expectations) this.expectations = {}
+      if (!this.expectations) this.expectations = {tag: {}}
       return {
         events: Expectations.events
       }
@@ -34,8 +34,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   },
   
   getElementsByTagName: function(tag) {
-    var cache = this.expectations.tag;
-    return (cache && cache[tag.toLowerCase()]) || [];
+    return (this.expectations.tag && this.expectations.tag[tag.toLowerCase()]) || [];
   },
   
   match: function(selector) {

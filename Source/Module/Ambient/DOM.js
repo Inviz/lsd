@@ -123,6 +123,17 @@ LSD.Module.DOM = new Class({
     }.bind(this));
   },
 
+  cloneNode: function(children, options) {
+    return this.context.create(Object.merge({
+      source: this.source,
+      tag: this.tagName,
+      attributes: this.attributes,
+      pseudos: this.pseudos.toObject(),
+      classes: this.classes.toObject(),
+      clone: true
+    }, options));
+  },
+
   extractDocument: function(widget) {
     var element = widget.lsd ? widget.element : widget;
     var isDocument = widget.documentElement || (instanceOf(widget, LSD.Document));

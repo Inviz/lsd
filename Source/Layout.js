@@ -97,16 +97,19 @@ LSD.Layout.prototype = Object.append(new Options, {
     if (!method) method = this.options.method;
     var converted = element.uid && Element.retrieve(element, 'widget');
     var children = LSD.slice(element.childNodes), cloning = (method == 'clone');
-    if (converted && !cloning) var widget = converted;
-    else var widget = this.context.use(element, Object.append({traverse: false}, opts), parent, method);
+    var options = Object.append({traverse: false}, opts);
+    if (converted) var widget = cloning ? converted.cloneNode(false, options) : converted;
+    else var widget = this.context.use(element, options, parent, method);
     var ascendant = parent[1] || parent, container = parent[0] || parent.toElement();
     if (widget) {
-      if (widget.origin == element && element.parentNode && !cloning && element.parentNode == container) {
-        element.parentNode.replaceChild(widget.toElement(), element);
-        var replaced = true;
-      }
-      var position = (!replaced && (widget.toElement().parentNode != container) && "bottom")
-      widget.inject(ascendant, position);
+      ascendant.appendChild(widget, function() {
+        if (widget.toElement().parentNode == container) return;
+        if (cloning)
+          container.appendChild(widget.element)
+        else if (widget.origin == element && element.parentNode && element.parentNode == container)
+          element.parentNode.replaceChild(widget.element, element);
+      });
+      if (ascendant.document) widget.setDocument(ascendant.document);
     } else {
       if (cloning) var clone = element.cloneNode(false);
       this.appendChild(container, clone || element);
@@ -120,16 +123,13 @@ LSD.Layout.prototype = Object.append(new Options, {
   
   textnode: function(element, parent, method) {
     if (!method) method = this.options.method;
-    if (method != 'augment') {
-      var value = element.textContent;
-      if (this.options.interpolate) var interpolated = this.interpolate(value);
+    var value = element.textContent;
+    if (this.options.interpolate) var interpolated = this.interpolate(value);
+    if (interpolated != null && interpolated != value || method == 'clone') {
       var textnode = element.ownerDocument.createTextNode(interpolated || value);
-      if (method != 'clone') {
-        if (interpolated != null && interpolated != value) 
-          element.parentNode.replaceChild(textnode, element);
-      }
+      if (method != 'clone') element.parentNode.replaceChild(textnode, element);
+      this.appendChild(parent[0] || parent.toElement(), textnode || element)
     }
-    this.appendChild(parent[0] || parent.toElement(), textnode || element)
     return textnode || element;
   },
   

@@ -21,7 +21,7 @@ provides:
   
 LSD.Module.Layout = new Class({
   options: {
-    traverse: 'augment',
+    traverse: true,
     extract: true
   },
   
@@ -47,35 +47,35 @@ LSD.Module.Layout = new Class({
               delete this.extracted, delete this.origin;
             },
             /*
-              Mutate element and extract options off it.
+              Mutates element and extract options off it.
             */
             beforeBuild: function(query) {
               if (!query.element) return;
-              if (options.extract || options.traverse == 'clone') this.extractLayout(query.element);
+              if (options.extract || options.clone) this.extractLayout(query.element);
               var tag = this.getElementTag(true);
-              if (options.traverse == 'clone' || (tag && LSD.toLowerCase(query.element.tagName) != tag)) {
+              if (options.clone || (tag && LSD.toLowerCase(query.element.tagName) != tag)) {
                 this.origin = query.element;
                 query.convert = false;
               }
             },
             /*
-              Builds more dependent layout when element is built
+              Builds children after element is built
             */
             build: function() {
               if (options.traverse) {
-                if (this.origin && options.traverse != 'clone') this.element.replaces(this.origin);
-                this.buildLayout(LSD.slice((this.origin || this.element).childNodes));
+                if (this.origin && !options.clone) this.element.replaces(this.origin);
+                this.getLayout().render(LSD.slice((this.origin || this.element).childNodes), [this.element, this], options.clone ? 'clone' : null);
               }
               if (options.layout) this.buildLayout(options.layout);
             },
             /*
               Augments all parsed HTML that goes through standart .write() interface
             */
-            write: 'augmentLayout',
+            write: 'buildLayout',
             /*
               Augments all inserted nodes that come from partial html updates
             */
-            DOMNodeInserted: 'augmentLayout'
+            DOMNodeInserted: 'buildLayout'
           },
           
           //applied when mutations are added
@@ -126,7 +126,6 @@ LSD.Module.Layout = new Class({
   
   getLayout: Macro.getter('layout', function() {
     var options = {
-      method: this.options.traverse,
       interpolate: this.options.interpolate,
       context: this.options.context
     };
@@ -137,19 +136,11 @@ LSD.Module.Layout = new Class({
     return this.getLayout().render(layout, parent || this, null, options);
   },
   
-  augmentLayout: function(layout, parent, options) {
-    return this.getLayout().render(layout, parent || this, 'augment', options);
-  },
-  
   extractLayout: function(element) {
     this.extracted = LSD.Layout.extract(element);
     if (this.tagName || this.options.source) delete this.extracted.tag;
     this.setOptions(this.extracted);
     this.fireEvent('extractLayout', [this.extracted, element])
-  },
-  
-  clone: function() {
-    
   }
 });
 

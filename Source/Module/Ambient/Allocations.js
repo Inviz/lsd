@@ -1,21 +1,32 @@
-LSD.Module.Allocated = new Class({
-  
-  options: {
-    allocated: {
-      dialog: {
-        datepicker
-      }
-    }
-  },
-  
+/*
+---
+ 
+script: Allocations.js
+ 
+description: Spares a few temporal widgets or elements
+ 
+license: Public domain (http://unlicense.org).
+
+authors: Yaroslaff Fedin
+ 
+requires:
+  - LSD.Module
+
+provides:
+  - LSD.Module.Allocations
+ 
+...
+*/
+
+LSD.Module.Allocations = new Class({
   initializers: {
-    allocated: function() {
-      this.allocated = []
+    allocations: function() {
+      this.allocations = {};
     }
   },
   
   require: function(type, name) {
-    var allocation = LSD.Allocated[type];
+    var allocation = LSD.Allocations[type];
     if (allocation) {
       if (allocation.multiple) {
         var group = this.allocated[type] || (this.allocated[type] = {});
@@ -28,21 +39,17 @@ LSD.Module.Allocated = new Class({
   },
   
   allocate: function(type, name) {
-    var allocation = LSD.Allocated[type], allocations;
-    if (allocation) {
-      if (allocation.multiple) {
-        var group = allocations[type] || (allocations[type] = {});
-        if (group[name]) return group[name];
-        var options = this.options.allocated[type];
-        if (options) options = [name];
-      } else {
-        if (allocations[type]) return allocations[type];
-        var options = this.options.allocated[type];
-      }
-      var allocated = this.allocate(type, name, options);
-      if (group) group[name] = allocated;
-      else allocations[name] = true;
+    var allocation = LSD.Allocations[type], allocations = this.allocations;
+    if (!allocation) return;
+    var options = this.options.allocations && this.options.allocations[type];
+    if (allocation.multiple) {
+      var group = allocations[type] || (allocations[type] = {});
+      if (group[name]) return group[name];
+      if (options) options = options[name];
+    } else {
+      if (allocations[type]) return allocations[type];
     }
+    return ((group || allocations)[name] = allocation.call(this, type, name, options));
   },
   
   release: function(type, name) {
@@ -51,7 +58,7 @@ LSD.Module.Allocated = new Class({
   
 });
 
-LSD.Allocated = {
+LSD.Allocations = {
   input: {
     layout: function() {
       
@@ -62,7 +69,7 @@ LSD.Allocated = {
     multiple: true,
     initialize: function(type) {
       return {
-        layout: 'body-dialog' + (type ? '-' + type : '')
+        source: 'body-dialog' + (type ? '-' + type : '')
       }
     }
   },
@@ -90,7 +97,7 @@ LSD.Allocated = {
           name: name
         }
       },
-      layout: type == 'area' ? 'textarea' : ('input-' + (type || 'text')
+      source: type == 'area' ? 'textarea' : ('input-' + (type || 'text'))
     }
   },
   

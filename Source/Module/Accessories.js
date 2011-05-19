@@ -35,8 +35,8 @@ LSD.Module.Accessories = new Class({
     LSD.Module.Dimensions,
     LSD.Module.Styles,
     LSD.Module.Shortcuts,
+    LSD.Module.Tag,
     LSD.Module.Element,
-    LSD.Module.Selectors,
-    LSD.Module.Tag
+    LSD.Module.Selectors
   ]
 });

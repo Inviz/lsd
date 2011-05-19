@@ -30,11 +30,11 @@ LSD.Module.Element = new Class({
       LSD.uid(this);
       return {
         events: {
-          'initialize': function(options, element) {
+          prepare: function(options, element) {
             if (element) this.attach(element);
           },
-          'build': 'attach',
-          'destroy': 'detach'
+          build: 'attach',
+          destroy: 'detach'
         }
       }
     }

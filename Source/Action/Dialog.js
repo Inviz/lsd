@@ -38,7 +38,6 @@ LSD.Action.Dialog = LSD.Action.build({
     if (!dialog) {
       var source = this.caller.toElement();
       var options = {
-        traverse: 'clone',
         interpolate: function(string) {
           if (data) {
             var substitution = data[string];
@@ -50,6 +49,7 @@ LSD.Action.Dialog = LSD.Action.build({
           }
           return source.getProperty('data-' + string.dasherize())
         },
+        clone: true,
         caller: function() {
           return this;
         }.bind(this.caller),
@@ -59,13 +59,14 @@ LSD.Action.Dialog = LSD.Action.build({
         }
       };
       if (!target.indexOf) {
-        if (target.hasClass('singlethon')) options.traverse = 'augment';
+        if (target.hasClass('singlethon')) options.clone = false;
         var element = target;
-      } else options.attribute.kind = target;
+      } else options.attributes.kind = target;
       var dialog = new LSD.Widget(options, element);
     }
     if (content) dialog.write(content);
     dialog.show();
+    dialog.inject(document.body)
     this.store(target, dialog);
     return false;
   },
