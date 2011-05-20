@@ -11,7 +11,7 @@ requires:
   - LSD.Mixin
   
 uses:
-  - CKEditor/Compact
+  - CKEDITOR
  
 provides: 
   - LSD.Mixin.ContentEditable
@@ -43,9 +43,9 @@ LSD.Mixin.ContentEditable = new Class({
   },
   
   getEditor: Macro.getter('editor', function() {
-    use('CKEditor:Compact', function() {  
+    use('CKEDITOR', function(CKEDITOR) {
       var value = this.getValueForEditor()
-      var editor = new CKEDITOR.editor( this.options.ckeditor, this.getEditedElement(), 1, value);
+      var editor = this.editor = new CKEDITOR.editor( this.options.ckeditor, this.getEditedElement(), 1, value);
     
       editor.on('focus', function() {
         if (this.editor) this.getEditorContainer().addClass('focus');
@@ -71,7 +71,7 @@ LSD.Mixin.ContentEditable = new Class({
       
         }.delay(100, this)
       }.bind(this));
-    })
+    }.bind(this))
   }),
   
   getValueForEditor: function() {
