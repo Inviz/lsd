@@ -37,7 +37,7 @@ LSD.Module.Tag = new Class({
           initialize: function() {
             this.setSource();
           },
-          build: function() {
+          beforeBuild: function() {
             if (this.source == null) this.setSource();
           }
         }
