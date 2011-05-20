@@ -102,14 +102,15 @@ LSD.Layout.prototype = Object.append(new Options, {
     else var widget = this.context.use(element, options, parent, method);
     var ascendant = parent[1] || parent, container = parent[0] || parent.toElement();
     if (widget) {
-      ascendant.appendChild(widget, function() {
+      var adoption = function() {
         if (widget.toElement().parentNode == container) return;
         if (cloning)
           container.appendChild(widget.element)
         else if (widget.origin == element && element.parentNode && element.parentNode == container)
           element.parentNode.replaceChild(widget.element, element);
-      });
-      if (ascendant.document) widget.setDocument(ascendant.document);
+      };
+      if (this.appendChild(ascendant, widget, adoption))
+        if (widget.document != ascendant.document) widget.setDocument(ascendant.document);
     } else {
       if (cloning) var clone = element.cloneNode(false);
       this.appendChild(container, clone || element);
@@ -150,8 +151,12 @@ LSD.Layout.prototype = Object.append(new Options, {
       if (node.nodeType && node.nodeType != 8) this.render(node, parent, method, opts);
     }
   },
-  appendChild: function(parent, child, arg) {
-    if (child.parentNode != parent) parent.appendChild(child, arg)
+  
+  appendChild: function(parent, child, adoption) {
+    if (child.parentNode != parent) {
+      parent.appendChild(child, adoption);
+      return true;
+    }
   }
 });
 
@@ -230,8 +235,15 @@ Object.append(LSD.Layout, {
   },
   
   getSource: function(element) {
-    source = LSD.toLowerCase(element.tagName);
-    if (element.type && (element.type != source)) source += '-' + element.type;
+    source = [LSD.toLowerCase(element.tagName)];
+    if (element.type) switch (element.type) {
+      case "select-one": 
+      case "select-multiple":
+      case "textarea":
+        break;
+      default:
+        source.push(element.type);
+    };
     return source;
   }
 });

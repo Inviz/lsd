@@ -9,43 +9,9 @@ license: Public domain (http://unlicense.org).
  
 requires:
   - LSD.Mixin
-  - CKEditor/core._bootstrap
-  - CKEditor/skins.ias.skin
-  - CKEditor/lang.en
-  - CKEditor/themes.default.theme
-  - CKEditor/plugins.basicstyles.plugin
-  - CKEditor/plugins.button.plugin
-  - CKEditor/plugins.clipboard.plugin
-  - CKEditor/plugins.contextmenu.plugin
-  - CKEditor/plugins.enterkey.plugin
-  - CKEditor/plugins.htmldataprocessor.plugin
-  - CKEditor/plugins.iframe.plugin
-  - CKEditor/plugins.indent.plugin
-  - CKEditor/plugins.link.plugin
-  - CKEditor/plugins.list.plugin
-  - CKEditor/plugins.pastefromword.plugin
-  - CKEditor/plugins.pastetext.plugin
-  - CKEditor/plugins.removeformat.plugin
-  - CKEditor/plugins.stylescombo.plugin
-  - CKEditor/plugins.tab.plugin
-  - CKEditor/plugins.toolbar.plugin
-  - CKEditor/plugins.wysiwygarea.plugin
-  - CKEditor/plugins.autogrow.plugin
-  - CKEditor/plugins.styles.plugin
-  - CKEditor/plugins.dialog.plugin
-  - CKEditor/plugins.menu.plugin
-  - CKEditor/plugins.fakeobjects.plugin
-  - CKEditor/plugins.domiterator.plugin
-  - CKEditor/plugins.richcombo.plugin
-  - CKEditor/plugins.editingblock.plugin
-  - CKEditor/plugins.dialogui.plugin
-  - CKEditor/plugins.dialog.plugin
-  - CKEditor/plugins.keystrokes.plugin
-  - CKEditor/plugins.htmlwriter.plugin
-  - CKEditor/plugins.selection.plugin
-  - CKEditor/plugins.floatpanel.plugin
-  - CKEditor/plugins.listblock.plugin
-  - CKEditor/plugins.panel.plugin
+  
+uses:
+  - CKEditor/Compact
  
 provides: 
   - LSD.Mixin.ContentEditable
@@ -77,35 +43,35 @@ LSD.Mixin.ContentEditable = new Class({
   },
   
   getEditor: Macro.getter('editor', function() {
-    var value = this.getValueForEditor()
-    var editor = new CKEDITOR.editor( this.options.ckeditor, this.getEditedElement(), 1, value);
+    use('CKEditor:Compact', function() {  
+      var value = this.getValueForEditor()
+      var editor = new CKEDITOR.editor( this.options.ckeditor, this.getEditedElement(), 1, value);
     
-    editor.on('focus', function() {
-      if (this.editor) this.getEditorContainer().addClass('focus');
-    }.bind(this));
-    editor.on('blur', function() {
-      if (this.editor) this.getEditorContainer().removeClass('focus');
-    }.bind(this));
-    editor.on('contentDom', function() {
-      this.showEditor();
-      this.fireEvent('editorReady');
+      editor.on('focus', function() {
+        if (this.editor) this.getEditorContainer().addClass('focus');
+      }.bind(this));
+      editor.on('blur', function() {
+        if (this.editor) this.getEditorContainer().removeClass('focus');
+      }.bind(this));
+      editor.on('contentDom', function() {
+        this.showEditor();
+        this.fireEvent('editorReady');
       
-      !function() {
+        !function() {
         
-        if (Browser.firefox) {
-          var body = this.getEditorBody()
-          body.contentEditable = false;
-          body.contentEditable = true;
-          console.error(body)
-      }
-      this.editor.focus();
-      this.editor.forceNextSelectionCheck();
-      this.editor.focus();
+          if (Browser.firefox) {
+            var body = this.getEditorBody()
+            body.contentEditable = false;
+            body.contentEditable = true;
+            console.error(body)
+        }
+        this.editor.focus();
+        this.editor.forceNextSelectionCheck();
+        this.editor.focus();
       
-      }.delay(100, this)
-    }.bind(this));
-    
-    return editor;
+        }.delay(100, this)
+      }.bind(this));
+    })
   }),
   
   getValueForEditor: function() {

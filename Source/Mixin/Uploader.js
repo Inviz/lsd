@@ -149,6 +149,7 @@ LSD.Widget.Filelist = new Class({
   
   options: {
     tag: 'filelist',
+    inline: 'ul',
     has: {
       many: {
         items: {
@@ -163,6 +164,7 @@ LSD.Widget.Filelist = new Class({
 LSD.Widget.Filelist.File = new Class({
   options: {
     tag: 'file',
+    inline: 'li',
     layout: {
       '::canceller': 'Cancel',
       '::meter': true
