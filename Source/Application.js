@@ -14,6 +14,7 @@ requires:
   - Core/Options
   - Core/Events
   - More/String.QueryString
+  - LSD
   
 provides:
   - LSD.Application
