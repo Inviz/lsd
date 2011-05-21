@@ -40,6 +40,7 @@ LSD.Module.Attributes = new Class({
     this.fireEvent('selectorChange', ['attributes', name, false]);
     delete this.attributes[attribute];
     if (this.element) this.element.removeAttribute(attribute);
+    if (LSD.States.Attributes[name]) this.removePseudo(name);
   },
 
   setAttribute: function(name, value) {
@@ -48,6 +49,7 @@ LSD.Module.Attributes = new Class({
       var logic = LSD.Attributes.Setter[name];
       if (logic) logic.call(this, value)
     }
+    if (LSD.States.Attributes[name]) this[value == true || value == name ? 'addPseudo' : 'removePseudo'](name);
     this.fireEvent('selectorChange', ['attributes', name, false]);
     this.attributes[name] = value;    
     this.fireEvent('selectorChange', ['attributes', name, true]);

@@ -72,7 +72,11 @@ LSD.Module.Styles = new Class({
     if (!(paint = Paint[property]) && !(css = CSS[property])) return false;
     var length = arguments.length;
     if (length > 2) {
-      if (arguments[length - 1] in this.style) var type = arguments[--length];
+      var last = arguments[length - 1];
+      if (this.style[last || 'given']) {
+        var type = last;
+        length--;
+      }
       if (length > 2) value = Array.prototype.splice.call(arguments, 1, length);
     }
     if (value.call) {
