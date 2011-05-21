@@ -80,7 +80,7 @@ LSD.Trait.Menu = new Class({
   },
   
   buildMenu: function() {
-    return this.buildLayout(this.options.layout.menu);
+    return this.buildLayout(this.relations.menu.layout);
   },
   
   expand: function() {
