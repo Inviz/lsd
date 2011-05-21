@@ -30,7 +30,11 @@ LSD.Action.Check = LSD.Action.build({
     if (target.checked) (target.uncheck || target.click).apply(target, Array.prototype.slice.call(arguments, 1));
   },
   
-  getState: function(target, name, state) {
-    return (state !== true && state !== false) ? !this.caller.checked : state;
+  getState: function(target, state) {
+    switch (state) {
+      case true: case "true": state = true; break;
+      case false: case "false": state = false; break;
+    };
+    return (state !== true && state !== false) ? !this.caller.checked : !state;
   }
 });

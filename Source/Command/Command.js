@@ -41,13 +41,19 @@ LSD.Command = new Class({
   },
   
   attach: function(widget) {
-    for (var name in this.$states) this.linkState(widget, name, name, true);
+    for (var name in this.$states) {
+      this.linkState(widget, name, name, true);
+      widget.linkState(this, name, name, true);
+    }
     widget.fireEvent('register', ['command', this]);
   },
   
   detach: function(widget) {
     widget.fireEvent('unregister', ['command', this]);
-    for (var name in this.$states) this.linkState(widget, name, name, false);
+    for (var name in this.$states) {
+      this.linkState(widget, name, name, false);
+      widget.linkState(this, name, name, false);
+    }
   }
 });
 
