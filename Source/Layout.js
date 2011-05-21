@@ -113,7 +113,7 @@ LSD.Layout.prototype = Object.append(new Options, {
         if (widget.document != ascendant.document) widget.setDocument(ascendant.document);
     } else {
       if (cloning) var clone = element.cloneNode(false);
-      this.appendChild(container, clone || element);
+      if (cloning || (ascendant.origin == element.parentNode)) this.appendChild(container, clone || element);
     }
     var newParent = [clone || (widget && widget.element) || element, widget || ascendant];
     for (var i = 0, child; child = children[i]; i++) 
