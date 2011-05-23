@@ -66,7 +66,6 @@ LSD.Action.Dialog = LSD.Action.build({
     }
     if (content) dialog.write(content);
     dialog.show();
-    dialog.inject(document.body)
     this.store(target, dialog);
     return false;
   },

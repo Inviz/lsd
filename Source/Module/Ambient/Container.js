@@ -47,7 +47,7 @@ LSD.Module.Container = new Class({
     var options = this.options.container;
     if (!options.enabled) return;
     var tag = options.tag || (options.inline ? 'span' : 'div');
-    return new Element(tag, options.attributes).inject(this.element, options.position);
+    return new Element(tag, options.attributes).inject(this.toElement(), options.position);
   }),
   
   getWrapper: function() {
