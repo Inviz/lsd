@@ -32,7 +32,7 @@ LSD.Module.Container = new Class({
     proxies: {
       container: {
         container: function() {
-          return $(this.getContainer()) //creates container, once condition is true
+          return document.id(this.getContainer()) //creates container, once condition is true
         },
         condition: function() {         //turned off by default
           return false 

@@ -20,8 +20,6 @@ LSD.Mixin.Value = new Class({
   options: {
     events: {
       _value: {
-        dominject: function() {
-        },
         change: 'callChain'
       }
     },
@@ -134,4 +132,4 @@ LSD.Mixin.Value = new Class({
   }
 });
 
-LSD.Behavior.define(':read-write, :valued', LSD.Mixin.Value);
+LSD.Behavior.define(':submittable, :valued', LSD.Mixin.Value);

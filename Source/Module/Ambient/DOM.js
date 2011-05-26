@@ -37,10 +37,10 @@ LSD.Module.DOM = new Class({
               When dispose event comes from the element, 
               it is is already removed from dom
             */
-            'dispose': 'onElementDispose'
+            dispose: 'onElementDispose'
           },
           self: {
-            'destroy': function() {
+            destroy: function() {
               if (this.parentNode) this.dispose();
             }
           }
@@ -174,7 +174,6 @@ LSD.Module.DOM = new Class({
     LSD.Module.DOM.walk(this, function(child) {
       child.ownerDocument = child.document = document;
       child.fireEvent('setDocument', document);
-      child.fireEvent('dominject', [child.element.parentNode, document]);
       child.dominjected = true;
     });
     return this;
@@ -232,7 +231,7 @@ LSD.Module.DOM = new Class({
   
   onDOMInject: function(callback) {
     if (this.document) callback.call(this, this.document.element) 
-    else this.addEvent('dominject', callback.bind(this))
+    else this.addEvent('setDocument', callback.bind(this))
   },
   
   onElementDispose: function() {
@@ -310,3 +309,8 @@ Object.append(LSD.Module.DOM, {
 });
 
 }();
+
+LSD.Options.document = {
+  add: 'setDocument',
+  remove: 'unsetDocument'
+}

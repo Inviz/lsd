@@ -37,26 +37,6 @@ var Expectations = LSD.Module.Expectations = new Class({
     return (this.expectations.tag && this.expectations.tag[tag.toLowerCase()]) || [];
   },
   
-  match: function(selector) {
-    if (typeof selector == 'string') selector = Slick.parse(selector);
-    if (selector.expressions) selector = selector.expressions[0][0];
-    if (selector.tag && (selector.tag != '*') && (this.tagName != selector.tag)) return false;
-    if (selector.id && (this.attributes.id != selector.id)) return false;
-    if (selector.attributes) for (var i = 0, j; j = selector.attributes[i]; i++) 
-      if (j.operator ? !j.test(this.attributes[j.key] && this.attributes[j.key].toString()) : !(j.key in this.attributes)) return false;
-    if (selector.classes) for (var i = 0, j; j = selector.classes[i]; i++) if (!this.classes[j.value]) return false;
-    if (selector.pseudos) {
-      for (var i = 0, j; j = selector.pseudos[i]; i++) {
-        var name = j.key;
-        if (this.pseudos[name]) continue;
-        var pseudo = pseudos[name];
-        if (pseudo == null) pseudos[name] = pseudo = Slick.lookupPseudo(name) || false;
-        if (pseudo === false || (pseudo && !pseudo.call(this, this, j.value))) return false;
-      }
-    }
-    return true;
-  },
-  
   /*
     Expect processes a single step in a complex selector.
     
@@ -120,10 +100,11 @@ var Expectations = LSD.Module.Expectations = new Class({
   unexpect: function(selector, callback, iterator) {
     if (selector.expressions) selector = selector.expressions[0][0];
     if (selector.combinator) {
-      remove(this.expectations[selector.combinator][selector.tag], callback);
-      if (!selector.state) return;
+      var id = selector.id;
+      var index = (selector.combinator == ' ' && id) ? 'id' : selector.combinator;
+      remove(this.expectations[index][selector.tag], callback);
       this.getElements(selector.structure).each(function(widget) {
-        widget.unexpect(selector.state, callback);
+        if (selector.state) widget.unexpect(selector.state, callback);
         if (iterator) iterator(widget)
       });
     } else {
@@ -138,7 +119,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   },
   
   watch: function(selector, callback, depth) {
-    if (typeof selector == 'string') selector = Slick.parse(selector);
+    if (selector.indexOf) selector = Slick.parse(selector);
     if (!depth) depth = 0;
     selector.expressions.each(function(expressions) {
       var watcher = function(widget, state) {
@@ -151,7 +132,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   },
   
   unwatch: function(selector, callback, depth) {
-    if (typeof selector == 'string') selector = Slick.parse(selector);
+    if (selector.indexOf) selector = Slick.parse(selector);
     if (!depth) depth = 0;
     selector.expressions.each(function(expressions) {
       this.unexpect(expressions[depth], callback, function(widget) {
@@ -187,7 +168,6 @@ var Expectations = LSD.Module.Expectations = new Class({
   }
 });
 
-var pseudos = {};
 var check = function(type, value, state, target) {
   var expectations = this.expectations
   if (!target) {
@@ -210,32 +190,32 @@ var check = function(type, value, state, target) {
   }
 }
 
-var notify = function(widget, type, tag, state, target, single) {
-  check.call(widget, type, tag, state, target);
-  if (!single) check.call(widget, type, '*', state, target)
+var notify = function(type, tag, state, widget, single) {
+  check.call(this, type, tag, state, widget);
+  if (!single) check.call(this, type, '*', state, widget);
 }
 
 var update = function(widget, tag, state, single) {
-  notify(this, ' ', tag, state, widget, single);
+  notify.call(this, ' ', tag, state, widget, single);
   var options = widget.options, id = widget.id;
   if (id) check.call(this, 'id', id, state, widget);
   if (this.previousSibling) {
-    notify(this.previousSibling, '!+', widget.tagName, state, widget, single);
-    notify(this.previousSibling, '++', widget.tagName, state, widget, single);
+    notify.call(this.previousSibling, '!+', widget.tagName, state, widget, single);
+    notify.call(this.previousSibling, '++', widget.tagName, state, widget, single);
     for (var sibling = this; sibling = sibling.previousSibling;) {
-      notify(sibling, '!~', tag, state, widget, single);
-      notify(sibling, '~~', tag, state, widget, single);
+      notify.call(sibling, '!~', tag, state, widget, single);
+      notify.call(sibling, '~~', tag, state, widget, single);
     }
   }
   if (this.nextSibling) {
-    notify(this.nextSibling, '+',  tag, state, widget, single);
-    notify(this.nextSibling, '++', tag, state, widget, single);
+    notify.call(this.nextSibling, '+',  tag, state, widget, single);
+    notify.call(this.nextSibling, '++', tag, state, widget, single);
     for (var sibling = this; sibling = sibling.nextSibling;) {
-      notify(sibling, '~',  tag, state, widget, single);
-      notify(sibling, '~~', tag, state, widget, single);
+      notify.call(sibling, '~',  tag, state, widget, single);
+      notify.call(sibling, '~~', tag, state, widget, single);
     }
   }
-  if (widget.parentNode == this) notify(this, '>', widget.tagName, state, widget, single);
+  if (widget.parentNode == this) notify.call(this, '>', widget.tagName, state, widget, single);
 }
 
 var remove = function(array, callback) {
@@ -291,13 +271,25 @@ Expectations.events = {
     group.push(widget);
     update.call(this, widget, tag, true);
   },
+  relate: function(widget, tag) {
+    var expectations = widget.expectations, type = expectations['!::'];
+    if (!type) type = expectations['!::'] = {};
+    var group = type[tag];
+    if (!group) group = type[tag] = [];
+    group.push(this);
+    notify.call(this, '::', tag, true, widget);
+  },
+  unrelate: function(widget, tag) {
+    notify.call(this, '::', tag, false, widget);
+    widget.expectations['!::'][tag].erase(this);
+  },
   setParent: function(parent) {
-    notify(this, '!>', parent.tagName, true, parent);
-    for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, true, parent);
+    notify.call(this, '!>', parent.tagName, true, parent);
+    for (; parent; parent = parent.parentNode) notify.call(this, '!', parent.tagName, true, parent);
   },
   unsetParent: function(parent) {
-    notify(this, '!>', parent.tagName, false, parent);
-    for (; parent; parent = parent.parentNode) notify(this, '!', parent.tagName, false, parent);
+    notify.call(this, '!>', parent.tagName, false, parent);
+    for (; parent; parent = parent.parentNode) notify.call(this, '!', parent.tagName, false, parent);
   },
   selectorChange: check,
   tagChanged: function(tag, old) {
@@ -334,7 +326,7 @@ LSD.Module.Events.Targets.expected = function() {
 };
 
 
-LSD.Options.expectations = {
+LSD.Options.$expectations = {
   add: 'expect',
   remove: 'unexpect',
   iterate: true,

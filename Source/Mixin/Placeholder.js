@@ -21,7 +21,6 @@ provides:
 
 
 LSD.Mixin.Placeholder = new Class({
-  behaviour: '[placeholder]',
   
   options: {
     actions: {
@@ -57,7 +56,7 @@ LSD.Mixin.Placeholder = new Class({
   }),
   
   onUnplacehold: function(){
-    if(this.placeheld){
+    if (this.placeheld){
       this.applyValue('');
       this.unplacehold();
       return true;
@@ -66,7 +65,7 @@ LSD.Mixin.Placeholder = new Class({
   
   onPlacehold: function(){
     var value = this.getRawValue();
-    if(!value || value.match(/^\s*$/) || value == this.getPlaceholder()){
+    if (!value || value.match(/^\s*$/) || value == this.getPlaceholder()){
       this.applyValue(this.getPlaceholder());
       this.placehold();
       return true;

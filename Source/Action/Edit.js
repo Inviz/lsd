@@ -13,8 +13,8 @@ requires:
   - LSD.Action
   - Widgets/LSD.Widget.Body
   - Widgets/LSD.Widget.Form
-  - LSD.Trait.Form
-  - LSD.Trait.Fieldset
+  - LSD.Mixin.Form
+  - LSD.Mixin.Fieldset
   - LSD.Mixin.Resource
 
 provides:
@@ -40,14 +40,6 @@ LSD.Action.Edit = LSD.Action.build({
 });
 
 LSD.Widget.Form.Edit = new Class({
-  Extends: LSD.Widget.Body,
-  
-  Implements: [
-    LSD.Trait.Fieldset,
-    LSD.Trait.Form,
-    LSD.Mixin.Resource
-  ],
-  
   options: {
     key: null,
     layout: {
@@ -66,11 +58,12 @@ LSD.Widget.Form.Edit = new Class({
         disabler: 'finish'
       }
     },
+    pseudos: Array.fast('form', 'fieldset', 'resourceful'),
     has: {
       one: {
         submitter: {
           selector: '[type=submit]',
-          layout: 'input[type=submit]'
+          source: 'input[type=submit]'
         },
         canceller: {
           selector: 'button.cancel',

@@ -19,6 +19,7 @@ provides:
   - LSD.Trait
   - LSD.Mixin
   - LSD.Element
+  - LSD.Native
   
 ...
 */
@@ -72,6 +73,7 @@ LSD.Type.prototype = {
   use: function(element, options, parent) {
     if (parent) var mutation = LSD.Layout.mutate(element, parent);
     options = mutation && options ? Object.merge(mutation, options) : mutation || options;
+    options.context = LSD.toLowerCase(this.name);
     return this.convert(element, options);
   },
   
@@ -90,3 +92,8 @@ new LSD.Type('Trait');
 new LSD.Type('Mixin');
 // a widget holder
 new LSD.Type('Element');
+// native browser controls
+new LSD.Type('Native');
+
+// Inject native widgets into default widget pool as a fallback
+LSD.Element.pool[LSD.useNative ? 'unshift' : 'push'](LSD.Native);

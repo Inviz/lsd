@@ -22,31 +22,12 @@ LSD.Module.Options = new Class({
   Implements: [Options],
   
   setOptions: function(options) {
-    for (var name in options) this.setOption(name, options[name]);
-    return this;
-  },
-  
-  setOption: function(name, value, unset) {
-    setter = LSD.Options[name];
-    if (!setter) return;
-    if (setter.process) {
-      value = (setter.process.charAt ? this[setter.process] : setter.process).call(this, value);
-    }
-    if (setter.events) LSD.Module.Events.setEventsByRegister.call(this, name, !unset, setter.events);
-    var mode = unset ? 'remove' : 'add', method = setter[mode];
-    if (method.charAt) method = this[method];
-    if (setter.iterate) {
-      if (value.each) {
-        var length = value.length;
-        if (length != null) for (var i = 0, j = value.length; i < j; i++) method.call(this, value[i]);
-        else value.each(method, this);
-      } else for (var i in value) method.call(this, i, value[i])
-    } else method.call(this, value);
+    for (var name in options) LSD.Module.Options.setOption.call(this, name, options[name]);
     return this;
   },
   
   unsetOptions: function(options) {
-    for (var name in options) this.setOption(name, options[name], true);
+    for (var name in options) LSD.Module.Options.setOption.call(this, name, options[name], true);
     return this;
   },
   
@@ -54,7 +35,7 @@ LSD.Module.Options = new Class({
     if (!object) object = this;
     var initialized = object.$initialized = [];
     /*
-      Run module initializers and keep return values
+      Run module initializers and keep returned values
     */
     for (var name in object.initializers) {
       var initializer = object.initializers[name];
@@ -79,12 +60,34 @@ LSD.Module.Options = new Class({
   }
 });
 
-LSD.Module.Options.initialize = function(element, options) {
-  // Rearrange arguments if they are in the wrong order
-  if ((element && !element.tagName) || (options && options.tagName)) {
-    var el = options;
-    options = element, element = el;
+LSD.Module.Options.setOption = function(name, value, unset, context) {
+  setter = (context || LSD.Options)[name];
+  if (!setter) {
+    Object.merge(this.options, name, value);
+    return this;
+  };
+  if (setter.process) {
+    value = (setter.process.charAt ? this[setter.process] : setter.process).call(this, value);
   }
+  if (setter.events) LSD.Module.Events.setEventsByRegister.call(this, name, !unset, setter.events);
+  var mode = unset ? 'remove' : 'add', method = setter[mode];
+  if (method.charAt) method = this[method];
+  if (setter.iterate) {
+    if (value.each) {
+      var length = value.length;
+      if (length != null) for (var i = 0, j = value.length; i < j; i++) method.call(this, value[i]);
+      else value.each(method, this);
+    } else for (var i in value) method.call(this, i, value[i])
+  } else method.call(this, value);
+  return this;
+};
+
+LSD.Module.Options.implement('setOption', LSD.Module.Options.setOption);
+
+LSD.Module.Options.initialize = function(element, options) {
+  // Swap arguments if they are in the wrong order
+  if ((element && !element.localName) || (options && options.localName)) 
+    options = [element, element = options][0];
   
   // Merge given options object into this.options
   if (options) Object.merge(this.options, options);
@@ -99,6 +102,11 @@ LSD.Module.Options.initialize = function(element, options) {
   this.setOptions(options);
   
   // Attach to a given element
+  this.fireEvent('boot', [options, element]);
+  
+  // Attach to a given element
   this.fireEvent('prepare', [options, element]);
+  
+  // And we're all set!
   this.fireEvent('initialize', [options, this.element]);
 };

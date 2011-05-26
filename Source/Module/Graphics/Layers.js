@@ -139,6 +139,10 @@ LSD.Module.Layers = new Class({
   }
 });
 
+/*
+  Default layer set 
+*/
+
 if (!LSD.Layers) LSD.Layers =  {
   shadow:     ['size', 'radius', 'shape', 'shadow'],
   stroke:     [        'radius', 'stroke', 'shape', 'fill'],
@@ -148,6 +152,16 @@ if (!LSD.Layers) LSD.Layers =  {
   icon:       ['size', 'scale', 'color', 'stroke', 'offset', 'shape', 'position','shadow'],
   glyph:      ['size', 'scale', 'color', 'stroke', 'offset', 'shape', 'position', 'shadow']
 };
+
+/*
+  Pre-generate CSS grammar for layers.
+  
+  It is not required for rendering process itself, because
+  this action is taken automatically when the first
+  widget gets rendered. Declaring layer css styles upfront
+  lets us use it in other parts of the framework
+  (e.g. in stylesheets to validate styles)
+*/
 
 for (var layer in LSD.Layers) LSD.Layer.get(layer, LSD.Layers[layer]);
 

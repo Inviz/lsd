@@ -19,17 +19,15 @@ sources:
   - Source/ART/ART.Shape.Flower.js
   - Source/ART/ART.Shape.Rectangle.js
   - Source/ART/ART.Shape.Star.js
-  - Source/Application.js
   - Source/Behavior.js
   - Source/Command/Command.js
   - Source/Command/Checkbox.js
   - Source/Command/Radio.js
   - Source/Document.js
-  - Source/Document/Resizable.js
-  - Source/Document/Commands.js
   - Source/LSD.js
   - Source/Type.js
   - Source/Interpolation.js
+  - Source/Relation.js
   - Source/Layer.js
   - Source/Layer/Color.js
   - Source/Layer/Offset.js
@@ -44,6 +42,8 @@ sources:
   - Source/Layer/Size.js
   - Source/Layer/Scale.js
   - Source/Layer/Stroke.js
+  - Source/Mixin/Form.js
+  - Source/Mixin/Fieldset.js
   - Source/Mixin/Draggable.js
   - Source/Mixin/Resizable.js
   - Source/Mixin/Scrollable.js
@@ -89,11 +89,8 @@ sources:
   - Source/Module/Graphics/Shape.js
   - Source/Module/Graphics.js
   - Source/Trait/Menu.js
-  - Source/Trait/Observer.js
   - Source/Trait/Input.js
   - Source/Trait/Slider.js
-  - Source/Trait/Form.js
-  - Source/Trait/Fieldset.js
   - Source/Trait/Date.js
   - Source/Action/Create.js
   - Source/Action/Update.js
@@ -112,7 +109,5 @@ sources:
   - Source/Action/History.js
   - Source/Action.js
   - Source/Layout.js
-  - Source/Fx.js
   - Source/Sheet.js
-  - Source/Native.js
   - Source/Widget.js

@@ -31,18 +31,14 @@ LSD.Mixin.Request = new Class({
         disabler: 'idle'
       }
     },
-    actions: {
-      request: {
-        enable: function() {
-          if (this.attributes.autosend) this.send();
-        },
-        disable: function() {
-          
-        }
-      }
-    },
     events: {
       self: {
+        submit: 'send',
+        
+        build: function() {
+          if (this.attributes.autosend) this.send();
+        },
+        
         getCommandAction: function() {
           if (!this.isRequestURLLocal()) return 'send';
         },

@@ -39,13 +39,7 @@ LSD.Module.Actions = new Class({
   },
   
   getAction: function(name, action) {
-    if (this.actions[name]) return this.actions[name];
-    if (!action) {
-      action = {name: name};
-      var actions = this.options.actions;
-      if (actions && actions[name]) Object.append(action, actions[name]);
-    }
-    return (this.actions[name] = new (LSD.Action[LSD.capitalize(name)] || LSD.Action)(action, name))
+    return this.actions[name] || (this.actions[name] = new (LSD.Action[LSD.capitalize(name)] || LSD.Action)(action, name))
   },
   
   execute: function(command, args) {

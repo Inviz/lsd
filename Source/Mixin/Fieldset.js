@@ -8,20 +8,21 @@ description: Wrapper around set of form fields
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD.Trait
+  - LSD.Mixin
  
 provides: 
-  - LSD.Trait.Fieldset
+  - LSD.Mixin.Fieldset
  
 ...
 */
-
-LSD.Trait.Fieldset = new Class({
+!function() {
+  
+LSD.Mixin.Fieldset = new Class({
   options: {
     has: {
       many: {
         elements: {
-          selector: ':read-write',
+          selector: ':submittable',
           callbacks: {
             'add': 'addField',
             'remove': 'removeField'
@@ -47,19 +48,19 @@ LSD.Trait.Fieldset = new Class({
               var widget = Element.retrieve(element, 'widget');
               if (!widget) return;
               if (name && this.names[name]) {
-                var bumped = LSD.Trait.Fieldset.bumpName(name);
+                var bumped = Fieldset.bumpName(name);
                 if (bumped) (mutation || (mutation = {attributes: {}})).attributes.name = bumped;
               }
               // bump id index
               if (id) {
-                bumped = LSD.Trait.Fieldset.bumpId(id);
+                bumped = Fieldset.bumpId(id);
                 if (bumped != id) (mutation || (mutation = {attributes: {}})).attributes.id = bumped;
               }
               // bump name index
               if (LSD.toLowerCase(element.tagName) == 'label') {
                 var four = element.htmlFor
                 if (four) {
-                  bumped = LSD.Trait.Fieldset.bumpId(four);
+                  bumped = Fieldset.bumpId(four);
                   if (bumped != four) (mutation || (mutation = {attributes: {}})).attributes['for'] = bumped;
                 }
               }
@@ -111,14 +112,14 @@ LSD.Trait.Fieldset = new Class({
     var result = {}, errors = response.errors;
     if (errors) { //rootless response ({errors: {}), old rails
       for (var i = 0, error; error = errors[i++];)
-        result[LSD.Trait.Fieldset.getName(this.getModelName(error[0]), error[0])] = error[1];
+        result[Fieldset.getName(this.getModelName(error[0]), error[0])] = error[1];
     } else { //rooted response (publication: {errors: {}}), new rails
-      var regex = LSD.Trait.Fieldset.rPrefixAppender;
+      var regex = Fieldset.rPrefixAppender;
       for (var model in response) {
         var value = response[model], errors = value.errors;
         if (!errors) continue;
         for (var i = 0, error; error = errors[i++];)
-          result[LSD.Trait.Fieldset.getName(model, error[0])] = error[1];
+          result[Fieldset.getName(model, error[0])] = error[1];
       }
     }
     if (Object.getLength(result) > 0) this.addFieldErrors(result);
@@ -131,7 +132,7 @@ LSD.Trait.Fieldset = new Class({
       if (!this.names[name]) this.names[name] = [];
       this.names[name].push(widget);
     } else this.names[name] = widget;
-    for (var regex = LSD.Trait.Fieldset.rNameParser, object = this.params, match, bit;;) {
+    for (var regex = Fieldset.rNameParser, object = this.params, match, bit;;) {
       match = regex.exec(name)
       if (bit != null) {
         if (!match) {
@@ -162,7 +163,7 @@ LSD.Trait.Fieldset = new Class({
     if (!name) return;
     if (radio) this.names[name].erase(widget);
     else delete this.names[name];
-    for (var regex = LSD.Trait.Fieldset.rNameParser, object = this.params, match, bit;;) {
+    for (var regex = Fieldset.rNameParser, object = this.params, match, bit;;) {
       match = regex.exec(name)
       if (bit != null) {
         if (!match) {
@@ -193,7 +194,7 @@ LSD.Trait.Fieldset = new Class({
   
   validateFields: function(fields) {
     if (!this.invalid) return;
-    this.getElements(':read-write:invalid').each(function(field) {
+    this.getElements(':submittable:invalid').each(function(field) {
       field.validate(true);
     })
   },
@@ -202,22 +203,27 @@ LSD.Trait.Fieldset = new Class({
     for (var name in this.params) if (!this.params[name].nodeType) return name;
   })
 });
-Object.append(LSD.Trait.Fieldset, {
+
+var Fieldset = Object.append(LSD.Mixin.Fieldset, {
   rNameIndexBumper: /(\[)(\d+?)(\])/,
   rIdIndexBumper: /(_)(\d+?)(_|$)/,
   rNameParser:      /(^[^\[]+)|\[([^\]]*)\]/ig,
   rPrefixAppender:  /^[^\[]+/i,
   getName: function(model, name) {
-    return model + name.replace(LSD.Trait.Fieldset.rPrefixAppender, function(match) {return '[' + match + ']'});
+    return model + name.replace(Fieldset.rPrefixAppender, function(match) {return '[' + match + ']'});
   },
   bumpName: function(string) {
-    return string.replace(LSD.Trait.Fieldset.rNameIndexBumper, function(m, a, index, b) { 
+    return string.replace(Fieldset.rNameIndexBumper, function(m, a, index, b) { 
       return a + (parseInt(index) + 1) + b;
     })
   },
   bumpId: function(string) {
-    return string.replace(LSD.Trait.Fieldset.rIdIndexBumper, function(m, a, index, b) { 
+    return string.replace(Fieldset.rIdIndexBumper, function(m, a, index, b) { 
       return a + (parseInt(index) + 1) + b;
     })
   }
 });
+
+LSD.Behavior.define(':fieldset', Fieldset);
+
+}();

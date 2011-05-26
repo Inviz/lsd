@@ -83,7 +83,7 @@ LSD.Module.Tag = new Class({
   },
   
   setContext: function(name) {
-    name = LSD.toClassName(name)
+    name = LSD.toClassName(name);
     if (this.context && this.context.name == name) return;
     if (this.source) {
       var source = this.source;
@@ -95,7 +95,6 @@ LSD.Module.Tag = new Class({
   },
   
   setTag: function(tag) {
-//    console.log(tag)
     var old = this.tagName;
     if (old) {
       if (old == tag) return;
@@ -114,7 +113,6 @@ LSD.Module.Tag = new Class({
   mixin: function(mixin, light) {
     if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
     Class.mixin(this, mixin, light);
-    if (mixin.prototype.options) Object.merge(this.options, mixin.prototype.options); //merge!
     this.setOptions(this.construct(mixin.prototype));
     return this;
   },

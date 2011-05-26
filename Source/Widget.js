@@ -23,16 +23,6 @@ provides:
 ...
 */
 
-/*
-  Pre-generate CSS grammar for layers.
-  
-  It is not required for rendering process itself, because
-  this action is taken automatically when the first
-  widget gets rendered. Declaring layer css styles upfront
-  lets us use it in other parts of the framework
-  (e.g. in stylesheets to validate styles)
-*/
-
 LSD.Widget = new Class({
   
   Implements: [
@@ -43,8 +33,33 @@ LSD.Widget = new Class({
   ],
   
   options: {
+    /*
+      The key in element storage that widget will use to store itself.
+      When set to false, widget is not written into element storage.
+    */
     key: 'widget',
+    /*
+      Submittable elements are associated to form and may take part
+      in constructing dataset 
+    */
+    submittable: false,
+    /*
+      Is widget focusable or not? If set to null, respects the
+      tabindex attribute value. If set to true, will force the tabindex
+      on element when element is not natively focusable. When set to false,
+      does not enforce tabindex (useful for native controls).
+    */
+    focusable: null,
+    /*
+      Can widget change value? When set to true, even editable otherwise
+      widgets are rendered unchangable. The difference between "readonly"
+      and "disabled" states are that disabled widgets do NOT send their
+      value when owner form is submitted.
+    */
     writable: false,
+    /*
+      When set to true, layers option will enforce the default layer set.
+    */
     layers: true
   },
   
@@ -53,9 +68,15 @@ LSD.Widget = new Class({
       return {
         events: {
           initialize: function() {
-            if ((this.options.writable && !this.attributes.tabindex && (this.options.focusable !== false)) || this.options.focusable) 
+            var options = this.options, writable = options.writable;
+            if (this.options.submittable) {
+              this.addPseudo('submittable');
+              if (writable == null) writable = true; 
+            }
+            if ((writable && !this.attributes.tabindex && (options.focusable !== false)) || options.focusable) 
               this.setAttribute('tabindex', 0);
-            this.addPseudo(this.options.writable ? 'read-write' : 'read-only');
+              
+            this.addPseudo(writable ? 'read-write' : 'read-only');
           }
         }
       }

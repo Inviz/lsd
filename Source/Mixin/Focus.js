@@ -15,7 +15,6 @@ requires:
  
 provides:
   - LSD.Mixin.Focus
-  - LSD.Mixin.Focus.State
   - LSD.Mixin.Focus.Propagation
  
 ...

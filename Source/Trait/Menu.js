@@ -95,7 +95,7 @@ LSD.Trait.Menu = new Class({
   },
   
   collapse: function() {
-    if(this.menu) this.menu.hide();
+    if (this.menu) this.menu.hide();
   },
   
   getSelectedOptionPosition: function() {

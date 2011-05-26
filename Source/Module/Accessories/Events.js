@@ -94,12 +94,12 @@ LSD.Module.Events = new Class({
   },
   
   captureEvent: function(type, args) {
-		var events = this.$events[type];
-		if (!events) return;
-		for (var i = 0, event; event = events[i++];) {
-		  var result = event.apply(this, arguments);
-		  if (result) return result;
-		}
+    var events = this.$events[type];
+    if (!events) return;
+    for (var i = 0, event; event = events[i++];) {
+      var result = event.apply(this, arguments);
+      if (result) return result;
+    }
   }
 });
 
@@ -199,30 +199,7 @@ Object.append(LSD.Module.Events, {
   |            | Provided by Expectations module    |
   | _\w        | An event group which name starts   |
   |            | with underscore is auto-applied    |
-                 
-                 
   
-  
-  Advanced example:
-  
-  events: {
-    self: {
-      focus: 'onFocus'
-    },
-    window: {
-      resize: 'onWindowResize'
-    },
-    parent: {
-      element: { //event delegation
-        'click:relay(.button)': 'onButtonClick' 
-      }
-    },
-    expected: { 
-      'button:first-child': { //waits for widgets
-        parent: {}
-      }
-    }
-  }
 */
 LSD.Module.Events.Targets = {
   element: {
@@ -245,6 +222,9 @@ LSD.Module.Events.Targets = {
       'setDocument': true,
       'unsetDocument  ': false
     }
+  },
+  root: function() {
+    
   },
   self: function() { 
     return this

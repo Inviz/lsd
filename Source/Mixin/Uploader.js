@@ -154,7 +154,7 @@ LSD.Widget.Filelist = new Class({
       many: {
         items: {
           selector: 'file',
-          layout: 'filelist-file'
+          source: 'filelist-file'
         }
       }
     }
