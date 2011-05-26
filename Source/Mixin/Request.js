@@ -51,7 +51,8 @@ LSD.Mixin.Request = new Class({
   },
   
   send: function() {
-    var options = Object.merge({}, this.options.request, {data: this.getRequestData(), url: this.getRequestURL(), method: this.getRequestMethod()});
+    var data = this.getRequestData && this.getRequestData() || null;
+    var options = Object.merge({}, this.options.request, {data: data, url: this.getRequestURL(), method: this.getRequestMethod()});
     for (var i = 0, j = arguments.length, arg, opts; i < j; i++) {
       var arg = arguments[i];
       if (!arg) continue;
@@ -94,10 +95,6 @@ LSD.Mixin.Request = new Class({
   onRequestComplete: function() {
     this.idle();
   },
-  
-  getRequestData: Macro.defaults(function() {
-    return null;
-  }),
   
   getXHRRequest: function(options) {
     return new Request.Auto(options);

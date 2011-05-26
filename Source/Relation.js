@@ -145,7 +145,7 @@ var Options = LSD.Relation.Options = {
   expectation: function(expectation, state, memo) {
     if (memo) memo[0].unexpect(memo[1], this.onChange);
     if (state && this.target) {
-      if (expectation.call) expectation = expectation.call(this.origin);
+      if (expectation.call && !(expectation = expectation.call(this.origin))) return;
       this.target.expect(expectation, this.onChange);
       return [this.target, expectation];
     }
