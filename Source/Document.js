@@ -17,6 +17,7 @@ requires:
   - More/String.QueryString
   - LSD
   - LSD.Module.Attributes
+  - LSD.Module.Selectors
 
 provides:
   - LSD.Document
