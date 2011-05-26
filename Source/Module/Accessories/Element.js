@@ -52,11 +52,13 @@ LSD.Module.Element = new Class({
       } else this.element = document.id(element);
     }
     if (!this.built) this.build();
+    this.fireEvent('register', ['element', this.element]);
     if (this.options.key) this.element.store(this.options.key, this).fireEvent('attach', this);
     return this.element;
   },
 
   detach: function(element) {
+    this.fireEvent('unregister', ['element', this.element]);
     if (this.options.key) this.element.eliminate(this.options.key, this).fireEvent('detach', this)
     delete this.element;
   },

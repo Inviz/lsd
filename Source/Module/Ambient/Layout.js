@@ -62,7 +62,7 @@ LSD.Module.Layout = new Class({
               Builds children after element is built
             */
             build: function() {
-              if (options.traverse) {
+              if (this.getLayout().origin == this && options.traverse !== false) {
                 if (this.origin && !options.clone) this.element.replaces(this.origin);
                 this.getLayout().render(LSD.slice((this.origin || this.element).childNodes), [this.element, this], options.clone ? 'clone' : null);
               }
@@ -124,6 +124,16 @@ LSD.Module.Layout = new Class({
     }, this)
   },
   
+  setLayout: function(layout) {
+    if (typeOf(layout) == 'layout') this.layout = this;
+    else this.options.layout = layout;
+  },
+  
+  unsetLayout: function(layout) {
+    if (this.layout == layout) delete this.layout;
+    else delete this.options.layout;
+  },
+  
   getLayout: Macro.getter('layout', function() {
     var options = {
       interpolate: this.options.interpolate,
@@ -144,8 +154,15 @@ LSD.Module.Layout = new Class({
   }
 });
 
-LSD.Options.mutations = {
-  add: 'addMutation',
-  remove: 'removeMutation',
-  iterate: true
-};
+Object.append(LSD.Options, {
+  mutations: {
+    add: 'addMutation',
+    remove: 'removeMutation',
+    iterate: true
+  },
+  
+  layout: {
+    add: 'setLayout',
+    remove: 'unsetLayout'
+  }
+});

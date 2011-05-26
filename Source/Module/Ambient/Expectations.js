@@ -103,7 +103,7 @@ var Expectations = LSD.Module.Expectations = new Class({
       var id = selector.id;
       var index = (selector.combinator == ' ' && id) ? 'id' : selector.combinator;
       remove(this.expectations[index][selector.tag], callback);
-      this.getElements(selector.structure).each(function(widget) {
+      if (this.document) this.getElements(selector.structure).each(function(widget) {
         if (selector.state) widget.unexpect(selector.state, callback);
         if (iterator) iterator(widget)
       });
@@ -259,14 +259,15 @@ Expectations.events = {
   },
   nodeRemoved: function(widget) {
     var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
-    type[tag].erase(widget);
+    if (tag) type[tag].erase(widget);
     type['*'].erase(widget);
     update.call(this, widget, tag, false);
   },
-  nodeTagChanged: function(widget, old, tag) {
+  nodeTagChanged: function(widget, tag, old) {
     var expectations = this.expectations, type = expectations.tag;
     type[old].erase(widget);
     update.call(this, widget, old, false);
+    if (!tag) return;
     if (!group) group = type[tag] = [];
     group.push(widget);
     update.call(this, widget, tag, true);
@@ -294,8 +295,8 @@ Expectations.events = {
   selectorChange: check,
   tagChanged: function(tag, old) {
     check.call(this, 'tag', old, false);
-    check.call(this, 'tag', tag, true);
-    if (this.parentNode) this.dispatchEvent('nodeTagChanged', [this, tag, old]);
+    if (tag) check.call(this, 'tag', tag, true);
+    if (this.parentNode) this.parentNode.dispatchEvent('nodeTagChanged', [this, tag, old]);
   }
 };
 

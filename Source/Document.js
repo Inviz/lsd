@@ -64,7 +64,7 @@ LSD.Document = new Class({
     document.addEvent('domready', function() {
       this.building = true;
       if (this.params.benchmark != null) console.profile();
-      this.setBody();
+      this.build();
       if (this.params.benchmark != null) console.profileEnd();
       this.building = false;
     }.bind(this));
@@ -105,6 +105,7 @@ LSD.Document = new Class({
   },
   
   build: function(document) {
+    if (!document) document = this.document;
     this.setHead(document.head);
     var element = this.element = document.body;
     this.setBody(document.body);

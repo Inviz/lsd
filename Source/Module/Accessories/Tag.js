@@ -98,13 +98,14 @@ LSD.Module.Tag = new Class({
     var old = this.tagName;
     if (old) {
       if (old == tag) return;
-      this.unsetTag(old);
+      this.unsetTag(old, true);
     }
     this.nodeName = this.tagName = tag;
     this.fireEvent('tagChanged', [this.tagName, old]);
   },
   
-  unsetTag: function(tag) {
+  unsetTag: function(tag, light) {
+    if (!light) this.fireEvent('tagChanged', [null, this.tagName]);
     this.unsetSource();
     delete this.tagName;
     delete this.nodeName;

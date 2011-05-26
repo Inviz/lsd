@@ -83,7 +83,8 @@ LSD.Module.DOM = new Class({
     if (next) {
       next.previousSibling = this;
       this.nextSibling = next;
-    }
+    }  
+    this.fireEvent('register', ['parent', widget]);
     widget.fireEvent('adopt', [this]);
     LSD.Module.DOM.walk(this, function(node) {
       widget.dispatchEvent('nodeInserted', node);
@@ -92,6 +93,7 @@ LSD.Module.DOM = new Class({
   
   unsetParent: function(widget, index) {
     if (!widget) widget = this.parentNode;
+    this.fireEvent('unregister', ['parent', widget]);
     LSD.Module.DOM.walk(this, function(node) {
       widget.dispatchEvent('nodeRemoved', node);
     });
@@ -173,6 +175,7 @@ LSD.Module.DOM = new Class({
   setDocument: function(document) {
     LSD.Module.DOM.walk(this, function(child) {
       child.ownerDocument = child.document = document;
+      child.fireEvent('register', ['document', document]);
       child.fireEvent('setDocument', document);
       child.dominjected = true;
     });

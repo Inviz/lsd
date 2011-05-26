@@ -41,6 +41,7 @@ provides:
 */
 
 LSD.Layout = function(widget, layout, options) {
+  this.origin = widget;
   this.setOptions(options);
   this.context = LSD[this.options.context.capitalize()];
   if (widget) if (!layout && !widget.lsd) {
@@ -56,6 +57,8 @@ LSD.Layout.prototype = Object.append(new Options, {
     context: 'element',
     interpolate: null
   },
+  
+  $family: Function.from('layout'),
   
   render: function(layout, parent, method, opts) {
     var type = layout.push ? 'array' : layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : layout.indexOf ? 'string' : 'object';

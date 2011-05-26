@@ -18,6 +18,8 @@ provides:
 ...
 */
 
+!function() {
+  
 LSD.Relation = function(name, origin, options) {
   this.name = name;
   this.origin = origin;
@@ -27,7 +29,11 @@ LSD.Relation = function(name, origin, options) {
   this.$options = [];
   this.memo = {};
   this.widgets = [];
-  if (options) this.setOptions(options);
+  this.target = origin;
+  if (options) {
+    if (options.target) this.memo.target = Options.target.call(this, options.target, true);
+    this.setOptions(options);
+  }
 }
 
 LSD.Relation.prototype = Object.append({
@@ -35,7 +41,6 @@ LSD.Relation.prototype = Object.append({
   setOptions: function(options, unset) {
     this.$options[unset ? 'erase' : 'include'](options);
     this.options = Object.merge.apply(Object, [{}].concat(this.$options));
-    var Options = LSD.Relation.Options;
     for (name in options) {
       var setter = Options[name], value = options[name];
       if (!setter || !setter.call) 
@@ -49,18 +54,17 @@ LSD.Relation.prototype = Object.append({
     if (setter) {
       if (!setter.call) {
         if (setter.process) {
-          if (setter.process.call) value = setter.process.call(this.origin, value);
+          if (setter.process.call) value = setter.process.call(this, value);
           else value = widget[setter.process](value);
         }
         var method = setter[unset ? 'remove' : 'add'];
-        if (method.charAt) method = widget[method];
         if (setter.iterate) {
           if (value.each) {
             var length = value.length;
-            if (length != null) for (var i = 0, j = value.length; i < j; i++) method.call(this, value[i]);
+            if (length != null) for (var i = 0, j = value.length; i < j; i++) method.call(this.origin, this, value[i]);
             else value.each(method, widget);
-          } else for (var i in value) method.call(widget, i, value[i])
-        } else method.call(widget, value);
+          } else for (var i in value) method.call(this.origin, widget, i, value[i])
+        } else method.call(this.origin, widget, value);
       }
     } else {
       widget.setOption(name, value, unset);
@@ -68,9 +72,8 @@ LSD.Relation.prototype = Object.append({
   },
   
   applyOptions: function(widget, unset) {
-    var Options = LSD.Relation.Options, options = this.options;
-    for (var name in options)
-      this.applyOption(widget, name, options[name], unset, Options[name]);
+    for (var name in this.options)
+      this.applyOption(widget, name, this.options[name], unset, Options[name]);
   },
   
   onChange: function(widget, state) {
@@ -126,26 +129,49 @@ LSD.Relation.prototype = Object.append({
       });
     }
     (this.proxied || (this.proxied = [])).push(widget);
-  },
-  
-  getTarget: function() {
-    return this.options.target ? this.origin[this.options.target] : this.origin;
   }
 }, Events.prototype);
 
-LSD.Relation.Options = {
+var Options = LSD.Relation.Options = {
   selector: function(selector, state, memo) {
-    if (memo) this.getTarget().unwatch(memo, this.onChange);
-    if (state) this.getTarget().watch(selector, this.onChange);
-    return selector;
+    if (memo) memo[0].unwatch(memo[1], this.onChange);
+    if (state && this.target) {
+      if (selector.call) selector = selector.call(this.origin);
+      this.target.watch(selector, this.onChange);
+      return [this.target, selector];
+    }
   },
   
   expectation: function(expectation, state, memo) {
-    if (memo) this.getTarget().unexpect(memo, this.onChange);
-    if (state) {
+    if (memo) memo[0].unexpect(memo[1], this.onChange);
+    if (state && this.target) {
       if (expectation.call) expectation = expectation.call(this.origin);
-      this.getTarget().expect(expectation, this.onChange);
-      return expectation;
+      this.target.expect(expectation, this.onChange);
+      return [this.target, expectation];
+    }
+  },
+  
+  target: function(target, state, memo) {
+    if (this.targeted == target) return;
+    this.targeted = target;
+    if (memo) this.origin.removeEvents(memo);
+    var setting = Targets[target];
+    if (setting) {
+      var relation = this, events = Object.map(setting.events, function(value, event) {
+        return function(object) {
+          if (value) {
+            relation.target = object.nodeType == 9 ? object.body : object;
+            var selector = relation.options.selector, expectation = relation.options.expectation;
+            if (selector) Options.selector.call(relation, selector, true, relation.memo.selector);
+            if (expectation) Options.expectation.call(relation, expectation, true, relation.memo.expectation);
+          }
+        }
+      })
+      this.origin.addEvents(events);
+      if (setting.getter && !this.target) this.target = this.origin[setting.getter];
+      return events;
+    } else {
+      if (this.origin[target]) this.target = this.origin[target];
     }
   },
   
@@ -176,7 +202,7 @@ LSD.Relation.Options = {
 
   relay: function(events, state, memo) {
     if (state) {
-      var relay = Object.map(function(callback, event) {
+      var origin = this.origin, relay = Object.map(function(callback, event) {
         return function() {
           for (var widget = Element.get(event.target, 'widget'); widget; widget = widget.parentNode) {
             if (origin[name].indexOf(widget) > -1) {
@@ -188,10 +214,10 @@ LSD.Relation.Options = {
       });
       var events = {
         fill: function() {
-          this.origin.addEvent('element', relay)
+          origin.addEvent('element', relay)
         },
         empty: function() {
-          this.origin.removeEvent('element', relay)
+          origin.removeEvent('element', relay)
         }
       };
       this.addEvents(events);
@@ -245,33 +271,66 @@ LSD.Relation.Options = {
   
   collection: {
     add: function(widget, name) {
-      (widget[name] || (widget[name] = [])).push(this.origin);
+      (widget[name] || (widget[name] = [])).push(this);
     },
     remove: function(widget, name) {
-      widget[name].erase(this.origin);
+      widget[name].erase(this);
     }
   },
   
   events: {
-    add: 'addEvents',
-    remove: 'removeEvents',
+    add: function(widget, events) {
+      widget.addEvents(events);
+    },
+    remove: function(widget, events) {
+      widget.removeEvents(events);
+    },
     process: function(events) {
       return this.origin.bindEvents(events);
     }
   },
   
   relations: {
-    add: 'addRelation',
-    remove: 'removeRelation',
+    add: function(widget, name, relation) {
+      widget.addRelation(name, relation);
+    },
+    remove: function(widget, name, relation) {
+      widget.removeRelation(name, relation);
+    },
     iterate: true
   }
-}
+};
 
-LSD.Relation.Options.has = Object.append({
+Options.has = Object.append({
   process: function(has) {
     var one = has.one, many = has.many, relations = {};
     if (one) for (var name in one) relations[name] = one[name];
     if (many) for (var name in many) relations[name] = Object.append(many[name], {multiple: true});
     return relations;
   }
-}, LSD.Relation.Options.relations);
+}, Options.relations);
+
+var Targets = LSD.Relation.Targets = {
+  document: {
+    getter: 'document',
+    events: {
+      setDocument: true,
+      unsetDocument: true
+    }
+  },
+  parent: {
+    getter: 'parentNode',
+    events: {
+      setDocument: true,
+      unsetDocument: true
+    }
+  },
+  root: {
+    getter: 'root',
+    events: {
+      setRoot: true,
+      unsetRoot: true
+    }
+  }
+};
+}();
