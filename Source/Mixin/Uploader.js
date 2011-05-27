@@ -52,7 +52,8 @@ LSD.Mixin.Uploader = new Class({
           selector: 'filelist'
         }
       }
-    }
+    },
+    states: Array.fast('empty')
   },
   
   initializers: {
@@ -76,9 +77,17 @@ LSD.Mixin.Uploader = new Class({
   getUploaderFileClass: function(adapter) {
     if (!adapter) adapter = Uploader.getAdapter();
     if (adapter.indexOf) adapter = Uploader[LSD.toClassName(adapter)];
-    if (!adapter.File.Widget) adapter.File.Widget = new Class({
-      Includes: [adapter.File, LSD.Widget, LSD.Widget.Filelist.File]
-    });
+    if (!adapter.File.Widget) {
+      var Klass = new Class({
+        Implements: [adapter.File, LSD.Widget.Filelist.File]
+      });
+      adapter.File.Widget = function() {
+        return new LSD.Widget().mixin(Klass);
+      }
+    }
+      
+    
+    
     return adapter.File.Widget;
   },
   
@@ -134,7 +143,7 @@ LSD.Mixin.Uploader = new Class({
   },
   
   addFile: function(blob) {
-    var widget = (new (this.getUploaderFileClass()));
+    var widget = new (this.getUploaderFileClass());
     widget.widget = this;
     widget.setState('complete');
     widget.build();

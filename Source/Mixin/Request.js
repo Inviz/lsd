@@ -25,16 +25,9 @@ LSD.Mixin.Request = new Class({
     request: {
       method: 'get'
     },
-    states: {
-      working: {
-        enabler: 'busy',
-        disabler: 'idle'
-      }
-    },
+    states: Array.fast('working'),
     events: {
       self: {
-        submit: 'send',
-        
         build: function() {
           if (this.attributes.autosend) this.send();
         },

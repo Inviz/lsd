@@ -49,7 +49,7 @@ LSD.Mixin.Dialog = new Class({
   
   buildDialog: function(options) {
     if (options.indexOf) options = this.options.dialogs[options] || {};
-    if (!options.layout) options.layout = 'body-dialog+' + name;
+    if (!options.source) options.source = 'body-dialog-' + name;
     if (!options.root) options.root = this.document;
     return options.root.buildLayout(options.layout, null, this.getDialogOptions());
   },

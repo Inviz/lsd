@@ -74,16 +74,20 @@ LSD.Module.DOM = new Class({
     if (siblings[0] == this) widget.firstChild = this;
     if (siblings[siblings.length - 1] == this) widget.lastChild = this;
     if (index == null) index = length - 1;
-    var previous = siblings[index - 1];
-    if (previous) {
-      previous.nextSibling = this;
-      this.previousSibling = previous;
+    if (index) {
+      var previous = siblings[index - 1];
+      if (previous) {
+        previous.nextSibling = this;
+        this.previousSibling = previous;
+      }
     }
-    var next = siblings[index + 1];
-    if (next) {
-      next.previousSibling = this;
-      this.nextSibling = next;
-    }  
+    if (index < length) {
+      var next = siblings[index + 1];
+      if (next) {
+        next.previousSibling = this;
+        this.nextSibling = next;
+      }
+    } 
     this.fireEvent('register', ['parent', widget]);
     widget.fireEvent('adopt', [this]);
     LSD.Module.DOM.walk(this, function(node) {
@@ -187,14 +191,16 @@ LSD.Module.DOM = new Class({
       var instance = LSD.Module.DOM.find(widget, true)
       if (instance) widget = instance;
     }
-    this.quiet = quiet || (widget.documentElement && this.element && this.element.parentNode);
-    if (where === false) widget.appendChild(this, false)
-    else if (!inserters[where || 'bottom'](widget.lsd ? this : this.toElement(), widget) && !quiet) return false;
+    if (!this.options.root) {
+      this.quiet = quiet || (widget.documentElement && this.element && this.element.parentNode);
+      if (where === false) widget.appendChild(this, false)
+      else if (!inserters[where || 'bottom'](widget.lsd ? this : this.toElement(), widget) && !quiet) return false;
+    }
     if (quiet !== true || widget.document) {
       var document = widget.document || (this.documentElement ? this : this.extractDocument(widget));
       if (document) this.setDocument(document);
     }
-    this.fireEvent('inject', this.parentNode);
+    if (!this.options.root) this.fireEvent('inject', this.parentNode);
     return this;
   },
 

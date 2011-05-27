@@ -173,23 +173,22 @@ Object.append(LSD.Layout, {
   parse: function(selector, parent) {
     var options = {};
     var parsed = (selector.Slick ? selector : Slick.parse(selector)).expressions[0][0]
-    if (parsed.combinator != ' ') options.combinator = parsed.combinator;
-    if (parsed.tag != '*') options.source = parsed.tag;
+    if (parsed.combinator != ' ') {
+      if (parsed.combinator == '::') {
+        var relation = (parent[0] || parent).relations[parsed.tag];
+        if (!relation) throw "Unknown pseudo element ::" + parsed.tag
+        Object.append(options, LSD.Layout.parse(relation.getSource(), parent))
+      } else options.combinator = parsed.combinator;
+    } 
+    if (parsed.tag != '*' && parsed.combinator != '::') options.source = parsed.tag;
     if (parsed.id) (options.attributes || (options.attributes = {})).id = parsed.id
     if (parsed.attributes) for (var all = parsed.attributes, attribute, i = 0; attribute = all[i++];) {
       var value = attribute.value || LSD.Attributes.Boolean[attribute.key] || "";
       (options.attributes || (options.attributes = {}))[attribute.key] = value;
     }
     if (parsed.classes) options.classes = parsed.classes.map(Macro.map('value'));
-    if (parsed.pseudos) {
-      for (var all = parsed.pseudos, pseudo, i = 0; pseudo = all[i++];) {
-        if (pseudo.type == 'element') {
-          var relation = (parent[0] || parent).relations[pseudo.key];
-          if (!relation) throw "Unknown pseudo element ::" + pseudo.key
-          Object.append(options, LSD.Layout.parse(relation.layout, parent))
-        } else return (options.pseudos || (options.pseudos = {})).push(pseudo.key);
-      };
-    }
+    if (parsed.pseudos) for (var all = parsed.pseudos, pseudo, i = 0; pseudo = all[i++];) 
+      (options.pseudos || (options.pseudos = {})).push(pseudo.key);
     return options;
   },
   

@@ -51,7 +51,8 @@ var LSD = Object.append(new Events, {
       chosen:   {enabler: 'choose',     disabler: 'forget'},
       empty:    {enabler: 'empty',      disabler: 'fill',      property: 'unfilled', initial: true},
       invalid:  {enabler: 'invalidate', disabler: 'validate',   events: {enabler: 'invalid', disabler: 'valid'}},
-      valid:    {enabler: 'validate',   disabler: 'invalidate', events: {enabler: 'valid', disabler: 'invalid'}}
+      valid:    {enabler: 'validate',   disabler: 'invalidate', events: {enabler: 'valid', disabler: 'invalid'}},
+      working:  {enabler: 'busy',       disabler: 'idle'}
     },
     Positive: {
       disabled: 'disabled',
@@ -67,7 +68,8 @@ var LSD = Object.append(new Events, {
     },
     Classes: {
       selected: 'selected',
-      empty: 'empty'
+      empty: 'empty',
+      working: 'working'
     }
   },
   Options: {},

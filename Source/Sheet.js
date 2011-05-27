@@ -190,7 +190,6 @@ Object.append(LSD.Sheet.Rule.prototype, {
   },
   
   watch: function(node, state) {
-    //console.log(node, state, this.selector.raw, this.style)
     node[state ? 'addRule' : 'removeRule'](this)
   },
   

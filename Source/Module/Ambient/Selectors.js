@@ -44,11 +44,6 @@ LSD.Module.Selectors = new Class({
       case "&": case "&&": default:
         return this;
     }
-    return Slick.search(origin, selector)
-  },
-  
-  getElement: function(selector) {
-    return Slick.find(this, selector)
   },
   
   getPseudoElementsByName: function(name) {
@@ -92,13 +87,14 @@ var PseudoElements = {
 };
 
 var Combinators = LSD.Module.Selectors.Combinators = {
-  '$': function(node, tag, id, classes, attributes, pseudos) { //this element
-    return this.push(node, tag, id, classes, attributes, pseudos)
+  '$': function(node, tag, id, classes, attributes, pseudos, classList) { //this element
+    if ((tag == '*') && !id && !classes && !attributes && !pseudos) return this.push(node);
+    else return this['combinator: '](node, tag, id, classes, attributes, pseudos, classList)
   },
 
-  '$$': function(node, tag, id, classes, attributes, pseudos) { //this element document
-    if ((tag == '*') && !id && !classes && !attributes) return this.push(this.document.body, null, null, null, null, pseudos);
-    else return this['combinator: '](this.document.body, tag, id, classes, attributes, pseudos);
+  '$$': function(node, tag, id, classes, attributes, pseudos, classList) { //this element document
+    if ((tag == '*') && !id && !classes && !attributes && !pseudos) return this.push(this.document.body);
+    else return this['combinator: '](this.document.body, tag, id, classes, attributes, pseudos, classList);
   },
   
   '::': function(node, tag, id, classes, attributes, pseudos) {

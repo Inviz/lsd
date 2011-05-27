@@ -61,8 +61,7 @@ LSD.Module.Actions = new Class({
         if (!promise) promise = [];
         promise.push(result);
         result.chain(function() {
-          promise.erase(result);
-          if (promise.length == 0) self.callChain.apply(self, arguments);  
+          if (promise.erase(result).length == 0) self.callChain.apply(self, arguments);
         });
       } else if (result !== false) return;
       return false;

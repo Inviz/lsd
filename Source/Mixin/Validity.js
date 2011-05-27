@@ -57,11 +57,13 @@ LSD.Mixin.Validity = new Class({
   validate: function(value) {
     if (value !== true && !this.checkValidity()) return false;
     this.setStateTo('valid', true);
+    this.setStateTo('invalid', false);
     return true;
   },
   
   invalidate: function(value) {
     this.setStateTo('invalid', true);
+    this.setStateTo('valid', false);
     return true;
   },
   
@@ -95,6 +97,6 @@ var Attributes = LSD.Mixin.Validity.Attributes = {
   }
 }
 
-LSD.Behavior.define(':read-write', LSD.Mixin.Validity);
+LSD.Behavior.define(':submittable', LSD.Mixin.Validity);
 
 }();

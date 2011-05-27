@@ -38,9 +38,11 @@ LSD.Mixin.Form = new Class({
   submit: function(event) {
     this.fireEvent('submit', arguments);
     if (event && event.type == 'submit') event.preventDefault();
+    return this.send && this.send.apply(this, arguments)
   },
   
-  cancel: function() {
+  cancel: function(event) {
+    if (event && event.event) event.preventDefault();
     this.fireEvent('cancel', arguments);
   },
   

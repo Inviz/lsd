@@ -101,7 +101,6 @@ LSD.Mixin.Fieldset = new Class({
   addFieldErrors: function(errors) {
     for (var name in errors) {
       var field = this.names[name];
-      //console.log(name, field, errors[name])
       if (!field) continue;
       field.invalidate(errors[name]);
       this.invalid = true;

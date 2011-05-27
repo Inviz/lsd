@@ -49,7 +49,8 @@ LSD.Document = new Class({
     if (!document) document = window.document;
     if (!LSD.document) LSD.document = this;
     if (options) this.setOptions(options);
-    this.document = document;
+    this.document = this;
+    this.element = document;
     
     /*
       Trick Slick into thinking that LSD elements tree is an XML node 
@@ -69,6 +70,7 @@ LSD.Document = new Class({
       if (this.params.benchmark != null) console.profileEnd();
       this.building = false;
     }.bind(this));
+    this.element.addEvent('click', this.onClick.bind(this))
   },
   
   /* 
@@ -85,7 +87,7 @@ LSD.Document = new Class({
     var link = (LSD.toLowerCase(event.target.tagName) == 'a') ? event.target : Slick.find(event.target, '! a');
     if (!link || (link.ownerDocument != document)) return;
     if (link.retrieve('widget')) return;
-    var node = link.retrieve('node')
+    var node = link.retrieve('node');
     if (!node) link.store('node', node = new LSD.Widget.Anchor(link));
     node.click(event);
   },
@@ -106,7 +108,7 @@ LSD.Document = new Class({
   },
   
   build: function(document) {
-    if (!document) document = this.document;
+    if (!document) document = this.element || window.document;
     this.setHead(document.head);
     var element = this.element = document.body;
     this.setBody(document.body);
@@ -157,5 +159,6 @@ LSD.Document = new Class({
     this.stylesheets.erase(sheet);
     sheet.detach(this);
   },
+  
   $family: Function.from('document')
 });

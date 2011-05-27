@@ -143,7 +143,7 @@ LSD.Module.Layout = new Class({
   }),
   
   buildLayout: function(layout, parent, options) {
-    return this.getLayout().render(layout, parent || this, null, options);
+    return this.getLayout().render(layout, (parent === false || parent) ? parent : this, null, options);
   },
   
   extractLayout: function(element) {

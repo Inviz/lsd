@@ -129,6 +129,10 @@ LSD.Relation.prototype = Object.append({
       });
     }
     (this.proxied || (this.proxied = [])).push(widget);
+  },
+  
+  getSource: function() {
+    return this.options.source || this.options.selector;
   }
 }, Events.prototype);
 
@@ -202,27 +206,27 @@ var Options = LSD.Relation.Options = {
 
   relay: function(events, state, memo) {
     if (state) {
-      var origin = this.origin, relay = Object.map(function(callback, event) {
-        return function() {
+      var origin = this.origin, relation = this, relay = Object.map(events, function(callback, event) {
+        return function(event) {
           for (var widget = Element.get(event.target, 'widget'); widget; widget = widget.parentNode) {
-            if (origin[name].indexOf(widget) > -1) {
+            if (relation.widgets.indexOf(widget) > -1) {
               callback.apply(widget, arguments);
               break;
             }
           }
         };
       });
-      var events = {
-        fill: function() {
+      var fillers = {
+        fill: function() { 
           origin.addEvent('element', relay)
         },
         empty: function() {
           origin.removeEvent('element', relay)
         }
       };
-      this.addEvents(events);
-      if (!this.empty) events.fill();
-      return events;
+      this.addEvents(fillers);
+      if (!this.empty) fillers.fill();
+      return fillers;
     } else {
       this.removeEvents(memo);
       if (!this.empty) memo.empty();
@@ -238,7 +242,9 @@ var Options = LSD.Relation.Options = {
   },
   
   callbacks: function(events, state) {
-    this[state ? 'addEvents' : 'removeEvents'](this.origin.bindEvents(events))
+    this[state ? 'addEvents' : 'removeEvents'](Object.map(events, function(event) {
+      return event.indexOf ? this.origin.bindEvent(event) : event.bind(this.origin);
+    }.bind(this)));
   },
   
   through: function(name, state, memo) {
@@ -254,8 +260,8 @@ var Options = LSD.Relation.Options = {
     },
     remove: function(widget, states) {
       var get = states.get, set = states.set, add = states.add;
-      if (get) for (var from in get) widget.unlinkState(origin, from, (get[from] === true) ? from : get[from]);
-      if (set) for (var to in set) origin.unlinkState(widget, to, (set[to] === true) ? to : set[to]);
+      if (get) for (var from in get) widget.unlinkState(this, from, (get[from] === true) ? from : get[from]);
+      if (set) for (var to in set) this.unlinkState(widget, to, (set[to] === true) ? to : set[to]);
       if (add) for (var index in add) widget.removeState(index, add[index]);
     }
   },

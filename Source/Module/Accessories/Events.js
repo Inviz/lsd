@@ -98,8 +98,9 @@ LSD.Module.Events = new Class({
   captureEvent: function(type, args) {
     var events = this.$events[type];
     if (!events) return;
-    for (var i = 0, event; event = events[i++];) {
-      var result = event.apply(this, arguments);
+    for (var i = 0, j = events.length, event; i < j; i++) {
+      if (!(event = events[i])) continue;
+      var result = event.apply(this, args);
       if (result) return result;
     }
   }
@@ -113,7 +114,7 @@ var Events = Object.append(LSD.Module.Events, {
         this[state ? 'addEvent' : 'removeEvent'](event, fn.indexOf ? this.bindEvent(fn) : fn);
   },
   
-  watchEventTarget: function(target, name, fn) {
+  watchEventTarget: function(name, fn) {
     var target = Events.Targets[name];
     if (target.events) Object.each(target.events, function(state, event) {
       this.addEvent(event, function(object) {
@@ -150,7 +151,7 @@ var Events = Object.append(LSD.Module.Events, {
         if (target.call && (target = target.call(this)))
           for (var event in bound) target[method](event, bound[event]);
         else if (initial) 
-          this.watchEventTarget(name, function(object, state) {
+          Events.watchEventTarget.call(this, name, function(object, state) {
             Events.setStoredEvents.call(object, events, state);
           })
       return this;
