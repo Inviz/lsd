@@ -24,7 +24,6 @@ LSD.Mixin.List = new Class({
     list: {
       endless: true,
       force: false,
-      multiple: false,
       unselect: null
     },
     proxies: {
@@ -85,7 +84,7 @@ LSD.Mixin.List = new Class({
   
   selectItem: function(item) {
     if (!(item = this.getItem(item)) && this.options.list.force) return false;
-    var unselect = (this.options.list.unselect !== null) ? this.options.list.unselect : !this.options.list.multiple;
+    var unselect = (this.options.list.unselect !== null) ? this.options.list.unselect : !this.attributes.multiple;
     var selected = this.selectedItem;
     if (unselect && (selected != item) && selected && selected.unselect) this.unselectItem(selected);
     this.setSelectedItem.apply(this, arguments); 
@@ -104,7 +103,7 @@ LSD.Mixin.List = new Class({
   
   setSelectedItem: function(item, type) {
     var property = (type || 'selected') + 'Item';
-    if (this.options.list.multiple)  {
+    if (this.attributes.multiple)  {
       property += 's';
       if (!this[property]) this[property] = [];
       this[property].push(item);
@@ -113,7 +112,7 @@ LSD.Mixin.List = new Class({
   
   unsetSelectedItem: function(item, type) {
     var property = (type || 'selected') + 'Item';
-    if (this.options.list.multiple)  {
+    if (this.attributes.multiple)  {
       property += 's';
       if (this[property]) this[property].erase(item);
     } else delete this[property]
