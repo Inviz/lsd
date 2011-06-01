@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Mixin
+  - LSD.Behavior
   - Widgets/LSD.Widget.Scrollbar
 
 provides: 

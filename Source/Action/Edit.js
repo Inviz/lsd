@@ -58,7 +58,7 @@ LSD.Widget.Form.Edit = new Class({
         disabler: 'finish'
       }
     },
-    pseudos: Array.fast('form', 'fieldset', 'resourceful'),
+    pseudos: Array.fast('form', 'fieldset', 'resource', 'command'),
     has: {
       one: {
         submitter: {

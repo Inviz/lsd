@@ -9,7 +9,7 @@ license: Public domain (http://unlicense.org).
  
 requires:
   - LSD.Trait
-  - LSD.Mixin.Focus
+  - LSD.Mixin.Focusable
 
 provides: 
   - LSD.Trait.Input
@@ -32,11 +32,11 @@ LSD.Trait.Input = new Class({
             },
             focus: function() {
               this.document.activeElement = this;
-              if (LSD.Mixin.Focus) LSD.Mixin.Focus.Propagation.focus(this);
+              if (LSD.Mixin.Focusable) LSD.Mixin.Focusable.Propagation.focus(this);
             },
             blur: function() {
                 if (this.document.activeElement == this) delete this.document.activeElement;
-             //   if (LSD.Mixin.Focus) LSD.Mixin.Focus.Propagation.blur.delay(10, this, this);
+             //   if (LSD.Mixin.Focusable) LSD.Mixin.Focusable.Propagation.blur.delay(10, this, this);
             }
           },
           input: {

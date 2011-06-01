@@ -44,7 +44,7 @@ LSD.Layer.Shape = {
 Object.append(SheetParser.Property.Type, {
   shape: function(value) {
     if (value.indexOf) var name = value
-    else for (var key in value) { name = key; break};
+    else for (var key in value) { var name = key; break};
     return !!ART.Shape[name.capitalize()]
   },
   

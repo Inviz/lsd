@@ -28,15 +28,6 @@ LSD.Module.Element = new Class({
   initializers: {
     element: function() {
       LSD.uid(this);
-      return {
-        events: {
-          prepare: function(options, element) {
-            if (element) this.attach(element);
-          },
-          build: 'attach',
-          destroy: 'detach'
-        }
-      }
     }
   },
   
@@ -116,3 +107,17 @@ LSD.Module.Element = new Class({
   
   $family: Function.from('object')
 });
+
+LSD.Module.Element.events = {
+  prepare: function(options, element) {
+    if (element) this.attach(element);
+  },
+  build: function() {
+    this.attach.apply(this, arguments);
+  },
+  destroy: function() {
+    this.detach.apply(this, arguments);
+  }
+};
+
+LSD.addEvents(LSD.Module.Element.prototype, LSD.Module.Element.events);

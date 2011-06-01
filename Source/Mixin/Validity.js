@@ -97,6 +97,6 @@ var Attributes = LSD.Mixin.Validity.Attributes = {
   }
 }
 
-LSD.Behavior.define(':submittable', LSD.Mixin.Validity);
+LSD.Behavior.define('[name], :value', LSD.Mixin.Validity);
 
 }();

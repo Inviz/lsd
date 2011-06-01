@@ -3,24 +3,24 @@
  
 script: Target.js
  
-description: Functions to fetch and parse targets
+description: Functions to fetch and parse target into action chains
  
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Module
+  - LSD.Mixin
 
 provides: 
-  - LSD.Module.Target
+  - LSD.Mixin.Target
 
 ...
 */
 
 !function() {
   var cache = {};
-  LSD.Module.Target = new Class({
+  LSD.Mixin.Target = new Class({
     options: {
       chain: {
         target: function() {
@@ -60,7 +60,7 @@ provides:
   });
   
   
-  var Parser = LSD.Module.Target.Parser = {
+  var Parser = LSD.Mixin.Target.Parser = {
     build: function(expression, start, end) {      
       var last = expression[end - start - 1];
       if (!last.classes && !last.attributes && last.tag == '*' && !last.id && last.pseudos[0].type == 'class') {
@@ -107,3 +107,5 @@ provides:
     }
   };
 }();
+
+LSD.Behavior.define('[target]', LSD.Mixin.Target);

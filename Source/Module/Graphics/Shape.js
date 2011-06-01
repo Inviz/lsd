@@ -24,23 +24,6 @@ LSD.Module.Shape = new Class({
     shape: 'rectangle'
   },
   
-  initializers: {
-    shape: function() {
-      return {
-        events: {
-          shaped: {
-            'render': function() {
-              if (this.setSize()) this.resized = true;
-            },
-            'update': function() {
-              delete this.resized;
-            }
-          }
-        }
-      }
-    }
-  },
-  
   getShape: Macro.getter('shape', function(name) {
     return this.setShape(name);
   }),
@@ -50,7 +33,7 @@ LSD.Module.Shape = new Class({
     var shape = new ART.Shape[name.camelCase().capitalize()];
     shape.name = name;
     shape.widget = this;
-    if (!this.shape) this.addEvents(this.options.events.shaped);
+    if (!this.shape) this.addEvents(LSD.Module.Shape.events);
     this.shape = shape;
     return shape;
   },
@@ -62,3 +45,12 @@ LSD.Module.Shape = new Class({
   })
   
 });
+
+LSD.Module.Shape.events = {
+  'render': function() {
+    if (this.setSize()) this.resized = true;
+  },
+  'update': function() {
+    delete this.resized;
+  }
+};

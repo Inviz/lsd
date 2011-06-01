@@ -60,4 +60,4 @@ LSD.Mixin.Resource = new Class({
   }
 });
 
-LSD.Behavior.define(':resourceful', LSD.Mixin.Resource);
+LSD.Behavior.define(':resource', LSD.Mixin.Resource);

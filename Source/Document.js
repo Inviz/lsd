@@ -84,12 +84,22 @@ LSD.Document = new Class({
     and only instantiate class when the link was actually clicked.
   */
   onClick: function(event) {
-    var link = (LSD.toLowerCase(event.target.tagName) == 'a') ? event.target : Slick.find(event.target, '! a');
-    if (!link || (link.ownerDocument != document)) return;
-    if (link.retrieve('widget')) return;
-    var node = link.retrieve('node');
-    if (!node) link.store('node', node = new LSD.Widget.Anchor(link));
-    node.click(event);
+    if (event.target.ownerDocument == document)
+    for (var target = event.target, stopped, link, widget; target.tagName; target = target.parentNode) {
+      widget = Element.retrieve(target, 'widget');
+      if (widget && widget.pseudos.clickable) {
+        if (!stopped) stopped = !!event.preventDefault();
+        widget.click(event);
+      } else if (!stopped && LSD.toLowerCase(target.tagName) == 'a' && !link) {
+        link = target;
+      }
+    };
+    if (!stopped && link) {
+      var node = Element.retrieve(link, 'node');
+      if (!node) Element.store(link, 'node', node = new LSD.Widget.Anchor(link));
+      node.click(event);
+      event.preventDefault();
+    }
   },
   
   setHead: function(head) {

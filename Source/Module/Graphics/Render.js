@@ -29,13 +29,6 @@ LSD.Module.Render = new Class({
     render: function() {
       this.redraws = 0;
       this.dirty = true;
-      return {
-        events: {
-          stateChange: function() {
-            if (this.redraws > 0) this.refresh(true);
-          }
-        }
-      }
     }
   },
   
@@ -92,5 +85,11 @@ LSD.Module.Render = new Class({
     if (this.halted) return false;
     this.halted = true;
     return true;
+  }
+});
+
+LSD.addEvents(LSD.Module.Render.prototype, {
+  stateChange: function() {
+    if (this.redraws > 0) this.refresh(true);
   }
 });

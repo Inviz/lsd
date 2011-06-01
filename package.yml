@@ -20,9 +20,7 @@ sources:
   - Source/ART/ART.Shape.Rectangle.js
   - Source/ART/ART.Shape.Star.js
   - Source/Behavior.js
-  - Source/Command/Command.js
-  - Source/Command/Checkbox.js
-  - Source/Command/Radio.js
+  - Source/Command.js
   - Source/Document.js
   - Source/LSD.js
   - Source/Type.js
@@ -49,7 +47,7 @@ sources:
   - Source/Mixin/Scrollable.js
   - Source/Mixin/Touchable.js
   - Source/Mixin/Placeholder.js
-  - Source/Mixin/Focus.js
+  - Source/Mixin/Focusable.js
   - Source/Mixin/Request.js
   - Source/Mixin/Resource.js
   - Source/Mixin/Validity.js
@@ -60,6 +58,9 @@ sources:
   - Source/Mixin/ContentEditable.js
   - Source/Mixin/Choice.js
   - Source/Mixin/List.js
+  - Source/Mixin/Command.js
+  - Source/Mixin/Target.js
+  - Source/Mixin/Root.js
   - Source/Module/Ambient/Allocations.js
   - Source/Module/Ambient/Container.js
   - Source/Module/Ambient/DOM.js
@@ -69,11 +70,8 @@ sources:
   - Source/Module/Ambient/Relations.js
   - Source/Module/Ambient/Proxies.js
   - Source/Module/Ambient.js
-  - Source/Module/Behavior/Command.js
-  - Source/Module/Behavior/Chain.js
-  - Source/Module/Behavior/Actions.js
-  - Source/Module/Behavior/Target.js
-  - Source/Module/Behavior.js
+  - Source/Module/Accessories/Chain.js
+  - Source/Module/Accessories/Actions.js
   - Source/Module/Accessories/Styles.js
   - Source/Module/Accessories/Attributes.js
   - Source/Module/Accessories/Events.js

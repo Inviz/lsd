@@ -22,7 +22,12 @@ LSD.Mixin.Fieldset = new Class({
     has: {
       many: {
         elements: {
-          selector: ':submittable',
+          selector: '[name]',
+          scopes: {
+            submittable: {
+              filter: ':valued'
+            },
+          },
           callbacks: {
             'add': 'addField',
             'remove': 'removeField'
@@ -85,7 +90,7 @@ LSD.Mixin.Fieldset = new Class({
       var memo = this.names[name];
       if (memo.push) {
         for (var i = 0, radio; radio = memo[i++];) if (radio.checked) data[name] = radio.getValue(); break;
-      } else if (memo.options.command.type != 'checkbox' || memo.checked) data[name] = memo.getValue();
+      } else if (memo.commandType != 'checkbox' || memo.checked) data[name] = memo.getValue();
     }
     return data;
   },
@@ -125,7 +130,7 @@ LSD.Mixin.Fieldset = new Class({
   },
   
   addField: function(widget) {
-    var name = widget.attributes.name, radio = (widget.options.command.type == 'radio');
+    var name = widget.attributes.name, radio = (widget.commandType == 'radio');
     if (!name) return;
     if (radio) {
       if (!this.names[name]) this.names[name] = [];
@@ -193,9 +198,9 @@ LSD.Mixin.Fieldset = new Class({
   
   validateFields: function(fields) {
     if (!this.invalid) return;
-    this.getElements(':submittable:invalid').each(function(field) {
-      field.validate(true);
-    })
+    this.elements.each(function(field) {
+      if (field.invalid) field.validate(true);
+    });
   },
 
   getModelName: Macro.getter('modelName', function() {

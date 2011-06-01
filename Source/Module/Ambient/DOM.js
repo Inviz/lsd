@@ -38,11 +38,6 @@ LSD.Module.DOM = new Class({
               it is is already removed from dom
             */
             dispose: 'onElementDispose'
-          },
-          self: {
-            destroy: function() {
-              if (this.parentNode) this.dispose();
-            }
           }
         }
       }
@@ -278,6 +273,12 @@ var inserters = {
   }
 
 };
+
+LSD.addEvents(LSD.Module.DOM.prototype, {
+  destroy: function() {
+    if (this.parentNode) this.dispose();
+  }
+});
 
 Object.append(LSD.Module.DOM, {
   walk: function(element, callback, bind, memo) {

@@ -99,6 +99,11 @@ Object.append(LSD, {
     return position;
   },
   
+  addEvents: function(object, events) {
+    if (!object.$events) object.$events = {};
+    for (var event in events) Events.prototype.addEvent.call(object, event, events[event]);
+  },
+  
   toLowerCase: function(lowercased) {
     return function(string) { 
       return (lowercased[string]) || (lowercased[string] = string.toLowerCase())

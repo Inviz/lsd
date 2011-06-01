@@ -18,6 +18,18 @@ provides:
 
 
 LSD.Mixin.Choice = new Class({
+  options: {
+    has: {
+      many: {
+        items: {
+          states: {
+            add: Array.fast('chosen')
+          }
+        }
+      }
+    }
+  },
+  
   chooseItem: function(item, temp) {
     if (!(item = this.getItem(item)) && this.options.list.force) return false;
     var chosen = this.chosenItem;

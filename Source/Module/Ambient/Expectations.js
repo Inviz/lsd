@@ -27,9 +27,6 @@ var Expectations = LSD.Module.Expectations = new Class({
   initializers: {
     expectations: function() {
       if (!this.expectations) this.expectations = {tag: {}}
-      return {
-        events: Expectations.events
-      }
     }
   },
   
@@ -51,14 +48,15 @@ var Expectations = LSD.Module.Expectations = new Class({
     related to it, thus matching static part of a selector.
     Then it's time to match the dynamic part. 
   */
-  expect: function(selector, callback) {
-    if (!this.expectations) this.expectations = {}
-    var combinator = selector.combinator || 'self';
+  expect: function(selector, callback, self) {
+    if (selector.indexOf) selector = Slick.parse(selector);
+    if (selector.expressions) selector = selector.expressions[0][0];
+    if (!this.expectations) this.expectations = {};
     var id = selector.id;
-    var index = (combinator == ' ' && id) ? 'id' : combinator; 
+    var index = self ? 'self' : (selector.combinator == ' ' && id) ? 'id' : selector.combinator || 'self'; 
     var expectations = this.expectations[index];
     if (!expectations) expectations = this.expectations[index] = {};
-    if (selector.combinator) {
+    if (selector.combinator && !self) {
       /*
         Given selector has combinator.
         Finds related elements and passes expectations to them.
@@ -97,23 +95,25 @@ var Expectations = LSD.Module.Expectations = new Class({
     }
   },
   
-  unexpect: function(selector, callback, iterator) {
+  unexpect: function(selector, callback, self, iterator) {
+    if (selector.indexOf) selector = Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
-    if (selector.combinator) {
+    if (iterator === true) iterator = function(widget) {
+      if (widget.match(selector)) callback(widget, false);
+    };
+    if (selector.combinator && !self) {
       var id = selector.id;
       var index = (selector.combinator == ' ' && id) ? 'id' : selector.combinator;
-      remove(this.expectations[index][selector.tag], callback);
+      remove(this.expectations[index][index == 'id' ? id : selector.tag], callback);
       if (this.document) this.getElements(selector.structure).each(function(widget) {
         if (selector.state) widget.unexpect(selector.state, callback);
         if (iterator) iterator(widget)
       });
     } else {
-      if (iterator) iterator(widget)
+      if (iterator) iterator(this);
       for (var types = ['pseudos', 'classes', 'attributes'], type, i = 0; type = types[i++];) {
-        var values = selector[type], self = this.expectations.self;
-        if (values) for (var j = 0, value; (value = values[j++]) && (value = value.key || value.value);) {
-          remove(self[type][value], callback);
-        }
+        var bits = selector[type], group = this.expectations.self[type];
+        if (bits) for (var j = 0, bit; bit = bits[j++];) remove(group[bit.key || bit.value], callback);
       }
     }
   },
@@ -135,7 +135,7 @@ var Expectations = LSD.Module.Expectations = new Class({
     if (selector.indexOf) selector = Slick.parse(selector);
     if (!depth) depth = 0;
     selector.expressions.each(function(expressions) {
-      this.unexpect(expressions[depth], callback, function(widget) {
+      this.unexpect(expressions[depth], callback, false, function(widget) {
         if (expressions[depth + 1]) widget.unwatch(selector, callback, depth + 1)
         else callback(widget, false)
       });
@@ -241,9 +241,7 @@ var separate = function(selector) {
     group[criteria] = selector[criteria]
   };
   return separated;
-}
-
-
+};
 
 Expectations.events = {
   nodeInserted: function(widget) {
@@ -299,6 +297,8 @@ Expectations.events = {
     if (this.parentNode) this.parentNode.dispatchEvent('nodeTagChanged', [this, tag, old]);
   }
 };
+
+LSD.addEvents(Expectations.prototype, Expectations.events);
 
 LSD.Module.Events.Targets.expected = function() {
   var self = this, Targets = LSD.Module.Events.Targets;

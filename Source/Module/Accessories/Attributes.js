@@ -37,10 +37,14 @@ LSD.Module.Attributes = new Class({
   },
   
   removeAttribute: function(attribute) {
-    this.fireEvent('selectorChange', ['attributes', name, false]);
-    delete this.attributes[attribute];
-    if (this.element) this.element.removeAttribute(attribute);
-    if (LSD.States.Attributes[name]) this.removePseudo(name);
+    if (this.attributes[attribute] != null) {
+      this.fireEvent('selectorChange', ['attributes', name, false]);
+      delete this.attributes[attribute];
+      if (this.element) this.element.removeAttribute(attribute);
+      if (LSD.States.Attributes[name])
+        if (this[name]) this.setStateTo(name, false);
+    }
+    return this;
   },
 
   setAttribute: function(name, value) {
@@ -49,53 +53,75 @@ LSD.Module.Attributes = new Class({
       var logic = LSD.Attributes.Setter[name];
       if (logic) logic.call(this, value)
     }
-    if (LSD.States.Attributes[name]) this[value == true || value == name ? 'addPseudo' : 'removePseudo'](name);
-    this.fireEvent('selectorChange', ['attributes', name, false]);
-    this.attributes[name] = value;    
-    this.fireEvent('selectorChange', ['attributes', name, true]);
-    if (this.element) this.element.setAttribute(name, value);
+    if (this.attributes[name] != value) {
+      if (LSD.States.Attributes[name]) {
+        var mode = (value == true || value == name);
+        if (this[name] != mode) this.setStateTo(name, mode);
+      }
+      this.fireEvent('selectorChange', ['attributes', name, false]);
+      this.attributes[name] = value;    
+      this.fireEvent('selectorChange', ['attributes', name, true]);
+      if (this.element) this.element.setAttribute(name, value);
+    }
+    return this;
   },
 
   addPseudo: function(name){
-    this.pseudos.include(name);
-    this.fireEvent('selectorChange', ['pseudos', name, true]);
+    if (!this.pseudos[name]) {
+      if (this.$states[name]) this.setStateTo(name, true);
+      this.pseudos[name] = true;
+      this.fireEvent('selectorChange', ['pseudos', name, true]);
+    }
+    return this;
   },
 
   removePseudo: function(name){
-    this.fireEvent('selectorChange', ['pseudos', name, false]);
-    this.pseudos.erase(name);
+    if (this.pseudos[name]) {
+      if (this.$states[name]) this.setStateTo(name, false);
+      this.fireEvent('selectorChange', ['pseudos', name, false]);
+      delete this.pseudos[name];
+    }  
+    return this;
+  },
+  
+  addClass: function(name){
+    if (LSD.States.Classes[name] && !this[name]) this.setStateTo(name, true);
+    if (!this.classes[name]) {
+      this.classes[name] = true;
+      this.fireEvent('selectorChange', ['classes', name, true]);
+      if (this.element) this.element.addClass(name);
+    }
+    return this;
   },
 
-  addClass: function(name) {
-    this.classes.include(name);
-    if (this.element) this.element.addClass(name);
-    this.fireEvent('selectorChange', ['classes', name, true]);
-  },
-
-  removeClass: function(name) {
-    this.fireEvent('selectorChange', ['classes', name, false]);
-    var state = LSD.States.Classes[name];
-    if (state) this.pseudos.erase(state)
-    this.classes.erase(name);
-    if (this.element) this.element.removeClass(name);
+  removeClass: function(name){
+    if (LSD.States.Classes[name] && this[name]) return this.setStateTo(name, false);
+    if (this.classes[name]) {
+      this.fireEvent('selectorChange', ['classes', name, false]);
+      delete this.classes[name];
+      if (this.element) this.element.removeClass(name);
+    }  
+    return this;
   },
   
   hasClass: function(name) {
     return this.classes[name]
   },
   
-  setState: function(state) {
-    var attribute = LSD.States.Attributes[state];
+  setState: function(name) {
+    var attribute = LSD.States.Attributes[name];
     if (attribute) this.setAttribute(attribute, attribute)
-    else this.addClass(LSD.States.Classes[state] || 'is-' + state);
-    this.addPseudo(state);
+    else this.addClass(LSD.States.Classes[name] || 'is-' + name);
+    this.addPseudo(name);
+    return this;
   },
   
-  unsetState: function(state) {
-    var attribute = LSD.States.Attributes[state];
+  unsetState: function(name) {
+    var attribute = LSD.States.Attributes[name];
     if (attribute) this.removeAttribute(attribute);
-    else this.removeClass(LSD.States.Classes[state] || 'is-' + state);
-    this.removePseudo(state);
+    else this.removeClass(LSD.States.Classes[name] || 'is-' + name);
+    this.removePseudo(name);
+    return this;
   },
   
   getSelector: function(){
@@ -107,6 +133,14 @@ LSD.Module.Attributes = new Class({
     for (var pseudo in this.pseudos) if (this.pseudos.hasOwnProperty(pseudo)) selector += ':' + pseudo;
     for (var name in this.attributes) if (name != 'id') selector += '[' + name + '=' + this.attributes[name] + ']';
     return selector;
+  },
+  
+  onStateChange: function(state, value, args) {
+    var args = Array.prototype.slice.call(arguments, 0);
+    args.slice(1, 2); //state + args
+    this[value ? 'setState' : 'unsetState'][args && ("length" in args) ? 'apply' : 'call'](this, args);
+    this.fireEvent('stateChange', [state, args]);
+    return true;
   }
 });
 
@@ -136,24 +170,14 @@ Object.append(LSD.Options, {
     remove: 'removeAttribute',
     iterate: true
   },
-  classes: {
-    add: function(name) {
-      this[LSD.States.Classes[name] ? 'addPseudo' : 'addClass'](name);
-    },
-    remove: function(name) {
-      this[LSD.States.Classes[name] ? 'removePseudo' : 'removeClass'](name);
-    },
+  pseudos: {
+    add: 'addPseudo',
+    remove: 'removePseudo',
     iterate: true
   },
-  pseudos: {
-    add: function(name) {
-      if (this.$states[name]) this.setStateTo(name, true);
-      else this.addPseudo(name);
-    },
-    remove: function(name) {
-      if (this.$states[name]) this.setStateTo(name, false);
-      else this.removePseudo(name);
-    },
+  classes: {
+    add: 'addClass',
+    remove: 'removeClass',
     iterate: true
   }
 });

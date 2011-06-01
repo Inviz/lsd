@@ -21,29 +21,21 @@ provides:
 LSD.Module.Shortcuts = new Class({
   Implements: Shortcuts,
   
-  initializers: {
-    shortcuts: function() {
-      return {
-        events: {
-          shortcuts: {
-            focus: 'enableShortcuts',
-            blur: 'disableShortcuts'
-          }
-        }
-      }
-    }
-  },
-  
   addShortcut: function() {
-    LSD.Module.Events.setEventsByRegister.call(this, 'shortcuts', true);
+    LSD.Module.Events.setEventsByRegister.call(this, 'shortcuts', LSD.Module.Shortcuts.events);
     return Shortcuts.prototype.addShortcut.apply(this, arguments);
   },
   
   removeShortcut: function() {
-    LSD.Module.Events.setEventsByRegister.call(this, 'shortcuts', false);
+    LSD.Module.Events.setEventsByRegister.call(this, 'shortcuts', LSD.Module.Shortcuts.events);
     return Shortcuts.prototype.removeShortcut.apply(this, arguments);
   }
 });
+
+LSD.Module.Shortcuts.events = {
+  focus: 'enableShortcuts',
+  blur: 'disableShortcuts'
+};
 
 LSD.Options.shortcuts = {
   add: 'addShortcut',

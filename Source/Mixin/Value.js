@@ -8,7 +8,7 @@ description: Add your widget have a real form value.
 license: Public domain (http://unlicense.org).
  
 requires:
-  - LSD.Trait
+  - LSD.Mixin
  
 provides: 
   - LSD.Mixin.Value
@@ -19,15 +19,12 @@ provides:
 LSD.Mixin.Value = new Class({
   options: {
     events: {
-      _value: {
-        change: 'callChain'
-      }
+      change: 'callChain'
     },
-    multiple: false,
     actions: {
       value: {
         enable: function() {
-          if (this.attributes.multiple) this.values = []
+          if (this.attributes.multiple) this.values = [];
           if (this.getValue() != null) return;
           var raw = this.getRawValue();
           if (raw != null) this.setValue(raw);
@@ -41,12 +38,18 @@ LSD.Mixin.Value = new Class({
   
   setValue: function(item, unset) {
     if (item == null || (item.event && item.type)) item = this.getRawValue();
+    else if (item.getValue) item = item.getValue();
+    
     var value = this.processValue(item), result = false;
     if (this.isValueDifferent(value) ^ (!!unset)) {
       result = this.writeValue(value, unset);
       this.onChange(value, this.getPreviousValue());
     }
     return result
+  },
+  
+  unsetValue: function(item) {
+    return this.setValue(item, true)
   },
   
   isValueDifferent: function(value) {
@@ -84,11 +87,17 @@ LSD.Mixin.Value = new Class({
         (this.valueInputs || (this.valueInputs = [])).push(this.getValueInput().set('value', value));
         this.applyValue(this.values);
       }
+      if (this.values.length == +!unset) this[unset ? 'removePseudo' : 'addPseudo']('valued');
     } else {
       var input = this.valueInput || (this.valueInput = this.getValueInput());
       this.previousValue = this.value;
-      if (unset) delete this.value;
-      else this.value = value;
+      if (unset) {
+        if (this.value) this.removePseudo('valued');
+        delete this.value;
+      } else {
+        if (!this.value) this.addPseudo('valued');
+        this.value = value;
+      }
       input.set('value', unset ? '' : value);
       this.applyValue(this.value);
     }
@@ -128,8 +137,8 @@ LSD.Mixin.Value = new Class({
   },
   
   isValueChangable: function() {
-    return this.getCommandType ? (this.getCommandType == 'command') : true;
+    return this.commandType != 'radio';
   }
 });
 
-LSD.Behavior.define(':submittable, :valued', LSD.Mixin.Value);
+LSD.Behavior.define('[name], :value', LSD.Mixin.Value);

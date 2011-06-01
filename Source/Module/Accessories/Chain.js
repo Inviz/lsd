@@ -60,7 +60,10 @@ LSD.Module.Chain = new Class({
   
   eachChainAction: function(callback, args, index) {
     if (index == null) index = -1;
-    var chain = this.getActionChain.apply(this, args), action, actions;
+    if (!this.currentChain) {
+      var chain = this.currentChain = this.getActionChain.apply(this, args)
+    } else var chain = this.currentChain;
+    var action, actions;
     for (var link; link = chain[++index];) {
       action = link.perform ? link : link.action ? this.getAction(link.action) : null;
       if (action) {
@@ -74,10 +77,11 @@ LSD.Module.Chain = new Class({
       if (!action || result === true) continue;
       if (!actions) actions = [];
       actions.push(action.options.name);
-      if (result === false) break;//action is asynchronous, stop chain
+      if (result === false) break; //action is asynchronous, stop chain
     }  
     this.chainPhase = index;
     if (this.chainPhase == chain.length) this.chainPhase = -1;
+    if (this.chainPhase == -1) delete this.currentChain;
     return {chain: chain, executed: actions};
   },
   

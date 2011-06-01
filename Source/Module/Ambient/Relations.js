@@ -28,9 +28,8 @@ LSD.Module.Relations = new Class({
   },
   
   addRelation: function(name, options) {
-    if (this.relations[name]) this.relations[name].setOptions(options);
-    else this.relations[name] = new LSD.Relation(name, this, options);
-    return this.relations[name];
+    if (!this.relations[name]) new LSD.Relation(name, this);
+    return this.relations[name].setOptions(options);
   },
   
   removeRelation: function(name, options) {

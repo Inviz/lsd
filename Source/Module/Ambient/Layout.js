@@ -28,62 +28,6 @@ LSD.Module.Layout = new Class({
   initializers: {
     layout: function(options) {
       this.rendered = {};
-      return {
-        events: {
-          self: {
-            /*
-              Extracts and sets layout options from attached element
-            */
-            attach: function(element) {
-              if (!this.extracted && options.extract) 
-                this.extractLayout(element);
-            },
-            /*
-              Unsets options previously extracted from the detached element
-            */
-            detach: function() {
-              if (!this.extracted) return;
-              this.unsetOptions(this.extracted);
-              delete this.extracted, delete this.origin;
-            },
-            /*
-              Mutates element and extract options off it.
-            */
-            beforeBuild: function(query) {
-              if (!query.element) return;
-              if (options.extract || options.clone) this.extractLayout(query.element);
-              var tag = this.getElementTag(true);
-              if (options.clone || (tag && LSD.toLowerCase(query.element.tagName) != tag)) {
-                this.origin = query.element;
-                query.convert = false;
-              }
-            },
-            /*
-              Builds children after element is built
-            */
-            build: function() {
-              if (this.getLayout().origin == this && options.traverse !== false) {
-                if (this.origin && !options.clone) this.element.replaces(this.origin);
-                this.getLayout().render(LSD.slice((this.origin || this.element).childNodes), [this.element, this], options.clone ? 'clone' : null);
-              }
-              if (options.layout) this.buildLayout(options.layout);
-            },
-            /*
-              Augments all parsed HTML that goes through standart .write() interface
-            */
-            write: 'buildLayout',
-            /*
-              Augments all inserted nodes that come from partial html updates
-            */
-            DOMNodeInserted: 'buildLayout'
-          },
-          
-          //applied when mutations are added
-          mutations: {
-            mutateLayout: 'onMutateLayout'
-          }
-        }
-      }
     }
   },
   
@@ -102,7 +46,11 @@ LSD.Module.Layout = new Class({
   },
   
   addMutation: function(selector, mutation) {
-    LSD.Module.Events.setEventsByRegister.call(this, 'mutations', true);
+    if (!this.$register) this.$register = {};
+    if (!this.$register.mutations) {
+      this.addEvent('mutateLayout', this.onMutateLayout);
+      this.$register.mutations = 1;
+    } else this.$register.mutations++;
     if (!this.mutations) this.mutations = {};
     selector.split(/\s*,\s*/).each(function(bit) {
       var parsed = Slick.parse(bit);
@@ -114,7 +62,7 @@ LSD.Module.Layout = new Class({
   },
   
   removeMutation: function(selector, mutation) {
-    LSD.Module.Events.setEventsByRegister.call(this, 'mutations', false);
+    if (!(--this.$register.mutations)) this.removeEvent(mutateLayout, this.onMutateLayout);
     selector.split(/\s*,\s*/).each(function(bit) {
       var parsed = Slick.parse(bit);
       var tag = parsed.expressions[0].getLast().tag;
@@ -153,6 +101,61 @@ LSD.Module.Layout = new Class({
     this.fireEvent('extractLayout', [this.extracted, element])
   }
 });
+
+LSD.Module.Layout.events = {
+  /*
+    Extracts and sets layout options from attached element
+  */
+  attach: function(element) {
+    if (!this.extracted && this.options.extract) 
+      this.extractLayout(element);
+  },
+  /*
+    Unsets options previously extracted from the detached element
+  */
+  detach: function() {
+    if (!this.extracted) return;
+    this.unsetOptions(this.extracted);
+    delete this.extracted, delete this.origin;
+  },
+  /*
+    Mutates element and extract options off it.
+  */
+  beforeBuild: function(query) {
+    if (!query.element) return;
+    if (this.options.extract || this.options.clone) this.extractLayout(query.element);
+    var tag = this.getElementTag(true);
+    if (this.options.clone || (tag && LSD.toLowerCase(query.element.tagName) != tag)) {
+      this.origin = query.element;
+      query.convert = false;
+    }
+  },
+  /*
+    Builds children after element is built
+  */
+  build: function() {
+    if (this.getLayout().origin == this && this.options.traverse !== false) {
+      if (this.origin && !this.options.clone) this.element.replaces(this.origin);
+      var nodes = LSD.slice((this.origin || this.element).childNodes);
+      this.getLayout().render(nodes, [this.element, this], this.options.clone ? 'clone' : null);
+    }
+    if (this.options.layout) this.buildLayout(this.options.layout);
+  },
+  /*
+    Augments all parsed HTML that goes through standart .write() interface
+  */
+  write: function() {
+    this.buildLayout.apply(this, arguments);
+  },
+  /*
+    Augments all inserted nodes that come from partial html updates
+  */
+  DOMNodeInserted: function() {
+    this.buildLayout.apply(this, arguments);
+  }
+};
+
+LSD.addEvents(LSD.Module.Layout.prototype, LSD.Module.Layout.events);
 
 Object.append(LSD.Options, {
   mutations: {

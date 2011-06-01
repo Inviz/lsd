@@ -31,18 +31,6 @@ LSD.Module.Events = new Class({
   initializers: {
     events: function() {
       this.events = {};
-      return {
-        events: {
-          register: function(name, object) {
-            var events = this.events[name];
-            if (events) Events.setStoredEvents.call(object, events, true);
-          },
-          unregister: function(name, object) {
-            var events = this.events[name];
-            if (events) Events.setStoredEvents.call(object, events, false);
-          }
-        }
-      }
     }
   },
   
@@ -103,6 +91,17 @@ LSD.Module.Events = new Class({
       var result = event.apply(this, args);
       if (result) return result;
     }
+  }
+});
+
+LSD.addEvents(LSD.Module.Events.prototype, {
+  register: function(name, object) {
+    var events = this.events[name];
+    if (events) Events.setStoredEvents.call(object, events, true);
+  },
+  unregister: function(name, object) {
+    var events = this.events[name];
+    if (events) Events.setStoredEvents.call(object, events, false);
   }
 });
 
@@ -266,5 +265,18 @@ LSD.Options.events = {
   remove: 'removeEvent',
   iterate: true
 };
+
+Class.Mutators.$events = function(events) {
+  if (!this.prototype.$events) this.prototype.$events = {};
+  for (name in events) {
+    var type = this.prototype.$events[name] || (this.prototype.$events[name] = []);
+    var group = events[name];
+    for (var i = 0, j = group.length; i < j; i++) {
+      var fn = group[i];
+      if (fn) type.push(fn);
+    }
+  }
+};
+
 
 }();

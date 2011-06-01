@@ -56,14 +56,6 @@ LSD.Module.Styles = new Class({
         element: {},    // ... are currently assigned to element
         paint: {}       // ... are currently used to paint
       };
-      return {
-        events: {
-          update: function() {
-            this.style.calculated = {};
-            this.style.computed = {};
-          }
-        }
-      } 
     }
   },
 
@@ -220,6 +212,15 @@ LSD.Module.Styles = new Class({
     this.parent.apply(this, arguments);
   }
 });
+
+LSD.Module.Styles.events = {
+  update: function() {
+    this.style.calculated = {};
+    this.style.computed = {};
+  }
+};
+
+LSD.addEvents(LSD.Module.Styles.prototype, LSD.Module.Styles.events);
 
 LSD.Options.styles = {
   add: 'setStyles',

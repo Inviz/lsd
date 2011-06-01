@@ -20,6 +20,9 @@ requires:
   - LSD.Module.Element
   - LSD.Module.Selectors
   - LSD.Module.Tag
+  - LSD.Module.Chain
+  - LSD.Module.Actions
+  
 provides: 
   - LSD.Module.Accessories
 
@@ -37,6 +40,8 @@ LSD.Module.Accessories = new Class({
     LSD.Module.Shortcuts,
     LSD.Module.Tag,
     LSD.Module.Element,
-    LSD.Module.Selectors
+    LSD.Module.Selectors,
+    LSD.Module.Chain,
+    LSD.Module.Actions
   ]
 });

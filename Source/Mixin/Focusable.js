@@ -14,13 +14,13 @@ requires:
   - QFocuser/QFocuser
  
 provides:
-  - LSD.Mixin.Focus
-  - LSD.Mixin.Focus.Propagation
+  - LSD.Mixin.Focusable
+  - LSD.Mixin.Focusable.Propagation
  
 ...
 */
   
-LSD.Mixin.Focus = new Class({
+LSD.Mixin.Focusable = new Class({
   options: {
     actions: {
       focus: {
@@ -67,7 +67,7 @@ LSD.Mixin.Focus = new Class({
     this.focused = true;
     this.fireEvent('focus', arguments);
     this.onStateChange('focused', true);
-    LSD.Mixin.Focus.Propagation.focus(this);
+    LSD.Mixin.Focusable.Propagation.focus(this);
   },
   
   blur: function(propagated) {
@@ -75,7 +75,7 @@ LSD.Mixin.Focus = new Class({
     this.focused = false;
     this.fireEvent('blur', arguments);
     this.onStateChange('focused', false);
-    if (!propagated) LSD.Mixin.Focus.Propagation.blur.delay(10, this, this);
+    if (!propagated) LSD.Mixin.Focusable.Propagation.blur.delay(10, this, this);
   },
   
   retain: function(e) {
@@ -100,7 +100,7 @@ LSD.Mixin.Focus = new Class({
   }
 });
 
-LSD.Mixin.Focus.Propagation = {
+LSD.Mixin.Focusable.Propagation = {
   focus: function(parent) {
     while (parent = parent.parentNode) if (parent.getFocuser) parent.focus(false);
   },
@@ -118,4 +118,4 @@ LSD.Mixin.Focus.Propagation = {
   }
 };
 
-LSD.Behavior.define('[tabindex][tabindex!=-1]', LSD.Mixin.Focus);
+LSD.Behavior.define('[tabindex][tabindex!=-1], :focusable', LSD.Mixin.Focusable);

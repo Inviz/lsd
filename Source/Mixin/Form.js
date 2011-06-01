@@ -21,14 +21,12 @@ provides:
 
 
 LSD.Mixin.Form = new Class({
-  options: {},
-  
   initializers: {
     form: function() {
       return {
         events: {
           nodeInserted: function(node) {
-            if (!node.form && (node.pseudos['submittable'] || node.pseudos['form-associated'])) node.form = this;
+            if (!node.form && (node.attributes.name || node.pseudos['form-associated'])) node.form = this;
           }
         }
       }
@@ -44,10 +42,6 @@ LSD.Mixin.Form = new Class({
   cancel: function(event) {
     if (event && event.event) event.preventDefault();
     this.fireEvent('cancel', arguments);
-  },
-  
-  reset: function() {
-    
   }
 });
 

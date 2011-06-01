@@ -232,7 +232,7 @@ LSD.Widget.Progress = new Class({
   options: {
     tag: 'progress',
     inline: null,
-    pseudos: Array.fast(':valued')
+    pseudos: Array.fast('value')
   },
   
   getBar: Macro.getter('bar', function() {

@@ -29,19 +29,6 @@ LSD.Module.Tag = new Class({
     tag: function(options) {
       this.setContext(options.context)
       this.nodeType = options.nodeType;
-      return {
-        events: {
-          tagChanged: function() {
-            if (this.source != null) this.setSource();
-          },
-          initialize: function() {
-            this.setSource();
-          },
-          beforeBuild: function() {
-            if (this.source == null) this.setSource();
-          }
-        }
-      }
     }
   },
   
@@ -59,8 +46,8 @@ LSD.Module.Tag = new Class({
   },
   
   setSource: function(source) {
-    if (!source) source = this.getSource();
-    if (this.source != source) {
+    if (!source) source = this.getSource(true);
+    if (this.source != source && source.length) {
       if (source) {
         var role = this.context.find(source);
         if (role && role != this.role) {
@@ -69,7 +56,7 @@ LSD.Module.Tag = new Class({
           this.mixin(role);
         }
       }
-      this.source = source || false; 
+      this.source = source ? (source.join ? source.join() : source) : false; 
     }
     return this;
   },
@@ -125,6 +112,18 @@ LSD.Module.Tag = new Class({
     return this;
   }
   
+});
+
+LSD.addEvents(LSD.Module.Tag.prototype, {
+  tagChanged: function() {
+    if (this.source != null) this.setSource();
+  },
+  initialize: function() {
+    this.setSource();
+  },
+  beforeBuild: function() {
+    if (this.source == null) this.setSource();
+  }
 });
 
 Object.append(LSD.Options, {
