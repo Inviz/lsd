@@ -63,7 +63,6 @@ LSD.Mixin.ContentEditable = new Class({
             var body = this.getEditorBody()
             body.contentEditable = false;
             body.contentEditable = true;
-            console.error(body)
         }
         this.editor.focus();
         this.editor.forceNextSelectionCheck();

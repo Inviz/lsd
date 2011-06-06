@@ -46,7 +46,7 @@ var LSD = Object.append(new Events, {
       focused:  {enabler: 'focus',      disabler: 'blur'},     
       selected: {enabler: 'select',     disabler: 'unselect'}, 
       checked:  {enabler: 'check',      disabler: 'uncheck',   toggler: 'toggle'},
-      expanded: {enabler: 'expand',     disabler: 'collapse',  toggler: 'toggle'},
+      collapsed:{enabler: 'collapse',   disabler: 'expand',  toggler: 'toggle'},
       working:  {enabler: 'busy',       disabler: 'idle'},
       chosen:   {enabler: 'choose',     disabler: 'forget'},
       empty:    {enabler: 'empty',      disabler: 'fill',      property: 'unfilled', initial: true},

@@ -105,7 +105,9 @@ LSD.Module.Element = new Class({
     return this;
   },
   
-  $family: Function.from('object')
+  $family: function() {
+    return this.options.key || 'widget';
+  }
 });
 
 LSD.Module.Element.events = {

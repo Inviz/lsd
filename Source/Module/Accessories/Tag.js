@@ -56,7 +56,7 @@ LSD.Module.Tag = new Class({
           this.mixin(role);
         }
       }
-      this.source = source ? (source.join ? source.join() : source) : false; 
+      this.source = source ? (source.join ? source.join('-') : source) : false; 
     }
     return this;
   },

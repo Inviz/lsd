@@ -40,7 +40,7 @@ sources:
   - Source/Layer/Size.js
   - Source/Layer/Scale.js
   - Source/Layer/Stroke.js
-  - Source/Mixin/Form.js
+  - Source/Mixin/Submittable.js
   - Source/Mixin/Fieldset.js
   - Source/Mixin/Draggable.js
   - Source/Mixin/Resizable.js
@@ -51,7 +51,6 @@ sources:
   - Source/Mixin/Request.js
   - Source/Mixin/Resource.js
   - Source/Mixin/Validity.js
-  - Source/Mixin/Dialog.js
   - Source/Mixin/Value.js
   - Source/Mixin/Animation.js
   - Source/Mixin/Uploader.js
@@ -95,7 +94,7 @@ sources:
   - Source/Action/Delete.js
   - Source/Action/Value.js
   - Source/Action/Replace.js
-  - Source/Action/Send.js
+  - Source/Action/Submit.js
   - Source/Action/State.js
   - Source/Action/Set.js
   - Source/Action/Display.js

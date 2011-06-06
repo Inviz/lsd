@@ -122,6 +122,16 @@ LSD.Mixin.Value = new Class({
       return this.formatValue(this.value);
     }
   },
+  
+  toData: function() {
+    if ((this.commandType != 'checkbox' || this.commandType != 'radio') || this.checked) return this.getValue()
+  },
+  
+  getData: function() {
+    var data = {};
+    if (this.attributes.name) data[this.attributes.name] = this.toData();
+    return data;
+  },
 
   formatValue: function(value) {
     return value;
@@ -141,4 +151,4 @@ LSD.Mixin.Value = new Class({
   }
 });
 
-LSD.Behavior.define('[name], :value', LSD.Mixin.Value);
+LSD.Behavior.define(':form-associated, :value', LSD.Mixin.Value);

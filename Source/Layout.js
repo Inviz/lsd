@@ -75,13 +75,11 @@ LSD.Layout.prototype = Object.append(new Options, {
   
   interpolate: function(string, object) {
     if (!object) object = this.options.interpolate;
-    var self = this;
-    return string.replace(/\\?\{([^{}]+)\}/g, function(match, name){
-      if (match.charAt(0) == '\\') return match.slice(1);
-      var value = object.call ? LSD.Interpolation.execute(name, object) : object[string];
-      self.interpolated = true;
-      return (value != null) ? value : '';
-    });
+    var interpolated = LSD.Interpolation.attempt(string, object);
+    if (interpolated !== false) {
+      this.interpolated = true;
+      return interpolated;
+    } else return string;
   },
   
   // type handlers
@@ -97,7 +95,6 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   element: function(element, parent, method, opts) {
-    if (!method) method = this.options.method;
     var converted = element.uid && Element.retrieve(element, 'widget');
     var children = LSD.slice(element.childNodes), cloning = (method == 'clone');
     var options = Object.append({traverse: false}, opts);
@@ -126,7 +123,6 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   textnode: function(element, parent, method) {
-    if (!method) method = this.options.method;
     var value = element.textContent;
     if (this.options.interpolate) var interpolated = this.interpolate(value);
     if (interpolated != null && interpolated != value || method == 'clone') {

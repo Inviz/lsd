@@ -20,121 +20,127 @@ provides:
 
 
 LSD.Action = function(options, name) {
-  var target, state;
-  var self = {
-    options: options,
-    
-    enable: function() {
-      if (self.enabled) return false;
-      self.commit(target, state, arguments, target);
-      if (options.events) target.addEvents(target.events[options.events]);
-      if (self.enabled == null) target.addEvents(events);
-      self.enabled = true;
-      return true;
-    },
-
-    disable: function() {
-      if (!self.enabled) return false;
-      self.revert(target, state, arguments, target);
-      if (options.events) target.removeEvents(target.events[options.events]);
-      if (self.enabled != null) target.removeEvents(events);
-      self.enabled = false;
-      return true;
-    },
-    
-    commit: function(target, state, args, bind) {
-      if (state) target[state.enabler]();
-      var result = options.enable.apply(bind || this, [target].concat(args));
-      return result;
-    },
-    
-    revert: function(target, state, args, bind) {
-      if (state) target[state.disabler]();
-      return options.disable.apply(bind || this, [target].concat(args));
-    },
-    
-    perform: function(target, state, args) {
-      var method = (!options.getState || !options.getState.apply(this, [target].concat(args))) ? 'commit' : 'revert';
-      return this[method].apply(this, arguments);
-    },
-
-    use: function(widget, state) {
-      var widgets = Array.prototype.slice.call(arguments, 0);
-      var state = widgets.pop();
-      self[state ? 'enable' : 'disable'].apply(self, widgets);
-    },
-
-    watch: function(widget, state) {
-      if (!self[state ? 'enable' : 'disable'](widget)) //try enable the action
-        options[state ? 'enable' : 'disable'].call(target, widget); //just fire the callback 
-    },
-    
-    inject: function() {
-      self.enable();
-      if (state) self[state.enabler]();
-    },
-
-    attach: function(widget) {
-      target = widget;
-      state = name && widget.$states && widget.$states[name];
-      if (state) {
-        events[state.enabler] = options.enable.bind(target);
-        events[state.disabler] = options.disabler.bind(target);
-      }
-      target.addEvents(events);
-      if (options.uses) {
-        target.use(options.uses, self.use);
-      } else if (options.watches) {
-        target.watch(options.watches, self.watch);
-      } else if (!state || (name && target[name])) {
-        if (target.onDOMInject) target.onDOMInject(self.inject);
-        else self.inject()
-      }
-    },
-
-    detach: function(widget) {
-      target.removeEvents(events);
-      if (options.watches) target.unwatch(options.watches, self.watch);
-      if (self.enabled) self.disable();
-      if (state) {
-        self[state.disabler]();
-        delete events[state.enabler], events[state.disabler];
-      }
-      target = state = null;
-    },
-    
-    store: function(key, value) {
-      if (!this.storage) this.storage = {};
-      if (!key.indexOf && (typeof key !== 'number')) key = LSD.uid(key);
-      this.storage[key] = value;
-     },
-    
-    retrieve: function(key) {
-      if (!this.storage) return;
-      if (!key.indexOf && (typeof key !== 'number')) key = LSD.uid(key);
-      return this.storage[key];
-    }
-  };
-  for (var methods = ['enable', 'disable'], i, method; method = methods[i++];) {
-    var fn = options[method];
-    if (fn && !fn.call) {
-      var types = fn;
-      options[method] = function(target) {
-        var callback = types[typeOf(target)];
-        if (callback) return callback.apply(this, arguments);
-      }
-    }
-  }
-  var events = {
-    enable:  self.enable,
-    disable: self.disable,
-    detach:  self.disable
+  this.options = this.options ? Object.append(options || {}, this.options) : options || {};
+  this.name = name;
+  this.events = {
+    enable:  this.enable.bind(this),
+    disable: this.disable.bind(this),
+    detach:  this.disable.bind(this)
   };  
-  return self;
+  return this;
 };
 
+LSD.Action.prototype = {
+  enable: function() {
+    if (this.enabled) return false;
+    this.commit(this.target, arguments, this.target);
+    if (this.options.events) this.target.addEvents(this.target.events[this.options.events]);
+    if (this.enabled == null) this.target.addEvents(this.events);
+    this.enabled = true;
+    return true;
+  },
+
+  disable: function() {
+    if (!this.enabled) return false;
+    this.revert(this.target, arguments, this.target);
+    if (this.options.events) this.target.removeEvents(this.target.events[this.options.events]);
+    if (this.enabled != null) this.target.removeEvents(this.events);
+    this.enabled = false;
+    return true;
+  },
+  
+  commit: function(target, args, bind) {
+    if (this.state) this.target[this.state.enabler]();
+    var result = this.options.enable.apply(bind || this, [target].concat(args));
+    return result;
+  },
+  
+  revert: function(target, args, bind) {
+    if (this.state) this.target[this.state.disabler]();
+    return this.options.disable.apply(bind || this, [target].concat(args));
+  },
+  
+  perform: function(target, args) {
+    var method = (!this.options.getState || this.options.getState.apply(this, [target].concat(args))) ? 'commit' : 'revert';
+    return this[method].apply(this, arguments);
+  },
+
+  use: function(widget, state) {
+    var widgets = Array.prototype.slice.call(arguments, 0);
+    var state = widgets.pop();
+    this[state ? 'enable' : 'disable'].apply(this, widgets);
+  },
+
+  watch: function(widget, state) {
+    if (!this[state ? 'enable' : 'disable'](widget)) //try enable the action
+      this.options[state ? 'enable' : 'disable'].call(this.target, widget); //just fire the callback 
+  },
+  
+  inject: function() {
+    this.enable();
+    if (this.state) this[state.enabler]();
+  },
+
+  attach: function(widget) {
+    this.target = widget;
+    this.state = this.name && widget.$states && widget.$states[this.name];
+    if (this.state) {
+      this.events[this.state.enabler] = this.options.enable.bind(this.target);
+      this.events[this.state.disabler] = this.options.disabler.bind(this.target);
+    }
+    this.target.addEvents(this.events);
+    if (this.options.uses) {
+      this.target.use(this.options.uses, this.use.bind(this));
+    } else if (this.options.watches) {
+      this.target.watch(this.options.watches, this.watch.bind(this));
+    } else if (!this.state || (name && this.target[name])) {
+      if (this.target.onDOMInject) this.target.onDOMInject(this.inject.bind(this));
+      else this.inject()
+    }
+  },
+
+  detach: function(widget) {
+    this.target.removeEvents(this.events);
+    if (this.options.watches) this.target.unwatch(this.options.watches, this.watch);
+    if (this.enabled) this.disable();
+    if (this.state) {
+      this[this.state.disabler]();
+      delete this.events[this.state.enabler], this.events[this.state.disabler];
+    }
+    this.target = this.state = null;
+  },
+  
+  store: function(key, value) {
+    if (!this.storage) this.storage = {};
+    if (!key.indexOf && (typeof key !== 'number')) key = LSD.uid(key);
+    this.storage[key] = value;
+   },
+  
+  retrieve: function(key) {
+    if (!this.storage) return;
+    if (!key.indexOf && (typeof key !== 'number')) key = LSD.uid(key);
+    return this.storage[key];
+  },
+  
+  eliminate: function(key) {
+    if (!this.storage) return;
+    if (!key.indexOf && (typeof key !== 'number')) key = LSD.uid(key);
+    delete this.storage[key];
+  },
+  
+  getInvoker: function() {
+    return this.invoker;
+  },
+  
+  getDocument: function() {
+    return this.invoker && this.invoker.document;
+  }
+}
+
 LSD.Action.build = function(curry) {
-  return function(options, name) {
-    return new LSD.Action(Object.append({}, options, curry), name);
+  var action = function() {
+    LSD.Action.apply(this, arguments);
   };
+  action.prototype = Object.merge({options: curry}, LSD.Action.prototype);
+  return action;
 };

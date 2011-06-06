@@ -158,25 +158,12 @@ LSD.Module.DOM = new Class({
       clone: true
     }, options));
   },
-
-  extractDocument: function(widget) {
-    var element = widget.lsd ? widget.element : widget;
-    var isDocument = widget.documentElement || (instanceOf(widget, LSD.Document));
-    var parent = this.parentNode;
-    if (isDocument  // if document
-    || (parent && parent.dominjected) //already injected widget
-    || (widget.ownerDocument && (widget.ownerDocument.body == widget)) //body element
-    || element.offsetParent) { //element in dom (costy check)
-      return (parent && parent.document) || (isDocument ? widget : LSD.Module.DOM.findDocument(widget));
-    }
-  },
   
   setDocument: function(document) {
     LSD.Module.DOM.walk(this, function(child) {
       child.ownerDocument = child.document = document;
       child.fireEvent('register', ['document', document]);
       child.fireEvent('setDocument', document);
-      child.dominjected = true;
     });
     return this;
   },
@@ -191,10 +178,7 @@ LSD.Module.DOM = new Class({
       if (where === false) widget.appendChild(this, false)
       else if (!inserters[where || 'bottom'](widget.lsd ? this : this.toElement(), widget) && !quiet) return false;
     }
-    if (quiet !== true || widget.document) {
-      var document = widget.document || (this.documentElement ? this : this.extractDocument(widget));
-      if (document) this.setDocument(document);
-    }
+    if (quiet !== true || widget.document) this.setDocument(widget.document || LSD.document);
     if (!this.options.root) this.fireEvent('inject', this.parentNode);
     return this;
   },
@@ -294,19 +278,6 @@ Object.append(LSD.Module.DOM, {
   
   find: function(target, lazy) {
     return target.lsd ? target : ((!lazy || target.uid) && Element[lazy ? 'retrieve' : 'get'](target, 'widget'));
-  },
-  
-  findDocument: function(target) {
-    if (target.documentElement) return target;
-    if (target.document && target.document.lsd) return target.document;
-    if (target.lsd) return;
-    var body = target.ownerDocument.body;
-    var document = (target != body) && Element.retrieve(body, 'widget');
-    while (!document && (target = target.parentNode)) {
-      var widget = Element.retrieve(target, 'widget')
-      if (widget) document = (widget instanceof LSD.Document) ? widget : widget.document;
-    }
-    return document;
   },
   
   getID: function(target) {

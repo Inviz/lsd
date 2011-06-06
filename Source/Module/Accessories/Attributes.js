@@ -24,6 +24,7 @@ LSD.Module.Attributes = new Class({
     attributes: function() {
       this.classes = new FastArray;
       this.pseudos = new FastArray;
+      this.dataset = {};
       this.attributes = {};
     }
   },
@@ -36,11 +37,13 @@ LSD.Module.Attributes = new Class({
     }
   },
   
-  removeAttribute: function(attribute) {
-    if (this.attributes[attribute] != null) {
+  removeAttribute: function(name) {
+    if (name.substring(0, 5) == 'data') {
+      delete this.dataset[name.substring(5, name.length - 5)];
+    } else if (this.attributes[name] != null) {
       this.fireEvent('selectorChange', ['attributes', name, false]);
-      delete this.attributes[attribute];
-      if (this.element) this.element.removeAttribute(attribute);
+      delete this.attributes[name];
+      if (this.element) this.element.removeAttribute(name);
       if (LSD.States.Attributes[name])
         if (this[name]) this.setStateTo(name, false);
     }
@@ -53,15 +56,21 @@ LSD.Module.Attributes = new Class({
       var logic = LSD.Attributes.Setter[name];
       if (logic) logic.call(this, value)
     }
-    if (this.attributes[name] != value) {
-      if (LSD.States.Attributes[name]) {
-        var mode = (value == true || value == name);
-        if (this[name] != mode) this.setStateTo(name, mode);
+    if (name.substring(0, 5) == 'data-') {
+      this.dataset[name.substring(5, name.length - 5)] = value;
+    } else {
+      if (this.options && this.options.interpolate)
+        value = LSD.Interpolation.attempt(value, this.options.interpolate) || value;
+      if (this.attributes[name] != value) {
+        if (LSD.States.Attributes[name]) {
+          var mode = (value == true || value == name);
+          if (this[name] != mode) this.setStateTo(name, mode);
+        }
+        this.fireEvent('selectorChange', ['attributes', name, false]);
+        this.attributes[name] = value;    
+        this.fireEvent('selectorChange', ['attributes', name, true]);
+        if (this.element) this.element.setAttribute(name, value);
       }
-      this.fireEvent('selectorChange', ['attributes', name, false]);
-      this.attributes[name] = value;    
-      this.fireEvent('selectorChange', ['attributes', name, true]);
-      if (this.element) this.element.setAttribute(name, value);
     }
     return this;
   },

@@ -59,7 +59,7 @@ provides:
       }
     }
     return (parsed[value] = (result.length == 1 ? result[0] : result));
-  }
+  };
   
   var run = LSD.Interpolation.run = function(command, callback) {
     var fn = command.fn;
@@ -75,6 +75,29 @@ provides:
       return func.apply(this, args);
     }
     return command;
-  }
+  };
+  
+  var attempt = LSD.Interpolation.attempt = function(string) {
+    var count = 0, args = arguments;
+    string = string.replace(/\\?\{([^{}]+)\}/g, function(match, name){
+      count++;
+      if (match.charAt(0) == '\\') return match.slice(1);
+      for (var arg, value, callback, element, i = 1, j = args.length; i < j; i++) {
+        if (!(arg = args[i])) continue;
+        if (arg.call) callback = call;
+        else if (arg.localName) element = arg;
+        else if (arg[match]) return arg[match];
+      }
+      return interpolate(match, callback) || (element && element.getAttribute('data-' + match.dasherize)) || "";
+    });
+    return count ? string : false;
+  };
+  
+  var from = LSD.Interpolation.from = function() {
+    var args = Array.prototype.slice(arguments, 0);
+    return function(string) {
+      return attempt.apply([string].concat(args));
+    };
+  };
   
 }();

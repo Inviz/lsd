@@ -304,7 +304,7 @@ var Options = LSD.Relation.Options = {
   
   as: {
     add: function(widget, name) {
-      widget[name] = this.origin;
+      if (!widget[name]) widget[name] = this.origin;
     },
     remove: function(widget, name) {
       if (widget[name] == this.origin) delete widget[name];

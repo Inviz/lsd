@@ -42,36 +42,12 @@ LSD.Module.Actions = new Class({
     return this.actions[name] || (this.actions[name] = new (LSD.Action[LSD.capitalize(name)] || LSD.Action)(action, name))
   },
   
-  execute: function(command, args) {
-    if (command.call && (!(command = command.apply(this, args))));
-    else if (command.indexOf) command = {action: command}
-    if (command.arguments) {
-      var cargs = command.arguments.call ? command.arguments.call(this) : command.arguments;
-      args = [].concat(cargs || [], args || []);
+  getActionState: function(action, args, state, revert) {
+    if (state == null) {
+      if (action.options.getState) state = action.options.getState.apply(action, args);
+      else state = true; //enable things by default
     }
-    var action = this.getAction(command.action);
-    var targets = command.target;
-    if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return true;
-    var state = command.state;
-    var promise, self = this;
-    var perform = function(target) {
-      var method = (state == null) ? 'perform' : ((state.call ? state(target, targets) : state) ? 'commit' : 'revert');
-      var result = action[method](target, target.$states && target.$states[action.name], args);
-      if (result && result.callChain && (command.promise !== false)) {
-        if (!promise) promise = [];
-        promise.push(result);
-        result.chain(function() {
-          if (promise.erase(result).length == 0) self.callChain.apply(self, arguments);
-        });
-      } else if (result !== false) return;
-      return false;
-    };
-    var probe = targets ? (targets.map ? targets[0] : targets) : this;
-    if (probe.nodeType) action.document =  LSD.Module.DOM.findDocument(probe);
-    action.caller = this;
-    var ret = (targets) ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);
-    delete action.caller, delete action.document;
-    return (ret ? ret[0] : ret) !== false;
+    return !!((state && state.call ? state.apply(this, args) : state) ^ revert);
   }
 });
 

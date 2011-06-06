@@ -22,17 +22,22 @@ LSD.Mixin.Fieldset = new Class({
     has: {
       many: {
         elements: {
-          selector: '[name]',
+          selector: ':form-associated',
           scopes: {
             submittable: {
-              filter: ':valued'
-            },
+              filter: '[name]:valued'
+            }
           },
           callbacks: {
             'add': 'addField',
             'remove': 'removeField'
           }
         }
+      }
+    },
+    expects: {
+      ':form': function(widget, state) {
+        widget[state ? 'addRelation' : 'removeRelation']('elements', {as: 'form'})
       }
     }
   },
@@ -89,8 +94,11 @@ LSD.Mixin.Fieldset = new Class({
     for (var name in this.names) {
       var memo = this.names[name];
       if (memo.push) {
-        for (var i = 0, radio; radio = memo[i++];) if (radio.checked) data[name] = radio.getValue(); break;
-      } else if (memo.commandType != 'checkbox' || memo.checked) data[name] = memo.getValue();
+        for (var i = 0, radio; radio = memo[i++];) if (radio.checked) data[name] = radio.toData(); break;
+      } else {
+        var value = memo.toData();
+        if (value != null) data[name] = value;
+      }
     }
     return data;
   },
@@ -163,7 +171,7 @@ LSD.Mixin.Fieldset = new Class({
   },
   
   removeField: function(widget) {
-    var name = widget.attributes.name, radio = (widget.options.command.type == 'radio');
+    var name = widget.attributes.name, radio = (widget.commandType == 'radio');
     if (!name) return;
     if (radio) this.names[name].erase(widget);
     else delete this.names[name];
@@ -210,9 +218,10 @@ LSD.Mixin.Fieldset = new Class({
 
 var Fieldset = Object.append(LSD.Mixin.Fieldset, {
   rNameIndexBumper: /(\[)(\d+?)(\])/,
-  rIdIndexBumper: /(_)(\d+?)(_|$)/,
-  rNameParser:      /(^[^\[]+)|\[([^\]]*)\]/ig,
-  rPrefixAppender:  /^[^\[]+/i,
+  rIdIndexBumper:   /(_)(\d+?)(_|$)/,
+  rNameParser:      /(^[^\[]+)|\[([^\]]*)\]/g,
+  rNameMultiplier:  /(?:\[\])?$/,
+  rPrefixAppender:  /^[^\[]+/,
   getName: function(model, name) {
     return model + name.replace(Fieldset.rPrefixAppender, function(match) {return '[' + match + ']'});
   },
@@ -225,6 +234,9 @@ var Fieldset = Object.append(LSD.Mixin.Fieldset, {
     return string.replace(Fieldset.rIdIndexBumper, function(m, a, index, b) { 
       return a + (parseInt(index) + 1) + b;
     })
+  },
+  multiplyName: function(string) {
+    return string.replace(Fieldset.rNameMultiplier, '[]')
   }
 });
 

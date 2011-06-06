@@ -26,27 +26,13 @@ provides:
         target: function() {
           if (!this.attributes.target) return;
           return this.parseTargetSelector(this.attributes.target).map(function(chain) {
-            if (!chain.action) chain.action = this.getTargetAction();
+            if (!chain.action) chain.action = this.getTargetAction(); 
             if (!chain.action) return;
-            if (chain.selector) chain.target = function() {
-              return this.getTarget(chain.selector);
-            }
+            if (chain.selector) chain.target = this.getElement(chain.selector);
             return chain;
           }.bind(this));
         }
       }
-    },
-    
-    getTarget: function(selector) {
-      if (!selector && !(selector = this.attributes.target)) return false;
-      var results = this.getElements(selector)
-      return results.length > 0 && results.map(function(result) {
-        if (result.localName) {
-          var widget = Element.retrieve(result, 'widget');
-          if (widget && widget.element == result) return widget
-        }
-        return result;
-      });
     },
   
     parseTargetSelector: function(selector) {
@@ -61,7 +47,7 @@ provides:
   
   
   var Parser = LSD.Mixin.Target.Parser = {
-    build: function(expression, start, end) {      
+    build: function(expression, start, end, keyword) {      
       var last = expression[end - start - 1];
       if (!last.classes && !last.attributes && last.tag == '*' && !last.id && last.pseudos[0].type == 'class') {
         var actions = last.pseudos
@@ -69,9 +55,13 @@ provides:
       };
       var built = (start < end) ? {selector: Parser.slice(expression, start, end)} : {}
       if (actions) return actions.map(function(pseudo, i) {
-          var object = Object.append({action: pseudo.key}, built);
-          if (pseudo.value) object.arguments = pseudo.value;
-          return object;
+        var object = Object.append({action: pseudo.key}, built);
+        var action = LSD.Action[LSD.toClassName(pseudo.key)];
+        var priority = action && action.prototype.options && action.prototype.options.priority;
+        if (priority != null) object.priority = priority;
+        if (pseudo.value) object.arguments = pseudo.value;
+        if (keyword) object.keyword = keyword;
+        return object;
       }); else return built;
     },
     
@@ -86,26 +76,16 @@ provides:
       var parsed = selector.Slick ? selector : Slick.parse(selector), expressions = [];
       for (var i = 0, expression; expression = parsed.expressions[i]; i++) {
         var started = 0;
-        for (var j = 0, k = expression.length - 1, selector; selector = expression[j]; j++) {
-          var joiner = Joiners[selector.combinator];
-          if (joiner || j == k) {
-            var exp = Parser.build(expression, started, (joiner ? j : j + 1));
-            expressions.push[exp.push ? 'apply' : 'call'](expressions, exp);
-          }
-        }
+        var first = expression[0];
+        var keyword = Keywords[first.tag] ? first.tag : null; 
+        var exp = Parser.build(expression, started, expression.length, keyword);
+        expressions.push[exp.push ? 'apply' : 'call'](expressions, exp);
       }
       return expressions;
     }
   };
   
-  var Joiners = Parser.Joiners = {
-    '&': function(a, b) {
-      return a() && b()
-    },
-    '|': function(a, b) {
-      return a() || b()
-    }
-  };
+  var Keywords = Parser.Keywords = Array.fast('if', 'then', 'else', 'or', 'and', 'before');
 }();
 
 LSD.Behavior.define('[target]', LSD.Mixin.Target);

@@ -52,6 +52,7 @@ LSD.Mixin.Command = new Class({
   }),
   
   click: function() {
+    if (this.disabled) return false;
     this.fireEvent('click');
     this.getCommand().click();
     this.callChain();

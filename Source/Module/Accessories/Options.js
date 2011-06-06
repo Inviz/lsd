@@ -101,7 +101,7 @@ LSD.Module.Options.initialize = function(element, options) {
   // Run callbacks for all the options set
   this.setOptions(options);
   
-  // Attach to a given element
+  // Indicate readiness to start
   this.fireEvent('boot', [options, element]);
   
   // Attach to a given element

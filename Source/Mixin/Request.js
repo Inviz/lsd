@@ -28,16 +28,20 @@ LSD.Mixin.Request = new Class({
     states: Array.fast('working'),
     events: {
       self: {
-        build: function() {
-          if (this.attributes.autosend) this.send();
+        submit: function() {
+          return this.send.apply(this, arguments);
+        },
+        
+        cancel: function() {
+          return this.stop()
         },
         
         getCommandAction: function() {
-          if (!this.isRequestURLLocal()) return 'send';
+          if (!this.isRequestURLLocal()) return 'submit';
         },
 
         getTargetAction: function() {
-          if (this.getCommandAction() == 'send') return 'update';
+          if (this.getCommandAction() == 'submit') return 'update';
         }
       }
     }
@@ -49,7 +53,7 @@ LSD.Mixin.Request = new Class({
     for (var i = 0, j = arguments.length, arg, opts; i < j; i++) {
       var arg = arguments[i];
       if (!arg) continue;
-      if (typeof arg == 'object' && !arg.event) {
+      if (typeof arg == 'object' && !arg.event && !arg.indexOf) {
         if (("url" in arg) || ("method" in arg) || ("data" in arg)) Object.merge(options, arg)
         else options.data = Object.merge(options.data || {}, arg);
       } else if (arg.call) var callback = arg;
@@ -57,6 +61,11 @@ LSD.Mixin.Request = new Class({
     var request = this.getRequest(options);
     if (callback) request.addEvent('complete:once', callback);
     return request.send(options);
+  },
+  
+  stop: function() {
+    if (this.request) this.request.cancel();
+    return this;
   },
   
   getRequest: function(options) {
@@ -78,7 +87,9 @@ LSD.Mixin.Request = new Class({
   },
   
   onRequestSuccess: function() {
-    if (this.chainPhase == -1 && this.getCommandAction() == 'send') this.callOptionalChain.apply(this, arguments);
+    if (this.getCommandAction) 
+      if (this.chainPhase == -1 && this.getCommandAction() == 'submit')  
+        this.eachLink('optional', arguments, true);
   },
   
   onRequest: function() {

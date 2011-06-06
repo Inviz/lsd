@@ -20,13 +20,11 @@ provides:
 
 
 LSD.Action.Dialog = LSD.Action.build({
-  enable: function(target, data) {
-    if (data && !data.event) {
-      if (data.charAt) {
-        var content = data;
-        delete data;
-      }
-    } else delete data;
+  priority: 50,
+  
+  enable: function(target) {
+    var args = Array.link(Array.prototype.slice(arguments, 1), 
+      {content: String.type, data: Object.type, interpolate: Function.type});
     if (target.element) {
       var dialog = target;
       target = target.element;
@@ -36,37 +34,23 @@ LSD.Action.Dialog = LSD.Action.build({
       dialog = null;
     }
     if (!dialog) {
-      var source = this.caller.toElement();
-      var options = {
-        interpolate: function(string) {
-          if (data) {
-            var substitution = data[string];
-            if (!substitution && substitutions.callback) substitution = substitutions.callback.call(this, string)
-            if (substitution) {
-              if (substitution.call) substitution = substitution.call(source, string, this);
-              if (substitution) return substitution;
-            }
-          }
-          return source.getProperty('data-' + string.dasherize())
-        },
-        clone: true,
-        caller: function() {
-          return this;
-        }.bind(this.caller),
+      var invoker = this.invoker, options = {
         tag: 'body',
         attributes: {
           type: 'dialog'
-        }
+        },
+        interpolate: LSD.Interpolation.from(args.data, invoker.dataset, args.callback),
+        document: this.getDocument(),
+        invoker: this.invoker
       };
       if (!target.indexOf) {
         if (target.hasClass('singlethon')) options.clone = false;
         var element = target;
       } else options.attributes.kind = target;
-      var dialog = new LSD.Widget(options, element);
+      var dialog = $dialog = new LSD.Widget(options, element);
     }
-    if (content) dialog.write(content);
+    if (args.content) dialog.write(content);
     dialog.show();
-    dialog.inject(document.body)
     this.store(target, dialog);
     return false;
   },

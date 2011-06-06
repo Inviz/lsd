@@ -45,8 +45,11 @@ var Expectations = LSD.Module.Expectations = new Class({
     parts. The widget that is *expect*ing the selector, groups
     his expectations by tag name. Every node inserted into
     that element or its children will pick up expectations
-    related to it, thus matching static part of a selector.
-    Then it's time to match the dynamic part. 
+    related to it, thus matching static part of a selector
+    - tag name and combinator. 
+    
+    It's only a matter of matching a dynamic part then. 
+    - classes, pseudos and attributes.
   */
   expect: function(selector, callback, self) {
     if (selector.indexOf) selector = Slick.parse(selector);
@@ -326,14 +329,24 @@ LSD.Module.Events.Targets.expected = function() {
   }
 };
 
-
-LSD.Options.$expectations = {
-  add: 'expect',
-  remove: 'unexpect',
+LSD.Options.expects = {
+  add: function(selector, callback) {
+    this.expect(selector, callback, true);
+  },
+  remove: function(callback) {
+    this.unexpect(selector, callback, true);
+  },
   iterate: true,
   process: 'bindEvents'
 };
 
-var States = LSD.States.Known;
-  
+LSD.Options.watches = Object.append({}, LSD.Options.expects, {
+  add: function(selector, callback) {
+    this.watch(selector, callback);
+  },
+  remove: function(callback) {
+    this.watch(selector, callback);
+  }
+});
+
 }();

@@ -97,6 +97,7 @@ LSD.Document = new Class({
     if (!stopped && link) {
       var node = Element.retrieve(link, 'node');
       if (!node) Element.store(link, 'node', node = new LSD.Widget.Anchor(link));
+      node.document = this;
       node.click(event);
       event.preventDefault();
     }
