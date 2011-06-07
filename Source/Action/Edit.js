@@ -129,4 +129,4 @@ LSD.Widget.Form.Edit = new Class({
     //widget.setValue(Element.get(element, 'itemvalue'));
     return widget;
   }
-})
+});
