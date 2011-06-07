@@ -18,6 +18,8 @@ provides:
 ...
 */
 
+!function() {
+
 LSD.Module.Chain = new Class({
   initializers: {
     chain: function() {
@@ -56,7 +58,7 @@ LSD.Module.Chain = new Class({
   },
   
   eachLink: function(filter, args, ahead, revert, target) {
-    if (filter && filter.indexOf) filter = LSD.Module.Chain.Iterators[filter];
+    if (filter && filter.indexOf) filter = Iterators[filter];
     if (args != null && !args.push) args = LSD.slice(args); 
     
     var chain = this.currentChain || (this.currentChain = this.getActionChain.apply(this, args));
@@ -70,12 +72,12 @@ LSD.Module.Chain = new Class({
     var action, phases = revert ? revert.length ? revert : this.chainPhasing : [];
     for (var link; link = chain[index]; index += (revert ? -1 : 1)) {
       action = link.action ? this.getAction(link.action) : null;
+      if (filter) {
+        var filtered = filter.call(this, link, chain, index);
+        if (filtered == null) return phases;
+        else if (filtered === false) continue;
+      };
       if (action) {
-        if (filter) {
-          var filtered = filter.call(this, link, chain, index);
-          if (filtered == null) return phases;
-          else if (filtered === false) continue;
-        };
         if (revert) {
           var last = phases.getLast();
           if (last && last.asynchronous && last.index < this.chainPhase) break;
@@ -89,7 +91,7 @@ LSD.Module.Chain = new Class({
         if (link.callback) link.callback.apply(this, args);
       }
       if (!revert) phases.push({index: index, state: result, asynchronous: result == null, action: link.action});
-      if (result == null) break; //action is asynchronous, stop chain
+      if (action && result == null) break; //action is asynchronous, stop chain
     }
     if (index >= chain.length) index = chain.length - 1;
     if (index > -1) {
@@ -129,10 +131,12 @@ LSD.Module.Chain = new Class({
         var callback = function(args, state) {
           (state ? succeed : failed).push([target, args]);
           result.removeEvents(events);
-          // Try to contiune 
-          if (command.fork || action.options.fork)
-            if (state && target.chainPhase == -1 || (target.getActionChain.apply(target, args).length - 1 == target.chainPhase)) 
-              target.eachLink('optional', args, true);
+          // Try to fork off execution if action lets so 
+          if (value && (command.fork || action.options.fork)) {
+            //if (target.getCommandAction && target.getCommandAction() == command.action)
+              if (target.chainPhase == -1) target.callChain.apply(target, args);
+              else target.eachLink('optional', args, true);
+          }
           if (failed.length + succeed.length != promised.length) return;
           if (failed.length) self.eachLink('alternative', args, true, false, succeed);
           if (self.currentChain && self.chainPhase < self.currentChain.length - 1)
@@ -166,8 +170,9 @@ LSD.Module.Chain = new Class({
   }
 });
 
-LSD.Module.Chain.Iterators = {
+var Iterators = LSD.Module.Chain.Iterators = {
   regular: function(link) {
+    if (!link.action) return true;
     switch (link.keyword) {
       case 'or': case 'and': return false;
       default: return true;
@@ -175,15 +180,16 @@ LSD.Module.Chain.Iterators = {
   },
   
   optional: function(link) {
-    return link.priority == null || link.priority < 0;
+    return !link.action || link.priority == null || link.priority < 0;
   },
   
   success: function(link, chain, index) {
-    if (index == chain.length - 1) return;
-    if (link.keyword == 'and') return true;
+    if (!link.action) return false;
+    if (index < chain.length - 1 && link.keyword == 'and') return true;
   },
   
   failure: function(link, chain, index) {
+    if (!link.action) return false;
     switch (link.keyword) {
       case 'or': return true;
       case 'and':
@@ -203,6 +209,7 @@ LSD.Module.Chain.Iterators = {
   },
   
   alternative: function(link, chain, index) {
+    if (!link.action) return false;
     switch (link.keyword) {
       case 'else': return true;
       case 'and': case 'or': case 'then':
@@ -221,3 +228,5 @@ LSD.Options.chain = {
   remove: 'removeChain',
   iterate: true
 }
+
+}();

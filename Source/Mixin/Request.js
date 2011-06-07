@@ -88,7 +88,7 @@ LSD.Mixin.Request = new Class({
   
   onRequestSuccess: function() {
     if (this.getCommandAction) 
-      if (this.chainPhase == -1 && this.getCommandAction() == 'submit')  
+      if (this.getCommandAction() == 'submit' && (this.chainPhase == -1 || (this.chainPhase == this.getActionChain().length - 1)))  
         this.eachLink('optional', arguments, true);
   },
   

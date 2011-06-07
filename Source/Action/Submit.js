@@ -24,9 +24,14 @@ LSD.Action.Submit = LSD.Action.build({
   
   enable: function(target) {
     if (this.retrieve(target)) return;
+    var args = Array.prototype.slice.call(arguments, 1);
+    if (target.lsd && !target.submit && this.invoker != target) {
+      if (target.chainPhase == -1 || (target.getCommandAction && target.getCommandAction() == 'submit')) 
+        return target.callChain.apply(target, args);
+    }
     var method = (target.submit || target.send || target.click);
-    var submission = method.apply(target, Array.prototype.slice.call(arguments, 1));
-    if (submission && submission != method) {
+    var submission = method.apply(target, args);
+    if (submission && submission != target) {
       this.store(target, submission);
       var self = this, callback = function() {
         this.removeEvents(events);
