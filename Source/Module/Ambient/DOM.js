@@ -93,6 +93,7 @@ LSD.Module.DOM = new Class({
   unsetParent: function(widget, index) {
     if (!widget) widget = this.parentNode;
     this.fireEvent('unregister', ['parent', widget]);
+    this.removed = true;
     LSD.Module.DOM.walk(this, function(node) {
       widget.dispatchEvent('nodeRemoved', node);
     });
@@ -109,7 +110,7 @@ LSD.Module.DOM = new Class({
     }
     if (parent.firstChild == this) parent.firstChild = next;
     if (parent.lastChild == this) parent.lastChild = previous;
-    delete this.parentNode;
+    delete this.parentNode, delete this.removed;
   },
   
   appendChild: function(widget, adoption) {

@@ -84,7 +84,7 @@ LSD.Module.Attributes = new Class({
     return this;
   },
 
-  removePseudo: function(name){
+  removePseudo: function(name) {
     if (this.pseudos[name]) {
       if (this.$states[name]) this.setStateTo(name, false);
       this.fireEvent('selectorChange', ['pseudos', name, false]);

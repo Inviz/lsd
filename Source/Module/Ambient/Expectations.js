@@ -297,7 +297,7 @@ Expectations.events = {
   tagChanged: function(tag, old) {
     check.call(this, 'tag', old, false);
     if (tag) check.call(this, 'tag', tag, true);
-    if (this.parentNode) this.parentNode.dispatchEvent('nodeTagChanged', [this, tag, old]);
+    if (this.parentNode && !this.removed) this.parentNode.dispatchEvent('nodeTagChanged', [this, tag, old]);
   }
 };
 
