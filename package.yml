@@ -104,6 +104,7 @@ sources:
   - Source/Action/Append.js
   - Source/Action/Edit.js 
   - Source/Action/History.js
+  - Source/Action/Focus.js
   - Source/Action.js
   - Source/Layout.js
   - Source/Sheet.js

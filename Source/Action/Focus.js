@@ -17,3 +17,13 @@ provides:
  
 ...
 */
+
+LSD.Action.Focus = LSD.Action.build({
+  enable: function(target) {
+    return (target.focus || target.click).apply(target, Array.prototype.slice(arguments, 1));
+  },
+  
+  disable: function(target) {
+    if (target.blur) return target.blur();
+  }
+})

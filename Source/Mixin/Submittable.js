@@ -1,7 +1,7 @@
 /*
 ---
  
-script: Invokable.js
+script: Submittable.js
  
 description: Makes widget result in either submission or cancellation
  
@@ -14,7 +14,7 @@ requires:
   - QFocuser/QFocuser
  
 provides:
-  - LSD.Mixin.Invoked
+  - LSD.Mixin.Submittable
  
 ...
 */

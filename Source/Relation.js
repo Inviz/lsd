@@ -154,6 +154,7 @@ var Options = LSD.Relation.Options = {
   },
   
   target: function(target, state, memo) {
+    if (target.call) target = target.call(this.origin);
     if (this.targeted == target) return;
     this.targeted = target;
     if (memo) this.origin.removeEvents(memo);

@@ -13,7 +13,6 @@ requires:
   - LSD.Action
   - Widgets/LSD.Widget.Body
   - Widgets/LSD.Widget.Form
-  - LSD.Mixin.Form
   - LSD.Mixin.Fieldset
   - LSD.Mixin.Resource
 
