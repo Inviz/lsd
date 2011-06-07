@@ -194,7 +194,6 @@ Object.append(LSD.Layout, {
   extract: function(element) {
     var options = {
       attributes: {},
-      origin: element,
       tag: LSD.toLowerCase(element.tagName)
     };
     for (var i = 0, attribute, name; (attribute = element.attributes[i++]) && (name = attribute.name);)

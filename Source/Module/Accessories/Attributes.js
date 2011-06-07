@@ -69,7 +69,7 @@ LSD.Module.Attributes = new Class({
         this.fireEvent('selectorChange', ['attributes', name, false]);
         this.attributes[name] = value;    
         this.fireEvent('selectorChange', ['attributes', name, true]);
-        if (this.element) this.element.setAttribute(name, value);
+        if (this.element && this.element[name] != value) this.element.setAttribute(name, value);
       }
     }
     return this;
