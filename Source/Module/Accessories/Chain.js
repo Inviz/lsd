@@ -132,11 +132,11 @@ LSD.Module.Chain = new Class({
           (state ? succeed : failed).push([target, args]);
           result.removeEvents(events);
           // Try to fork off execution if action lets so 
-          if (value && (command.fork || action.options.fork)) {
+          if (state && (command.fork || action.options.fork)) {
             //if (target.getCommandAction && target.getCommandAction() == command.action)
               if (target.chainPhase == -1) target.callChain.apply(target, args);
               else target.eachLink('optional', args, true);
-          }
+          };
           if (failed.length + succeed.length != promised.length) return;
           if (failed.length) self.eachLink('alternative', args, true, false, succeed);
           if (self.currentChain && self.chainPhase < self.currentChain.length - 1)
