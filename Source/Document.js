@@ -85,7 +85,7 @@ LSD.Document = new Class({
   */
   onClick: function(event) {
     if (event.target.ownerDocument == document)
-    for (var target = event.target, stopped, link, widget; target.tagName; target = target.parentNode) {
+    for (var target = event.target, stopped, link, widget; target && target.tagName; target = target.parentNode) {
       widget = Element.retrieve(target, 'widget');
       if (widget && widget.pseudos.clickable) {
         if (!stopped) stopped = !!event.preventDefault();

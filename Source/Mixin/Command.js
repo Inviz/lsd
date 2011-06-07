@@ -42,7 +42,9 @@ LSD.Mixin.Command = new Class({
       }
     },
     events: {
-      'setDocument': 'getCommand'
+      _command: {
+        'setDocument': 'getCommand'
+      }
     }
   },
   
