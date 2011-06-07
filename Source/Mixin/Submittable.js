@@ -44,6 +44,7 @@ LSD.Mixin.Submittable = new Class({
         return {
           action: 'submit',
           target: this.getSubmissionTarget,
+          arguments: this.getSubmissionData,
           priority: -5
         }
       }
@@ -63,7 +64,11 @@ LSD.Mixin.Submittable = new Class({
   cancel: function() {
     var submission = this.captureEvent('cancel', arguments);
     if (submission) return submission;
-    else if (submission !== false) this.uncallChain();
+    else if (submission !== false) {
+      var target = this.getSubmissionTarget();
+      if (target) target.uncallChain();
+      this.uncallChain();
+    };
     return this;
   },
   

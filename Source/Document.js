@@ -65,9 +65,9 @@ LSD.Document = new Class({
     this.params = (location.search.length > 1) ? location.search.substr(1, location.search.length - 1).parseQueryString() : {}
     document.addEvent('domready', function() {
       this.building = true;
-      if (this.params.benchmark != null) console.profile();
+      if ("benchmark" in this.params) console.profile();
       this.build();
-      if (this.params.benchmark != null) console.profileEnd();
+      if ("benchmark" in this.params) console.profileEnd();
       this.building = false;
     }.bind(this));
     this.element.addEvent('click', this.onClick.bind(this))

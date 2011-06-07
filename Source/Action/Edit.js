@@ -30,7 +30,7 @@ LSD.Action.Edit = LSD.Action.build({
       $ss = session = new LSD.Widget.Form.Edit(target.element || target);
       this.store(target, session);
     }
-    session.start(content);
+    session.edit(content);
   },
   
   disable: function(target) {
@@ -51,13 +51,7 @@ LSD.Widget.Form.Edit = new Class({
         'cancel': 'finish'
       }
     },
-    states: {
-      hidden: true,
-      editing: {
-        enabler: 'start',
-        disabler: 'finish'
-      }
-    },
+    states: Array.fast('editing', 'hidden'),
     pseudos: Array.fast('form', 'fieldset', 'resource', 'command'),
     has: {
       one: {
@@ -80,7 +74,7 @@ LSD.Widget.Form.Edit = new Class({
     this.parent.apply(this, arguments);
   },
   
-  start: function(values) {
+  edit: function(values) {
     Element.Item.walk.call(this, this.element, function(node, prop, scope, prefix) {
       var editable = node.getProperty('editable');
       if (editable) {
