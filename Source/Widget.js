@@ -56,3 +56,5 @@ LSD.Widget.prototype.addStates('disabled', 'hidden', 'built', 'attached');
 LSD.Behavior.attach(LSD.Widget);
 
 new LSD.Type('Widget');
+
+LSD.Element.pool.push(LSD.Widget);

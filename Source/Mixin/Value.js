@@ -147,7 +147,7 @@ LSD.Mixin.Value = new Class({
   },
   
   isValueChangable: function() {
-    return this.commandType != 'radio';
+    return !this.commandType || this.commandType == 'command';
   }
 });
 

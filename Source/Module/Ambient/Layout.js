@@ -83,10 +83,8 @@ LSD.Module.Layout = new Class({
   },
   
   getLayout: Macro.getter('layout', function() {
-    var options = {
-      interpolate: this.options.interpolate,
-      context: this.options.context
-    };
+    var options = { interpolate: this.options.interpolate };
+    if (this.options.context) options.context = this.options.context;
     return new LSD.Layout(this, null, options);
   }),
   

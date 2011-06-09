@@ -66,7 +66,8 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   materialize: function(selector, layout, parent, opts) {
-    var widget = this.context.create(Object.append({}, opts, LSD.Layout.parse(selector, parent)));
+    var options = Object.append({context: this.options.context}, opts, LSD.Layout.parse(selector, parent));
+    var widget = this.context.create(options);
     if (parent) this.appendChild(parent, widget)
     if (layout) if (layout.charAt) widget.write(layout);
     else this.render(layout, widget, null, opts);
@@ -97,7 +98,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   element: function(element, parent, method, opts) {
     var converted = element.uid && Element.retrieve(element, 'widget');
     var children = LSD.slice(element.childNodes), cloning = (method == 'clone');
-    var options = Object.append({traverse: false}, opts);
+    var options = Object.append({traverse: false, context: this.options.context}, opts);
     if (converted) var widget = cloning ? converted.cloneNode(false, options) : converted;
     else var widget = this.context.use(element, options, parent, method);
     var ascendant = parent[1] || parent, container = parent[0] || parent.toElement();

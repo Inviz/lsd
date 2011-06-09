@@ -27,7 +27,7 @@ LSD.Module.Tag = new Class({
   
   initializers: {
     tag: function(options) {
-      this.setContext(options.context)
+      if (options.context) this.setContext(options.context)
       this.nodeType = options.nodeType;
     }
   },

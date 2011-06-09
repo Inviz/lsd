@@ -48,7 +48,7 @@ LSD.Document = new Class({
     if (document && !document.documentElement) options = [document, document = options][0];
     if (!document) document = window.document;
     if (!LSD.document) LSD.document = this;
-    if (options) this.setOptions(options);
+    this.setOptions(options || {});
     this.document = this;
     this.element = document;
     
@@ -128,7 +128,7 @@ LSD.Document = new Class({
   setBody: function(element) {
     if (!element) element = this.getBodyElement()
     this.fireEvent('beforeBody', element);
-    new LSD.Widget(element, {
+    var options = {
       document: this, 
       events: {
         self: {
@@ -138,7 +138,10 @@ LSD.Document = new Class({
         }
       },
       tag: 'body'
-    });
+    };
+    if (this.options.mutations) options.mutations = this.options.mutations;
+    if (this.options.context) options.context = this.options.context;
+    new LSD.Widget(element, options);
     this.fireEvent('body', [this.body, element]);
     return element;
   },
