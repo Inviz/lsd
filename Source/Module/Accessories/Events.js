@@ -233,7 +233,7 @@ Events.Targets = {
     Events.Targets[condition] = {
       getter: false,
       condition: function() {
-        return positive ^ this[state.property || name]
+        return positive ^ this[state && state.property || name]
       },
       events: events
     }
