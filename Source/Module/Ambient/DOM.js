@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
 
 requires:
   - LSD.Module
-  - Core/Element.Event
+  - LSD.Module.Events
 
 provides:
   - LSD.Module.DOM
@@ -30,17 +30,6 @@ LSD.Module.DOM = new Class({
   initializers: {
     dom: function(options) {
       this.childNodes = [];
-      return {
-        events: {
-          element: {
-            /*
-              When dispose event comes from the element, 
-              it is is already removed from dom
-            */
-            dispose: 'onElementDispose'
-          }
-        }
-      }
     }
   },
   
@@ -85,9 +74,20 @@ LSD.Module.DOM = new Class({
     } 
     this.fireEvent('register', ['parent', widget]);
     widget.fireEvent('adopt', [this]);
+    
+    var start = previous ? (previous.sourceLastIndex || previous.sourceIndex) : widget.sourceIndex || (widget.sourceIndex = 1);
+    var index = start;
     LSD.Module.DOM.walk(this, function(node) {
-      widget.dispatchEvent('nodeInserted', node);
-    });
+      node.sourceIndex = ++index;
+      if (node.sourceLastIndex) node.sourceLastIndex += start;
+      for (var parent = widget; parent; parent = parent.parentNode) {
+        parent.sourceLastIndex = (parent.sourceLastIndex || parent.sourceIndex) ;
+        var events = parent.$events.nodeInserted;
+        if (!events) continue;
+        for (var i = 0, j = events.length, fn; i < j; i++)
+          if ((fn = events[i])) fn.call(parent, node);
+      }
+    }, this);
   },
   
   unsetParent: function(widget, index) {
@@ -145,19 +145,20 @@ LSD.Module.DOM = new Class({
       else index = this.childNodes.length;
     this.childNodes.splice(index, 0, insertion);
     insertion.setParent(this, index);
-    if (child) child.toElement().parentNode.insertBefore(insertion.toElement(), child.element);
-    else this.toElement().insertBefore(insertion.toElement())
+    if (!child) {
+      if (index) insertion.toElement().inject(this.childNodes[index].toElement(), 'after')
+      else this.toElement().appendChild(insertion.toElement())
+    } else child.toElement().parentNode.insertBefore(insertion.toElement(), child.element);
   },
 
   cloneNode: function(children, options) {
-    return this.context.create(Object.merge({
+    var clone = this.context.create(this.element, Object.merge({
       source: this.source,
       tag: this.tagName,
-      attributes: this.attributes,
       pseudos: this.pseudos.toObject(),
-      classes: this.classes.toObject(),
       clone: true
     }, options));
+    return clone;
   },
   
   setDocument: function(document) {
@@ -174,13 +175,13 @@ LSD.Module.DOM = new Class({
       var instance = LSD.Module.DOM.find(widget, true)
       if (instance) widget = instance;
     }
-    if (!this.options.root) {
+    if (!this.pseudos.root) {
       this.quiet = quiet || (widget.documentElement && this.element && this.element.parentNode);
       if (where === false) widget.appendChild(this, false)
       else if (!inserters[where || 'bottom'](widget.lsd ? this : this.toElement(), widget) && !quiet) return false;
     }
     if (quiet !== true || widget.document) this.setDocument(widget.document || LSD.document);
-    if (!this.options.root) this.fireEvent('inject', this.parentNode);
+    if (!this.pseudos.root) this.fireEvent('inject', this.parentNode);
     return this;
   },
 
@@ -259,9 +260,17 @@ var inserters = {
 
 };
 
-LSD.addEvents(LSD.Module.DOM.prototype, {
+LSD.Module.Events.addEvents.call(LSD.Module.DOM.prototype, {
   destroy: function() {
     if (this.parentNode) this.dispose();
+  },
+  
+  element: {
+    /*
+      When dispose event comes from the element, 
+      it is is already removed from dom
+    */
+    dispose: 'onElementDispose'
   }
 });
 

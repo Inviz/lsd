@@ -14,6 +14,8 @@ requires:
  
 provides:
   - LSD.Action.Display
+  - LSD.Action.Show
+  - LSD.Action.Hide
  
 ...
 */
@@ -40,4 +42,18 @@ LSD.Action.Display = LSD.Action.build({
     var element = (target.element || target);
     return target.hidden || (target.getAttribute && target.getAttribute('hidden')) || (element.getStyle && (element.getStyle('display') == 'none'));
   }
+});
+
+LSD.Action.Hide = LSD.Action.build({
+  enable: LSD.Action.Display.prototype.options.disable,
+  disable: LSD.Action.Display.prototype.options.enable,
+  getState: function() {
+    return !LSD.Action.Display.prototype.options.getState.apply(this, arguments);
+  }
+});
+
+LSD.Action.Show = LSD.Action.build({
+  enable: LSD.Action.Display.prototype.options.enable,
+  disable: LSD.Action.Display.prototype.options.display,
+  getState: LSD.Action.Display.prototype.options.getState
 });

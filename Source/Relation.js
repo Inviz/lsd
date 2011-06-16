@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD
+  - LSD.Module.Events
 
 provides: 
   - LSD.Relation
@@ -130,7 +131,7 @@ LSD.Relation.prototype = Object.append({
   },
   
   getSource: function() {
-    return this.options.source || this.options.selector;
+    return this.options.source;
   }
 }, Events.prototype);
 
@@ -173,7 +174,10 @@ var Options = LSD.Relation.Options = {
         }
       })
       this.origin.addEvents(events);
-      if (setting.getter && !this.target) this.target = this.origin[setting.getter];
+      if (setting.getter && !this.target) {
+        this.target = this.origin[setting.getter];
+        events[Object.keyOf(setting, true)](this.target)
+      }
       return events;
     } else {
       if (this.origin[target]) this.target = this.origin[target];
@@ -189,7 +193,7 @@ var Options = LSD.Relation.Options = {
           if (mutated) mutated.inject(this.origin);
         }, this)
       }
-      this.origin.addMutation(mutation, this.options.source);
+      this.origin.addMutation(mutation, this.getSource());
       return this.options.source;
     }
   },
@@ -254,6 +258,19 @@ var Options = LSD.Relation.Options = {
     return LSD.Relation.Options.selector.call(this, '::' + name + '::' + (this.options.as || this.name), state, memo)
   },
   
+  traits: function(traits, state, memo) {
+    Object.each(traits, function(value, key) {
+      var name = key || value;  
+      var trait = LSD.Relation.Traits[name];
+      if (!trait) LSD.warn('Can not find LSD.Relation.Traits.' + name)
+      else this.setOptions(trait, !state);
+    }, this);
+  },
+  
+  origin: function(options) {
+    this.origin.setOptions(options, !state)
+  },
+  
   scope: function(name, state, memo) {
     if (memo) {
       for (var i = 0, widget; widget = this.widgets[i++];) memo.callbacks.remove.call(this, widget);
@@ -290,16 +307,18 @@ var Options = LSD.Relation.Options = {
   
   states: {
     add: function(widget, states) {
-      var get = states.get, set = states.set, add = states.add, lnk = states.link;
+      var get = states.get, set = states.set, add = states.add, lnk = states.link, use = states.use;
       if (get) for (var from in get) widget.linkState(this.origin, from, (get[from] === true) ? from : get[from]);
       if (set) for (var to in set) this.origin.linkState(widget, to, (set[to] === true) ? to : set[to]);
+      if (use) for (var to in use) this.origin.addState(widget, to, (use[to] === true) ? to : use[to]);
       if (add) for (var index in add) widget.addState(index, add[index]);
       if (lnk) for (var to in lnk) widget.linkState(widget, to, (lnk[to] === true) ? to : lnk[to]);
     },
     remove: function(widget, states) {
-      var get = states.get, set = states.set, add = states.add, lnk = states.link;
+      var get = states.get, set = states.set, add = states.add, lnk = states.link, use = states.use;
       if (get) for (var from in get) widget.unlinkState(this.origin, from, (get[from] === true) ? from : get[from]);
       if (set) for (var to in set) this.origin.unlinkState(widget, to, (set[to] === true) ? to : set[to]);
+      if (use) for (var to in use) this.origin.removeState(widget, to, (use[to] === true) ? to : use[to]);
       if (add) for (var index in add) widget.removeState(index, add[index]);
       if (lnk) for (var to in lnk) widget.unlinkState(widget, to, (lnk[to] === true) ? to : lnk[to]);
     }
@@ -371,27 +390,6 @@ Options.has = Object.append({
   }
 }, Options.relations);
 
-var Targets = LSD.Relation.Targets = {
-  document: {
-    getter: 'document',
-    events: {
-      setDocument: true,
-      unsetDocument: true
-    }
-  },
-  parent: {
-    getter: 'parentNode',
-    events: {
-      setParent: true,
-      unsetParent: true
-    }
-  },
-  root: {
-    getter: 'root',
-    events: {
-      setRoot: true,
-      unsetRoot: true
-    }
-  }
-};
+var Traits = LSD.Relation.Traits = {};
+var Targets = LSD.Module.Events.Targets;
 }();

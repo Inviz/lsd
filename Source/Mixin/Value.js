@@ -147,7 +147,8 @@ LSD.Mixin.Value = new Class({
   },
   
   isValueChangable: function() {
-    return !this.commandType || this.commandType == 'command';
+    var type = this.getCommandType ? this.getCommandType() : this.commandType; 
+    return !type || type == 'command';
   }
 });
 

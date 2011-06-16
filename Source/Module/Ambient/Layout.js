@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Module
+  - LSD.Module.Events
   - LSD.Layout
 
 provides: 
@@ -41,7 +42,7 @@ LSD.Module.Layout = new Class({
     var element = query.element;
     var mutations = (this.mutations[LSD.toLowerCase(element.tagName)] || []).concat(this.mutations['*'] || []);
     for (var i = 0, mutation; mutation = mutations[i++];) {
-      if (Slick.match(element, mutation[0], this.element)) query.mutation = mutation[1];
+      if (Slick.match(element, mutation[0], this.element)) query.mutation = mutation[1] || true;
     }
   },
   
@@ -153,7 +154,7 @@ LSD.Module.Layout.events = {
   }
 };
 
-LSD.addEvents(LSD.Module.Layout.prototype, LSD.Module.Layout.events);
+LSD.Module.Events.addEvents.call(LSD.Module.Layout.prototype, LSD.Module.Layout.events);
 
 Object.append(LSD.Options, {
   mutations: {

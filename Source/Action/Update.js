@@ -14,16 +14,56 @@ requires:
 
 provides:
   - LSD.Action.Update
+  - LSD.Action.Append
+  - LSD.Action.Replace
 
 ...
 */
 
 LSD.Action.Update = LSD.Action.build({
   enable: function(target, content) {
+    if (!content) return LSD.warn('Update action did not recieve content');
     var widget = LSD.Module.DOM.find(target);
     var fragment = document.createFragment(content);
     var children = LSD.slice(fragment.childNodes);
-    document.id(target).empty().appendChild(fragment);
+    this.options.update.call(this, target, fragment, content)
     widget.fireEvent('DOMNodeInserted', [children]);
+  },
+  
+  update: function(target, fragment) {
+    document.id(target).empty().appendChild(fragment);
+  }
+});
+
+LSD.Action.Append = LSD.Action.build({
+  enable: LSD.Action.Update.prototype.options.enable,
+  
+  update: function(target, fragment) {
+    document.id(target).appendChild(fragment);
+  }
+});
+
+LSD.Action.Replace = LSD.Action.build({
+  enable: LSD.Action.Update.prototype.options.enable,
+
+  update: function(target, fragment) {
+    target.parentNode.replaceChild(fragment, target);
+  }
+});
+
+LSD.Action.Before = LSD.Action.build({
+  enable: LSD.Action.Update.prototype.options.enable,
+
+  update: function(target, fragment) {
+    target = document.id(target)
+    target.parentNode.insertBefore(fragment, target);
+  }
+});
+
+LSD.Action.After = LSD.Action.build({
+  enable: LSD.Action.Update.prototype.options.enable,
+
+  update: function(target, fragment) {
+    document.id(target).parentNode.insertBefore(fragment, target.nextSibling);
   }
 });

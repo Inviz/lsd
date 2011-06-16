@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Module
   - LSD.Module.Options
+  - LSD.Module.Events
 
 provides: 
   - LSD.Module.Tag
@@ -35,20 +36,14 @@ LSD.Module.Tag = new Class({
   getSource: function(raw) {
     var source = this.options.source;
     if (source) return source;
-    var attributes = this.attributes;
-    if ((source = attributes.source)) return source;
-    source = [this.tagName];
-    var type = attributes.type;
-    if (type) source.push(type);
-    var kind = attributes.kind;
-    if (kind) source.push(kind);
+    source = LSD.Layout.getSource(this.attributes, this.tagName);
     return raw ? source : source.join('-');
   },
   
   setSource: function(source) {
     if (!source) source = this.getSource(true);
-    if (this.source != source && source.length) {
-      if (source) {
+    if (this.source != source) {
+      if (source.length) {
         var role = this.context.find(source);
         if (role && role != this.role) {
           if (this.role) this.unmix(this.role);
@@ -56,7 +51,7 @@ LSD.Module.Tag = new Class({
           this.mixin(role);
         }
       }
-      this.source = source ? (source.join ? source.join('-') : source) : false; 
+      this.source = source && source.length ? (source.join ? source.join('-') : source) : false; 
     }
     return this;
   },
@@ -114,7 +109,7 @@ LSD.Module.Tag = new Class({
   
 });
 
-LSD.addEvents(LSD.Module.Tag.prototype, {
+LSD.Module.Events.addEvents.call(LSD.Module.Tag.prototype, {
   tagChanged: function() {
     if (this.source != null) this.setSource();
   },

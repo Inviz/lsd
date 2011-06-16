@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - Ext/Shortcuts
   - LSD.Module
+  - LSD.Module.Events
   
 provides: 
   - LSD.Module.Shortcuts
@@ -32,10 +33,10 @@ LSD.Module.Shortcuts = new Class({
   }
 });
 
-LSD.Module.Shortcuts.events = {
+LSD.Module.Events.addEvents.call(LSD.Module.Shortcuts.prototype, {
   focus: 'enableShortcuts',
   blur: 'disableShortcuts'
-};
+});
 
 LSD.Options.shortcuts = {
   add: 'addShortcut',

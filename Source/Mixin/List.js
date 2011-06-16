@@ -38,23 +38,8 @@ LSD.Mixin.List = new Class({
       many: {
         items: {
           selector: ':item',
-          scopes: {
-            selected: {
-              filter: ':selected',
-              callbacks: {
-                add: function(widget) {
-                  if (this.setValue) this.setValue(widget);
-                  this.fireEvent('set', widget);
-                },
-                remove: function(widget) {
-                  if (widget.getCommandType() != 'checkbox') return;
-                  if (this.setValue) this.setValue(widget, true);
-                  this.fireEvent('unset', widget);
-                }
-              }
-            }
-          },
-          as: 'listWidget',
+          traits: Array.fast('selectable'),
+          as: 'list',
           pseudos: Array.fast('value', 'command'),
           states: {
             link: {
@@ -98,5 +83,6 @@ LSD.Mixin.List = new Class({
   }
   
 });
+
 
 LSD.Behavior.define(':list', LSD.Mixin.List);

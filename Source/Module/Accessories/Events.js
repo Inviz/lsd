@@ -26,34 +26,18 @@ provides:
 !function() {
   
 LSD.Module.Events = new Class({
-  Implements: [window.Events],
-  
-  initializers: {
-    events: function() {
-      this.events = {};
-    }
-  },
-  
-  addEvent: function(name, fn) {
-    return Events.setEvent.call(this, name, fn)
-  },
-  
-  removeEvent: function(name, fn) {
-    return Events.setEvent.call(this, name, fn, true)
-  },
-  
-  /*
-    The functions takes events object defined in options
-    and binds all functions to the widget.
-  */
+  Implements: window.Events
+});
 
+var proto = window.Events.prototype;
+var Events = Object.append(LSD.Module.Events, {
   bindEvents: function(events, bind, args) {
     var result = {};
     for (var name in events) {
       var value = events[name];
       if (!value || value.call) result[name] = value;
-      else if (value.indexOf) result[name] = this.bindEvent(value, bind, args);
-      else result[name] = this.bindEvents(value);
+      else if (value.indexOf) result[name] = Events.bindEvent.call(this, value, bind, args);
+      else result[name] = Events.bindEvents.call(this, value);
     }
     return result;
   },
@@ -67,18 +51,125 @@ LSD.Module.Events = new Class({
     if (!this.$bound[name]) this.$bound[name] = Events.bind(name, bind || this, args);
     return this.$bound[name];
   },
-
+  
+  setStoredEvents: function(events, state, bind) {
+    var target = Events.Targets[name];
+    for (var event in events)
+      for (var i = 0, fn, group = events[event]; fn = group[i++];)
+        Events.setEvent.call(this, event, (fn.indexOf && bind ? bind.bindEvent(fn) : fn), !state);
+  },
+  
+  watchEventTarget: function(name, fn) {
+    var target = Events.Targets[name];
+    if (target.events) Object.each(target.events, function(state, event) {
+      Events.setEvent.call(this, event, function(object) {
+        if (target.getter === false) object = this;
+        fn.call(this, object, state);
+      });
+    }, this);
+    if (target.condition && target.condition.call(this)) fn.call(this, this, true);
+    else if (target.getter && this[target.getter]) fn.call(this, this[target.getter], true);
+  },
+  
+  setEvent: function(name, fn, revert) {
+    if (fn.indexOf && this.lsd) fn = this.bindEvent(fn);
+    if (fn.call || (fn.indexOf && !this.lsd)) {
+      if (!revert) {
+        if (!this.$events) this.$events = {};
+        var method = 'addEvent';
+      } else var method = 'removeEvent'
+      var kicker = this[method];
+      if (!kicker || kicker.$origin == Events[method]) kicker = proto[method];
+      return kicker.call(this, name, fn);
+    } else {
+      if (name.charAt(0) == '_') {
+        for (var event in fn) Events.setEvent.call(this, event, fn[event], revert);
+        return this;
+      }
+      if (!revert && !this.events) this.events = {};
+      var events = this.events[name], initial = !events;
+      if (!events) events = this.events[name] = {};
+      var bound = this.lsd ? this.bindEvents(fn) : fn;
+      for (event in bound) {
+        var group = (events[event] || (events[event] = []));
+        if (revert) {
+          var i = group.indexOf(bound[event]);
+          if (i > -1) group.slice(i, 1);
+        } else group.push(bound[event])
+      }
+      var target = Events.Targets[name];
+      if (target)
+        if (target.call) {
+          if ((target = target.call(this))) 
+            for (var event in bound) Events.setEvent.call(target, event, bound[event], revert);
+        } else if (initial) {
+          Events.watchEventTarget.call(this, name, function(object, state) {
+            Events.setStoredEvents.call(object, events, state, this);
+          })
+        } else if (target.getter && this[target.getter]) this[target.getter][revert ? 'removeEvents' : 'addEvents'](bound)
+      return this;
+    }
+  },
+  
+  setEvents: function(events, revert) {
+    for (var type in events) Events.setEvent.call(this, type, events[type], revert);
+    return this;
+	},
+	
+  addEvent: function(name, fn) {
+    return Events.setEvent.call(this, name, fn);
+  },
+  
+  addEvents: function(events) {
+    for (var type in events) Events.setEvent.call(this, type, events[type]);
+    return this;
+  },
+  
+  removeEvent: function(name, fn) {
+    return Events.setEvent.call(this, name, fn, true);
+  },
+  
+  removeEvents: function(events) {
+    for (var type in events) Events.setEvent.call(this, type, events[type], true);
+    return this;
+  },
+  
+  setEventsByRegister: function(name, state, events) {
+    var register = this.$register;
+    if (!register) register = this.$register = {};
+    if (register[name] == null) register[name] = 0;
+    switch (register[name] += (state ? 1 : -1)) {
+      case 1:
+        if (events) this.addEvents(events)
+        else if (this.events) Events.setStoredEvents.call(this, this.events[name], true);
+        return true;
+      case 0:
+        if (events) this.removeEvents(events)
+        else if (this.events) Events.setStoredEvents.call(this, this.events[name], false);
+        return false;
+    }
+  },
+  
+  fireEvent: function(type, args, delay){
+    var events = this.$events[type];
+    if (!events) return this;
+    var method = Type.isEnumerable(args) ? 'apply' : 'call';
+    for (var i = 0, j = events.length, fn; i < j; i++) {
+      if (!(fn = events[i])) continue;
+      if (fn.indexOf) fn = this[fn];
+      if (delay) fn.delay(delay, this, args);
+      else fn[method](this, args);
+    }
+    return this;
+  },
+  
   dispatchEvent: function(type, args){
-    var node = this;
-    type = type.replace(/^on([A-Z])/, function(match, letter) {
-      return letter.toLowerCase();
-    });
-    while (node) {
-      var events = node.$events;
-      if (events && events[type]) events[type].each(function(fn){
-        return fn[args.push ? 'apply' : 'call'](node, args);
-      }, node);
-      node = node.parentNode;
+    for (var node = this; node; node = node.parentNode) {
+      var events = node.$events[type];
+      if (!events) continue;
+      var method = Type.isEnumerable(args) ? 'apply' : 'call';
+      for (var i = 0, j = events.length, fn; i < j; i++)
+        if ((fn = events[i])) fn[method](node, args);
     }
     return this;
   },
@@ -91,86 +182,6 @@ LSD.Module.Events = new Class({
       var result = event.apply(this, args);
       if (result) return result;
     }
-  }
-});
-
-LSD.addEvents(LSD.Module.Events.prototype, {
-  register: function(name, object) {
-    var events = this.events[name];
-    if (events) Events.setStoredEvents.call(object, events, true);
-  },
-  unregister: function(name, object) {
-    var events = this.events[name];
-    if (events) Events.setStoredEvents.call(object, events, false);
-  }
-});
-
-var Events = Object.append(LSD.Module.Events, {
-  setStoredEvents: function(events, state) {
-    var target = Events.Targets[name];
-    for (var event in events)
-      for (var i = 0, fn, group = events[event]; fn = group[i++];)
-        this[state ? 'addEvent' : 'removeEvent'](event, fn.indexOf ? this.bindEvent(fn) : fn);
-  },
-  
-  watchEventTarget: function(name, fn) {
-    var target = Events.Targets[name];
-    if (target.events) Object.each(target.events, function(state, event) {
-      this.addEvent(event, function(object) {
-        if (target.getter === false) object = this;
-        fn.call(this, widget, state);
-      });
-    }, this);
-    if (target.condition && target.condition.call(this)) return this;
-    else if (target.getter && this[target.getter]) target = this[target.getter];
-  },
-  
-  setEvent: function(name, fn, unset) {
-    if (fn.indexOf) fn = this.bindEvent(fn);
-    var method = unset ? 'removeEvent' : 'addEvent';
-    if (fn.call) {
-      return window.Events.prototype[method].call(this, name, fn);
-    } else {
-      if (name.charAt(0) == '_') {
-        for (var event in fn) this[method](event, fn[event]);
-        return this;
-      }
-      var events = this.events[name], initial = !!events;
-      if (!events) events = this.events[name] = {};
-      var bound = this.bindEvents(fn);
-      for (event in bound) {
-        var group = (events[event] || (events[event] = []));
-        if (unset) {
-          var i = group.indexOf(bound[event]);
-          if (i > -1) group.slice(i, 1);
-        } else group.push(bound[event])
-      }
-      var target = Events.Targets[name];
-      if (target)
-        if (target.call && (target = target.call(this)))
-          for (var event in bound) target[method](event, bound[event]);
-        else if (initial) 
-          Events.watchEventTarget.call(this, name, function(object, state) {
-            Events.setStoredEvents.call(object, events, state);
-          })
-      return this;
-    }
-  },
-  
-  setEventsByRegister: function(name, state, events) {
-    var register = this.$register;
-    if (!register) register = this.$register = {};
-    if (register[name] == null) register[name] = 0;
-    switch (register[name] += (state ? 1 : -1)) {
-      case 1:
-        if (events) this.addEvents(events)
-        else Events.setStoredEvents.call(this, this.events[name], true);
-        return true;
-      case 0:
-        if (events) this.removeEvents(events)
-        else Events.setStoredEvents.call(this, this.events[name], false);
-        return false;
-    }
   },
   
   bind: function(method, bind, args) {
@@ -178,6 +189,26 @@ var Events = Object.append(LSD.Module.Events, {
       if (bind[method]) bind[method].apply(bind, args || arguments);
     }
   }
+});
+
+LSD.Module.Events.addEvents.call(LSD.Module.Events.prototype, {
+  register: function(name, object) {
+    var events = this.events && this.events[name];
+    if (events) Events.setStoredEvents.call(object, events, true, this);
+  },
+  unregister: function(name, object) {
+    var events = this.events && this.events[name];
+    if (events) Events.setStoredEvents.call(object, events, false, this);
+  }
+});
+
+/*
+  Inject generic methods into the module prototype
+*/
+['addEvent',  'addEvents', 'removeEvent', 'removeEvents', 
+ 'fireEvent', 'captureEvent', 'dispatchEvent',
+ 'bindEvent', 'bindEvents'].each(function(method) {
+  Events.implement(method, Events[method]);
 });
 
 /*
@@ -211,9 +242,6 @@ var Events = Object.append(LSD.Module.Events, {
   
 */
 Events.Targets = {
-  root: function() {
-    
-  },
   self: function() { 
     return this
   },
@@ -222,9 +250,40 @@ Events.Targets = {
   },
   mobile: function() {
     return this;
+  },
+  element: {
+    getter: 'element',
+    registers: true,
+    events: {
+      attach: true,
+      detach: false
+    }
+  },
+  document: {
+    getter: 'document',
+    registers: true,
+    events: {
+      setDocument: true,
+      unsetDocument: false
+    }
+  },
+  parent: {
+    getter: 'parentNode',
+    registers: true,
+    events: {
+      setParent: true,
+      unsetParent: false
+    }
+  },
+  root: {
+    getter: 'root',
+    registers: true,
+    events: {
+      setRoot: true,
+      unsetRoot: false
+    }
   }
 };
-
 !function(Known, Positive, Negative) {
   Object.each(Object.append({}, Positive, Negative), function(name, condition) {
     var events = {}, positive = !!Positive[name], state = Known[name];
@@ -267,13 +326,22 @@ LSD.Options.events = {
 };
 
 Class.Mutators.$events = function(events) {
-  if (!this.prototype.$events) this.prototype.$events = {};
+  var category = this.prototype.$events || (this.prototype.$events = {});
   for (name in events) {
-    var type = this.prototype.$events[name] || (this.prototype.$events[name] = []);
-    var group = events[name];
-    for (var i = 0, j = group.length; i < j; i++) {
-      var fn = group[i];
-      if (fn) type.push(fn);
+    var type = category[name] || (category[name] = []);
+    type.push.apply(type, events[name]);
+  }
+};
+
+Class.Mutators.events = function(events) {
+  var category = this.prototype.events || (this.prototype.events = {});
+  for (label in events) {
+    var group = events[label];
+    var type = category[label] || (category[label] = {});
+    for (var name in group) {
+      var stored = type[name] || (type[name] = []);
+      var value = group[name];
+      stored.push.apply(stored, group[name]);
     }
   }
 };

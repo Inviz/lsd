@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Module.DOM
+  - LSD.Module.Events
 
 provides: 
   - LSD.Module.Render
@@ -88,7 +89,7 @@ LSD.Module.Render = new Class({
   }
 });
 
-LSD.addEvents(LSD.Module.Render.prototype, {
+LSD.Module.Events.addEvents.call(LSD.Module.Render.prototype, {
   stateChange: function() {
     if (this.redraws > 0) this.refresh(true);
   }

@@ -121,6 +121,10 @@ LSD.Module.Selectors.Features = {
   brokenEmptyAttributeQSA: false,
   isHTMLDocument: false,
   nativeMatchesSelector: false,
+  documentSorter: function(a, b) {
+    if (!a.sourceIndex || !b.sourceIndex) return 0;
+		return a.sourceIndex - b.sourceIndex;
+  },
   hasAttribute: function(node, attribute) {
     return (attribute in node.attributes) || ((attribute in node.$states) && (attribute in node.pseudos))
   },

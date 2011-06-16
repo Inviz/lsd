@@ -27,7 +27,6 @@ LSD.Action.Delete = LSD.Action.build({
         widget.dispatchEvent('nodeRemoved', node);
       });
     }
-    target.dispose();
-    if (target.getModel) return target.getModel()['delete']()
+    return (target['delete'] || target.dispose)();
   }
 });

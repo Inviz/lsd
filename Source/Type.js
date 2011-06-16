@@ -72,13 +72,14 @@ LSD.Type.prototype = {
   
   use: function(element, options, parent) {
     if (parent) var mutation = LSD.Layout.mutate(element, parent);
+    if (mutation === true) return this.create(element, options);
     options = mutation && options ? Object.merge(mutation, options) : mutation || options;
     options.context = LSD.toLowerCase(this.name);
     return this.convert(element, options);
   },
   
   convert: function(element, options) {
-    var source = (options && options.source) || LSD.Layout.getSource(element);
+    var source = options.source || (options.tag && LSD.Layout.getSource(options.attributes, options.tag)) || LSD.Layout.getSource(element);
     if (!this.find(source)) return;
     var klass = this.klass || LSD.Widget;
     return new LSD.Widget(element, options);

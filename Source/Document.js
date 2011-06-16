@@ -51,6 +51,8 @@ LSD.Document = new Class({
     this.setOptions(options || {});
     this.document = this;
     this.element = document;
+    this.sourceIndex = 1;
+    LSD.uid(this);
     
     /*
       Trick Slick into thinking that LSD elements tree is an XML node 
@@ -70,7 +72,8 @@ LSD.Document = new Class({
       if ("benchmark" in this.params) console.profileEnd();
       this.building = false;
     }.bind(this));
-    this.element.addEvent('click', this.onClick.bind(this))
+    this.element.addEvent('click', this.onClick.bind(this));
+    this.element.addEvent('mousedown', this.onMousedown.bind(this));
   },
   
   /* 
@@ -86,9 +89,9 @@ LSD.Document = new Class({
   onClick: function(event) {
     if (event.target.ownerDocument == document)
     for (var target = event.target, stopped, link, widget; target && target.tagName; target = target.parentNode) {
-      widget = Element.retrieve(target, 'widget');
+      widget = target.uid && Element.retrieve(target, 'widget');
       if (widget && widget.pseudos.clickable) {
-        if (!stopped) stopped = !!event.preventDefault();
+        if (!stopped) stopped = !!event.stop();
         widget.click(event);
       } else if (!stopped && LSD.toLowerCase(target.tagName) == 'a' && !link) {
         link = target;
@@ -101,6 +104,14 @@ LSD.Document = new Class({
       node.click(event);
       event.preventDefault();
     }
+  },
+  
+  onMousedown: function(event) {
+    if (event.target.ownerDocument == document)
+    for (var target = event.target, widget; target && target.tagName; target = target.parentNode) {
+      widget = target.uid && Element.retrieve(target, 'widget');
+      if (widget && widget.pseudos.activatable) widget.fireEvent('mousedown', event);
+    };
   },
   
   setHead: function(head) {

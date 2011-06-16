@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Module
+  - LSD.Module.Events
 
 provides: 
   - LSD.Module.Element
@@ -122,4 +123,4 @@ LSD.Module.Element.events = {
   }
 };
 
-LSD.addEvents(LSD.Module.Element.prototype, LSD.Module.Element.events);
+LSD.Module.Events.addEvents.call(LSD.Module.Element.prototype, LSD.Module.Element.events);

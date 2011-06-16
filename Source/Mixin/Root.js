@@ -24,10 +24,12 @@ LSD.Mixin.Root = new Class({
         nodeInserted: function(node) {
           node.root = this;
           node.fireEvent('setRoot', this);
+          node.fireEvent('register', ['root', this]);
         },
         nodeRemoved: function(node) {
           if (node.root == this) {
             node.fireEvent('unsetRoot', this);
+            node.fireEvent('unregister', ['root', this]);
             delete node.root;
           }
         }

@@ -13,6 +13,7 @@ requires:
   - LSD.Action
   - Widgets/LSD.Widget.Body
   - Widgets/LSD.Widget.Form
+  - Widgets/LSD.Widget.Input.HTML
   - LSD.Mixin.Fieldset
   - LSD.Mixin.Resource
 
@@ -26,7 +27,7 @@ LSD.Action.Edit = LSD.Action.build({
   enable: function(target, content) {
     var session = this.retrieve(target);
     if (!session) {
-      $ss = session = new LSD.Widget.Form.Edit(target.element || target);
+      $ss = session = new LSD.Widget(target.element || target, {source: 'form-edit'});
       this.store(target, session);
     }
     session.edit(content);
@@ -42,8 +43,10 @@ LSD.Widget.Form.Edit = new Class({
   options: {
     key: null,
     layout: {
-      '::canceller': 'Cancel',
-      '::submitter': 'Save'
+      'aside.buttons': {
+        '::canceller': 'Cancel',
+        '::submitter': 'Save'
+      }
     },
     events: {
       self: {
@@ -56,7 +59,7 @@ LSD.Widget.Form.Edit = new Class({
       one: {
         submitter: {
           selector: '[type=submit]',
-          source: 'input[type=submit]'
+          source: 'button[type=submit]'
         },
         canceller: {
           selector: 'button.cancel',
@@ -68,9 +71,10 @@ LSD.Widget.Form.Edit = new Class({
     }
   },
   
-  initialize: function() {
-    this.objects = [];
-    this.parent.apply(this, arguments);
+  initializers: {
+    session: function() {
+      this.objects = [];
+    }
   },
   
   edit: function(values) {
@@ -121,8 +125,8 @@ LSD.Widget.Form.Edit = new Class({
   getReplacement: function(element, name, type) {
     var widget = Element.retrieve(element, 'widget:edit');
     if (!widget) {
-      var options = {attributes: {name: name}};
-      widget = this.buildLayout(type == 'area' ? 'textarea' : ('input-' + (type || 'text')), this, options);
+      var options = {attributes: {name: name, type: type}};
+      widget = this.buildLayout('input', this, options);
       
       Element.store(element, 'widget:edit', widget);
     }
@@ -130,3 +134,5 @@ LSD.Widget.Form.Edit = new Class({
     return widget;
   }
 });
+
+LSD.Widget.Input.Area = LSD.Widget.Input.HTML;

@@ -34,12 +34,7 @@ LSD.Mixin.Touchable = new Class({
         }
       }
     },
-    states: {
-      active: {
-        enabler: 'activate',
-        disabler: 'deactivate'
-      }
-    }
+    states: Array.fast('active')
   }
 });
 

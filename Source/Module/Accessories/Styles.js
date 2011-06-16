@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Module
+  - LSD.Module.Events
   - Core/Element.Style
   - Ext/FastArray
   - Sheet/SheetParser.Styles
@@ -220,7 +221,7 @@ LSD.Module.Styles.events = {
   }
 };
 
-LSD.addEvents(LSD.Module.Styles.prototype, LSD.Module.Styles.events);
+LSD.Module.Events.addEvents.call(LSD.Module.Styles.prototype, LSD.Module.Styles.events);
 
 LSD.Options.styles = {
   add: 'setStyles',

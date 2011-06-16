@@ -60,6 +60,7 @@ sources:
   - Source/Mixin/Command.js
   - Source/Mixin/Target.js
   - Source/Mixin/Root.js
+  - Source/Mixin/Sortable.js
   - Source/Module/Ambient/Allocations.js
   - Source/Module/Ambient/Container.js
   - Source/Module/Ambient/DOM.js
@@ -93,7 +94,6 @@ sources:
   - Source/Action/Update.js
   - Source/Action/Delete.js
   - Source/Action/Value.js
-  - Source/Action/Replace.js
   - Source/Action/Submit.js
   - Source/Action/State.js
   - Source/Action/Set.js
@@ -101,10 +101,10 @@ sources:
   - Source/Action/Dialog.js
   - Source/Action/Check.js
   - Source/Action/Clone.js
-  - Source/Action/Append.js
   - Source/Action/Edit.js 
   - Source/Action/History.js
   - Source/Action/Focus.js
+  - Source/Action/Counter.js
   - Source/Action.js
   - Source/Layout.js
   - Source/Sheet.js

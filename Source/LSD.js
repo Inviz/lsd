@@ -42,7 +42,8 @@ var LSD = Object.append(new Events, {
       built:    {enabler: 'build',      disabler: 'destroy',   reflect: false},
       attached: {enabler: 'attach',     disabler: 'detach',    reflect: false},
       hidden:   {enabler: 'hide',       disabler: 'show'},
-      disabled: {enabler: 'disable',    disabler: 'enable'},   
+      disabled: {enabler: 'disable',    disabler: 'enable'},
+      active:   {enabler: 'activate',   disabler: 'deactivate'},
       focused:  {enabler: 'focus',      disabler: 'blur'},     
       selected: {enabler: 'select',     disabler: 'unselect'}, 
       checked:  {enabler: 'check',      disabler: 'uncheck',   toggler: 'toggle'},
@@ -100,11 +101,6 @@ Object.append(LSD, {
     return position;
   },
   
-  addEvents: function(object, events) {
-    if (!object.$events) object.$events = {};
-    for (var event in events) Events.prototype.addEvent.call(object, event, events[event]);
-  },
-  
   toLowerCase: function(lowercased) {
     return function(string) { 
       return (lowercased[string]) || (lowercased[string] = string.toLowerCase())
@@ -136,7 +132,23 @@ Object.append(LSD, {
     return ary;
   } : function(list, start) {
     return Array.prototype.slice.call(list, start || 0);
-  })
+  }),
+  
+  log: function() {
+    console.log.apply(console, arguments);
+  },
+  
+  error: function() {
+    (console.error || console.log).apply(console, arguments);
+  },
+  
+  warn: function() {
+    (console.warn || console.log).apply(console, arguments);
+  },
+  
+  info: function() {
+    (console.info || console.log).apply(console, arguments);
+  }
 });
 
 States.get = function(name) { 

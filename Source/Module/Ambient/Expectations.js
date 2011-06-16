@@ -301,7 +301,7 @@ Expectations.events = {
   }
 };
 
-LSD.addEvents(Expectations.prototype, Expectations.events);
+LSD.Module.Events.addEvents.call(Expectations.prototype, Expectations.events);
 
 LSD.Module.Events.Targets.expected = function() {
   var self = this, Targets = LSD.Module.Events.Targets;
