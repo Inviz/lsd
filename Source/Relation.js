@@ -90,7 +90,7 @@ LSD.Relation.prototype = Object.append({
   onLose: function(widget) {
     if (widget == this) return;
     this.origin.fireEvent('unrelate', [widget, this.name]);
-    this.remove(widget);
+    if (this.remove(widget) === false) return;
     this.fireEvent('remove', widget);
     this.applyOptions(widget, true);
   },
@@ -109,8 +109,12 @@ LSD.Relation.prototype = Object.append({
   
   remove: function(widget) {
     if (this.options.multiple) {
-      if (this.widgets.erase(widget).length) return;
+      var index = this.widgets.indexOf(widget);
+      if (index == -1) return false;
+      this.widgets.splice(index, 1);
+      if (this.widgets.length) return;
     } else {
+      if (this.widget != widget) return false;
       delete this.widget;
       delete this.origin[this.name];
       this.widgets.splice(0, 1);

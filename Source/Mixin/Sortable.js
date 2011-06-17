@@ -1,4 +1,4 @@
-/*
+ /*
 ---
  
 script: Sortable.js
@@ -22,7 +22,8 @@ provides:
 LSD.Mixin.Sortable = new Class({
   options: {
     sortables: {
-      clone: true
+      clone: true,
+      constrain: true
     },
     pseudos: Array.fast('activatable'),
     events: {

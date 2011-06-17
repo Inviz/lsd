@@ -10,6 +10,7 @@ license: Public domain (http://unlicense.org).
 requires:
   - LSD.Mixin
   - Widgets/LSD.Widget.Button
+  - Widgets/LSD.Widget.Progress
   - Uploader/*
   - LSD.Mixin.List
   - Core/JSON
@@ -27,7 +28,8 @@ LSD.Mixin.Uploader = new Class({
         enable: function() {
           if (this.attributes.multiple) this.options.uploader.multiple = true;
           this.fireEvent('register', ['uploader', this.getUploader()]);
-          var adapter = Uploader.getAdapter(), target = this.getUploaderTarget();
+          var target = this.getUploaderTarget();
+          console.log(target)
           if (target) this.getUploader().attach(target);
           this.getStoredBlobs().each(this.addFile, this);
         },
@@ -45,11 +47,16 @@ LSD.Mixin.Uploader = new Class({
         fileProgress: 'onFileProgress'
       }
     },
-    layout: Array.fast('::list'),
     has: {
-      one: {
-        list: {
-          selector: 'filelist'
+      many: {
+        targets: {
+          selector: ':uploading',
+          as: 'uploader',
+          relay: {
+            mouseover: function() {
+              this.uploader.getUploader().attach(this.toElement());
+            }
+          }
         }
       }
     },
@@ -71,7 +78,12 @@ LSD.Mixin.Uploader = new Class({
   }),
   
   getUploaderTarget: function() {
-    return this.options.uploader.target || this.element;
+    var target = this.options.uploader.target;
+    if (target) {
+      return target;
+    } else if (target !== false) {
+      return this.element
+    }
   },
 
   getUploaderFileClass: function(adapter) {
@@ -79,16 +91,21 @@ LSD.Mixin.Uploader = new Class({
     if (adapter.indexOf) adapter = Uploader[LSD.toClassName(adapter)];
     if (!adapter.File.Widget) {
       var Klass = new Class({
-        Implements: [adapter.File, LSD.Widget.Filelist.File]
+        Implements: [adapter.File, this.getUploaderFileClassBase()]
       });
+      // clean up prototype from methods widget already has
+      ['addEvent', 'addEvents', 'removeEvent', 'removeEvents', 'setOption', 'setOptions'].each(function(method) {
+        delete Klass.prototype[method];
+      })
       adapter.File.Widget = function() {
         return new LSD.Widget().mixin(Klass);
       }
     }
-      
-    
-    
     return adapter.File.Widget;
+  },
+  
+  getUploaderFileClassBase: function() {
+    return LSD.Widget.Filelist.File
   },
   
   onFileComplete: function(file) {
@@ -128,7 +145,7 @@ LSD.Mixin.Uploader = new Class({
   
   retrieveStoredBlobs: function() {
     var attrs = this.attributes;
-    return attrs.file || attrs.files || attrs.blobs || blob;
+    return attrs.file || attrs.files || attrs.blobs || attrs.blob;
   },
 
   processStoredBlob: function(response) {
@@ -153,12 +170,56 @@ LSD.Mixin.Uploader = new Class({
   }
 });
 
-LSD.Widget.Filelist = new Class({
-  Implements: LSD.Mixin.List,
+LSD.Mixin.Upload = new Class({
+  options: {
+    has: {
+      one: {
+        progress: {
+          source: 'progress',
+          selector: 'progress'
+        }
+      }
+    },
+    events: {
+      setBase: function() {
+        if (this.target) this.targetWidget = this.target.retrieve('widget');
+        this.build();
+      },
+      build: function() {
+        this.inject(this.getParentWidget(this.getWidget()));
+      },
+      progress: function(progress) {
+        if (this.progress) this.progress.set(progress.percentLoaded);
+      },
+      start: function() {
+        this.setState('started');
+      },
+      complete: function() {
+        if (this.progress) this.progress.set(100);
+        this.unsetState('started');
+        this.setState('complete');
+      },
+      stop: function() {
+        this.unsetState('started');
+      },
+      remove: 'dispose'
+    }
+  },
   
+  getParentWidget: function(widget) {
+    return widget;
+  },
+  
+  getWidget: function() {
+    return (this.widget || this.base.widget);
+  }
+});
+
+LSD.Widget.Filelist = new Class({
   options: {
     tag: 'filelist',
     inline: 'ul',
+    pseudos: Array.from(':items'),
     has: {
       many: {
         items: {
@@ -176,39 +237,18 @@ LSD.Widget.Filelist.File = new Class({
     inline: 'li',
     layout: {
       '::canceller': 'Cancel',
-      '::meter': true
+      '::progress': true
     },
+    pseudos: Array.fast('upload'),
     events: {
-      setBase: function() {
-        this.build();
-      },
       setFile: function() {
         this.write(this.name);
-      },
-      build: function() {
-        this.inject(this.getWidget().list);
-      },
-      progress: function() {
-        this.meter.set(this.progress.percentLoaded)
-      },
-      start: function() {
-        this.setState('started');
-      },
-      complete: function() {
-        this.unsetState('started');
-        this.setState('complete');
-      },
-      stop: function() {
-        this.unsetState('started');
       }
     },
     has: {
       one: {
-        meter: {
-          selector: 'progress'
-        },
         canceller: {
-          selector: 'button.cancel',
+          source: 'a.cancel',
           events: {
             click: 'cancel'
           }
@@ -217,31 +257,10 @@ LSD.Widget.Filelist.File = new Class({
     }
   },
   
-  getWidget: function() {
-    return (this.widget || this.base.widget);
-  },
-  
-  cancel: function() {
-    this.stop();
-    this.remove();
-    this.dispose();
+  getParentWidget: function(widget) {
+    return widget.list;
   }
 });
 
-LSD.Widget.Progress = new Class({
-  options: {
-    tag: 'progress',
-    inline: null,
-    pseudos: Array.fast('value')
-  },
-  
-  getBar: Macro.getter('bar', function() {
-    return new Element('span').inject(this.element);
-  }),
-  
-  set: function(value) {
-    this.getBar().setStyle('width', Math.round(value) + '%')
-  }
-});
-
-LSD.Behavior.define(':uploading', LSD.Mixin.Uploader);
+LSD.Behavior.define(':uploader', LSD.Mixin.Uploader);
+LSD.Behavior.define(':upload', LSD.Mixin.Upload);

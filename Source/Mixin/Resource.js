@@ -37,6 +37,9 @@ LSD.Mixin.Resource = new Class({
           if (uri.toURI) uri = uri.toURI();
           prefix = uri.get('directory');
           name = uri.get('file');
+          /*
+            Parses the last URL bit that can be singularized 
+          */
           while (!name || !(name = name.singularize())) {
             var dirs = prefix.split('/');
             name = dirs.pop();

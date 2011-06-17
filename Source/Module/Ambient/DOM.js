@@ -139,16 +139,14 @@ LSD.Module.DOM = new Class({
   },
   
   insertBefore: function(insertion, child) {
-    var index = this.childNodes.indexOf(child);
-    if (index == -1) 
-      if (child) return;
-      else index = this.childNodes.length;
+    var index = child ? this.childNodes.indexOf(child) : this.childNodes.length;
+    if (index == -1) return;
     this.childNodes.splice(index, 0, insertion);
     insertion.setParent(this, index);
     if (!child) {
-      if (index) insertion.toElement().inject(this.childNodes[index].toElement(), 'after')
+      if (index) insertion.toElement().inject(this.childNodes[index - 1].toElement(), 'after')
       else this.toElement().appendChild(insertion.toElement())
-    } else child.toElement().parentNode.insertBefore(insertion.toElement(), child.element);
+    } else this.toElement().insertBefore(insertion.toElement(), child.element);
   },
 
   cloneNode: function(children, options) {

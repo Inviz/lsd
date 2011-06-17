@@ -23,24 +23,25 @@ provides:
 LSD.Module.Chain = new Class({
   initializers: {
     chain: function() {
-      this.chains = [];
+      this.chains = {};
       this.chainPhase = -1;
       this.chainPhasing = [];
     }
   },
   
   addChain: function(name, chain) {
-    if (!chain.name) chain.name = name;
-    this.chains.push(chain);
+    if (!chain.name) chains = name;
+    this.chains[name] = chain;
   },
   
   removeChain: function(name, chain) {
-    this.chains.erase(chain);
+    if (this.chains[name] == chain) delete this.chains[name];
   },
   
   getActionChain: function() {
     var actions = [];
-    for (var i = 0, chain; chain = this.chains[i++];) {
+    for (var name in this.chains) {
+      var chain = this.chains[name]
       var action = (chain.indexOf ? this[chain] : chain).apply(this, arguments);
       if (action) actions.push[action.push ? 'apply' : 'call'](actions, action);
     }

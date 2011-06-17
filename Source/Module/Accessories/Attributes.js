@@ -93,7 +93,7 @@ LSD.Module.Attributes = new Class({
     return this;
   },
   
-  addClass: function(name){
+  addClass: function(name) {
     if (LSD.States.Classes[name] && !this[name]) this.setStateTo(name, true);
     if (!this.classes[name]) {
       this.classes[name] = true;
