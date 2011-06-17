@@ -60,7 +60,8 @@ LSD.Mixin.Uploader = new Class({
         }
       }
     },
-    states: Array.fast('empty')
+    states: Array.fast('empty'),
+    filelist: false
   },
   
   initializers: {
@@ -93,12 +94,8 @@ LSD.Mixin.Uploader = new Class({
       var Klass = new Class({
         Implements: [adapter.File, this.getUploaderFileClassBase()]
       });
-      // clean up prototype from methods widget already has
-      ['addEvent', 'addEvents', 'removeEvent', 'removeEvents', 'setOption', 'setOptions'].each(function(method) {
-        delete Klass.prototype[method];
-      })
       adapter.File.Widget = function() {
-        return new LSD.Widget().mixin(Klass);
+        return new LSD.Widget().mixin(Klass, true);
       }
     }
     return adapter.File.Widget;
@@ -123,6 +120,11 @@ LSD.Mixin.Uploader = new Class({
   
   onFileSuccess: function(file, blob) {
     this.addBlob(file, blob);
+    file.fireEvent('success', blob);
+  },
+  
+  onFileFailure: function(file, blob) {
+    file.fireEvent('failure', blob);
   },
   
   onFileRemove: function(file) {
@@ -186,7 +188,7 @@ LSD.Mixin.Upload = new Class({
         this.build();
       },
       build: function() {
-        this.inject(this.getParentWidget(this.getWidget()));
+        this.inject(this.getWidget());
       },
       progress: function(progress) {
         if (this.progress) this.progress.set(progress.percentLoaded);
@@ -255,10 +257,6 @@ LSD.Widget.Filelist.File = new Class({
         }
       }
     }
-  },
-  
-  getParentWidget: function(widget) {
-    return widget.list;
   }
 });
 

@@ -154,6 +154,7 @@ LSD.Module.DOM = new Class({
       source: this.source,
       tag: this.tagName,
       pseudos: this.pseudos.toObject(),
+      document: document,
       clone: true
     }, options));
     return clone;
@@ -168,6 +169,10 @@ LSD.Module.DOM = new Class({
     return this;
   },
   
+  unsetDocument: function(document) {
+    delete this.document;
+  },
+  
   inject: function(widget, where, quiet) {
     if (!widget.lsd) {
       var instance = LSD.Module.DOM.find(widget, true)
@@ -178,6 +183,7 @@ LSD.Module.DOM = new Class({
       if (where === false) widget.appendChild(this, false)
       else if (!inserters[where || 'bottom'](widget.lsd ? this : this.toElement(), widget) && !quiet) return false;
     }
+    
     if (quiet !== true || widget.document) this.setDocument(widget.document || LSD.document);
     if (!this.pseudos.root) this.fireEvent('inject', this.parentNode);
     return this;

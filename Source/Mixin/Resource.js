@@ -63,14 +63,14 @@ LSD.Mixin.Resource = new Class({
   },
   
   submit: function() {
-    
+    var model = this.getModel();
+    return model.save.apply(model, arguments);
   },
   
   'delete': function() {
-    console.log('delete')
-    this.dispose();
-    return this.getModel()['delete']();
+    this.dispose()
+    return this.getModel().destroy();
   }
 });
 
-LSD.Behavior.define(':resource', LSD.Mixin.Resource);
+LSD.Behavior.define(':resource, [itemscope]', LSD.Mixin.Resource);

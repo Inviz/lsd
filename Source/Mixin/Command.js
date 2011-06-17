@@ -75,7 +75,7 @@ LSD.Mixin.Command = new Class({
   },
   
   getCommandAction: function() {
-    return this.attributes.commandaction || this.captureEvent('getCommandAction', arguments);
+    return this.attributes.commandaction || this.options.commandAction || this.captureEvent('getCommandAction', arguments);
   },
   
   getCommandOptions: function() {

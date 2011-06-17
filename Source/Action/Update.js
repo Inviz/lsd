@@ -26,12 +26,12 @@ LSD.Action.Update = LSD.Action.build({
     var widget = LSD.Module.DOM.find(target);
     var fragment = document.createFragment(content);
     var children = LSD.slice(fragment.childNodes);
-    this.options.update.call(this, target, fragment, content)
+    this.options.update.call(this, document.id(target), fragment, content)
     widget.fireEvent('DOMNodeInserted', [children]);
   },
   
   update: function(target, fragment) {
-    document.id(target).empty().appendChild(fragment);
+    target.empty().appendChild(fragment);
   }
 });
 
@@ -39,7 +39,7 @@ LSD.Action.Append = LSD.Action.build({
   enable: LSD.Action.Update.prototype.options.enable,
   
   update: function(target, fragment) {
-    document.id(target).appendChild(fragment);
+    target.appendChild(fragment);
   }
 });
 
@@ -55,7 +55,6 @@ LSD.Action.Before = LSD.Action.build({
   enable: LSD.Action.Update.prototype.options.enable,
 
   update: function(target, fragment) {
-    target = document.id(target)
     target.parentNode.insertBefore(fragment, target);
   }
 });
@@ -64,6 +63,6 @@ LSD.Action.After = LSD.Action.build({
   enable: LSD.Action.Update.prototype.options.enable,
 
   update: function(target, fragment) {
-    document.id(target).parentNode.insertBefore(fragment, target.nextSibling);
+    target.parentNode.insertBefore(fragment, target.nextSibling);
   }
 });

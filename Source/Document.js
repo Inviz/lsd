@@ -98,10 +98,10 @@ LSD.Document = new Class({
       }
     };
     if (!stopped && link) {
-      var node = Element.retrieve(link, 'node');
-      if (!node) Element.store(link, 'node', node = new LSD.Widget.Anchor(link));
-      node.document = this;
-      node.click(event);
+      new LSD.Widget(link, {
+        document: this, 
+        pseudos: ['clickable', 'command']
+      }).click(event);
       event.preventDefault();
     }
   },

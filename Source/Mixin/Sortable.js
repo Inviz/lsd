@@ -43,8 +43,15 @@ LSD.Mixin.Sortable = new Class({
   },
   
   getSortables: Macro.getter('sortables', function() {
-    return new Sortables([], this.options.sortables);
-  })
+    var sortables = new Sortables([], this.options.sortables);
+    this.addEvent('sort', this.bindEvent('onSort'))
+  }),
+  
+  onSort: function(element) {
+    var widget = this.retrieve('widget');
+    this.fireEvent('sort', [widget, element]);
+    widget.fireEvent('move', [widget])
+  }
   
 });
 
