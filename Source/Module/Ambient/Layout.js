@@ -32,47 +32,6 @@ LSD.Module.Layout = new Class({
     }
   },
   
-  mutateLayout: function(element) {
-    var query = {element: element, parent: this};
-    this.dispatchEvent('mutateLayout', query);
-    if (query.mutation) return query.mutation;
-  },
-  
-  onMutateLayout: function(query) {
-    var element = query.element;
-    var mutations = (this.mutations[LSD.toLowerCase(element.tagName)] || []).concat(this.mutations['*'] || []);
-    for (var i = 0, mutation; mutation = mutations[i++];) {
-      if (Slick.match(element, mutation[0], this.element)) query.mutation = mutation[1] || true;
-    }
-  },
-  
-  addMutation: function(selector, mutation) {
-    if (!this.$register) this.$register = {};
-    if (!this.$register.mutations) {
-      this.addEvent('mutateLayout', this.onMutateLayout);
-      this.$register.mutations = 1;
-    } else this.$register.mutations++;
-    if (!this.mutations) this.mutations = {};
-    selector.split(/\s*,\s*/).each(function(bit) {
-      var parsed = Slick.parse(bit);
-      var tag = parsed.expressions[0].getLast().tag;
-      var group = this.mutations[tag];
-      if (!group) group = this.mutations[tag] = [];
-      group.push([parsed, mutation]);
-    }, this)
-  },
-  
-  removeMutation: function(selector, mutation) {
-    if (!(--this.$register.mutations)) this.removeEvent(mutateLayout, this.onMutateLayout);
-    selector.split(/\s*,\s*/).each(function(bit) {
-      var parsed = Slick.parse(bit);
-      var tag = parsed.expressions[0].getLast().tag;
-      var group = this.mutations[tag];
-      for (var i = 0, mutation; mutation = group[i]; i++)
-        if (group[0] == parsed && parsed[1] == mutation) group.splice(i--, 1);
-    }, this)
-  },
-  
   setLayout: function(layout) {
     if (typeOf(layout) == 'layout') this.layout = this;
     else this.options.layout = layout;
@@ -84,7 +43,7 @@ LSD.Module.Layout = new Class({
   },
   
   getLayout: Macro.getter('layout', function() {
-    var options = { interpolate: this.options.interpolate };
+    var options = { interpolate: this.options.interpolate, clone: this.options.clone };
     if (this.options.context) options.context = this.options.context;
     return new LSD.Layout(this, null, options);
   }),
@@ -136,7 +95,7 @@ LSD.Module.Layout.events = {
     if (this.getLayout().origin == this && this.options.traverse !== false) {
       if (this.origin && !this.options.clone) this.element.replaces(this.origin);
       var nodes = LSD.slice((this.origin || this.element).childNodes);
-      this.getLayout().render(nodes, [this.element, this], this.options.clone ? 'clone' : null);
+      this.getLayout().result = this.getLayout().render(nodes, [this.element, this], this.options.clone ? 'clone' : null);
     }
     if (this.options.layout) this.buildLayout(this.options.layout);
   },
@@ -157,12 +116,6 @@ LSD.Module.Layout.events = {
 LSD.Module.Events.addEvents.call(LSD.Module.Layout.prototype, LSD.Module.Layout.events);
 
 Object.append(LSD.Options, {
-  mutations: {
-    add: 'addMutation',
-    remove: 'removeMutation',
-    iterate: true
-  },
-  
   layout: {
     add: 'setLayout',
     remove: 'unsetLayout'

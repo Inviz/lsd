@@ -191,12 +191,6 @@ var Options = LSD.Relation.Options = {
   mutation: function(mutation, state, memo) {
     if (memo) this.origin.removeMutation(mutation, memo);
     if (state) {
-      if (this.origin.parentNode || (this.origin.document && !this.origin.document.building)) {
-        this.origin.toElement().getElements(mutation).each(function(element) {
-          var mutated = this.origin.context.use(element, {source: this.options.source}, this.origin)
-          if (mutated) mutated.inject(this.origin);
-        }, this)
-      }
       this.origin.addMutation(mutation, this.getSource());
       return this.options.source;
     }

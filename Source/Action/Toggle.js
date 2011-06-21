@@ -1,9 +1,9 @@
 /*
 ---
  
-script: Check.js
+script: Toggle.js
  
-description: Changes the state of a widget
+description: Changes the checkedness state of a checkbox
  
 license: Public domain (http://unlicense.org).
 
@@ -13,13 +13,15 @@ requires:
   - LSD.Action
  
 provides:
+  - LSD.Action.Toggle
   - LSD.Action.Check
+  - LSD.Action.Uncheck
  
 ...
 */
 
 
-LSD.Action.Check = LSD.Action.build({
+LSD.Action.Toggle = LSD.Action.build({
   enable: function(target) {
     if (!target || target == this.invoker || target.element == this.invoker) return;
     if (!target.checked) (target.check || target.click).apply(target, Array.prototype.slice.call(arguments, 1));
@@ -32,5 +34,8 @@ LSD.Action.Check = LSD.Action.build({
   
   getState: function(target, name, state) {
     return (state !== true && state !== false) ? this.invoker.checked : !state;
-  }
+  },
+
+  enabler: 'check',
+  disabler: 'uncheck'
 });

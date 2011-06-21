@@ -113,8 +113,8 @@ LSD.Module.DOM = new Class({
     delete this.parentNode, delete this.removed;
   },
   
-  appendChild: function(widget, adoption) {
-    if (!widget.quiet && (adoption !== false) && this.toElement()) (adoption || function() {
+  appendChild: function(widget, override) {
+    if (!widget.quiet && (override !== false) && this.toElement()) (override || function() {
       this.element.appendChild(widget.toElement());
     }).apply(this, arguments);
     widget.setParent(this, this.childNodes.push(widget) - 1);

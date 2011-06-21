@@ -16,6 +16,8 @@ provides:
   - LSD.Action.Update
   - LSD.Action.Append
   - LSD.Action.Replace
+  - LSD.Action.Before
+  - LSD.Action.After
 
 ...
 */

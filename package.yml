@@ -66,6 +66,7 @@ sources:
   - Source/Module/Ambient/DOM.js
   - Source/Module/Ambient/Selectors.js
   - Source/Module/Ambient/Expectations.js
+  - Source/Module/Ambient/Mutations.js
   - Source/Module/Ambient/Layout.js
   - Source/Module/Ambient/Relations.js
   - Source/Module/Ambient/Proxies.js

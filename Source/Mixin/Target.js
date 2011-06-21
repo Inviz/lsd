@@ -29,6 +29,13 @@ provides:
             if (!chain.action) chain.action = this.getTargetAction(); 
             if (!chain.action) return;
             if (chain.selector) chain.target = this.getElement(chain.selector);
+            switch (chain.keyword) {
+              case "before":
+                chain.priority = 50;
+                break;
+              case "after":
+                chain.priority = -50;
+            }
             return chain;
           }.bind(this));
         }

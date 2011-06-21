@@ -20,7 +20,7 @@ provides:
 
 LSD.Action.Set = LSD.Action.build({
   enable: function(target, value) {
-    switch (Element.get(target, 'tag')) {
+    switch (LSD.toLowerCase(target.tagName)) {
       case 'input': case 'textarea':
         if (target.applyValue) target.applyValue(value);
         else target.value = value; break;

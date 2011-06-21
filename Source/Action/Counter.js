@@ -35,18 +35,11 @@ LSD.Action.Counter = LSD.Action.build({
     var counter = this.retrieve(target)
     if (!counter) this.store(target, (counter = new Counter(target.innerHTML)));
     target.innerHTML = counter.decrement(number).toString();
-  }
-});
+  },
 
-LSD.Action.Increment = LSD.Action.build({
-  enable: LSD.Action.Counter.prototype.options.enable,
-  disable: LSD.Action.Counter.prototype.options.disable
+  enabler: 'increment',
+  disabler: 'decrement'
 });
-
-LSD.Action.Decrement = LSD.Action.build({
-  enable: LSD.Action.Counter.prototype.options.disable,
-  disable: LSD.Action.Counter.prototype.options.enable
-})
 
 var Counter = String.Counter = function(string) {
   this.parsed = this.parse(string);

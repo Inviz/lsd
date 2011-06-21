@@ -31,7 +31,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   },
   
   getElementsByTagName: function(tag) {
-    return (this.expectations.tag && this.expectations.tag[tag.toLowerCase()]) || [];
+    return (this.expectations.tag && this.expectations.tag[LSD.toLowerCase(tag)]) || [];
   },
   
   /*
@@ -224,7 +224,10 @@ var update = function(widget, tag, state, single) {
 var remove = function(array, callback) {
   if (array) for (var i = array.length; i--;) {
     var fn = array[i][1]; 
-    if (fn == callback || fn.callback == callback) array.splice(i, 1);
+    if (fn == callback || fn.callback == callback) {
+      array.splice(i, 1);
+      break;
+    }
   }
 }
 
