@@ -44,30 +44,28 @@ LSD.Mixin.ContentEditable = new Class({
   
   getEditor: Macro.getter('editor', function() {
     use('CKEDITOR', function(CKEDITOR) {
-      var value = this.getValueForEditor()
+      var value = this.getValueForEditor();
+      console.error(this.getEditedElement());
       var editor = this.editor = new CKEDITOR.editor( this.options.ckeditor, this.getEditedElement(), 1, value);
-    
+      console.error('editor', editor, this.editor)
       editor.on('focus', function() {
-        if (this.editor) this.getEditorContainer().addClass('focus');
+        if (this.editor) this.getEditorContainer().addClass('focused');
       }.bind(this));
       editor.on('blur', function() {
-        if (this.editor) this.getEditorContainer().removeClass('focus');
+        if (this.editor) this.getEditorContainer().removeClass('focused');
       }.bind(this));
-      editor.on('contentDom', function() {
+      editor.on('uiReady', function() {
         this.showEditor();
         this.fireEvent('editorReady');
-      
-        !function() {
-        
+        !function() {/*
           if (Browser.firefox) {
             var body = this.getEditorBody()
             body.contentEditable = false;
             body.contentEditable = true;
-        }
+        }*/
         this.editor.focus();
         this.editor.forceNextSelectionCheck();
         this.editor.focus();
-      
         }.delay(100, this)
       }.bind(this));
     }.bind(this))
@@ -84,19 +82,27 @@ LSD.Mixin.ContentEditable = new Class({
   },
   
   showEditor: function() {
+    console.log('show', this.element);
     this.element.setStyle('display', 'none');
-    this.getEditorContainer().setStyle('visibility', 'visible');
+    this.getEditorContainer().setStyles({
+      display: '',
+      visiblity: 'visible'
+    });
   },
   
   hideEditor: function() {
     this.element.setStyle('display', '');
-    this.getEditorContainer().setStyle('visibility', 'hidden');
+    this.getEditorContainer().setStyle('display', 'none');
   },
   
   useEditor: function(callback) {
-    if (this.editor && this.editor.document) callback.call(this.editor);
-    this.addEvent('editorReady:once', callback);
-    this.getEditor();
+    if (this.editor && this.editor.document) {
+      if (callback) callback.call(this.editor);
+      this.showEditor();
+    } else {
+      if (callback) this.addEvent('editorReady:once', callback);
+      this.getEditor();
+    }
   },
   
   getEditorContainer: function() {

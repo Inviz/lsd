@@ -26,7 +26,19 @@ LSD.Action = function(options, name) {
     enable:  this.enable.bind(this),
     disable: this.disable.bind(this),
     detach:  this.disable.bind(this)
-  };  
+  }
+  if (this.options.enabler) LSD.Action[LSD.toClassName(this.options.enabler)] = LSD.Action.build({
+    enable: this.options.enable,
+    disable: this.options.disable,
+    getState: this.options.getState
+  })
+  if (this.options.disabler) LSD.Action[LSD.toClassName(this.options.disabler)] = LSD.Action.build({
+    enable: this.options.disable,
+    disable: this.options.enable,
+    getState: this.options.getState && function() {
+      return !this.options.getState.apply(this, arguments)
+    }.bind(this)
+  })
   return this;
 };
 
@@ -51,13 +63,12 @@ LSD.Action.prototype = {
   
   commit: function(target, args, bind) {
     if (this.state) this.target[this.state.enabler]();
-    var result = this.options.enable.apply(bind || this, [target].concat(args));
-    return result;
+    return this.options.enable && this.options.enable.apply(bind || this, [target].concat(args));
   },
   
   revert: function(target, args, bind) {
     if (this.state) this.target[this.state.disabler]();
-    return this.options.disable.apply(bind || this, [target].concat(args));
+    return this.options.disable && this.options.disable.apply(bind || this, [target].concat(args));
   },
   
   perform: function(target, args) {

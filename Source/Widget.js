@@ -47,7 +47,7 @@ LSD.Widget = new Class({
 
 LSD.Module.Events.addEvents.call(LSD.Widget.prototype, {
   initialize: function() {
-    this.addPseudo(this.pseudos.submittable ? 'read-write' : 'read-only');
+    this.addPseudo(this.pseudos.writable ? 'read-write' : 'read-only');
   }
 });
 

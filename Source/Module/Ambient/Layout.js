@@ -95,7 +95,7 @@ LSD.Module.Layout.events = {
     if (this.getLayout().origin == this && this.options.traverse !== false) {
       if (this.origin && !this.options.clone) this.element.replaces(this.origin);
       var nodes = LSD.slice((this.origin || this.element).childNodes);
-      this.getLayout().result = this.getLayout().render(nodes, [this.element, this], this.options.clone ? 'clone' : null);
+      this.getLayout().result = this.getLayout().render(nodes, [this.element, this], this.options.clone ? {clone: true} : null);
     }
     if (this.options.layout) this.buildLayout(this.options.layout);
   },

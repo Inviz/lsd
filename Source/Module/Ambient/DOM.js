@@ -92,11 +92,11 @@ LSD.Module.DOM = new Class({
   
   unsetParent: function(widget, index) {
     if (!widget) widget = this.parentNode;
-    this.fireEvent('unregister', ['parent', widget]);
-    this.removed = true;
     LSD.Module.DOM.walk(this, function(node) {
       widget.dispatchEvent('nodeRemoved', node);
     });
+    this.fireEvent('unregister', ['parent', widget]);
+    this.removed = true;
     var parent = this.parentNode, siblings = widget.childNodes;
     if (index == null) index = siblings.indexOf(this);
     var previous = siblings[index - 1], next = siblings[index + 1];
@@ -147,6 +147,7 @@ LSD.Module.DOM = new Class({
       if (index) insertion.toElement().inject(this.childNodes[index - 1].toElement(), 'after')
       else this.toElement().appendChild(insertion.toElement())
     } else this.toElement().insertBefore(insertion.toElement(), child.element);
+    return this;
   },
 
   cloneNode: function(children, options) {
@@ -154,23 +155,26 @@ LSD.Module.DOM = new Class({
       source: this.source,
       tag: this.tagName,
       pseudos: this.pseudos.toObject(),
-      document: document,
-      clone: true
+      clone: true,
+      traverse: !!children
     }, options));
     return clone;
   },
   
-  setDocument: function(document) {
+  setDocument: function(document, revert) {
     LSD.Module.DOM.walk(this, function(child) {
-      child.ownerDocument = child.document = document;
-      child.fireEvent('register', ['document', document]);
-      child.fireEvent('setDocument', document);
+      if (revert) {
+        delete child.ownerDocument;
+        delete child.document;
+      } else child.ownerDocument = child.document = document;
+      child.fireEvent(revert ? 'unregister' : 'register', ['document', document]);
+      child.fireEvent(revert ? 'unsetDocument' : 'setDocument', document);
     });
     return this;
   },
   
   unsetDocument: function(document) {
-    delete this.document;
+    return this.setDocument(document, true);
   },
   
   inject: function(widget, where, quiet) {
@@ -183,7 +187,7 @@ LSD.Module.DOM = new Class({
       if (where === false) widget.appendChild(this, false)
       else if (!inserters[where || 'bottom'](widget.lsd ? this : this.toElement(), widget) && !quiet) return false;
     }
-    
+    if (where == 'after' || where == 'before') widget = this.parentNode;
     if (quiet !== true || widget.document) this.setDocument(widget.document || LSD.document);
     if (!this.pseudos.root) this.fireEvent('inject', this.parentNode);
     return this;

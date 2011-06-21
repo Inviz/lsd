@@ -111,9 +111,9 @@ LSD.Layout.prototype = Object.append(new Options, {
     var converted = element.uid && Element.retrieve(element, 'widget');
     var children = LSD.slice(element.childNodes);
     var cloning = (opts && opts.clone) || this.options.clone, group;
-    
     var ascendant = parent[1] || parent, container = parent[0] || parent.toElement();
   
+    // Retrieve the stack if the render was not triggered from the root of the layout
     if (!stack) {
       stack = [];
       if ((group = ascendant.mutations['>'])) stack.push(group);
@@ -124,24 +124,32 @@ LSD.Layout.prototype = Object.append(new Options, {
       //  if ((group = node.mutations['-'])) stack.push(group);
       //}
     }
+    
+    // Match all selectors in the stack and find a right mutation
     var index = stack.length;
     if (index) {
       var mutation, advanced, tagName = LSD.toLowerCase(element.tagName);
       for (var i = index, item, result, ary = ['*', tagName]; item = stack[--i];)
         for (var j = 0, value = item[1] || item, tag; tag = ary[j++];)
-          if ((group = value[tag]))
-            for (var k = 0, possibility, sel; possibility = group[k++];)
-              if ((result = possibility[1]) && (!mutation || !result.indexOf) && (sel = possibility[0])) 
-                if ((!sel.id && !sel.classes && !sel.attributes && !sel.pseudos) ? (tagName == sel.tag) :
+          if ((group = value[tag])){
+            for (var k = 0, possibility, sel; possibility = group[k++];) {
+              var result = possibility[1];
+              if ((!mutation || (result && !result.indexOf)) && (sel = possibility[0])) {
+                if ((!sel.id && !sel.classes && !sel.attributes && !sel.pseudos) ? (tagName == sel.tag || j == 0) :
                   (Slick.matchSelector(element, sel.tag, sel.id, sel.classes, sel.attributes, sel.pseudos)))
-                  if (!result.call || (result = result(element, !revert)))
-                    if (!result.push) {
-                      mutation = result;
+                  if (!result || !result.call || (result = result(element, !revert)))
+                    if (!result || !result.push) {
+                      mutation = result || true;
                     } else (advanced || (advanced = [])).push(result);
+              }
+            }
+          }
     }
+    
+    
+    // Create, clone or reuse a widget.
     if (!converted) {
-      var options = Object.append({}, opts);
-      options.traverse = false;
+      var options = {traverse: false};
       if (!options.context && this.options.context) options.context = this.options.context;
       if (mutation) {
         Object.append(options, mutation.indexOf ? LSD.Layout.parse(mutation) : mutation);
@@ -152,6 +160,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     } else {
       var widget = cloning ? converted.cloneNode(false, options) : converted;
     }
+    // Append widget into parent widget without moving elements
     if (widget) {
       var override = function() {
         if (widget.toElement().parentNode == container) return;
@@ -165,9 +174,10 @@ LSD.Layout.prototype = Object.append(new Options, {
     } else {
       if (cloning) var clone = element.cloneNode(false);
       if (cloning || (ascendant.origin == element.parentNode)) this.appendChild(container, clone || element);
-    }
+    }    
     var newParent = [clone || (widget && widget.element) || element, widget || ascendant];
-    console.log(element, cloning)
+    
+    // Put away selectors in the stack that should not be matched again widget children
     var group, direct, following;
     for (var i = stack.length; group = stack[--i];) {
       switch (group[0]) {
@@ -181,10 +191,12 @@ LSD.Layout.prototype = Object.append(new Options, {
           (direct || (direct = [])).push(stack.pop());
       }
     }
+    // Collect the mutations from the converted widget
     if (widget) {
       if ((group = widget.mutations[' '])) stack.push([' ', group]);
       if ((group = widget.mutations['>'])) stack.push(['>', group]);
     }
+    // Collect mutations that advanced with this element AND are looking for children
     if (advanced) for (var i = 0, group; group = advanced[i]; i++) {
       switch (group[0]) {
         case ' ': case '>':
@@ -193,6 +205,7 @@ LSD.Layout.prototype = Object.append(new Options, {
           break;
       }
     }
+    // Render children
     for (var i = 0, j = children.length - 2, child, previous, result, following; child = children[i]; i++) {
       if (previous) {
         if ((group = previous.mutations['~'])) stack.push(['~', group]);
@@ -201,12 +214,14 @@ LSD.Layout.prototype = Object.append(new Options, {
       previous = this[LSD.Layout.NodeTypes[child.nodeType]](child, newParent, opts, stack, revert, i == j);
       if (!previous.lsd) previous = null;
     }
+    // Put back advanced selectors into the stack
     if (advanced) for (var i = 0; group = advanced[i++];)
       if (group[0] != '+' || !last) stack.push(group);
     if (!last) {
       if (following) for (var i = 0; group = following[i++];) stack.push(group);
       if (direct) for (var i = 0; group = direct[i++];) stack.push(group);
     }
+    
     return widget || clone || element;
   },
   
@@ -336,11 +351,6 @@ Object.append(LSD.Layout, {
       delete options.attributes['class'];
     }
     return options;
-  },
-  
-  mutate: function(element, parent) {
-    var mutation = (parent[1] || parent).mutateLayout(element);
-    if (mutation) return (mutation === true) || LSD.Layout.parse(mutation, parent);
   },
   
   getSource: function(options, tagName) {

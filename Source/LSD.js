@@ -71,7 +71,9 @@ var LSD = Object.append(new Events, {
     Classes: {
       selected: 'selected',
       empty: 'empty',
-      working: 'working'
+      working: 'working',
+      focused: 'focused',
+      editing: 'editing'
     }
   },
   Options: {},
