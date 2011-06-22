@@ -23,7 +23,7 @@ provides:
 LSD.Mixin.Focusable = new Class({
   options: {
     actions: {
-      focus: {
+      focusable: {
         target: false,
         enable: function(target) {
           if (target.tabindex != null) {
