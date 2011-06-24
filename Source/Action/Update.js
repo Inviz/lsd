@@ -53,7 +53,7 @@ LSD.Action.Replace = LSD.Action.build({
 
   update: function(target, parent, fragment, children) {
     target.parentNode.replaceChild(fragment, target);
-    parent.fireEvent('DOMNodeReplaced', [children, target]);
+    parent.fireEvent('DOMNodeInserted', [children, target]);
   }
 });
 

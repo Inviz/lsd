@@ -126,18 +126,8 @@ LSD.Module.DOM = new Class({
   },
   
   insertBefore: function(insertion, child) {
-    var widget = child;
-    if (widget && !widget.lsd)
-      if (!child.uid || !(widget = child.retrieve('widget')))
-        for (var item = child, stack = [item.nextSibling]; item = stack.pop();)
-          if (item.uid && (widget = item.retrieve('widget'))) {
-            if (widget == this) widget = null;
-            break;
-          } else {
-            if ((widget = item.nextSibling)) stack.push(widget);
-            else stack.push(item.parentNode);
-          }
-    var index = widget ? this.childNodes.indexOf(widget) : this.childNodes.length;
+    var widget = LSD.Module.DOM.findNext(child);
+    var index = widget && widget != this ? this.childNodes.indexOf(widget) : this.childNodes.length;
     if (index == -1) return;
     this.childNodes.splice(index, 0, insertion);
     if (!child) {
@@ -329,6 +319,20 @@ Object.append(LSD.Module.DOM, {
   
   find: function(target, lazy) {
     return target.lsd ? target : ((!lazy || target.uid) && Element[lazy ? 'retrieve' : 'get'](target, 'widget'));
+  },
+  
+  findNext: function(target) {
+    var widget = target;
+    if (widget && !widget.lsd)
+      if (!target.uid || !(widget = target.retrieve('widget')))
+        for (var item = target, stack = [item.nextSibling]; item = stack.pop();)
+          if (item.uid && (widget = item.retrieve('widget'))) {
+            break;
+          } else {
+            if ((widget = item.nextSibling)) stack.push(widget);
+            else stack.push(item.parentNode);
+          }
+    return widget;
   },
   
   getID: function(target) {

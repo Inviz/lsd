@@ -103,20 +103,16 @@ LSD.Module.Layout.events = {
     Augments all parsed HTML that goes through standart .write() interface
   */
   write: function() {
-    this.buildLayout.apply(this, arguments);
+    this.buildLayout(node, this);
   },
   /*
     Augments all inserted nodes that come from partial html updates
   */
   DOMNodeInserted: function(node) {
-    this.buildLayout.apply(this, arguments);
+    this.buildLayout(node, this);
   },
   
   DOMNodeInsertedBefore: function(node, target) {
-    this.buildLayout(node, this, {before: target});
-  },
-  
-  DOMNodeReplaced: function(node, target) {
     this.buildLayout(node, this, {before: target});
   }
 };
