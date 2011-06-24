@@ -48,40 +48,38 @@ LSD.Module.DOM = new Class({
     return widget;
   },
   
+  moveTo: function(widget) {
+    if (widget == this.parentNode) {
+      unset.call(this, widget);
+    } else {
+      if (this.parentNode) this.dispose();
+      return true;
+    }
+  },
+  
   setParent: function(widget, index){
     if (!widget.lsd) widget = LSD.Module.DOM.find(widget);
-    if (this.parentNode) this.dispose();
     if (!widget) return;
-    this.parentNode = widget;
-    this.fireEvent('setParent', [widget, widget.document])
-    var siblings = widget.childNodes, length = siblings.length;
-    if (siblings[0] == this) widget.firstChild = this;
-    if (siblings[siblings.length - 1] == this) widget.lastChild = this;
-    if (index == null) index = length - 1;
-    if (index) {
-      var previous = siblings[index - 1];
-      if (previous) {
-        previous.nextSibling = this;
-        this.previousSibling = previous;
-      }
+    if (this.moveTo(widget)) {
+      this.parentNode = widget;
+      this.fireEvent('setParent', [widget, widget.document])
+      var changed = true;
     }
-    if (index < length) {
-      var next = siblings[index + 1];
-      if (next) {
-        next.previousSibling = this;
-        this.nextSibling = next;
-      }
-    } 
-    this.fireEvent('register', ['parent', widget]);
-    widget.fireEvent('adopt', [this]);
-    
+    set.call(this, widget, index);
+    //console.error('set next sibling', this.element, this.tagName, next)
+    if (changed) {
+      this.fireEvent('register', ['parent', widget]);
+      widget.fireEvent('adopt', [this]);
+    }
+    var previous = this.previousSibling;
     var start = previous ? (previous.sourceLastIndex || previous.sourceIndex) : widget.sourceIndex || (widget.sourceIndex = 1);
-    var index = start;
+    var sourceIndex = start;
     LSD.Module.DOM.walk(this, function(node) {
-      node.sourceIndex = ++index;
+      node.sourceIndex = ++sourceIndex;
       if (node.sourceLastIndex) node.sourceLastIndex += start;
       for (var parent = widget; parent; parent = parent.parentNode) {
         parent.sourceLastIndex = (parent.sourceLastIndex || parent.sourceIndex) ;
+        if (!changed) continue;
         var events = parent.$events.nodeInserted;
         if (!events) continue;
         for (var i = 0, j = events.length, fn; i < j; i++)
@@ -97,20 +95,9 @@ LSD.Module.DOM = new Class({
     });
     this.fireEvent('unregister', ['parent', widget]);
     this.removed = true;
-    var parent = this.parentNode, siblings = widget.childNodes;
-    if (index == null) index = siblings.indexOf(this);
-    var previous = siblings[index - 1], next = siblings[index + 1];
-    if (previous && previous.nextSibling == this) {
-      previous.nextSibling = next;
-      if (this.previousSibling == previous) delete this.previousSibling;
-    }
-    if (next && next.previousSibling == this) {
-      next.previousSibling = previous;
-      if (this.nextSibling == next) delete this.nextSibling;
-    }
-    if (parent.firstChild == this) parent.firstChild = next;
-    if (parent.lastChild == this) parent.lastChild = previous;
-    delete this.parentNode, delete this.removed;
+    unset.call(this, widget, index); 
+    delete this.parentNode;
+    delete this.removed;
   },
   
   appendChild: function(widget, override) {
@@ -139,23 +126,33 @@ LSD.Module.DOM = new Class({
   },
   
   insertBefore: function(insertion, child) {
-    var index = child ? this.childNodes.indexOf(child) : this.childNodes.length;
+    var widget = child;
+    if (widget && !widget.lsd)
+      if (!child.uid || !(widget = child.retrieve('widget')))
+        for (var item = child, stack = [item.nextSibling]; item = stack.pop();)
+          if (item.uid && (widget = item.retrieve('widget'))) {
+            if (widget == this) widget = null;
+            break;
+          } else {
+            if ((widget = item.nextSibling)) stack.push(widget);
+            else stack.push(item.parentNode);
+          }
+    var index = widget ? this.childNodes.indexOf(widget) : this.childNodes.length;
     if (index == -1) return;
     this.childNodes.splice(index, 0, insertion);
     insertion.setParent(this, index);
     if (!child) {
       if (index) insertion.toElement().inject(this.childNodes[index - 1].toElement(), 'after')
       else this.toElement().appendChild(insertion.toElement())
-    } else this.toElement().insertBefore(insertion.toElement(), child.element);
+    } else this.toElement().insertBefore(insertion.toElement(), child.element || child);
     return this;
   },
 
   cloneNode: function(children, options) {
-    var clone = this.context.create(this.element, Object.merge({
+    var clone = this.context.create(this.element.cloneNode(children), Object.merge({
       source: this.source,
       tag: this.tagName,
       pseudos: this.pseudos.toObject(),
-      clone: true,
       traverse: !!children
     }, options));
     return clone;
@@ -227,9 +224,13 @@ LSD.Module.DOM = new Class({
     return this;
   },
   
-  onDOMInject: function(callback) {
-    if (this.document) callback.call(this, this.document.element) 
-    else this.addEvent('setDocument', callback.bind(this))
+  watchInjection: function(callback) {
+    this.addEvent('setDocument', callback);
+    if (this.document) callback.call(this, this.document.element)
+  },
+  
+  unwatchInjection: function(callback) { 
+    this.removeEvent('setDocument', callback);
   },
   
   onElementDispose: function() {
@@ -245,6 +246,38 @@ LSD.Module.DOM = new Class({
     return this;
   }
 });
+
+var set = function(widget, index) {
+  var siblings = widget.childNodes, length = siblings.length;
+  if (siblings[0] == this) widget.firstChild = this;
+  if (siblings[siblings.length - 1] == this) widget.lastChild = this;
+  if (index == null) index = length - 1;
+  var previous = siblings[index - 1], next = siblings[index + 1];
+  if (previous) {
+    previous.nextSibling = this;
+    this.previousSibling = previous;
+  }
+  if (next) {
+    next.previousSibling = this;
+    this.nextSibling = next;
+  }
+};
+
+var unset = function(widget, index) {
+  var parent = this.parentNode, siblings = widget.childNodes;
+  if (index == null) index = siblings.indexOf(this);
+  var previous = siblings[index - 1], next = siblings[index + 1];
+  if (previous && previous.nextSibling == this) {
+    previous.nextSibling = next;
+    if (this.previousSibling == previous) delete this.previousSibling;
+  }
+  if (next && next.previousSibling == this) {
+    next.previousSibling = previous;
+    if (this.nextSibling == next) delete this.nextSibling;
+  }
+  if (parent.firstChild == this) parent.firstChild = next;
+  if (parent.lastChild == this) parent.lastChild = previous;
+};
 
 var inserters = {
 

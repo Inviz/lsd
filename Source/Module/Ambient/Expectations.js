@@ -269,7 +269,9 @@ Expectations.events = {
   },
   nodeTagChanged: function(widget, tag, old) {
     var expectations = this.expectations, type = expectations.tag;
-    type[old].erase(widget);
+    var index = type[old].indexOf(widget);
+    if (index == -1) return;
+    type[old].splice(index, 1);
     update.call(this, widget, old, false);
     if (!tag) return;
     if (!group) group = type[tag] = [];

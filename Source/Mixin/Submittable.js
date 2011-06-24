@@ -81,7 +81,7 @@ LSD.Mixin.Submittable = new Class({
   },
   
   getSubmissionData: function() {
-    return this.getData();
+    return this.getData ? this.getData() : null;
   }
 });
 

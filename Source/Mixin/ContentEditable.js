@@ -42,17 +42,19 @@ LSD.Mixin.ContentEditable = new Class({
     }
   },
   
-  getEditor: Macro.getter('editor', function() {
+  getEditor: function() {
+    if (this.editor) return this.editor;
     use('CKEDITOR', function(CKEDITOR) {
       var value = this.getValueForEditor();
-      console.error(this.getEditedElement());
       var editor = this.editor = new CKEDITOR.editor( this.options.ckeditor, this.getEditedElement(), 1, value);
-      console.error('editor', editor, this.editor)
+      CKEDITOR.add(editor);
       editor.on('focus', function() {
         if (this.editor) this.getEditorContainer().addClass('focused');
+        this.onFocus.apply(this, arguments);
       }.bind(this));
       editor.on('blur', function() {
         if (this.editor) this.getEditorContainer().removeClass('focused');
+        this.onBlur.apply(this, arguments);
       }.bind(this));
       editor.on('uiReady', function() {
         this.showEditor();
@@ -69,7 +71,7 @@ LSD.Mixin.ContentEditable = new Class({
         }.delay(100, this)
       }.bind(this));
     }.bind(this))
-  }),
+  },
   
   getValueForEditor: function() {
     var element = this.getEditedElement();
@@ -82,12 +84,8 @@ LSD.Mixin.ContentEditable = new Class({
   },
   
   showEditor: function() {
-    console.log('show', this.element);
     this.element.setStyle('display', 'none');
-    this.getEditorContainer().setStyles({
-      display: '',
-      visiblity: 'visible'
-    });
+    this.getEditorContainer().setStyle('display', 'block');
   },
   
   hideEditor: function() {
@@ -95,7 +93,7 @@ LSD.Mixin.ContentEditable = new Class({
     this.getEditorContainer().setStyle('display', 'none');
   },
   
-  useEditor: function(callback) {
+  openEditor: function(callback) {
     if (this.editor && this.editor.document) {
       if (callback) callback.call(this.editor);
       this.showEditor();
@@ -103,6 +101,11 @@ LSD.Mixin.ContentEditable = new Class({
       if (callback) this.addEvent('editorReady:once', callback);
       this.getEditor();
     }
+  },
+  
+  closeEditor: function(callback) {
+    this.editor.updateElement();
+    this.hideEditor();
   },
   
   getEditorContainer: function() {
@@ -114,7 +117,7 @@ LSD.Mixin.ContentEditable = new Class({
   },
   
   getEditedElement: function() {
-    return this.element;
+    return this.toElement();
   }
 });
 

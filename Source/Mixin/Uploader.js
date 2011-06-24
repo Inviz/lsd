@@ -29,7 +29,6 @@ LSD.Mixin.Uploader = new Class({
           if (this.attributes.multiple) this.options.uploader.multiple = true;
           this.fireEvent('register', ['uploader', this.getUploader()]);
           var target = this.getUploaderTarget();
-          console.log(target)
           if (target) this.getUploader().attach(target);
           this.getStoredBlobs().each(this.addFile, this);
         },
@@ -44,7 +43,9 @@ LSD.Mixin.Uploader = new Class({
       uploader: {
         fileComplete: 'onFileComplete',
         fileRemove: 'onFileRemove',
-        fileProgress: 'onFileProgress'
+        fileProgress: 'onFileProgress',
+        fileProgress: 'onFileProgress',
+        beforeSelect: 'onBeforeFileSelect'
       }
     },
     has: {
@@ -77,6 +78,10 @@ LSD.Mixin.Uploader = new Class({
     uploader.widget = this;
     return uploader;
   }),
+  
+  onBeforeFileSelect: function() {
+    this.lastUploaderTarget =  this.getUploader().target;
+  },
   
   getUploaderTarget: function() {
     var target = this.options.uploader.target;

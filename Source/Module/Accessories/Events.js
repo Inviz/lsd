@@ -186,7 +186,7 @@ var Events = Object.append(LSD.Module.Events, {
   
   bind: function(method, bind, args) {
     return function() {
-      if (bind[method]) bind[method].apply(bind, args || arguments);
+      if (bind[method]) return bind[method].apply(bind, args || arguments);
     }
   }
 });

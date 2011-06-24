@@ -44,7 +44,7 @@ LSD.Module.Proxies = new Class({
             target.adopt(child);
           });
         } else {
-          child.inject(target, proxy.where);
+          child.inject(target, proxy.where && proxy.where.call ? proxy.where.call(this, child) : proxy.where);
         }
       };
       var container = proxy.container;

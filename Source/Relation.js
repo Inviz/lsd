@@ -39,7 +39,9 @@ LSD.Relation.prototype = Object.append({
   
   setOptions: function(options, unset) {
     this.$options[unset ? 'erase' : 'include'](options);
-    this.options = Object.merge.apply(Object, [{}].concat(this.$options));
+    var opts = Object.merge.apply(Object, [{}].concat(this.$options));
+    this.lastOptions = this.options;
+    this.options = opts;
     if (options.target) this.memo.target = Options.target.call(this, options.target, true);
     for (name in options) {
       var setter = Options[name], value = options[name];
@@ -53,7 +55,7 @@ LSD.Relation.prototype = Object.append({
   
   applyOption: function(widget, name, value, unset, setter) {
     if (setter) {
-      if (!setter.call) {
+      if (!setter.call && setter !== true) {
         if (setter.process) {
           if (setter.process.call) value = setter.process.call(this, value);
           else value = widget[setter.process](value);
@@ -275,14 +277,14 @@ var Options = LSD.Relation.Options = {
       this.origin.removeRelation(name, memo);
     }
     if (state) {
-      var self = this, relation = this.origin.relations[name];
+      var self = this, relation = this.origin.relations[name], filter;
       memo = {
         callbacks: {
           add: function(widget) {
-            widget.expect(self.options.filter, self.onChange, true)
+            widget.expect((filter = self.options.filter), self.onChange, true)
           },
           remove: function(widget) {
-            widget.unexpect(self.options.filter, self.onChange, true, true);
+            widget.unexpect(filter, self.onChange, true, true);
           }
         }
       };
@@ -369,7 +371,9 @@ var Options = LSD.Relation.Options = {
     remove: function(widget, options) {
       widget.setOptions(options.call ? options.call(this.origin) : options, true);
     }
-  }
+  },
+  
+  filter: true
 };
 
 LSD.Relation.getScopeName = function(scoped) {

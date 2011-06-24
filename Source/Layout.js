@@ -61,7 +61,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     var options = Object.append({context: this.options.context}, opts, LSD.Layout.parse(selector, parent[0] || parent));
     if (options.tag != '*' && (this.context.find(options.tag) || !LSD.Layout.NodeNames[options.tag])) {
       var widget = this.context.create(options);
-      if (parent) this.appendChild(parent[0] || parent, widget, function() {
+      if (parent) this.appendChild(parent[0] || parent, widget, opts, function() {
         (parent[1] || parent.toElement()).appendChild(widget.toElement());
       });
       if (layout) if (layout.charAt) widget.write(layout);
@@ -146,7 +146,6 @@ LSD.Layout.prototype = Object.append(new Options, {
           }
     }
     
-    
     // Create, clone or reuse a widget.
     if (!converted) {
       var options = {traverse: false};
@@ -164,16 +163,16 @@ LSD.Layout.prototype = Object.append(new Options, {
     if (widget) {
       var override = function() {
         if (widget.toElement().parentNode == container) return;
-        if (cloning)
-          container.appendChild(widget.element)
-        else if (widget.origin == element && element.parentNode && element.parentNode == container)
+        if (cloning) {
+          this.appendChild(container, widget.element)
+        } else if (widget.origin == element && element.parentNode && element.parentNode == container)
           element.parentNode.replaceChild(widget.element, element);
-      };
-      if (this.appendChild(ascendant, widget, override))
+      }.bind(this);
+      if (this.appendChild(ascendant, widget, opts, override))
         if (widget.document != ascendant.document) widget.setDocument(ascendant.document);
     } else {
       if (cloning) var clone = element.cloneNode(false);
-      if (cloning || (ascendant.origin == element.parentNode)) this.appendChild(container, clone || element);
+      if (cloning || (ascendant.origin == element.parentNode)) this.appendChild(container, clone || element, opts);
     }    
     var newParent = [clone || (widget && widget.element) || element, widget || ascendant];
     
@@ -190,6 +189,10 @@ LSD.Layout.prototype = Object.append(new Options, {
         case '>':
           (direct || (direct = [])).push(stack.pop());
       }
+    }
+    if (opts && opts.before) {
+      var before = opts.before; 
+      delete opts.before;
     }
     // Collect the mutations from the converted widget
     if (widget) {
@@ -214,13 +217,14 @@ LSD.Layout.prototype = Object.append(new Options, {
       previous = this[LSD.Layout.NodeTypes[child.nodeType]](child, newParent, opts, stack, revert, i == j);
       if (!previous.lsd) previous = null;
     }
-    // Put back advanced selectors into the stack
+    // Put advanced selectors back to the stack
     if (advanced) for (var i = 0; group = advanced[i++];)
       if (group[0] != '+' || !last) stack.push(group);
     if (!last) {
       if (following) for (var i = 0; group = following[i++];) stack.push(group);
       if (direct) for (var i = 0; group = direct[i++];) stack.push(group);
     }
+    if (before) opts.before = before;
     
     return widget || clone || element;
   },
@@ -259,9 +263,14 @@ LSD.Layout.prototype = Object.append(new Options, {
     }
   },
   
-  appendChild: function(parent, child, override) {
+  appendChild: function(parent, child, opts, override) {
     if (child.parentNode != parent) {
-      parent.appendChild(child, override);
+      if (opts && opts.before) {
+        var before = !parent.lsd && opts.before.toElement ? opts.before.toElement() : opts.before;
+        parent.insertBefore(child, before, override);
+      } else {
+        parent.appendChild(child, override);
+      }
       return true;
     }
   },

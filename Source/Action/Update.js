@@ -28,43 +28,49 @@ LSD.Action.Update = LSD.Action.build({
     var widget = LSD.Module.DOM.find(target);
     var fragment = document.createFragment(content);
     var children = LSD.slice(fragment.childNodes);
-    this.options.update.call(this, document.id(target), fragment, content)
-    widget.fireEvent('DOMNodeInserted', [children]);
+    var args = [target.lsd ? target.toElement() : target, (widget.element == document.id(target) ? widget.parentNode : widget), 
+                fragment, children, content];
+    this.options.update.apply(this, args);
   },
   
-  update: function(target, fragment) {
-    target.empty().appendChild(fragment);
+  update: function(target, parent, fragment) {
+    document.id(target).empty().appendChild(fragment);
+    parent.fireEvent('DOMNodeInserted', [children]);
   }
 });
 
 LSD.Action.Append = LSD.Action.build({
   enable: LSD.Action.Update.prototype.options.enable,
   
-  update: function(target, fragment) {
+  update: function(target, parent, fragment, children) {
     target.appendChild(fragment);
+    parent.fireEvent('DOMNodeInserted', [children]);
   }
 });
 
 LSD.Action.Replace = LSD.Action.build({
   enable: LSD.Action.Update.prototype.options.enable,
 
-  update: function(target, fragment) {
+  update: function(target, parent, fragment, children) {
     target.parentNode.replaceChild(fragment, target);
+    parent.fireEvent('DOMNodeReplaced', [children, target]);
   }
 });
 
 LSD.Action.Before = LSD.Action.build({
   enable: LSD.Action.Update.prototype.options.enable,
 
-  update: function(target, fragment) {
+  update: function(target, parent, fragment, children) {
     target.parentNode.insertBefore(fragment, target);
+    parent.fireEvent('DOMNodeInsertedBefore', [children, target]);
   }
 });
 
 LSD.Action.After = LSD.Action.build({
   enable: LSD.Action.Update.prototype.options.enable,
 
-  update: function(target, fragment) {
+  update: function(target, widget, fragment, children) {
     target.parentNode.insertBefore(fragment, target.nextSibling);
+    parent.fireEvent('DOMNodeInsertedBefore', [children, target.nextSibling]);
   }
 });

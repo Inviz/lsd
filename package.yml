@@ -54,6 +54,7 @@ sources:
   - Source/Mixin/Value.js
   - Source/Mixin/Animation.js
   - Source/Mixin/Uploader.js
+  - Source/Mixin/Unselectable.js
   - Source/Mixin/ContentEditable.js
   - Source/Mixin/Choice.js
   - Source/Mixin/List.js
@@ -94,13 +95,12 @@ sources:
   - Source/Action/Create.js
   - Source/Action/Update.js
   - Source/Action/Delete.js
-  - Source/Action/Value.js
   - Source/Action/Submit.js
   - Source/Action/State.js
   - Source/Action/Set.js
   - Source/Action/Display.js
   - Source/Action/Dialog.js
-  - Source/Action/Check.js
+  - Source/Action/Toggle.js
   - Source/Action/Clone.js
   - Source/Action/Edit.js 
   - Source/Action/History.js

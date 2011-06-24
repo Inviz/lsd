@@ -105,14 +105,21 @@ LSD.Action.prototype = {
     } else if (this.options.watches) {
       this.target.watch(this.options.watches, this.watch.bind(this));
     } else if (!this.state || (name && this.target[name])) {
-      if (this.target.onDOMInject) this.target.onDOMInject(this.inject.bind(this));
-      else this.inject()
+      if (this.target.lsd) {
+        this.target.addEvent('setDocument', this.injection || ((this.injection = this.inject.bind(this))));
+        if (this.target.document) this.inject();
+      } else this.inject();
     }
   },
 
   detach: function(widget) {
     this.target.removeEvents(this.events);
     if (this.options.watches) this.target.unwatch(this.options.watches, this.watch);
+    else if (this.options.uses) {
+      
+    } else {
+      this.target.removeEvent('setDocument', this.injection);
+    }
     if (this.enabled) this.disable();
     if (this.state) {
       this[this.state.disabler]();

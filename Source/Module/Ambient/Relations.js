@@ -34,7 +34,11 @@ LSD.Module.Relations = new Class({
   
   removeRelation: function(name, options) {
     this.relations[name].setOptions(options, true);
-    if (!this.relations[name].$options.length) delete this.relations[name];
+    /*
+      A deleted scope can remove its parent relation before relation gets to the 
+      deletion of itself. No need to clean then, it's already clean 
+    */
+    if (this.relations[name] && !this.relations[name].$options.length) delete this.relations[name];
   }
 });
 

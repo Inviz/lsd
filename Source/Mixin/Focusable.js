@@ -79,7 +79,7 @@ LSD.Mixin.Focusable = new Class({
   },
   
   retain: function(e) {
-    if (e) e.stop();
+    if (e) e.preventDefault();
     this.focus();
   },
   

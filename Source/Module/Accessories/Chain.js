@@ -86,9 +86,9 @@ LSD.Module.Chain = new Class({
           if (!phases.length) revert = true;
         }
         var result = this.execute(link, args, last ? last.state : null, last ? true : revert, index - this.chainPhase);
-        args = null;
+        if (link.keep === true) args = null;
       } else if (!revert) {
-        if (link.arguments) args = link.arguments;
+        if (link.arguments != null) args = link.arguments;
         if (link.callback) link.callback.apply(this, args);
       }
       if (!revert) phases.push({index: index, state: result, asynchronous: result == null, action: link.action});
@@ -112,9 +112,9 @@ LSD.Module.Chain = new Class({
   execute: function(command, args, state, revert, ahead) {
     if (command.call && (!(command = command.apply(this, args))));
     else if (command.indexOf) command = {action: command}
-    if (command.arguments) {
-      var cargs = command.arguments.call ? command.arguments.call(this) : command.arguments;
-      args = [].concat(cargs || [], args || []);
+    if (command.arguments != null) {
+      var cargs = command.arguments && command.arguments.call ? command.arguments.call(this) : command.arguments;
+      args = [].concat(cargs == null ? [] : cargs, args || []);
     }
     var action = this.getAction(command.action);
     var targets = command.target;
@@ -181,7 +181,7 @@ var Iterators = LSD.Module.Chain.Iterators = {
   },
   
   optional: function(link) {
-    return !link.action || link.priority == null || link.priority < 0;
+    return link.priority == null || link.priority < 0;
   },
   
   success: function(link, chain, index) {

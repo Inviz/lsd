@@ -60,6 +60,7 @@ LSD.Mixin.Request = new Class({
     }
     var request = this.getRequest(options);
     if (callback) request.addEvent('complete:once', callback);
+    this.sent = true;
     return request.send(options);
   },
   
@@ -68,9 +69,9 @@ LSD.Mixin.Request = new Class({
     return this;
   },
   
-  getRequest: function(options) {
-    var type = this.getRequestType();
-    if (!this.request || this.request.type != type) {
+  getRequest: function(options, fresh) {
+    var type = (options && options.type) || this.getRequestType();
+    if (fresh || !this.request || this.request.type != type) {
       if (!this.request) this.addEvent('request', {
         request: 'onRequest',
         complete: 'onRequestComplete',
@@ -87,7 +88,11 @@ LSD.Mixin.Request = new Class({
   },
   
   onRequestSuccess: function() {
-    if (this.getCommandAction) 
+    // A flag allows other parts of the framework use Requests provided by widget and not trigger
+    // submission chains. There may be a better solution though.
+    if (!this.sent) return;
+    delete this.sent;
+    if (this.getCommandAction)
       if (this.getCommandAction() == 'submit' && (this.chainPhase == -1 || (this.chainPhase == this.getActionChain().length - 1)))  
         this.eachLink('optional', arguments, true);
   },

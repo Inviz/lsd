@@ -49,14 +49,14 @@ LSD.Module.Layout = new Class({
   }),
   
   buildLayout: function(layout, parent, options) {
-    return this.getLayout().render(layout, (parent === false || parent) ? parent : this, null, options);
+    return this.getLayout().render(layout, (parent === false || parent) ? parent : this, options);
   },
   
   extractLayout: function(element) {
     this.extracted = LSD.Layout.extract(element);
     if (this.tagName || this.options.source) delete this.extracted.tag;
     this.setOptions(this.extracted);
-    this.fireEvent('extractLayout', [this.extracted, element])
+    this.fireEvent('extractLayout', [this.extracted, element]);
   }
 });
 
@@ -108,8 +108,16 @@ LSD.Module.Layout.events = {
   /*
     Augments all inserted nodes that come from partial html updates
   */
-  DOMNodeInserted: function() {
+  DOMNodeInserted: function(node) {
     this.buildLayout.apply(this, arguments);
+  },
+  
+  DOMNodeInsertedBefore: function(node, target) {
+    this.buildLayout(node, this, {before: target});
+  },
+  
+  DOMNodeReplaced: function(node, target) {
+    this.buildLayout(node, this, {before: target});
   }
 };
 

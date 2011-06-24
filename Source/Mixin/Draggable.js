@@ -76,7 +76,7 @@ LSD.Mixin.Draggable = new Class({
   
   getDragger: Macro.getter('dragger', function() {
     var element = this.element;
-    this.onDOMInject(function() {
+    this.addEvent('setDocument', function() {
       var position = element.getPosition();
       element.left = position.x - element.getStyle('margin-left').toInt();
       element.top = position.y - element.getStyle('margin-top').toInt();
