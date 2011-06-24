@@ -140,11 +140,11 @@ LSD.Module.DOM = new Class({
     var index = widget ? this.childNodes.indexOf(widget) : this.childNodes.length;
     if (index == -1) return;
     this.childNodes.splice(index, 0, insertion);
-    insertion.setParent(this, index);
     if (!child) {
       if (index) insertion.toElement().inject(this.childNodes[index - 1].toElement(), 'after')
       else this.toElement().appendChild(insertion.toElement())
     } else this.toElement().insertBefore(insertion.toElement(), child.element || child);
+    insertion.setParent(this, index);
     return this;
   },
 
