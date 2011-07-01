@@ -53,13 +53,13 @@ LSD.Mixin.Scrollable = new Class({
     } else if (this.vertical) this.vertical.dispose();
   },
   
-  getVerticalScrollbar: Macro.getter('vertical', function() {
-    return this.buildLayout('scrollbar[mode=vertical]')
-  }),
+  getVerticalScrollbar: function() {
+    return (this.vertical || (this.vertical = this.buildLayout('scrollbar[mode=vertical]')))
+  },
   
-  getHorizontalScrollbar: Macro.getter('horizontal', function() {
-    return this.buildLayout('scrollbar[mode=horizontal]')
-  }),
+  getHorizontalScrollbar: function() {
+    return (this.horizontal || (this.horizontal = this.buildLayout('scrollbar[mode=horizontal]')))
+  },
   
   getScrolled: Macro.defaults(function() {
     return this.getWrapper();

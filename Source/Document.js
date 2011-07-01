@@ -124,7 +124,6 @@ LSD.Document = new Class({
         if (content) this[type][el.getAttribute('name')] = (content.charAt(0) =="{") ? JSON.decode(content) : content;
       }
     }
-    
     // Attach stylesheets, if there are stylesheets loaded
     if (LSD.Sheet && LSD.Sheet.stylesheets) for (var i = 0, sheet; sheet = LSD.Sheet.stylesheets[i++];) this.addStylesheet(sheet);
   },

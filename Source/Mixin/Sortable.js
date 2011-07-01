@@ -35,7 +35,8 @@ LSD.Mixin.Sortable = new Class({
     }
   },
   
-  getSortables: Macro.getter('sortables', function() {
+  getSortables: function() {
+    if (this.sortables) return this.sortables;
     var options = Object.append({}, this.options.sortables);
     if (options.clone === true) options.clone = function(event, element){
       var widget = element.uid && element.retrieve('widget');
@@ -51,15 +52,15 @@ LSD.Mixin.Sortable = new Class({
       return clone.inject(this.list);
     };
     delete options.snap;
-    var sortables = new Sortables([], options);
-    this.fireEvent('register', ['sortables', sortables]);
-    sortables.addEvents(this.bindEvents({
+    this.sortables = new Sortables([], options);
+    this.fireEvent('register', ['sortables', this.sortables]);
+    this.sortables.addEvents(this.bindEvents({
       start: 'onSortStart',
       complete: 'onSortComplete',
       sort: 'onSort'
     }))
     var self = this;
-    sortables.insert = function(dragging, element) {
+    this.sortables.insert = function(dragging, element) {
       if (self.onBeforeSort.apply(self, arguments)) {
         (dragging.retrieve('origin') || dragging).fireEvent('beforeMove', element);
         var where = 'inside';
@@ -73,8 +74,8 @@ LSD.Mixin.Sortable = new Class({
         this.fireEvent('sort', [this.element, this.clone]);
       }
     };
-    return sortables;
-  }),
+    return this.sortables;
+  },
   
   onBeforeSort: function(dragging, element) {
     return true;

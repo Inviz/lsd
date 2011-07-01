@@ -47,6 +47,7 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
         widget.$states[name].origin = this;
       }
       this.linkState(widget, name, name, true);
+      widget.linkState(this, name, name, true);
     }
     widget.fireEvent('register', ['command', this]);
     this.widgets.push(widget);

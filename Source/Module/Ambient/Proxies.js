@@ -39,12 +39,13 @@ LSD.Module.Proxies = new Class({
       if (!proxy.condition.call(this, child)) continue;
       var self = this;
       var reinject = function(target) {
+        var where = proxy.where && proxy.where.call ? proxy.where.call(self, child) : proxy.where;
         if (proxy.rewrite === false) {
           self.appendChild(child, function() {
-            target.adopt(child);
-          });
+            target.grab(child, where);
+          }, true);
         } else {
-          child.inject(target, proxy.where && proxy.where.call ? proxy.where.call(this, child) : proxy.where);
+          child.inject(target, where);
         }
       };
       var container = proxy.container;
@@ -57,17 +58,17 @@ LSD.Module.Proxies = new Class({
     }
   },
   
-  appendChild: function(widget, adoption) {
+  appendChild: function(widget, adoption, proxy) {
     var element = widget.element || widget;
     var parent = element.parentNode;
-    if (!adoption && this.canAppendChild && !this.canAppendChild(widget)) {
+    if (proxy !== true && !this.canAppendChild(widget)) {
       if (element == parent) {
         if (widget.parentNode) widget.dispose();
         else if (widget.element.parentNode) widget.element.dispose();
       }
       return false;
-    }
-    return LSD.Module.DOM.prototype.appendChild.apply(this, arguments);
+    };
+    return LSD.Module.DOM.prototype.appendChild.call(this, widget, adoption);
   },
   
   canAppendChild: function(child) {

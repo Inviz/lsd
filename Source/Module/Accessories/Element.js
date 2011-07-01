@@ -56,20 +56,31 @@ LSD.Module.Element = new Class({
   },
   
   toElement: function(){
-    if (!this.built && this.build) this.build();
+    if (!this.built) this.build(this.origin);
     return this.element;
   },
   
-  build: function() {
-    var options = this.options, attrs = {element: this.element};
-    this.fireEvent('beforeBuild', attrs);
-    var stop = (attrs.convert === false)
-    delete attrs.element, delete attrs.convert;
-    var attrs = Object.merge({}, options.element, attrs);
-    var tag = attrs.tag || this.getElementTag();
+  build: function(query) {
+    if (query) {
+      if (query.localName) {
+        var element = query; 
+        query = {};
+      }
+    } else query = {};
+    element = query.element = element || this.element;
+    query.tag = this.tagName;
+    var options = this.options;
+    this.fireEvent('beforeBuild', query);
+    if (this.parentNode) this.parentNode.dispatchEvent('beforeNodeBuild', [query, this]);
+    var build = query.build;
+    delete query.element, delete query.build;
+    var attrs = Object.merge({}, options.element, query.attributes);
+    var tag = query.tag || attrs.tag || this.getElementTag();
     delete attrs.tag;
-    if (!this.element || stop) this.element = new Element(tag, attrs);
-    else var element = this.element.set(attrs);
+    if (query.attributes || query.tag || query.classes) this.setOptions(query);
+    if (!element || build) {
+      this.element = new Element(tag, attrs);
+    } else var element = this.element = document.id(element).set(attrs);
     var classes = new FastArray;
     if (this.tagName != tag) classes.push('lsd', this.tagName);
     classes.concat(this.classes);
@@ -111,16 +122,100 @@ LSD.Module.Element = new Class({
   }
 });
 
+/* 
+  Extracts options from a DOM element.
+*/
+LSD.Module.Element.extract = function(element, widget) {
+  var options = {
+    attributes: {},
+    tag: LSD.toLowerCase(element.tagName)
+  }, attrs = options.attributes;
+  for (var i = 0, attribute, name; attribute = element.attributes[i++];) {
+    name = attribute.name;
+    attrs[name] = LSD.Attributes.Boolean[name] || attribute.value || "";
+  }
+  var klass = attrs['class'];
+  if (klass) {
+    options.classes = klass.split(/\s+/).filter(function(name) {
+      switch (name.substr(0, 3)) {
+        case "is-":
+          if (!options.pseudos) options.pseudos = [];
+          options.pseudos.push(name.substr(3, name.length - 3));
+          break;
+        case "id-":
+          i++;
+          options.attributes.id = name.substr(3, name.length - 3);
+          break;
+        default:
+          return true;
+      }
+    })
+    delete attrs['class'];
+    i--;
+  }
+  if (widget) {
+    if (widget.tagName || widget.options.source) delete options.tag;
+    for (var name in attrs) if (widget.attributes[name]) {
+      delete attrs[name];
+      i--;
+    }
+  }
+  if (i == 1) delete options.attributes;
+  return options;
+}
+
 LSD.Module.Element.events = {
+  /*
+    A lazy widget will not attach to element until it's built or attached
+  */
   prepare: function(options, element) {
-    if (element) this.attach(element);
+    if (options.lazy) this.origin = element;
+    else if (element) this.build(element);
   },
+  /*
+    If a the widget was built before it was attached, attach it after the build
+  */
   build: function() {
     this.attach.apply(this, arguments);
   },
+  /*
+    Detaches element when it's destroyed
+  */
   destroy: function() {
     this.detach.apply(this, arguments);
+  },
+  /*
+    Extracts and sets layout options from attached element
+  */
+  attach: function(element) {
+    if (!this.extracted && this.options.extract !== false) {
+      this.extracted = LSD.Module.Element.extract(element, this);
+      this.setOptions(this.extracted);
+    }
+  },
+  /*
+    Unsets options previously extracted from the detached element
+  */
+  detach: function() {
+    if (!this.extracted) return;
+    this.unsetOptions(this.extracted);
+    delete this.extracted, delete this.origin;
+  },
+  /*
+    Extract options off from widget and makes it rebuild element if it doesnt fit.
+  */
+  beforeBuild: function(query) {
+    if (!query.element) return;
+    if (this.options.extract !== false || this.options.clone) {
+      this.extracted = LSD.Module.Element.extract(query.element, this);
+      this.setOptions(this.extracted);
+      Object.merge(query, this.extracted);
+    }
+    var tag = this.getElementTag(true);
+    if (this.options.clone || (tag && LSD.toLowerCase(query.element.tagName) != tag)) {
+      this.origin = query.element;
+      query.build = true;
+    }
   }
-};
-
+}
 LSD.Module.Events.addEvents.call(LSD.Module.Element.prototype, LSD.Module.Element.events);

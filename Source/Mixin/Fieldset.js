@@ -53,29 +53,19 @@ LSD.Mixin.Fieldset = new Class({
             badRequest: 'parseFieldErrors'
           },
           self: {
-            mutateLayout: function(query) {
-              var element = query.element, name = element.name, id = element.id, mutation;
-              var widget = Element.retrieve(element, 'widget');
-              if (!widget) return;
-              if (name && this.names[name]) {
-                var bumped = Fieldset.bumpName(name);
-                if (bumped) (mutation || (mutation = {attributes: {}})).attributes.name = bumped;
-              }
-              // bump id index
-              if (id) {
-                bumped = Fieldset.bumpId(id);
-                if (bumped != id) (mutation || (mutation = {attributes: {}})).attributes.id = bumped;
-              }
+            beforeNodeBuild: function(query, widget) {
+              if (!widget.options.clone) return;
+              var attrs = query.attributes, attributes = widget.attributes;
+              var name = attributes.name, id = attributes.id;
               // bump name index
-              if (LSD.toLowerCase(element.tagName) == 'label') {
-                var four = element.htmlFor
-                if (four) {
-                  bumped = Fieldset.bumpId(four);
-                  if (bumped != four) (mutation || (mutation = {attributes: {}})).attributes['for'] = bumped;
-                }
+              if (name) (attrs || (attrs = {})).name = Fieldset.bumpName(name) || name;
+              // bump id index
+              if (id) (attrs || (attrs = {})).id = Fieldset.bumpId(id) || id;
+              if (widget.tagName == 'label') {
+                var four = attributes['for'];
+                if (four) (attrs || (attrs = {}))['for'] = Fieldset.bumpId(four) || four;
               }
-              if (query.mutation) Object.append(query.mutation, mutation);
-              else query.mutation = mutation;
+              if (attrs) query.attributes = attrs;
             }
           }
         }
@@ -139,7 +129,7 @@ LSD.Mixin.Fieldset = new Class({
   
   addField: function(widget) {
     var name = widget.attributes.name, radio = (widget.commandType == 'radio');
-    if (!name) return;
+    if (!name || !widget.toData) return;
     if (radio) {
       if (!this.names[name]) this.names[name] = [];
       this.names[name].push(widget);
@@ -211,9 +201,9 @@ LSD.Mixin.Fieldset = new Class({
     });
   },
 
-  getModelName: Macro.getter('modelName', function() {
+  getModelName: function() {
     for (var name in this.params) if (!this.params[name].nodeType) return name;
-  })
+  }
 });
 
 var Fieldset = Object.append(LSD.Mixin.Fieldset, {

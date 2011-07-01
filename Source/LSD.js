@@ -34,7 +34,7 @@ var LSD = Object.append(new Events, {
   Events: {},
   Attributes: {
     Numeric: Array.fast('tabindex', 'width', 'height'),
-    Boolean: Array.fast('readonly', 'disabled', 'hidden')
+    Boolean: Array.fast('readonly', 'disabled', 'hidden', 'checked')
   },
   Styles: {},
   States: {

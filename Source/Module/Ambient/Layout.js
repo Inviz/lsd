@@ -21,10 +21,12 @@ provides:
 */
   
 LSD.Module.Layout = new Class({
+  /*
   options: {
     traverse: true,
     extract: true
   },
+  */
   
   initializers: {
     layout: function(options) {
@@ -50,66 +52,33 @@ LSD.Module.Layout = new Class({
   
   buildLayout: function(layout, parent, options) {
     return this.getLayout().render(layout, (parent === false || parent) ? parent : this, options);
-  },
-  
-  extractLayout: function(element) {
-    this.extracted = LSD.Layout.extract(element);
-    if (this.tagName || this.options.source) delete this.extracted.tag;
-    this.setOptions(this.extracted);
-    this.fireEvent('extractLayout', [this.extracted, element]);
   }
 });
 
 LSD.Module.Layout.events = {
   /*
-    Extracts and sets layout options from attached element
-  */
-  attach: function(element) {
-    if (!this.extracted && this.options.extract) 
-      this.extractLayout(element);
-  },
-  /*
-    Unsets options previously extracted from the detached element
-  */
-  detach: function() {
-    if (!this.extracted) return;
-    this.unsetOptions(this.extracted);
-    delete this.extracted, delete this.origin;
-  },
-  /*
-    Mutates element and extract options off it.
-  */
-  beforeBuild: function(query) {
-    if (!query.element) return;
-    if (this.options.extract || this.options.clone) this.extractLayout(query.element);
-    var tag = this.getElementTag(true);
-    if (this.options.clone || (tag && LSD.toLowerCase(query.element.tagName) != tag)) {
-      this.origin = query.element;
-      query.convert = false;
-    }
-  },
-  /*
     Builds children after element is built
   */
   build: function() {
-    if (this.getLayout().origin == this && this.options.traverse !== false) {
+    this.getLayout();
+    if (!this.options.lazy && this.layout.origin == this && this.options.traverse !== false) {
       if (this.origin && !this.options.clone) this.element.replaces(this.origin);
-      var nodes = LSD.slice((this.origin || this.element).childNodes);
-      this.getLayout().result = this.getLayout().render(nodes, [this.element, this], this.options.clone ? {clone: true} : null);
+      var nodes = (this.origin || this.element).childNodes;
+      this.layout.array(nodes, [this.element, this], this.options.clone ? {clone: true} : null);
     }
     if (this.options.layout) this.buildLayout(this.options.layout);
   },
   /*
     Augments all parsed HTML that goes through standart .write() interface
   */
-  write: function() {
-    this.buildLayout(node, this);
+  write: function(node) {
+    this.buildLayout(node);
   },
   /*
     Augments all inserted nodes that come from partial html updates
   */
   DOMNodeInserted: function(node) {
-    this.buildLayout(node, this);
+    this.buildLayout(node);
   },
   
   DOMNodeInsertedBefore: function(node, target) {

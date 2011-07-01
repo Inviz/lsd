@@ -18,9 +18,6 @@ provides:
 
 LSD.Mixin.Value = new Class({
   options: {
-    events: {
-      change: 'callChain'
-    },
     actions: {
       value: {
         enable: function() {
@@ -39,11 +36,12 @@ LSD.Mixin.Value = new Class({
   setValue: function(item, unset) {
     if (item == null || (item.event && item.type)) item = this.getRawValue();
     else if (item.getValue) item = item.getValue();
-    
     var value = this.processValue(item), result = false;
-    if (this.isValueDifferent(value) ^ (!!unset)) {
+    if (this.isValueDifferent(value) ^ unset) {
       result = this.writeValue(value, unset);
-      this.onChange(value, this.getPreviousValue());
+      var previous = this.getPreviousValue();
+      this.fireEvent('change', [value, previous]);
+      if (!this.click) this.callChain(value, previous);
     }
     return result
   },
@@ -123,6 +121,11 @@ LSD.Mixin.Value = new Class({
     }
   },
   
+  shouldCallChainOnValueChange: function() {
+    var type = this.getCommandType ? this.getCommandType() : this.commandType; 
+    return !type || type == 'command';
+  },
+  
   toData: function() {
     if ((this.commandType != 'checkbox' || this.commandType != 'radio') || this.checked) return this.getValue()
   },
@@ -139,17 +142,7 @@ LSD.Mixin.Value = new Class({
   
   processValue: function(value) {
     return value;
-  },
-  
-  onChange: function() {
-    if (this.isValueChangable()) this.fireEvent('change', arguments)
-    return true;
-  },
-  
-  isValueChangable: function() {
-    var type = this.getCommandType ? this.getCommandType() : this.commandType; 
-    return !type || type == 'command';
   }
 });
 
-LSD.Behavior.define(':form-associated, :value', LSD.Mixin.Value);
+LSD.Behavior.define(':value', LSD.Mixin.Value);

@@ -51,9 +51,9 @@ LSD.Mixin.Placeholder = new Class({
     }
   },
   
-  getPlaceholder: Macro.getter('placeholder', function(){
+  getPlaceholder: function(){
     return this.attributes.placeholder;
-  }),
+  },
   
   onUnplacehold: function(){
     if (this.placeheld){

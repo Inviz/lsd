@@ -48,10 +48,12 @@ LSD.Mixin.Command = new Class({
     }
   },
   
-  getCommand: Macro.getter('command', function() {
+  getCommand: function() {
+    if (this.command) return this.command;
     var options = Object.append(this.getCommandOptions(), this.options.command || {});
-    return new LSD.Command(this.document, options).attach(this);
-  }),
+    this.command = new LSD.Command(this.document, options).attach(this);
+    return this.command;
+  },
   
   click: function() {
     if (this.disabled) return false;

@@ -33,7 +33,7 @@ LSD.Action.Update = LSD.Action.build({
     this.options.update.apply(this, args);
   },
   
-  update: function(target, parent, fragment) {
+  update: function(target, parent, fragment, children) {
     document.id(target).empty().appendChild(fragment);
     parent.fireEvent('DOMNodeInserted', [children]);
   }

@@ -41,12 +41,6 @@ LSD.Module.DOM = new Class({
   getChildren: function() {
     return this.childNodes;
   },
-
-  getRoot: function() {
-    var widget = this;
-    while (widget.parentNode) widget = widget.parentNode;
-    return widget;
-  },
   
   moveTo: function(widget) {
     if (widget == this.parentNode) {
@@ -66,7 +60,6 @@ LSD.Module.DOM = new Class({
       var changed = true;
     }
     set.call(this, widget, index);
-    //console.error('set next sibling', this.element, this.tagName, next)
     if (changed) {
       this.fireEvent('register', ['parent', widget]);
       widget.fireEvent('adopt', [this]);
@@ -101,9 +94,11 @@ LSD.Module.DOM = new Class({
   },
   
   appendChild: function(widget, override) {
+    widget.parentNode = this;
     if (!widget.quiet && (override !== false) && this.toElement()) (override || function() {
       this.element.appendChild(widget.toElement());
     }).apply(this, arguments);
+    delete widget.parentNode;
     widget.setParent(this, this.childNodes.push(widget) - 1);
     delete widget.quiet;
     return true;

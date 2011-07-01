@@ -74,22 +74,23 @@ LSD.Mixin.Draggable = new Class({
     delete this.dragger;
   },
   
-  getDragger: Macro.getter('dragger', function() {
+  getDragger: function() {
+    if (this.dragger) return this.dragger;
     var element = this.element;
     this.addEvent('setDocument', function() {
       var position = element.getPosition();
       element.left = position.x - element.getStyle('margin-left').toInt();
       element.top = position.y - element.getStyle('margin-top').toInt();
     }.create({delay: 50}));
-    var dragger = new Drag(element, Object.append(this.options.dragger, this.options.dragger));
-    dragger.addEvents(this.events.dragger);
-    dragger.addEvents({
+    this.dragger = new Drag(element, Object.append(this.options.dragger, this.options.dragger));
+    this.dragger.addEvents(this.events.dragger);
+    this.dragger.addEvents({
       'start': this.onDragStart.bind(this),
       'complete': this.onDragComplete.bind(this),
       'cancel': this.onDragComplete.bind(this),
       'drag': this.onDrag.bind(this)
     }, true);
-    return dragger;
+    return this.dragger;
   }),
   
   onDragStart: function() {

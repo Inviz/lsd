@@ -50,13 +50,14 @@ LSD.Mixin.Focusable = new Class({
     }
   },
   
-  getFocuser: Macro.getter('focuser', function() {
-    return new QFocuser(this.toElement(), {
+  getFocuser: function() {
+    if (!this.focuser) this.focuser = new QFocuser(this.toElement(), {
       onWidgetFocus: this.onFocus.bind(this),
       onWidgetBlur: this.onBlur.bind(this),
       tabIndex: this.getAttribute('tabindex')
-    })
-  }),
+    });
+    return this.focuser;
+  },
   
   focus: function(element) {
     if (element !== false) {

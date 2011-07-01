@@ -112,13 +112,13 @@ LSD.Module.Chain = new Class({
   execute: function(command, args, state, revert, ahead) {
     if (command.call && (!(command = command.apply(this, args))));
     else if (command.indexOf) command = {action: command}
+    var action = this.getAction(command.action);
+    var targets = command.target;
+    if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return true;
     if (command.arguments != null) {
       var cargs = command.arguments && command.arguments.call ? command.arguments.call(this) : command.arguments;
       args = [].concat(cargs == null ? [] : cargs, args || []);
     }
-    var action = this.getAction(command.action);
-    var targets = command.target;
-    if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return true;
     if (state == null && command.state != null) state = command.state;
     var promised = [], succeed = [], failed = [], self = this;
     var perform = function(target) {
@@ -133,10 +133,9 @@ LSD.Module.Chain = new Class({
           (state ? succeed : failed).push([target, args]);
           result.removeEvents(events);
           // Try to fork off execution if action lets so 
-          if (state && (command.fork || action.options.fork)) {
-            //if (target.getCommandAction && target.getCommandAction() == command.action)
-              if (target.chainPhase == -1) target.callChain.apply(target, args);
-              else target.eachLink('optional', args, true);
+          if (state && (self != target) && command.fork) {
+            if (target.chainPhase == -1) target.callChain.apply(target, args);
+            else target.eachLink('optional', args, true);
           };
           if (failed.length + succeed.length != promised.length) return;
           if (failed.length) self.eachLink('alternative', args, true, false, succeed);

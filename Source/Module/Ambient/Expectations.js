@@ -274,6 +274,7 @@ Expectations.events = {
     type[old].splice(index, 1);
     update.call(this, widget, old, false);
     if (!tag) return;
+    var group = type[tag];
     if (!group) group = type[tag] = [];
     group.push(widget);
     update.call(this, widget, tag, true);
@@ -302,7 +303,7 @@ Expectations.events = {
   tagChanged: function(tag, old) {
     check.call(this, 'tag', old, false);
     if (tag) check.call(this, 'tag', tag, true);
-    if (this.parentNode && !this.removed) this.parentNode.dispatchEvent('nodeTagChanged', [this, tag, old]);
+    if (old && this.parentNode && !this.removed) this.parentNode.dispatchEvent('nodeTagChanged', [this, tag, old]);
   }
 };
 

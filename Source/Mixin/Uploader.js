@@ -62,7 +62,13 @@ LSD.Mixin.Uploader = new Class({
       }
     },
     states: Array.fast('empty'),
-    filelist: false
+    filelist: false,
+    uploader: {
+      instantStart: true,
+      timeLimit: 36000,
+      queued: false,
+      multiple: false
+    }
   },
   
   initializers: {
@@ -71,13 +77,14 @@ LSD.Mixin.Uploader = new Class({
     }
   },
   
-  getUploader: Macro.getter('uploader', function() {
+  getUploader: function() {
+    if (this.uploader) return this.uploader;
     var options = Object.append({}, this.options.uploader);
     if (!options.fileClass) options.fileClass = this.getUploaderFileClass(Uploader.getAdapter());
-    var uploader = new Uploader(options);
-    uploader.widget = this;
-    return uploader;
-  }),
+    this.uploader = new Uploader(options);
+    this.uploader.widget = this;
+    return this.uploader;
+  },
   
   onBeforeFileSelect: function() {
     this.lastUploaderTarget =  this.getUploader().target;
@@ -255,6 +262,7 @@ LSD.Widget.Filelist.File = new Class({
     has: {
       one: {
         canceller: {
+          selector: 'a.cancel',
           source: 'a.cancel',
           events: {
             click: 'cancel'
