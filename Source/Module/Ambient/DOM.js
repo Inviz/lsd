@@ -41,6 +41,12 @@ LSD.Module.DOM = new Class({
   getChildren: function() {
     return this.childNodes;
   },
+
+  getRoot: function() {
+    var widget = this;
+    while (widget.parentNode) widget = widget.parentNode;
+    return widget;
+  },
   
   moveTo: function(widget) {
     if (widget == this.parentNode) {

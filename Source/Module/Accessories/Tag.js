@@ -111,7 +111,7 @@ LSD.Module.Tag = new Class({
 
 LSD.Module.Events.addEvents.call(LSD.Module.Tag.prototype, {
   tagChanged: function() {
-    if (this.source != null) this.setSource();
+    this.setSource();
   },
   initialize: function() {
     this.setSource();

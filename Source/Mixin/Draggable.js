@@ -91,7 +91,7 @@ LSD.Mixin.Draggable = new Class({
       'drag': this.onDrag.bind(this)
     }, true);
     return this.dragger;
-  }),
+  },
   
   onDragStart: function() {
     this.onStateChange('dragged', true);
