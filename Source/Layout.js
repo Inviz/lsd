@@ -197,9 +197,10 @@ LSD.Layout.prototype = Object.append(new Options, {
       }
     }
     // Render children
-    for (var i = 0, j = children.length - 2, child, previous, result, following; child = children[i]; i++) {
+    for (var j = children.length - 1, child; j > -1 && (child = children[j]) && child.nodeType != 1; j--);
+    for (var i = 0, child, previous, result, following; child = children[i]; i++) {
       // Pick up selectors targetting on a node's next siblings
-      if (previous) {
+      if (previous && i) {
         if ((group = previous.mutations['~'])) stack.push(['~', group]);
         if ((group = previous.mutations['+'])) stack.push(['+', group]);
       }
