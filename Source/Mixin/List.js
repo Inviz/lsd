@@ -84,16 +84,14 @@ LSD.Mixin.List = new Class({
   
   next: function() {
     var index = this.items.indexOf(this.selectedItems[0]);
-    var item = this.items[index + 1];
-    if (!item) item = this.options.endless ? this.items[0] : this.items.getLast();
-    return item.check();
+    var item = this.items[index + 1] || (this.options.endless && this.items[0]);
+    return item && item.check();
   },
   
   previous: function() {
     var index = this.items.indexOf(this.selectedItems[0]);
-    var item = this.items[index - 1];
-    if (!item) item = this.options.endless ? this.items.getLast() : this.items[0];
-    return item.check();
+    var item = this.items[index - 1] || (this.options.endless && this.items.getLast());
+    return item && item.check();
   }
   
 });
