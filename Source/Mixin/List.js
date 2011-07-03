@@ -69,7 +69,7 @@ LSD.Mixin.List = new Class({
   findItemByValue: function(value) {
     for (var i = 0, widget; widget = this.items[i++];) {
       var val = widget.value == null ? (widget.getValue ? widget.getValue() : null) : widget.value;
-      if (val === value) return this.items[i];
+      if (val === value) return this.items[i - 1];
     }
     return null;
   },
