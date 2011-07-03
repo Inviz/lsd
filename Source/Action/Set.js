@@ -20,12 +20,17 @@ provides:
 
 LSD.Action.Set = LSD.Action.build({
   enable: function(target, value) {
+    var widget = LSD.Module.DOM.find(target, true);
     switch (LSD.toLowerCase(target.tagName)) {
       case 'input': case 'textarea':
         if (target.applyValue) target.applyValue(value);
         else target.value = value; break;
-      default: 
-        if (!target.lsd) target.set('html', value); break;
+      default:
+        if (widget && widget.findItemByValue) {
+          var item = widget.findItemByValue(value);
+          if (item) item.check();
+        } else if (!target.lsd) target.set('html', value);
+        break;
     }
   }
 });

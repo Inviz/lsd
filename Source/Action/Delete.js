@@ -26,7 +26,7 @@ LSD.Action.Delete = LSD.Action.build({
       LSD.Module.DOM.walk(target, function(node) {
         widget.dispatchEvent('nodeRemoved', node);
       });
-    }
-    return (target['delete'] || target.dispose)();
+      return Element.dispose(target);
+    } else return (target['delete'] || target.dispose).call(target);
   }
 });

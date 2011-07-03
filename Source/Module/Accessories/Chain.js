@@ -122,7 +122,7 @@ LSD.Module.Chain = new Class({
     if (state == null && command.state != null) state = command.state;
     var promised = [], succeed = [], failed = [], self = this;
     var perform = function(target) {
-      var value = self.getActionState(action, [target, targets], state, revert);
+      var value = self.getActionState(action, [target].concat(args), state, revert);
       var method = value ? 'commit' : 'revert';
       var result = action[method](target, args);
       if (result && result.callChain && (command.promise !== false)) {

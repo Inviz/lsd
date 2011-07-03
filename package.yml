@@ -98,6 +98,7 @@ sources:
   - Source/Action/Submit.js
   - Source/Action/State.js
   - Source/Action/Set.js
+  - Source/Action/List.js
   - Source/Action/Display.js
   - Source/Action/Dialog.js
   - Source/Action/Toggle.js
