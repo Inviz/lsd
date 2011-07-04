@@ -60,6 +60,6 @@ LSD.Trait.Input = new Class({
   }),
   
   getValueInput: function() {
-    return this.input
+    return this.input;
   }
 });

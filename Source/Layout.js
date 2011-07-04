@@ -337,10 +337,10 @@ LSD.Layout.Branch.prototype = Object.append({
     return (this.options.expression) ^ this.options.inverse;
   },
   show: function() {
-    return this.layout.buildLayout(this.options.layout, this.options.parent, this.options.options);
+    return this.layout.add(this.options.layout, this.options.parent, this.options.options);
   },
   hide: function() {
-    return this.layout.unbuildLayout(this.options.layout, this.options.parent, this.options.options);
+    return this.layout.remove(this.options.layout, this.options.parent, this.options.options);
   }
 }, Events.prototype);
 

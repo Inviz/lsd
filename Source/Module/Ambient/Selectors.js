@@ -46,10 +46,10 @@ LSD.Module.Selectors = new Class({
     }
   },
   
-  getPseudoElementsByName: function(name) {
+  getPseudoElementsByName: function(name, value) {
     var handler = PseudoElements[name];
     if (handler && (handler = handler.apply(this, arguments))) return handler;
-    return this[name];
+    return this.captureEvent('getRelated', arguments) || this[name];
   },
   
   match: function(selector) {
@@ -99,10 +99,9 @@ var Combinators = LSD.Module.Selectors.Combinators = {
   
   '::': function(node, tag, id, classes, attributes, pseudos) {
     var value = node[tag];
-    if (value) {
+    if (value)
       for (var i = 0, element, result = [], ary = (value.length == null) ? [value] : value; element = ary[i]; i++) 
         this.push(element, null, id, classes, attributes, pseudos);
-    }
   }
 };
 
@@ -132,7 +131,7 @@ LSD.Module.Selectors.Features = {
     return node.attributes[attribute] || ((attribute in node.$states) || node.pseudos[attribute]);
   },
   getPseudoElementsByName: function(node, name, value) {
-    var collection = node.getPseudoElementsByName ? node.getPseudoElementsByName(name) : node[name];
+    var collection = node.getPseudoElementsByName ? node.getPseudoElementsByName(name, value) : node[name];
     return collection ? (collection.push ? collection : [collection]) : [];
   }
 };

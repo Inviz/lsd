@@ -29,6 +29,7 @@ LSD.Trait.Date = new Class({
   
   setDate: function(date) {
     this.date = date;
+    if (date) this.fireEvent('setDate', date)
   },
   
   formatDate: function(date) {
