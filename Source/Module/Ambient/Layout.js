@@ -51,7 +51,8 @@ LSD.Module.Layout = new Class({
   }),
   
   buildLayout: function(layout, parent, options) {
-    return this.getLayout().render(layout, (parent === false || parent) ? parent : this, options);
+    var method = layout.charAt ? 'selector' : 'render';
+    return this.getLayout()[method](layout, (parent === false || parent) ? parent : this, options);
   }
 });
 

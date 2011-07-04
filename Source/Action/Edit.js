@@ -126,7 +126,7 @@ LSD.Widget.Form.Edit = new Class({
     var widget = Element.retrieve(element, 'widget:edit');
     if (!widget) {
       var options = {attributes: {name: name, type: type}};
-      widget = this.buildLayout('input', this, options);
+      widget = this.getLayout().selector('input', this, options);
       
       Element.store(element, 'widget:edit', widget);
     }

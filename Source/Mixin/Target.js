@@ -28,7 +28,11 @@ provides:
           return this.parseTargetSelector(this.attributes.target).map(function(chain) {
             if (!chain.action) chain.action = this.getTargetAction(); 
             if (!chain.action) return;
-            if (chain.selector) chain.target = this.getElement(chain.selector);
+            if (chain.selector) {
+              chain.target = function() {
+                return this.getElement(chain.selector);
+              }.bind(this);
+            };
             switch (chain.keyword) {
               case "before":
                 chain.priority = 50;
@@ -60,6 +64,7 @@ provides:
         var actions = last.pseudos
         end--;
       };
+      if (keyword) start++;
       var built = (start < end) ? {selector: Parser.slice(expression, start, end)} : {}
       if (actions) return actions.map(function(pseudo, i) {
         var object = Object.append({action: pseudo.key}, built);
@@ -94,5 +99,10 @@ provides:
   
   var Keywords = Parser.Keywords = Array.fast('if', 'then', 'else', 'or', 'and', 'before');
 }();
+
+(function() {
+  IAS.getElement('form.search::dialog:of-type(sign_in)');
+  IAS.getElements('form')[1].allocate('lightbox')
+}).delay(1000);
 
 LSD.Behavior.define('[target]', LSD.Mixin.Target);

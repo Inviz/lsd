@@ -197,16 +197,18 @@ LSD.Module.DOM = new Class({
     return this.toElement();
   },
   
-  write: function(content) {
+  write: function(content, hard) {
     if (!content || !(content = content.toString())) return;
     var wrapper = this.getWrapper();
-    if (this.written) for (var node; node = this.written.shift();) Element.dispose(node);
+    if (hard && this.written) for (var node; node = this.written.shift();) Element.dispose(node);
     var fragment = document.createFragment(content);
-    this.written = Array.prototype.slice.call(fragment.childNodes, 0);
+    var written = Array.prototype.slice.call(fragment.childNodes, 0);
+    if (!hard) this.written.push.apply(this.written, written);
+    else this.written = written;
     wrapper.appendChild(fragment);
-    this.fireEvent('write', [this.written])
+    this.fireEvent('write', [written, hard])
     this.innerText = wrapper.get('text').trim();
-    return this.written;
+    return written;
   },
 
   replaces: function(el){

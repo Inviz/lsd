@@ -64,36 +64,13 @@ LSD.Layout.prototype = Object.append(new Options, {
   
   // type handlers
   
-  string: function(string, parent, opts) {
-    var options = Object.append({context: this.options.context}, opts, LSD.Layout.parse(string, parent[0] || parent));
-    if (options.tag != '*' && (this.context.find(options.tag) || !LSD.Layout.NodeNames[options.tag])) {
-      var widget = this.context.create(options);
-      if (parent) this.appendChild(parent[0] || parent, widget, opts);
-    } else {  
-      var props = {}, tag = (options.tag == '*') ? 'div' : options.tag;
-      if (options.id) props.id = options.id;
-      var attributes = options.attributes;
-      if (attributes) for (var attr, i = 0, l = attributes.length; i < l; i++){
-        attr = attributes[i];
-        if (props[attr.key] != null) continue;
-        if (attr.value != null && attr.operator == '=') props[attr.key] = attr.value;
-        else if (!attr.value && !attr.operator) props[attr.key] = props[attr.key];
-      }
-      var element = document.createElement(tag);
-      for (var name in props) element.setAttribute(name, props[name]);
-      if (options.classes) element.className = options.classes.join(' ');
-      if (parent) this.appendChild(parent[1] || parent.toElement(), element);
-    }
-    return widget || element;
-  },
-  
   array: function(array, parent, opts) {
     for (var i = 0, result = [], length = array.length; i < length; i++) 
       result[i] = this.render(array[i], parent, opts)
     return result;
   },
   
-  element: function(element, parent, opts, stack, revert, last) {
+  element: function(element, parent, opts, stack, last) {
     var converted = element.uid && Element.retrieve(element, 'widget');
     var children = LSD.slice(element.childNodes);
     var cloning = (opts && opts.clone) || this.options.clone, group;
@@ -121,7 +98,7 @@ LSD.Layout.prototype = Object.append(new Options, {
               if ((!mutation || (result && !result.indexOf)) && (sel = possibility[0])) {
                 if ((!sel.id && !sel.classes && !sel.attributes && !sel.pseudos) ? (tagName == sel.tag || j == 0) :
                   (Slick.matchSelector(element, sel.tag, sel.id, sel.classes, sel.attributes, sel.pseudos)))
-                  if (!result || !result.call || (result = result(element, !revert)))
+                  if (!result || !result.call || (result = result(element)))
                     if (!result || !result.push) {
                       mutation = result || true;
                     } else (advanced || (advanced = [])).push(result);
@@ -134,6 +111,7 @@ LSD.Layout.prototype = Object.append(new Options, {
       if (this.options.context && LSD.Widget.prototype.options.context != this.options.context)
         opts.context = this.options.context;
       if (this.options.interpolation) opts.interpolation = this.options.interpolation;
+      var prepared = true;
     }
     // Create, clone or reuse a widget.
     if (!converted) {
@@ -156,8 +134,7 @@ LSD.Layout.prototype = Object.append(new Options, {
           else if (widget.origin == element && element.parentNode && element.parentNode == container)
             element.parentNode.replaceChild(widget.element, element);
         }.bind(this);
-        if (this.appendChild(ascendant, widget, opts, override))
-          if (widget.document != ascendant.document) widget.setDocument(ascendant.document);
+        this.appendChild(ascendant, widget, opts, override)
       }
     } else {
       if (cloning) var clone = element.cloneNode(false);
@@ -196,6 +173,12 @@ LSD.Layout.prototype = Object.append(new Options, {
           break;
       }
     }
+    // Cleanup options if they prepared on this iteration
+    if (prepared) {
+      options = {};
+      for (var option in opts) if (LSD.Layout.Inheritable[option]) options[option] = opts[option];
+      opts = options;
+    }
     // Render children
     for (var j = children.length - 1, child; j > -1 && (child = children[j]) && child.nodeType != 1; j--);
     for (var i = 0, child, previous, result, following; child = children[i]; i++) {
@@ -204,7 +187,7 @@ LSD.Layout.prototype = Object.append(new Options, {
         if ((group = previous.mutations['~'])) stack.push(['~', group]);
         if ((group = previous.mutations['+'])) stack.push(['+', group]);
       }
-      previous = this[LSD.Layout.NodeTypes[child.nodeType]](child, newParent, opts, stack, revert, i == j);
+      previous = this[LSD.Layout.NodeTypes[child.nodeType]](child, newParent, opts, stack, i == j);
       if (!previous.lsd) previous = null;
     }
     // Put advanced selectors back to the stack
@@ -224,7 +207,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     var value = element.textContent;
     if (this.options.interpolate) var interpolated = this.interpolate(value);
     var cloning = (opts && opts.clone || this.options.clone);
-    if (interpolated != null && interpolated != value || cloning) {
+    if (interpolated != null || cloning) {
       var textnode = element.ownerDocument.createTextNode(interpolated || value);
       if (!cloning) element.parentNode.replaceChild(textnode, element);
       this.appendChild(parent[0] || parent.toElement(), textnode || element)
@@ -241,6 +224,19 @@ LSD.Layout.prototype = Object.append(new Options, {
       this[LSD.Layout.NodeTypes[node.nodeType]](node, parent, opts);
   },
   
+  string: function(string, parent, opts) {
+    var element = parent[1];
+    var interpolated = this.interpolate(string);
+    if (interpolated != null) string = interpolated;
+    if (!element || element == parent[0].element) {
+      var textnode = parent[0].write(string);
+    } else {
+      var textnode = element.ownerDocument.createTextNode(element);
+      element.appendChild(textnode);
+    }
+    return textnode;
+  },
+  
   object: function(object, parent, opts) {
     var result = {}, parsed, layout, branch;
     for (var selector in object) {
@@ -249,17 +245,42 @@ LSD.Layout.prototype = Object.append(new Options, {
         branch = result[selector] = this.keyword(parsed.keyword, parsed.expressions, branch, layout, parent, opts);
       } else {
         branch = null;
-        var widget = this.string(selector, parent, opts);
-        if (layout) if (layout.charAt) {
-          if (widget.lsd) widget.write(layout);
-          else widget.innerHTML = layout;
-          result[selector] = [widget, layout];
-        } else {
-          result[selector] = [widget, this.render(layout, widget.lsd ? widget : [parent[0] || parent, widget], null, opts)]
-        }
+        var result = this.selector(selector, parent, opts);
+        result[selector] = !layout || [result, this.render(layout, result.lsd ? result : [parent[0] || parent, result], null, opts)];
       }
     }
     return result;
+  },
+  
+  selector: function(string, parent, opts) {
+    var options = Object.append({context: this.options.context}, opts, LSD.Layout.parse(string, parent[0] || parent));
+    if (options.tag != '*' && (options.source || this.context.find(options.tag) || !LSD.Layout.NodeNames[options.tag])) {
+      var widget = this.context.create(options), self = this;
+      if (widget.element && widget.element.childNodes.length) var nodes = widget.element.childNodes;
+      if (self) this.appendChild(parent[1] || parent, widget, opts, function() {
+        self.appendChild(parent[0] || parent.toElement(), widget.toElement());
+      });
+      console.error('from string', nodes, widget.tagName, widget.element)
+      options = {};
+      for (var option in opts) if (LSD.Layout.Inheritable[option]) options[option] = opts[option];
+      opts = options;
+      if (nodes) this.array(nodes, [widget.element, widget], opts);
+    } else {  
+      var props = {}, tag = (options.tag == '*') ? 'div' : options.tag;
+      if (options.id) props.id = options.id;
+      var attributes = options.attributes;
+      if (attributes) for (var attr, i = 0, l = attributes.length; i < l; i++){
+        attr = attributes[i];
+        if (props[attr.key] != null) continue;
+        if (attr.value != null && attr.operator == '=') props[attr.key] = attr.value;
+        else if (!attr.value && !attr.operator) props[attr.key] = props[attr.key];
+      }
+      var element = document.createElement(tag);
+      for (var name in props) element.setAttribute(name, props[name]);
+      if (options.classes) element.className = options.classes.join(' ');
+      if (parent) this.appendChild(parent[0] || parent.toElement(), element);
+    }
+    return widget || element;
   },
   
   interpolate: function(string, object) {
@@ -268,7 +289,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     if (interpolated !== false) {
       this.interpolated = true;
       return interpolated;
-    } else return string;
+    }
   },
   
   keyword: function(keyword, expression, holder, layout, parent, opts) {
@@ -298,6 +319,10 @@ LSD.Layout.prototype = Object.append(new Options, {
         parent.insertBefore(child, before, override);
       } else {
         parent.appendChild(child, override);
+      }
+      if (child.lsd) {
+        var doc = child.parentNode.document;
+        if (child.document != doc) child.setDocument(doc);
       }
       return true;
     }
@@ -355,6 +380,7 @@ LSD.Layout.NodeNames = Array.fast('!doctype', 'a', 'abbr', 'acronym', 'address',
 'rp', 'rt', 'ruby', 's', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strike', 
 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'textarea', 'tfoot', 'th', 'thead', 
 'time', 'title', 'tr', 'ul', 'var', 'video', 'wbr');
+LSD.Layout.Inheritable = Array.fast('context', 'interpolation', 'clone', 'lazy');
 
 LSD.Layout.rExpressions = /^\s*(if|else|call|els[e ]*if|unless)(?:$|\s+(.*?)\s*$)/
 Object.append(LSD.Layout, {
@@ -377,9 +403,11 @@ Object.append(LSD.Layout, {
         if (source) Object.append(options, LSD.Layout.parse(source, parent[0] || parent));
       } else options.combinator = parsed.combinator;
     } 
-    if (parsed.tag != '*' && parsed.combinator != '::') {
-      options[(parsed.tag.indexOf('-') > -1) ? 'source' : 'tag'] = parsed.tag;
-    }
+    if (parsed.tag != '*' && parsed.combinator != '::')
+      if (parsed.tag.indexOf('-') > -1) 
+        options.source = parsed.tag.split('-');
+      else
+        options.tag = parsed.tag;
     if (parsed.id) (options.attributes || (options.attributes = {})).id = parsed.id
     if (parsed.attributes) for (var all = parsed.attributes, attribute, i = 0; attribute = all[i++];) {
       var value = attribute.value || LSD.Attributes.Boolean[attribute.key] || "";
@@ -398,12 +426,12 @@ Object.append(LSD.Layout, {
       if (type) (source.push ? source : [source]).push(type);
     } else {
       var source;
-      if (tagName) (source ? (source.push ? source : [source]).push(tagName) : (source = tagName));
+      if (tagName) (source ? (source.push ? source : (source = [source])).push(tagName) : (source = tagName));
       if (options) {
         var type = options.type;
-        if (type) (source ? (source.push ? source : [source]).push(type) : (source = type));
+        if (type) (source ? (source.push ? source : (source = [source])).push(type) : (source = type));
         var kind = options.kind;
-        if (kind) (source ? (source.push ? source : [source]).push(kind) : (source = kind));
+        if (kind) (source ? (source.push ? source : (source = [source])).push(kind) : (source = kind));
       }
     }
     return source;

@@ -153,12 +153,13 @@ var Events = Object.append(LSD.Module.Events, {
   fireEvent: function(type, args, delay){
     var events = this.$events[type];
     if (!events) return this;
-    var method = Type.isEnumerable(args) ? 'apply' : 'call';
     for (var i = 0, j = events.length, fn; i < j; i++) {
       if (!(fn = events[i])) continue;
       if (fn.indexOf) fn = this[fn];
-      if (delay) fn.delay(delay, this, args);
-      else fn[method](this, args);
+      if (!delay) {
+        if (!method) var method = Type.isEnumerable(args) ? 'apply' : 'call';
+        fn[method](this, args);
+      } else fn.delay(delay, this, args);
     }
     return this;
   },
@@ -167,7 +168,7 @@ var Events = Object.append(LSD.Module.Events, {
     for (var node = this; node; node = node.parentNode) {
       var events = node.$events[type];
       if (!events) continue;
-      var method = Type.isEnumerable(args) ? 'apply' : 'call';
+      if (!method) var method = Type.isEnumerable(args) ? 'apply' : 'call';
       for (var i = 0, j = events.length, fn; i < j; i++)
         if ((fn = events[i])) fn[method](node, args);
     }
@@ -179,7 +180,8 @@ var Events = Object.append(LSD.Module.Events, {
     if (!events) return;
     for (var i = 0, j = events.length, event; i < j; i++) {
       if (!(event = events[i])) continue;
-      var result = event.apply(this, args);
+      if (!method) var method = Type.isEnumerable(args) ? 'apply' : 'call';
+      var result = event[method](this, args);
       if (result) return result;
     }
   },

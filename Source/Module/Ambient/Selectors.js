@@ -38,17 +38,15 @@ LSD.Module.Selectors = new Class({
   getSelectorOrigin: function(selector) {
     if (!selector.Slick) selector = Slick.parse(selector);
     var first = selector.expressions[0][0];
-    switch (first.combinator) {
-      case "$": case "$$":
+    switch (first.combinator.charAt(0)) {
+      case "$":
         return this.element;
-      case "&": case "&&": default:
+      default:
         return this;
     }
   },
   
-  getPseudoElementsByName: function(name, value) {
-    var handler = PseudoElements[name];
-    if (handler && (handler = handler.apply(this, arguments))) return handler;
+  getPseudoElementsByName: function(name) {
     return this.captureEvent('getRelated', arguments) || this[name];
   },
   
@@ -81,11 +79,6 @@ LSD.Module.Selectors = new Class({
 });
 var pseudos = {};
 
-
-var PseudoElements = {
-  
-};
-
 var Combinators = LSD.Module.Selectors.Combinators = {
   '$': function(node, tag, id, classes, attributes, pseudos, classList) { //this element
     if ((tag == '*') && !id && !classes && !attributes && !pseudos) return this.push(node);
@@ -98,7 +91,7 @@ var Combinators = LSD.Module.Selectors.Combinators = {
   },
   
   '::': function(node, tag, id, classes, attributes, pseudos) {
-    var value = node[tag];
+    var value = this.getPseudoElementsByName(node, tag, id, classes, attributes, pseudos);
     if (value)
       for (var i = 0, element, result = [], ary = (value.length == null) ? [value] : value; element = ary[i]; i++) 
         this.push(element, null, id, classes, attributes, pseudos);
@@ -107,6 +100,8 @@ var Combinators = LSD.Module.Selectors.Combinators = {
 
 Combinators['&'] = Combinators['$'];
 Combinators['&&'] = Combinators['$$'];
+for (var combinator in Combinators) 
+  if (combinator != '::') Combinators[combinator + '::'] = Combinators['::'];
 
 for (name in Combinators) Slick.defineCombinator(name, Combinators[name]);
 
@@ -130,8 +125,8 @@ LSD.Module.Selectors.Features = {
   getAttribute: function(node, attribute) {
     return node.attributes[attribute] || ((attribute in node.$states) || node.pseudos[attribute]);
   },
-  getPseudoElementsByName: function(node, name, value) {
-    var collection = node.getPseudoElementsByName ? node.getPseudoElementsByName(name, value) : node[name];
+  getPseudoElementsByName: function(node, name, id, classes, attributes, pseudos) {
+    var collection = node.getPseudoElementsByName ? node.getPseudoElementsByName(name, id, classes, attributes, pseudos) : node[name];
     return collection ? (collection.push ? collection : [collection]) : [];
   }
 };

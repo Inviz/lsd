@@ -217,5 +217,16 @@ LSD.Module.Element.events = {
       query.build = true;
     }
   }
-}
+};
+
+LSD.Options.element = {
+  add: function(object) {
+    if (object.localName) this.attach(object);
+    else this.options.element = Object.merge(this.options.element || {}, object);
+  },
+  remove: function(object) {
+    if (object.localName) this.detach(object);
+  }
+};
+
 LSD.Module.Events.addEvents.call(LSD.Module.Element.prototype, LSD.Module.Element.events);
