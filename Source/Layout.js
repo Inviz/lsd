@@ -257,8 +257,8 @@ LSD.Layout.prototype = Object.append(new Options, {
     if (options.tag != '*' && (options.source || this.context.find(options.tag) || !LSD.Layout.NodeNames[options.tag])) {
       var widget = this.context.create(options), self = this;
       if (widget.element && widget.element.childNodes.length) var nodes = widget.element.childNodes;
-      if (self) this.appendChild(parent[1] || parent, widget, opts, function() {
-        self.appendChild(parent[0] || parent.toElement(), widget.toElement());
+      this.appendChild(parent[0] || parent, widget, opts, function() {
+        self.appendChild(parent[1] || parent.toElement(), widget.toElement());
       });
       console.error('from string', nodes, widget.tagName, widget.element)
       options = {};
@@ -278,7 +278,7 @@ LSD.Layout.prototype = Object.append(new Options, {
       var element = document.createElement(tag);
       for (var name in props) element.setAttribute(name, props[name]);
       if (options.classes) element.className = options.classes.join(' ');
-      if (parent) this.appendChild(parent[0] || parent.toElement(), element);
+      if (parent) this.appendChild(parent[1] || parent.toElement(), element);
     }
     return widget || element;
   },
