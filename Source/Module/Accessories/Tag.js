@@ -52,7 +52,7 @@ LSD.Module.Tag = new Class({
           this.role = role;
           this.mixin(role);
           if ((this.sourced = this.captureEvent('setRole', role))) this.setOptions(this.sourced);
-          console.log(this.sourced, this.element, source)
+          //console.log(this.sourced, this.element, source)
         }
       }
       this.source = source && source.length ? (source.join ? source.join('-') : source) : false; 

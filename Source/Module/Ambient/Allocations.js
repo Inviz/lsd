@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Module
+  - LSD.Module.Events
 
 provides:
   - LSD.Module.Allocations
