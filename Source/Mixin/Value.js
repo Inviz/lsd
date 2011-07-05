@@ -127,7 +127,11 @@ LSD.Mixin.Value = new Class({
   },
   
   toData: function() {
-    if ((this.commandType != 'checkbox' || this.commandType != 'radio') || this.checked) return this.getValue()
+    switch (this.commandType || (this.getCommandType && this.getCommandType())) {
+      case "checkbox": case "radio":
+        if (!this.checked) return;
+    }
+    return this.getValue();
   },
   
   getData: function() {

@@ -153,7 +153,7 @@ LSD.Module.Element.extract = function(element, widget) {
     i--;
   }
   if (widget) {
-    if (widget.tagName || widget.options.source) delete options.tag;
+    if (widget.tagName) delete options.tag;
     for (var name in attrs) if (widget.attributes[name]) {
       delete attrs[name];
       i--;

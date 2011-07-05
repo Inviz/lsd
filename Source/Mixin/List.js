@@ -43,7 +43,8 @@ LSD.Mixin.List = new Class({
           pseudos: Array.fast('value', 'command'),
           states: {
             link: {
-              checked: 'selected'
+              checked: 'selected',
+              selected: 'checked'
             },
             add: Array.fast('selected')
           },

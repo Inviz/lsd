@@ -27,22 +27,26 @@ LSD.Action = function(options, name) {
     disable: this.disable.bind(this),
     detach:  this.disable.bind(this)
   }
-  if (this.options.enabler) LSD.Action[LSD.toClassName(this.options.enabler)] = LSD.Action.build({
-    enable: this.options.enable,
-    disable: this.options.disable,
-    getState: this.options.getState
-  })
-  if (this.options.disabler) LSD.Action[LSD.toClassName(this.options.disabler)] = LSD.Action.build({
-    enable: this.options.disable,
-    disable: this.options.enable,
-    getState: this.options.getState && function() {
-      return !this.options.getState.apply(this, arguments)
-    }.bind(this)
-  })
   return this;
 };
 
+LSD.Action.initialize = function(options) {
+  if (options.enabler) LSD.Action[LSD.toClassName(options.enabler)] = LSD.Action.build({
+    enable: options.enable,
+    disable: options.disable,
+    getState: options.getState
+  })
+  if (options.disabler) LSD.Action[LSD.toClassName(options.disabler)] = LSD.Action.build({
+    enable: options.disable,
+    disable: options.enable,
+    getState: options.getState && function() {
+      return !options.getState.apply(this, arguments)
+    }.bind(this)
+  })
+};
+
 LSD.Action.prototype = {
+  
   enable: function() {
     if (this.enabled) return false;
     this.commit(this.target, arguments, this.target);
@@ -156,9 +160,10 @@ LSD.Action.prototype = {
 }
 
 LSD.Action.build = function(curry) {
-  var action = function() {
+  var action = function(options) {
     LSD.Action.apply(this, arguments);
   };
   action.prototype = Object.merge({options: curry}, LSD.Action.prototype);
+  LSD.Action.initialize(action.prototype.options)
   return action;
 };

@@ -21,13 +21,6 @@ provides:
 
 LSD.Mixin.Invokable = new Class({
   options: {
-    actions: {
-      autosubmission: {
-        enable: function() {
-          if (this.attributes.autosubmit) this.submit();
-        }
-      }
-    },
     chain: {
       feedback: function() {
         return {
@@ -37,33 +30,40 @@ LSD.Mixin.Invokable = new Class({
           priority: -5
         }
       }
+    },
+    states: {
+      invoked: {
+        enabler: 'invoke',
+        disabler: 'revoke'
+      }
+    },
+    events: {
+      _invokable: {
+        submit: function() {
+          this.revoke(true);
+        },
+        cancel: 'revoke'
+      }
     }
   },
   
   constructors: {
     invoker: function() {
-      if (this.options.invoker) this.setInvoker(this.options.invoker);
+      if (this.options.invoker) this.invoke(this.options.invoker);
     }
   },
   
   invoke: function(invoker) {
-    this.setInvoker(invoker);
-    this.captureEvent('invoke', invoker);
-  },
-  
-  revoke: function() {
-    this.unsetInvoker(invoker);
-    this.captureEvent('revoke', invoker);
-  },
-  
-  setInvoker: function(invoker) {
     this.invoker = invoker;
+    this.fireEvent('invoke', invoker);
     this.fireEvent('register', ['invoker', invoker]);
   },
   
-  unsetInvoker: function(invoker) {
+  revoke: function(soft) {
+    var invoker = this.invoker;
+    if (soft !== true) this.invoker.uncallChain();
+    this.fireEvent('revoke', invoker);
     this.fireEvent('unregister', ['invoker', invoker]);
-    delete this.invoker;
   },
   
   getInvoker: function() {
@@ -78,4 +78,5 @@ LSD.Mixin.Invokable = new Class({
     return this.getData ? this.getData() : null;
   }
 });
+
 LSD.Behavior.define(':invokable', LSD.Mixin.Invokable);

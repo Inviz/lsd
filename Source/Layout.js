@@ -255,12 +255,13 @@ LSD.Layout.prototype = Object.append(new Options, {
   selector: function(string, parent, opts) {
     var options = Object.append({context: this.options.context}, opts, LSD.Layout.parse(string, parent[0] || parent));
     if (options.tag != '*' && (options.source || this.context.find(options.tag) || !LSD.Layout.NodeNames[options.tag])) {
+      var allocation = options.allocation;
+      if (allocation) (parent[0] || parent).allocate(allocation.type, allocation.kind, allocation.options);
       var widget = this.context.create(options), self = this;
       if (widget.element && widget.element.childNodes.length) var nodes = widget.element.childNodes;
       this.appendChild(parent[0] || parent, widget, opts, function() {
         self.appendChild(parent[1] || parent.toElement(), widget.toElement());
       });
-      console.error('from string', nodes, widget.tagName, widget.element)
       options = {};
       for (var option in opts) if (LSD.Layout.Inheritable[option]) options[option] = opts[option];
       opts = options;
@@ -394,13 +395,18 @@ Object.append(LSD.Layout, {
   */
   parse: function(selector, parent) {
     var options = {};
-    var parsed = (selector.Slick ? selector : Slick.parse(selector)).expressions[0][0];
+    var expressions = (selector.Slick ? selector : Slick.parse(selector)).expressions[0];
+    var parsed = expressions[0];
     if (parsed.combinator != ' ') {
       if (parsed.combinator == '::') {
-        var relation = (parent[0] || parent).relations[parsed.tag];
-        if (!relation) throw "Unknown pseudo element ::" + parsed.tag;
-        var source = relation.getSource();
-        if (source) Object.append(options, LSD.Layout.parse(source, parent[0] || parent));
+        if (LSD.Allocations[parsed.tag]) {
+          options.allocation = LSD.Module.Allocations.prepare(options, parsed.tag, parsed.classes, parsed.attributes, parsed.pseudos);
+        } else {
+          var relation = (parent[0] || parent).relations[parsed.tag];
+          if (!relation) throw "Unknown pseudo element ::" + parsed.tag;
+          var source = relation.getSource();
+          if (source) Object.append(options, LSD.Layout.parse(source, parent[0] || parent));
+        }
       } else options.combinator = parsed.combinator;
     } 
     if (parsed.tag != '*' && parsed.combinator != '::')

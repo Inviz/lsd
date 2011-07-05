@@ -29,6 +29,7 @@ LSD.Module.Allocations = new Class({
   allocate: function() {
     var args = Array.prototype.slice.call(arguments);
     var last = args[args.length - 1];
+    if (last == args[0] && last.type) args = [last.type, last.kind, (last = last.options)];
     if (last && !last.indexOf && !last.push) var options = args.pop();
     var type = args[0], kind = args[1];
     var allocation = LSD.Allocations[type];
@@ -85,31 +86,30 @@ LSD.Module.Allocations = new Class({
 LSD.Module.Events.addEvents.call(LSD.Module.Allocations.prototype, {
   getRelated: function(type, id, classes, attributes, pseudos) {
     if (!LSD.Allocations[type]) return;
-    var name, kind, options = {};
-    if (attributes)
-      for (var i = 0, attribute; attribute = attributes[i++];) 
-        switch (attribute.name) {
-          case "kind":
-            kind = attribute.value;
-            break;
-          case "name":
-            name = attribute.value;
-            break;
-          default:
-            (options.attributes || (options.attributes = {}))[attribute.name] = attribute.value;
-        }
-    if (pseudos)
-      for (var i = 0, pseudo; pseudo = pseudos[i++];) 
-        switch (pseudo.key) {
-          case "of-kind": case "of-type":
-            kind = pseudo.value;
-            break;
-          case "of-name":
-            name = pseudo.value;
-        }
-    return this.allocate(type, kind, name, options);
+    var allocation = LSD.Module.Allocations.prepare(type, {}, classes, attributes, pseudos);
+    return this.allocate(allocation);
   }
 });
+
+LSD.Module.Allocations.prepare = function(type, options, classes, attributes, pseudos) {
+  var name, kind;
+  if (attributes)
+    for (var i = 0, attribute; attribute = attributes[i++];) 
+      (options.attributes || (options.attributes = {}))[attribute.name] = attribute.value;
+  if (pseudos)
+    for (var i = 0, pseudo; pseudo = pseudos[i++];) 
+      switch (pseudo.key) {
+        case "of-kind": case "of-type":
+          kind = pseudo.value;
+          break;
+        case "of-name":
+          name = pseudo.value;
+          break;
+        default:
+          (options.pseudos || (options.pseudos = {}))[pseudo.key] = pseudo.value || true;
+      }
+  return {type: type, name: name, kind: kind, options: options}
+}
 
 LSD.Allocations = {
   
