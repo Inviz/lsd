@@ -20,7 +20,7 @@ provides:
 */
 
 LSD.Module.Relations = new Class({
-  initializers: {
+  constructors: {
     relations: function() {
       this.relations = {};
       this.related = {};

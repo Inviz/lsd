@@ -40,7 +40,7 @@ var setStyle = function(element, property, value, type) {
 }
 
 LSD.Module.Styles = new Class({
-  initializers: {
+  constructors: {
     style: function() {
       this.rules = [];
       this.style = {    // Styles that...

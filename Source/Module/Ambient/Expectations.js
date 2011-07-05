@@ -24,7 +24,7 @@ provides:
   
 var Expectations = LSD.Module.Expectations = new Class({
   
-  initializers: {
+  constructors: {
     expectations: function() {
       if (!this.expectations) this.expectations = {tag: {}}
     }

@@ -24,7 +24,7 @@ provides:
 !function() {
 
 LSD.Module.Layers = new Class({
-  initializers: {
+  constructors: {
     layers: function() {
       this.offset = {
         inside: {},

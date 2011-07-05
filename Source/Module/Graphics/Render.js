@@ -26,7 +26,7 @@ LSD.Module.Render = new Class({
     render: null
   },
   
-  initializers: {
+  constructors: {
     render: function() {
       this.redraws = 0;
       this.dirty = true;

@@ -20,49 +20,52 @@ provides:
 */
 
 LSD.Module.Allocations = new Class({
-  initializers: {
+  constructors: {
     allocations: function() {
       this.allocations = {};
     }
   },
   
-  allocate: function(type, name, options) {
+  allocate: function() {
+    var args = Array.prototype.slice.call(arguments);
+    var last = args[args.length - 1];
+    if (last && !last.indexOf && !last.push) var options = args.pop();
+    var type = args[0], kind = args[1];
     var allocation = LSD.Allocations[type];
     if (!allocation) return;
     var allocations = this.allocations, object;
     var opts = this.options.allocations && this.options.allocations[type];
     if (allocation.multiple) {
       var group = allocations[type] || (allocations[type] = {});
-      if (name) {
-        var index = type + '-' + name;
+      if (kind) {
+        var index = type + '-' + kind;
         var customized = LSD.Allocations[index];
-        if (group[name]) return group[name];
+        if (group[kind]) return group[kind];
       } else {
-        for (var id = name; allocations[++id];);
+        for (var id = kind; allocations[++id];);
       }
     } else {
       if (allocations[type]) return allocations[type];
     }
     if (allocation.call) {
-      allocation = allocation.call(this, name, options);
+      allocation = allocation.apply(this, [options].concat(args));
       if (allocation.nodeType) object = allocation;
     } else {
       if (allocation.options)
-        var generated = allocation.options.call ? allocation.options.call(this, name) : allocation.options;
+        var generated = allocation.options.call ? allocation.options.call(this, options, kind) : allocation.options;
     }
     if (!object) {
-      options = Object.append({}, allocation, generated, customized, opts, options);
+      options = Object.merge({}, allocation, generated, customized, opts, options);
       delete options.multiple;
       delete options.options;
-      if (options.source && options.source.call) options.source = options.source.call(this, name, options);
+      if (options.source && options.source.call) options.source = options.source.call(this, kind, options);
       options.invoker = this;
       var parent = options.parent ? (options.parent.call ? options.parent.call(this) : option.parent) : this;
       delete options.parent;
-      if (!parent.lsd) parent = [parent, this];
+      if (!parent.lsd) parent = [this, parent];
       object = this.buildLayout(options.source || options.tag, parent, options);
-      console.log(object.element, options, parent)
     };
-    (group || allocations)[name || id] = object;
+    (group || allocations)[kind || id] = object;
     return object;
   },
   
@@ -82,25 +85,29 @@ LSD.Module.Allocations = new Class({
 LSD.Module.Events.addEvents.call(LSD.Module.Allocations.prototype, {
   getRelated: function(type, id, classes, attributes, pseudos) {
     if (!LSD.Allocations[type]) return;
-    var name, options = {};
-    if (attributes) attributes: 
+    var name, kind, options = {};
+    if (attributes)
       for (var i = 0, attribute; attribute = attributes[i++];) 
         switch (attribute.name) {
+          case "kind":
+            kind = attribute.value;
+            break;
           case "name":
             name = attribute.value;
-            break attributes;
+            break;
           default:
             (options.attributes || (options.attributes = {}))[attribute.name] = attribute.value;
         }
-    if (pseudos) pseudos: 
+    if (pseudos)
       for (var i = 0, pseudo; pseudo = pseudos[i++];) 
         switch (pseudo.key) {
-          case "of-type":
+          case "of-kind": case "of-type":
+            kind = pseudo.value;
+            break;
+          case "of-name":
             name = pseudo.value;
-            break pseudos;
         }
-      console.log('please alocate', type, name, options, this.tagName, this.element)
-    return this.allocate(type, name, options);
+    return this.allocate(type, kind, name, options);
   }
 });
 
@@ -112,14 +119,17 @@ LSD.Allocations = {
   
   dialog: {
     multiple: true,
-    options: function(name) {
-      return {
-        tag: 'body',
-        attributes: {
-          type: 'dialog',
-          kind: name
-        }
-      }
+    options: function(options, kind) {
+      return Object.merge(
+        {
+          tag: 'body',
+          attributes: {
+            type: 'dialog'
+          }
+        },
+        kind ? {attributes: {kind: kind}} : null,
+        options
+      )
     },
     parent: function() {
       return document.body;
@@ -134,24 +144,23 @@ LSD.Allocations = {
     source: 'scrollbar'
   },
   
-  editor: function(type, name) {
-    return {
-      attributes: {
-        name: name
-      },
-      source: type == 'area' ? 'textarea' : ('input' + (type ? '-' + type : ''))
-    }
+  editor: function(options, type, name) {
+    return Object.merge(
+      {source: type == 'area' ? 'textarea' : ('input' + (type ? '-' + type : ''))}, 
+      name ? {attributes: {name: name}} : null,
+      options
+    );
   },
   
-  input: function(type, name) {
-    return new Element('input', {
+  input: function(options, type, name) {
+    return new Element('input', Object.merge({
       type: type || 'text',
       name: name
-    });
+    }, options));
   },
   
-  submit: function() {
-    return new Element('input', {
+  submit: function(options) {
+    return new Element('input', Object.merge({
       type: 'submit',
       styles: {
         width: 1,
@@ -167,6 +176,6 @@ LSD.Allocations = {
           e.preventDefault()
         }
       }
-    });
+    }, options));
   }
 };

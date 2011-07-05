@@ -20,7 +20,7 @@ provides:
 
 
 LSD.Module.Dimensions = new Class({
-  initializers: {
+  constructors: {
     dimensions: function() {
       this.size = {}
     }

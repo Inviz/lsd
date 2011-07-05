@@ -27,7 +27,7 @@ LSD.Module.DOM = new Class({
     nodeType: 1,
   },
   
-  initializers: {
+  constructors: {
     dom: function(options) {
       this.childNodes = [];
     }

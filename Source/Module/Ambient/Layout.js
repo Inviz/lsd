@@ -28,7 +28,7 @@ LSD.Module.Layout = new Class({
   },
   */
   
-  initializers: {
+  constructors: {
     layout: function(options) {
       this.rendered = {};
     }

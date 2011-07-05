@@ -71,7 +71,7 @@ LSD.Mixin.Uploader = new Class({
     }
   },
   
-  initializers: {
+  constructors: {
     uploader: function() {
       this.blobs = {};
     }

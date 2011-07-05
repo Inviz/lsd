@@ -91,10 +91,12 @@ var Combinators = LSD.Module.Selectors.Combinators = {
   },
   
   '::': function(node, tag, id, classes, attributes, pseudos) {
+    var found = this.found;
     var value = this.getPseudoElementsByName(node, tag, id, classes, attributes, pseudos);
+    this.found = found;
     if (value)
-      for (var i = 0, element, result = [], ary = (value.length == null) ? [value] : value; element = ary[i]; i++) 
-        this.push(element, null, id, classes, attributes, pseudos);
+      for (var i = 0, element, result = [], ary = (value.length == null) ? [value] : value; element = ary[i]; i++)
+        this.push(element, '*', id, classes, attributes);
   }
 };
 

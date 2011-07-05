@@ -24,7 +24,7 @@ LSD.Module.Actions = new Class({
     actions: {}
   },
   
-  initializers: {
+  constructors: {
     actions: function() {
       this.actions = {}
     }

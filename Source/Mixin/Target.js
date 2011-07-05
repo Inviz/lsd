@@ -30,7 +30,7 @@ provides:
             if (!chain.action) return;
             if (chain.selector) {
               chain.target = function() {
-                return this.getElement(chain.selector);
+                return this.getElements(chain.selector);
               }.bind(this);
             };
             switch (chain.keyword) {
@@ -47,8 +47,7 @@ provides:
     },
   
     parseTargetSelector: function(selector) {
-      if (cache[selector]) return cache[selector]
-      return cache[selector] = Parser.exec.apply(Parser, arguments)
+      return (cache[selector] || (cache[selector] = Parser.exec.apply(Parser, arguments)))
     },
 
     getTargetAction: function() {
@@ -99,10 +98,5 @@ provides:
   
   var Keywords = Parser.Keywords = Array.fast('if', 'then', 'else', 'or', 'and', 'before');
 }();
-
-//(function() {
-//  IAS.getElement('form.search::dialog:of-type(sign_in)');
-//  IAS.getElements('form')[1].allocate('lightbox')
-//}).delay(1000);
 
 LSD.Behavior.define('[target]', LSD.Mixin.Target);

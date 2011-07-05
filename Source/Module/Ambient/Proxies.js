@@ -19,7 +19,7 @@ provides:
 */
   
 LSD.Module.Proxies = new Class({
-  initializers: {
+  constructors: {
     proxies: function() {
       this.proxies = [];
     }

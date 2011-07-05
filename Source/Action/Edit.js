@@ -71,7 +71,7 @@ LSD.Widget.Form.Edit = new Class({
     }
   },
   
-  initializers: {
+  constructors: {
     session: function() {
       this.objects = [];
     }

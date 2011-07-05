@@ -42,7 +42,7 @@ LSD.Mixin.Fieldset = new Class({
     }
   },
   
-  initializers: {
+  constructors: {
     fieldset: function() {
       this.names = {};
       this.params = {};

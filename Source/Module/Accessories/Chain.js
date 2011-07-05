@@ -21,7 +21,7 @@ provides:
 !function() {
 
 LSD.Module.Chain = new Class({
-  initializers: {
+  constructors: {
     chain: function() {
       this.chains = {};
       this.chainPhase = -1;
@@ -166,7 +166,7 @@ LSD.Module.Chain = new Class({
     action.invoker = this;
     var ret = (targets) ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);
     delete action.invoker;
-    return typeof ret == 'array' ? ret[0] : ret;
+    return (ret && ret.push) ? ret[0] : ret;
   }
 });
 

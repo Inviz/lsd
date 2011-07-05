@@ -20,7 +20,7 @@ provides:
 */
 
 LSD.Module.Attributes = new Class({
-  initializers: {
+  constructors: {
     attributes: function() {
       this.classes = new FastArray;
       this.pseudos = new FastArray;

@@ -22,7 +22,7 @@ LSD.Trait.Input = new Class({
     input: {},
   },
   
-  initializers: {
+  constructors: {
     input: function() {
       return {
         events: {

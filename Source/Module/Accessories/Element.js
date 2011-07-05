@@ -26,7 +26,7 @@ LSD.Module.Element = new Class({
     inline: null
   },
   
-  initializers: {
+  constructors: {
     element: function() {
       LSD.uid(this);
     }
@@ -68,7 +68,6 @@ LSD.Module.Element = new Class({
       }
     } else query = {};
     element = query.element = element || this.element;
-    query.tag = this.tagName;
     var options = this.options;
     this.fireEvent('beforeBuild', query);
     if (this.parentNode) this.parentNode.dispatchEvent('beforeNodeBuild', [query, this]);
@@ -76,8 +75,8 @@ LSD.Module.Element = new Class({
     delete query.element, delete query.build;
     var attrs = Object.merge({}, options.element, query.attributes);
     var tag = query.tag || attrs.tag || this.getElementTag();
-    delete attrs.tag;
-    if (query.attributes || query.tag || query.classes) this.setOptions(query);
+    delete attrs.tag; delete query.tag;
+    if (query.attributes || query.classes || query.pseudos) this.setOptions(query);
     if (!element || build) {
       this.element = new Element(tag, attrs);
     } else var element = this.element = document.id(element).set(attrs);
@@ -97,9 +96,9 @@ LSD.Module.Element = new Class({
   },
   
   getElementTag: function(soft) {
-    var options = this.options, inline = options.inline, element = options.element;
+    var options = this.options, element = options.element;
     if (element && element.tag) return element.tag;
-    if (!soft) switch (inline) {
+    if (!soft) switch (options.inline) {
       case null:
         return this.tagName;
       case true:
@@ -107,7 +106,7 @@ LSD.Module.Element = new Class({
       case false:
         return "div"
       default:
-        return inline;
+        return options.inline;
     }
   },
   
@@ -214,18 +213,26 @@ LSD.Module.Element.events = {
     var tag = this.getElementTag(true);
     if (this.options.clone || (tag && LSD.toLowerCase(query.element.tagName) != tag)) {
       this.origin = query.element;
+      query.tag = tag;
       query.build = true;
     }
   }
 };
 
-LSD.Options.element = {
+LSD.Options.origin = {
   add: function(object) {
-    if (object.localName) this.attach(object);
-    else this.options.element = Object.merge(this.options.element || {}, object);
+    if (object.localName) {
+      if (this.built) this.attach(object);
+      else this.origin = object;
+    }
   },
   remove: function(object) {
-    if (object.localName) this.detach(object);
+    if (object.localName) {
+      if (this.origin == object) {
+        delete this.origin;
+        if (this.attached) this.detach(object);
+      }
+    }
   }
 };
 

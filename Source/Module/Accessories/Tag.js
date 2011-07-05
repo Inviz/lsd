@@ -26,7 +26,7 @@ LSD.Module.Tag = new Class({
     namespace: 'LSD'
   },
   
-  initializers: {
+  constructors: {
     tag: function(options) {
       if (options.context) this.setContext(options.context)
       this.nodeType = options.nodeType;
@@ -52,7 +52,6 @@ LSD.Module.Tag = new Class({
           this.role = role;
           this.mixin(role);
           if ((this.sourced = this.captureEvent('setRole', role))) this.setOptions(this.sourced);
-          //console.log(this.sourced, this.element, source)
         }
       }
       this.source = source && source.length ? (source.join ? source.join('-') : source) : false; 

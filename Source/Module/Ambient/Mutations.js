@@ -19,7 +19,7 @@ provides:
 */
 
 LSD.Module.Mutations = new Class({
-  initializers: {
+  constructors: {
     mutations: function() {
       this.mutations = {};
     }

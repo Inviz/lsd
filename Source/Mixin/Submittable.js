@@ -11,7 +11,6 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Mixin
-  - QFocuser/QFocuser
  
 provides:
   - LSD.Mixin.Submittable
@@ -38,16 +37,6 @@ LSD.Mixin.Submittable = new Class({
           if (LSD.toLowerCase(element.tagName) == 'form') element.removeEvent('submit', this.bindEvent('submit'));
         }
       }
-    },
-    chain: {
-      submission: function() {
-        return {
-          action: 'submit',
-          target: this.getSubmissionTarget,
-          arguments: this.getSubmissionData,
-          priority: -5
-        }
-      }
     }
   },
   
@@ -69,18 +58,6 @@ LSD.Mixin.Submittable = new Class({
       this.uncallChain();
     };
     return this;
-  },
-  
-  getInvoker: function() {
-    return this.invoker || this.options.invoker;
-  },
-  
-  getSubmissionTarget: function() {
-    return this.getInvoker();
-  },
-  
-  getSubmissionData: function() {
-    return this.getData ? this.getData() : null;
   }
 });
 

@@ -62,6 +62,7 @@ sources:
   - Source/Mixin/Target.js
   - Source/Mixin/Root.js
   - Source/Mixin/Sortable.js
+  - Source/Mixin/Invokable.js
   - Source/Module/Ambient/Allocations.js
   - Source/Module/Ambient/Container.js
   - Source/Module/Ambient/DOM.js
@@ -100,13 +101,13 @@ sources:
   - Source/Action/Set.js
   - Source/Action/List.js
   - Source/Action/Display.js
-  - Source/Action/Dialog.js
   - Source/Action/Toggle.js
   - Source/Action/Clone.js
   - Source/Action/Edit.js 
   - Source/Action/History.js
   - Source/Action/Focus.js
   - Source/Action/Counter.js
+  - Source/Action/Invoke.js
   - Source/Action.js
   - Source/Layout.js
   - Source/Sheet.js
