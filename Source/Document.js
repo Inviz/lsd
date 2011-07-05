@@ -97,8 +97,10 @@ LSD.Document = new Class({
         link = target;
       }
     };
-    if (!stopped && link) {
-      new LSD.Widget(link, {
+    if (stopped) {
+      if (LSD.toLowerCase(widget.element.tagName) == 'a') event.preventDefault();
+    } else {
+      if (link) new LSD.Widget(link, {
         document: this, 
         pseudos: ['clickable', 'command']
       }).click(event);
