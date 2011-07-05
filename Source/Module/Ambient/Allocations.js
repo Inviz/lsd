@@ -114,7 +114,10 @@ LSD.Module.Allocations.prepare = function(type, options, classes, attributes, ps
 LSD.Allocations = {
   
   lightbox: {
-    source: 'body-lightbox'
+    source: 'body-lightbox',
+    parent: function() {
+      return document.body;
+    }
   },
   
   dialog: {
