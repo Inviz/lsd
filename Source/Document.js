@@ -104,7 +104,7 @@ LSD.Document = new Class({
       if (link) new LSD.Widget(link, {
         document: this, 
         pseudos: ['clickable', 'command']
-      }).click(event);
+      }).click(event.preventDefault());
     }
   },
   
