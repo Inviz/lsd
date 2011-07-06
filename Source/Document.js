@@ -88,24 +88,22 @@ LSD.Document = new Class({
   */
   onClick: function(event) {
     if (event.target.ownerDocument == document)
-    for (var target = event.target, stopped, link, widget; target && target.tagName; target = target.parentNode) {
+    for (var target = event.target, link, widget; target && target.tagName; target = target.parentNode) {
       widget = target.uid && Element.retrieve(target, 'widget');
+      var a = (LSD.toLowerCase(target.tagName) == 'a');
+      if (a) {
+        if (!widget) widget = new LSD.Widget(target, {
+          document: this, 
+          pseudos: ['clickable', 'command']
+        });
+        event.preventDefault();
+      }
       if (widget && widget.pseudos.clickable) {
         event.stopPropagation();
-        if (LSD.toLowerCase(target.tagName) == 'a') event.preventDefault();
         widget.click(event);
-      } else if (!link && LSD.toLowerCase(target.tagName) == 'a') {
-        link = target;
+        break;
       }
     };
-    if (stopped) {
-      if (LSD.toLowerCase(widget.element.tagName) == 'a') event.preventDefault();
-    } else {
-      if (link) new LSD.Widget(link, {
-        document: this, 
-        pseudos: ['clickable', 'command']
-      }).click(event.preventDefault());
-    }
   },
   
   onMousedown: function(event) {
