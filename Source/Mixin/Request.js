@@ -43,6 +43,10 @@ LSD.Mixin.Request = new Class({
         getTargetAction: function() {
           if (this.getCommandAction() == 'submit') return 'update';
         }
+      },
+      request: {
+        request: 'busy',
+        complete: 'idle'
       }
     }
   },
@@ -59,7 +63,12 @@ LSD.Mixin.Request = new Class({
       } else if (arg.call) var callback = arg;
     }
     var request = this.getRequest(options);
-    if (callback) request.addEvent('complete:once', callback);
+    request.addEvent('complete:once', function() {
+      if (callback) callback();
+      if (request.isSuccess() && this.getCommandAction && this.getCommandAction() == 'submit')
+        if (this.chainPhase == -1 || (this.chainPhase == this.getActionChain().length - 1))  
+          this.eachLink('optional', arguments, true);
+    });
     this.sent = true;
     return request.send(options);
   },
@@ -72,12 +81,6 @@ LSD.Mixin.Request = new Class({
   getRequest: function(options, fresh) {
     var type = (options && options.type) || this.getRequestType();
     if (fresh || !this.request || this.request.type != type) {
-      if (!this.request) this.addEvent('request', {
-        request: 'onRequest',
-        complete: 'onRequestComplete',
-        success: 'onRequestSuccess',
-        failure: 'onRequestFailure'
-      });
       this.request = this[type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options);
       if (!this.request.type) {
         this.request.type = type;
@@ -85,24 +88,6 @@ LSD.Mixin.Request = new Class({
       }
     }
     return this.request;
-  },
-  
-  onRequestSuccess: function() {
-    // A flag allows other parts of the framework use Requests provided by widget and not trigger
-    // submission chains. There may be a better solution though.
-    if (!this.sent) return;
-    delete this.sent;
-    if (this.getCommandAction)
-      if (this.getCommandAction() == 'submit' && (this.chainPhase == -1 || (this.chainPhase == this.getActionChain().length - 1)))  
-        this.eachLink('optional', arguments, true);
-  },
-  
-  onRequest: function() {
-    this.busy();
-  },
-  
-  onRequestComplete: function() {
-    this.idle();
   },
   
   getXHRRequest: function(options) {

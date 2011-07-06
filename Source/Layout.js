@@ -74,7 +74,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     var converted = element.uid && Element.retrieve(element, 'widget');
     var children = LSD.slice(element.childNodes);
     var cloning = (opts && opts.clone) || this.options.clone, group;
-    var ascendant = parent[1] || parent, container = parent[0] || parent.toElement();
+    var ascendant = parent[0] || parent, container = parent[1] || parent.toElement();
     // Retrieve the stack if the render was not triggered from the root of the layout
     if (!stack) {
       stack = [];
@@ -140,7 +140,7 @@ LSD.Layout.prototype = Object.append(new Options, {
       if (cloning) var clone = element.cloneNode(false);
       if (cloning || (ascendant.origin == element.parentNode)) this.appendChild(container, clone || element, opts);
     }    
-    var newParent = [clone || (widget && widget.element) || element, widget || ascendant];
+    var newParent = [widget || ascendant, clone || (widget && widget.element) || element];
     // Put away selectors in the stack that should not be matched again widget children
     var group, direct, following;
     for (var i = stack.length; group = stack[--i];) {
@@ -210,7 +210,7 @@ LSD.Layout.prototype = Object.append(new Options, {
     if (interpolated != null || cloning) {
       var textnode = element.ownerDocument.createTextNode(interpolated || value);
       if (!cloning) element.parentNode.replaceChild(textnode, element);
-      this.appendChild(parent[0] || parent.toElement(), textnode || element)
+      this.appendChild(parent[1] || parent.toElement(), textnode || element)
     }
     return textnode || element;
   },

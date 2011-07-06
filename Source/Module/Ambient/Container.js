@@ -21,7 +21,7 @@ provides:
 LSD.Module.Container = new Class({
   options: {
     container: {
-      enabled: true,
+      enabled: false,
       position: null,
       inline: true,
       attributes: {
@@ -35,7 +35,7 @@ LSD.Module.Container = new Class({
           return document.id(this.getContainer()) //creates container, once condition is true
         },
         condition: function() {         //turned off by default
-          return false 
+          return this.options.container.enabled; 
         },      
         priority: -1,                   //lowest priority
         rewrite: false                  //does not rewrite parent

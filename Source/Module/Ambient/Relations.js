@@ -95,14 +95,5 @@ LSD.Relation.Traits = {
         hidden: 'collapsed'
       }
     }
-  },
-  
-  dialog: {
-    as: 'initiator',
-    holder: 'document',
-    tag: 'body',
-    attributes: {
-      type: 'dialog'
-    }
   }
 };

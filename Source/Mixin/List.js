@@ -40,31 +40,29 @@ LSD.Mixin.List = new Class({
           selector: ':item',
           traits: Array.fast('selectable'),
           as: 'list',
-          pseudos: Array.fast('value', 'command'),
+          pseudos: Array.fast('value'),
+          options: function() {
+            if (this.attributes.multiple) {
+              return {pseudos: Array.fast('checkbox')};
+            } else {
+              return {pseudos: Array.fast('radio'), radiogroup: this.lsd};
+            }
+          },
           states: {
             link: {
               checked: 'selected',
               selected: 'checked'
             },
-            add: Array.fast('selected')
+            add: Array.fast('selected', 'checked')
           },
           callbacks: {
             fill: 'fill',
             empty: 'empty'
-          },
-          options: function() {
-            if (this.attributes.multiple) {
-              return {pseudos: {checkbox: true}};
-            } else {
-              return {pseudos: {radio: true}, radiogroup: this.lsd};
-            }
           }
         }
       }
     },
-    states: {
-      empty: true
-    }
+    states: Array.fast('empty')
   },
   
   findItemByValue: function(value) {

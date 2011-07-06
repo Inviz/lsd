@@ -53,6 +53,7 @@ LSD.Document = new Class({
     this.element = document;
     this.sourceIndex = 1;
     LSD.uid(this);
+    
     /*
       Trick Slick into thinking that LSD elements tree is an XML node 
       tree (so it won't try speeding up the queries with optimizations)
@@ -90,10 +91,10 @@ LSD.Document = new Class({
     for (var target = event.target, stopped, link, widget; target && target.tagName; target = target.parentNode) {
       widget = target.uid && Element.retrieve(target, 'widget');
       if (widget && widget.pseudos.clickable) {
-        if (!stopped) stopped = !!event.stopPropagation();
+        event.stopPropagation();
+        if (LSD.toLowerCase(target.tagName) == 'a') event.preventDefault();
         widget.click(event);
-        break;
-      } else if (LSD.toLowerCase(target.tagName) == 'a' && !link) {
+      } else if (!link && LSD.toLowerCase(target.tagName) == 'a') {
         link = target;
       }
     };

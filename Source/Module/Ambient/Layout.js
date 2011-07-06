@@ -65,7 +65,7 @@ LSD.Module.Layout.events = {
     if (!this.options.lazy && this.layout.origin == this && this.options.traverse !== false) {
       if (this.origin && !this.options.clone) this.element.replaces(this.origin);
       var nodes = (this.origin || this.element).childNodes;
-      this.layout.array(nodes, [this.element, this], this.options.clone ? {clone: true} : null);
+      this.layout.array(nodes, [this, this.getWrapper()], this.options.clone ? {clone: true} : null);
     }
     if (this.options.layout) this.buildLayout(this.options.layout);
   },
@@ -73,17 +73,17 @@ LSD.Module.Layout.events = {
     Augments all parsed HTML that goes through standart .write() interface
   */
   write: function(node) {
-    this.buildLayout(node);
+    this.buildLayout(node, [this, this.getWrapper()]);
   },
   /*
     Augments all inserted nodes that come from partial html updates
   */
   DOMNodeInserted: function(node) {
-    this.buildLayout(node);
+    this.buildLayout(node, [this, this.getWrapper()]);
   },
   
   DOMNodeInsertedBefore: function(node, target) {
-    this.buildLayout(node, this, {before: target});
+    this.buildLayout(node, [this, this.getWrapper()], {before: target});
   }
 };
 

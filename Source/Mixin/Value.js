@@ -21,10 +21,12 @@ LSD.Mixin.Value = new Class({
     actions: {
       value: {
         enable: function() {
-          if (this.attributes.multiple) this.values = [];
-          if (this.getValue() != null) return;
-          var raw = this.getRawValue();
-          if (raw != null) this.setValue(raw);
+          if (this.attributes.multiple) {
+            this.values = [];
+          } else {
+            if (typeof this.value != 'undefined') return;
+            this.setValue();
+          }
         },
         disable: function() {
           
@@ -33,10 +35,10 @@ LSD.Mixin.Value = new Class({
     }
   },
   
-  setValue: function(item, unset) {
-    if (item == null || (item.event && item.type)) item = this.getRawValue();
-    else if (item.getValue) item = item.getValue();
-    var value = this.processValue(item), result = false;
+  setValue: function(value, unset) {
+    if (value == null || (value.event && value.type)) value = this.getDefaultValue();
+    else if (value.getValue) value = this.processValue(value.getValue());
+    var result = false;
     if (this.isValueDifferent(value) ^ unset) {
       result = this.writeValue(value, unset);
       var previous = this.getPreviousValue();
@@ -49,26 +51,15 @@ LSD.Mixin.Value = new Class({
   unsetValue: function(item) {
     return this.setValue(item, true)
   },
-  
-  isValueDifferent: function(value) {
+
+  getValue: function() {
     if (this.attributes.multiple) {
-      return this.values.indexOf(value) == -1
+      if (this.values) this.values = []; 
+      return this.values.map(this.formatValue, this);
     } else {
-      return this.value != value;
+      if (typeof this.value == 'undefined') this.value = this.getDefaultValue();
+      return this.formatValue(this.value);
     }
-  },
-  
-  canElementHoldValue: function() {
-    var tag = LSD.toLowerCase(this.element.tagName)
-    return (!this.attributes.multiple && this.attributes.type != 'file' 
-      && (tag == 'input' || tag == 'textarea')) 
-  },
-  
-  getValueInput: function() {
-    if (this.canElementHoldValue()) return this.element;
-    var name = this.attributes.name;
-    if (this.attributes.miltiple) name += '[]';
-    return new Element('input[type=hidden]', {name: name}).inject(this.element);
   },
   
   writeValue: function(value, unset) {
@@ -101,29 +92,41 @@ LSD.Mixin.Value = new Class({
     }
   },
   
-  getPreviousValue: function() {
-    return this.previousValue
-  },
-  
   applyValue: function(value) {
     return this;
+  },
+
+  formatValue: function(value) {
+    return value;
+  },
+  
+  processValue: function(value) {
+    return value;
+  },
+  
+  getDefaultValue: function() {
+    return this.processValue(this.getRawValue());
   },
   
   getRawValue: function() {
     return this.attributes.value || LSD.Module.DOM.getID(this) || this.innerText;
   },
-
-  getValue: function() {
-    if (this.attributes.multiple) {
-      return this.values.map(this.formatValue, this)
-    } else {
-      return this.formatValue(this.value);
-    }
+  
+  getPreviousValue: function() {
+    return this.previousValue
   },
   
   shouldCallChainOnValueChange: function() {
     var type = this.getCommandType ? this.getCommandType() : this.commandType; 
     return !type || type == 'command';
+  },
+  
+  isValueDifferent: function(value) {
+    if (this.attributes.multiple) {
+      return this.values.indexOf(value) == -1
+    } else {
+      return this.value != value;
+    }
   },
   
   toData: function() {
@@ -139,13 +142,18 @@ LSD.Mixin.Value = new Class({
     if (this.attributes.name) data[this.attributes.name] = this.toData();
     return data;
   },
-
-  formatValue: function(value) {
-    return value;
+  
+  canElementHoldValue: function() {
+    var tag = LSD.toLowerCase(this.element.tagName)
+    return (!this.attributes.multiple && this.attributes.type != 'file' 
+      && (tag == 'input' || tag == 'textarea')) 
   },
   
-  processValue: function(value) {
-    return value;
+  getValueInput: function() {
+    if (this.canElementHoldValue()) return this.element;
+    var name = this.attributes.name;
+    if (this.attributes.miltiple) name += '[]';
+    return new Element('input[type=hidden]', {name: name}).inject(this.element);
   }
 });
 
