@@ -22,7 +22,8 @@ provides:
 
 LSD.Action.Display = LSD.Action.build({
   enable: function(target) {
-    if (target.show) target.show();
+    var widget = LSD.Module.DOM.find(target, true);
+    if (widget && widget.show) widget.show();
     else if (target.setStyle) {
       target.setStyle('display', target.retrieve('style:display') || 'inherit');
       target.removeAttribute('hidden');
@@ -30,7 +31,8 @@ LSD.Action.Display = LSD.Action.build({
   },
   
   disable: function(target) {
-    if (target.hide) target.hide();
+    var widget = LSD.Module.DOM.find(target, true);
+    if (widget && widget.hide) widget.hide();
     else if (target.setStyle) {
       target.store('style:display', target.getStyle('display'));
       target.setStyle('display', 'none');
