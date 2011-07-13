@@ -73,17 +73,22 @@ LSD.Module.Element = new Class({
     if (this.parentNode) this.parentNode.dispatchEvent('beforeNodeBuild', [query, this]);
     var build = query.build;
     delete query.element, delete query.build;
-    var attrs = Object.merge({}, this.attributes, options.element, query.attributes);
+    var attrs = {}
+    for (var attribute in this.attrubutes) 
+      if (this.attributes.hasProperty(attribute)) 
+        attrs[attribute] = this.attributes[attribute]
+    Object.merge(attrs, options.element, query.attributes);
     var tag = query.tag || attrs.tag || this.getElementTag();
     delete attrs.tag; delete query.tag;
     if (query.attributes || query.classes || query.pseudos) this.setOptions(query);
     if (!element || build) {
       this.element = new Element(tag, attrs);
     } else var element = this.element = document.id(element).set(attrs);
-    var classes = new FastArray;
-    if (this.tagName != tag) classes.push('lsd', this.tagName);
-    classes.concat(this.classes);
-    if (Object.getLength(classes)) this.element.className = classes.join(' ');
+    var classes = [];
+    if (this.tagName != tag) classes.push('lsd', this.tagName)
+    for (var klass in this.classes) 
+      if (this.classes.hasProperty(klass)) classes.include(klass)
+    if (classes.length) this.element.className = classes.join(' ');
 
     if (this.style) for (var property in this.style.element) this.element.setStyle(property, this.style.element[property]);
     return this.element;

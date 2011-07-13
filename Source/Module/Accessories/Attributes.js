@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Module
+  - LSD.Object
   - Core/Slick.Parser
  
 provides: 
@@ -22,10 +23,27 @@ provides:
 LSD.Module.Attributes = new Class({
   constructors: {
     attributes: function() {
-      this.classes = new FastArray;
-      this.pseudos = new FastArray;
-      this.dataset = {};
-      this.attributes = {};
+      var self = this;
+      this.pseudos = (new LSD.Object).addEvent('change', function(name, value, state) {
+        self.fireEvent('selectorChange', ['pseudos', name, state]);
+        if (self.$states[name]) self.setStateTo(name, state);
+      });
+      this.classes = (new LSD.Object).addEvent('change', function(name, value, state) {
+        self.fireEvent('selectorChange', ['classes', name, state]);
+        if (LSD.States.Known[name]) self.setStateTo(name, state);
+        if (self.element) self.element[state ? 'addClass' : 'removeClass'](name);
+      });
+      this.attributes = (new LSD.Object).addEvent('change', function(name, value, state) {
+        self.fireEvent('selectorChange', ['attributes', name, state]);
+        if (LSD.States.Attributes[name]) if (self[name]) self.setStateTo(name, state);
+        if (self.element) {
+          if (state) self.element.removeAttribute(name);
+          else self.element.setAttribute(name, value)
+        }
+      }).addEvent('beforechange', function(name, value, state) { 
+        self.fireEvent('selectorChange', ['attributes', name, state]);
+      });
+      this.dataset = new LSD.Object;
     }
   },
   
@@ -36,19 +54,6 @@ LSD.Module.Attributes = new Class({
       default:                return this.attributes[attribute];
     }
   },
-  
-  removeAttribute: function(name) {
-    if (name.substring(0, 5) == 'data') {
-      delete this.dataset[name.substring(5, name.length - 5)];
-    } else if (this.attributes[name] != null) {
-      this.fireEvent('selectorChange', ['attributes', name, false]);
-      delete this.attributes[name];
-      if (this.element) this.element.removeAttribute(name);
-      if (LSD.States.Attributes[name])
-        if (this[name]) this.setStateTo(name, false);
-    }
-    return this;
-  },
 
   setAttribute: function(name, value) {
     if (LSD.Attributes.Numeric[name]) value = value.toInt();
@@ -56,8 +61,8 @@ LSD.Module.Attributes = new Class({
       var logic = LSD.Attributes.Setter[name];
       if (logic) logic.call(this, value)
     }
-    if (name.substring(0, 5) == 'data-') {
-      this.dataset[name.substring(5, name.length - 5)] = value;
+    if (name.substr(0, 5) == 'data-') {
+      this.dataset.set(name.substr(5, name.length - 5), value);
     } else {
       if (this.options && this.options.interpolate)
         value = LSD.Interpolation.attempt(value, this.options.interpolate) || value;
@@ -66,50 +71,37 @@ LSD.Module.Attributes = new Class({
           var mode = (value == true || value == name);
           if (this[name] != mode) this.setStateTo(name, mode);
         }
-        this.fireEvent('selectorChange', ['attributes', name, false]);
-        this.attributes[name] = value;    
-        this.fireEvent('selectorChange', ['attributes', name, true]);
+        this.attributes.set(name, value);
         if (this.element && this.element[name] != value) this.element.setAttribute(name, value);
       }
     }
     return this;
   },
-
+  
+  removeAttribute: function(name) {
+    if (name.substr(0, 5) == 'data-') {
+      delete this.dataset.unset(name.substr(5, name.length - 5));
+    } else this.attributes.unset(name)
+    return this;
+  },
+  
   addPseudo: function(name){
-    if (!this.pseudos[name]) {
-      if (this.$states[name]) this.setStateTo(name, true);
-      this.pseudos[name] = true;
-      this.fireEvent('selectorChange', ['pseudos', name, true]);
-    }
+    this.pseudos.set(name, true);
     return this;
   },
 
   removePseudo: function(name) {
-    if (this.pseudos[name]) {
-      if (this.$states[name]) this.setStateTo(name, false);
-      this.fireEvent('selectorChange', ['pseudos', name, false]);
-      delete this.pseudos[name];
-    }  
+    this.pseudos.unset(name);
     return this;
   },
   
   addClass: function(name) {
-    if (LSD.States.Classes[name] && !this[name]) this.setStateTo(name, true);
-    if (!this.classes[name]) {
-      this.classes[name] = true;
-      this.fireEvent('selectorChange', ['classes', name, true]);
-      if (this.element) this.element.addClass(name);
-    }
+    this.classes.set(name, true);
     return this;
   },
 
   removeClass: function(name){
-    if (LSD.States.Classes[name] && this[name]) return this.setStateTo(name, false);
-    if (this.classes[name]) {
-      this.fireEvent('selectorChange', ['classes', name, false]);
-      delete this.classes[name];
-      if (this.element) this.element.removeClass(name);
-    }  
+    this.classes.unset(name);
     return this;
   },
   
@@ -120,7 +112,7 @@ LSD.Module.Attributes = new Class({
   setState: function(name) {
     var attribute = LSD.States.Attributes[name];
     if (attribute) this.setAttribute(attribute, attribute)
-    else this.addClass(LSD.States.Classes[name] || 'is-' + name);
+    else this.addClass(LSD.States.Known[name] ? name : 'is-' + name);
     this.addPseudo(name);
     return this;
   },
@@ -128,7 +120,7 @@ LSD.Module.Attributes = new Class({
   unsetState: function(name) {
     var attribute = LSD.States.Attributes[name];
     if (attribute) this.removeAttribute(attribute);
-    else this.removeClass(LSD.States.Classes[name] || 'is-' + name);
+    else this.removeClass(LSD.States.Known[name] ? name : 'is-' + name);
     this.removePseudo(name);
     return this;
   },
@@ -138,9 +130,10 @@ LSD.Module.Attributes = new Class({
     var selector = (parent && parent.getSelector) ? parent.getSelector() + ' ' : '';
     selector += this.tagName;
     if (this.attributes.id) selector += '#' + this.attributes.id;
-    for (var klass in this.classes)  if (this.classes.hasOwnProperty(klass))  selector += '.' + klass;
-    for (var pseudo in this.pseudos) if (this.pseudos.hasOwnProperty(pseudo)) selector += ':' + pseudo;
-    for (var name in this.attributes) if (name != 'id') selector += '[' + name + '=' + this.attributes[name] + ']';
+    for (var klass in this.classes)  if (this.classes.hasProperty(klass))  selector += '.' + klass;
+    for (var pseudo in this.pseudos) if (this.pseudos.hasProperty(pseudo)) selector += ':' + pseudo;
+    for (var name in this.attributes) if (this.attributes.hasProperty(name))
+      if (name != 'id') selector += '[' + name + '=' + this.attributes[name] + ']';
     return selector;
   },
   
@@ -152,7 +145,6 @@ LSD.Module.Attributes = new Class({
     return true;
   }
 });
-
 
 LSD.Attributes.Setter = {
   'id': function(id) {

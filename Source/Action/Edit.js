@@ -53,8 +53,8 @@ LSD.Widget.Form.Edit = new Class({
         'cancel': 'finish'
       }
     },
-    states: Array.fast('editing', 'hidden'),
-    pseudos: Array.fast('form', 'fieldset', 'resource', 'command'),
+    states: Array.object('editing', 'hidden'),
+    pseudos: Array.object('form', 'fieldset', 'resource', 'command'),
     has: {
       one: {
         submitter: {

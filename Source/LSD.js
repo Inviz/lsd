@@ -18,8 +18,7 @@ requires:
   - Ext/Macro
   - Ext/States
   - Ext/Class.mixin
-  - Ext/FastArray
-  - Ext/Class.Mutators.Includes
+  - Ext/Object.Array
  
 provides: 
   - LSD
@@ -27,14 +26,11 @@ provides:
 ...
 */
 
-if (!window.console) window.console = {};
-if (!window.console.log) window.console.log = function() {};
-
 var LSD = Object.append(new Events, {
   Events: {},
   Attributes: {
-    Numeric: Array.fast('tabindex', 'width', 'height'),
-    Boolean: Array.fast('readonly', 'disabled', 'hidden', 'checked')
+    Numeric: Array.object('tabindex', 'width', 'height'),
+    Boolean: Array.object('readonly', 'disabled', 'hidden', 'checked')
   },
   Styles: {},
   States: {
@@ -66,98 +62,12 @@ var LSD = Object.append(new Events, {
     Attributes: {
       disabled: 'disabled',
       hidden: 'hidden'
-    },
-    Classes: {
-      selected: 'selected',
-      empty: 'empty',
-      working: 'working',
-      focused: 'focused',
-      editing: 'editing'
     }
   },
   Options: {},
   useNative: true
 });
 
-Object.append(LSD, {
-  position: function(box, size, x, y) {
-    var position = {x: 0, y: 0};
-
-    switch (x) {
-      case "left":
-        position.x = 0;
-      case "right":
-        position.x = box.width - size.width;
-      case "center":
-        position.x = (box.width - size.width) / 2;
-    }
-    switch (y) {
-      case "top":
-        position.y = 0;
-      case "bottom":
-        position.y = box.height - size.height;
-      case "center":
-        position.y = (box.height- size.height) / 2;
-    }
-    return position;
-  },
-  
-  toLowerCase: function(lowercased) {
-    return function(string) { 
-      return (lowercased[string]) || (lowercased[string] = string.toLowerCase())
-    }
-  }(LSD.lowercased = {}),
-  
-  capitalize: function(capitalized) {
-    return function(string) {
-      return (capitalized[string]) || (capitalized[string] = string.capitalize())
-    }
-  }(LSD.capitalized = {}),
-  
-  toClassName: function(classnamed) {
-    return function(string) {
-      return (classnamed[string]) || (classnamed[string] = string.replace(/(^|-)([a-z])/g, function(a, b, c) { return (b ? '.' : '') + c.toUpperCase()}))
-    }
-  }(LSD.classnamed = {}),
-  
-  uid: function(object) {
-    if (object.lsd) return object.lsd;
-    if (object.localName) return $uid(object);
-    return (object.lsd = ++LSD.UID); 
-  },
-  
-  UID: 0,
-  
-  slice: (Browser.ie ? function(list, start) {
-    for (var i = start || 0, j = list.length, ary = []; i < j; i++) ary.push(list[i]);
-    return ary;
-  } : function(list, start) {
-    return Array.prototype.slice.call(list, start || 0);
-  }),
-  
-  log: function() {
-    console.log.apply(console, arguments);
-  },
-  
-  error: function() {
-    (console.error || console.log).apply(console, arguments);
-  },
-  
-  warn: function() {
-    (console.warn || console.log).apply(console, arguments);
-  },
-  
-  info: function() {
-    (console.info || console.log).apply(console, arguments);
-  }
-});
-
 States.get = function(name) { 
   return LSD.States.Known[name];
 };
-
-(function(toString) {
-  Type.isEnumerable = function(item){
-    return (item != null && typeof item.length == 'number' && toString.call(item) != '[object Function]' && !item.localName && !item.nodeType);
-  };
-})(Object.prototype.toString);

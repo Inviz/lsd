@@ -81,7 +81,7 @@ var pseudos = {};
 
 var Combinators = LSD.Module.Selectors.Combinators = {
   '$': function(node, tag, id, classes, attributes, pseudos, classList) { //this element
-    if ((tag == '*') && !id && !classes && !attributes && !pseudos) return this.push(node);
+    if ((tag == '*') && !id && !classes && !attributes && !pseudos) return this.push(node, null, null, null, null, pseudos);
     else return this['combinator: '](node, tag, id, classes, attributes, pseudos, classList)
   },
 

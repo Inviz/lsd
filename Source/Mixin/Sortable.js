@@ -27,7 +27,7 @@ LSD.Mixin.Sortable = new Class({
       constrain: true,
       revert: true
     },
-    pseudos: Array.fast('activatable'),
+    pseudos: Array.object('activatable'),
     events: {
       self: {
         mousedown: 'onBeforeSortStart'

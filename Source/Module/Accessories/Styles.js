@@ -13,7 +13,7 @@ requires:
   - LSD.Module
   - LSD.Module.Events
   - Core/Element.Style
-  - Ext/FastArray
+  - Ext/Object.Array
   - Sheet/SheetParser.Styles
 
 provides: 

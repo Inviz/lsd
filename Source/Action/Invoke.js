@@ -23,7 +23,7 @@ LSD.Action.Invoke = LSD.Action.build({
   enable: function(target) {
     var widget = LSD.Module.DOM.find(target);
     this.store(target, widget);
-    var result = widget.invoke(this.invoker);
+    var result = widget.invoke.apply(widget, [this.invoker].concat(Array.slice(arguments, 1)));
     return (result == true || result == widget) ? false : result;
   },
   

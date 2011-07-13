@@ -23,7 +23,7 @@ LSD.Mixin.Choice = new Class({
       many: {
         items: {
           states: {
-            add: Array.fast('chosen')
+            add: Array.object('chosen')
           }
         }
       }

@@ -3,7 +3,7 @@
  
 script: Action.js
  
-description: Action is a class that adds some feature to widget by mixing up in runtime
+description: Action encapsulates a single external node manipulation with the logic to revert it 
  
 license: Public domain (http://unlicense.org).
 

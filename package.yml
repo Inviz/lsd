@@ -19,12 +19,15 @@ sources:
   - Source/ART/ART.Shape.Flower.js
   - Source/ART/ART.Shape.Rectangle.js
   - Source/ART/ART.Shape.Star.js
-  - Source/Behavior.js
-  - Source/Command.js
+  - Source/Tools/Behavior.js
+  - Source/Tools/Interpolation.js
+  - Source/Tools/Microdata.js
+  - Source/Tools/Object.js
+  - Source/Tools/Helpers.js
+  - Source/Tools/Command.js
   - Source/Document.js
   - Source/LSD.js
   - Source/Type.js
-  - Source/Interpolation.js
   - Source/Relation.js
   - Source/Layer.js
   - Source/Layer/Color.js
@@ -72,6 +75,7 @@ sources:
   - Source/Module/Ambient/Layout.js
   - Source/Module/Ambient/Relations.js
   - Source/Module/Ambient/Proxies.js
+  - Source/Module/Ambient/Interpolations.js
   - Source/Module/Ambient.js
   - Source/Module/Accessories/Chain.js
   - Source/Module/Accessories/Actions.js

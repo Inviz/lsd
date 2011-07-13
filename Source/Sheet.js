@@ -260,13 +260,12 @@ var Value = LSD.Sheet.Value = {
   calc: function(value) {
     var bits = value.map(function(bit, i) {
       if (bit.call) {
-        return "value[" + i + "].call(this, property)"
+        return 'value[' + i + '].call(this, property)'
       } else {
         return bit;
       }
     })
-    eval("var compiled = function(property) { return " + bits.join(" ") + "}");
-    return compiled
+    return new Function('property', 'return ' + bits.join(' '));
   },
   min: function() {
     return Math.min.apply(Math, arguments)

@@ -61,7 +61,7 @@ LSD.Mixin.Uploader = new Class({
         }
       }
     },
-    states: Array.fast('empty'),
+    states: Array.object('empty'),
     filelist: false,
     uploader: {
       instantStart: true,
@@ -253,7 +253,7 @@ LSD.Widget.Filelist.File = new Class({
       '::canceller': 'Cancel',
       '::progress': true
     },
-    pseudos: Array.fast('upload'),
+    pseudos: Array.object('upload'),
     events: {
       setFile: function() {
         this.write(this.name);

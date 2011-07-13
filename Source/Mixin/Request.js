@@ -25,7 +25,7 @@ LSD.Mixin.Request = new Class({
     request: {
       method: 'get'
     },
-    states: Array.fast('working'),
+    states: Array.object('working'),
     events: {
       self: {
         submit: function() {

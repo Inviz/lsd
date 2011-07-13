@@ -61,7 +61,7 @@ LSD.Mixin.Resizable = new Class({
   initialize: function() {
     this.parent.apply(this, arguments);
     var options = this.options.resizer;
-    var rules = (new FastArray).concat(this.getAttribute('resizable').split(/\s+/));
+    var rules = (new Object.Array).concat(this.getAttribute('resizable').split(/\s+/));
     options.modifiers.x = (!rules.x && rules.y) ? false : 'width';
     options.modifiers.y = (!rules.y && rules.x) ? false : 'height';
     options.fit = !!rules.fit;

@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Behavior
+  - LSD.Helpers
   - More/Object.Extras
   
 provides:

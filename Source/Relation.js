@@ -42,7 +42,10 @@ LSD.Relation.prototype = Object.append({
     var opts = Object.merge.apply(Object, [{}].concat(this.$options));
     this.lastOptions = this.options;
     this.options = opts;
-    if (options.target) this.memo.target = Options.target.call(this, options.target, true);
+    if (options.target) {
+      this.target = null;
+      this.memo.target = Options.target.call(this, options.target, true);
+    }
     for (name in options) {
       var setter = Options[name], value = options[name];
       if (!setter || !setter.call) 
@@ -142,7 +145,7 @@ LSD.Relation.prototype = Object.append({
 }, Events.prototype);
 
 var Options = LSD.Relation.Options = {
-  selector: function(selector, state, memo) {
+  selector: function(selector, state, memo, a) {
     if (memo) memo[0].unwatch(memo[1], this.onChange);
     if (state && this.target) {
       if (selector.call) selector = selector.call(this.origin);
@@ -174,16 +177,14 @@ var Options = LSD.Relation.Options = {
           if (value) {
             relation.target = object.nodeType == 9 ? object.body : object;
             var selector = relation.options.selector, expectation = relation.options.expectation;
-            if (selector) Options.selector.call(relation, selector, true, relation.memo.selector);
+            if (selector) Options.selector.call(relation, selector, true, relation.memo.selector, 1);
             if (expectation) Options.expectation.call(relation, expectation, true, relation.memo.expectation);
           }
         }
       })
       this.origin.addEvents(events);
-      if (setting.getter && !this.target) {
-        this.target = this.origin[setting.getter];
-        events[Object.keyOf(setting, true)](this.target)
-      }
+      if (setting.getter && !this.target)
+        if ((this.target = this.origin[setting.getter])) events[Object.keyOf(setting, true)](this.target);
       return events;
     } else {
       if (this.origin[target]) this.target = this.origin[target];

@@ -130,9 +130,9 @@ var merge = function(value, old) {
   return value;
 }
 
-var Accumulate = LSD.Layer.accumulated = new FastArray('translate', 'radius');
-var Inherit = LSD.Layer.inherited = new FastArray('inside', 'outside')
-var Merge = LSD.Layer.merged = new FastArray('size')
+var Accumulate = LSD.Layer.accumulated = new Object.Array('translate', 'radius');
+var Inherit = LSD.Layer.inherited = new Object.Array('inside', 'outside')
+var Merge = LSD.Layer.merged = new Object.Array('size')
 
 var Property = SheetParser.Property;
 var Styles = LSD.Styles;

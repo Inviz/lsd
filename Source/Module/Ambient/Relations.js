@@ -87,7 +87,7 @@ LSD.Relation.Traits = {
       return widget.pseudos.item;
     },
     states: {
-      use: Array.fast('collapsed'),
+      use: Array.object('collapsed'),
       set: {
         collapsed: 'hidden'
       },

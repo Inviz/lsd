@@ -45,14 +45,31 @@ LSD.Module.Layout = new Class({
   },
   
   getLayout: Macro.getter('layout', function() {
-    var options = { interpolate: this.options.interpolate, clone: this.options.clone };
+    var options = {};
+    if (this.options.clone) options.clone = true;
+    if (this.options.interpolate) options.interpolate = this.options.interpolate.bind(this)
     if (this.options.context) options.context = this.options.context;
     return new LSD.Layout(this, null, options);
   }),
   
-  buildLayout: function(layout, parent, options) {
+  addLayout: function(name, layout, parent, opts) {
+    var method = this.rendered[name] ? 'add' : 'render';
+    this.layout[method](layout, parent, opts);
+  },
+  
+  removeLayout: function(name, layout, parent, opts) {
+    var rendered = this.rendered[name];
+    if (rendered) this.layout.remove(layout, parent, opts);
+  },
+  
+  buildLayout: function(layout, parent) {
     var method = layout.charAt ? 'selector' : 'render';
-    return this.getLayout()[method](layout, (parent === false || parent) ? parent : this, options);
+    var instance = this.getLayout();
+    if (!parent && parent !== false) {
+      var args = Array.prototype.slice.call(arguments, 0);
+      args[1] = this;
+    }
+    return instance[method].apply(instance, args || arguments);
   }
 });
 
@@ -65,15 +82,22 @@ LSD.Module.Layout.events = {
     if (!this.options.lazy && this.layout.origin == this && this.options.traverse !== false) {
       if (this.origin && !this.options.clone) this.element.replaces(this.origin);
       var nodes = (this.origin || this.element).childNodes;
-      this.layout.array(nodes, [this, this.getWrapper()], this.options.clone ? {clone: true} : null);
+      this.addLayout('children', nodes, [this, this.getWrapper()], this.options.clone ? {clone: true} : null);
     }
-    if (this.options.layout) this.buildLayout(this.options.layout);
+    if (this.options.layout) this.addLayout('options', this.options.layout, [this, this.getWrapper()]);
   },
+  /* 
+    Destroys the built layout with the widget 
+  */
+  destroy: function() {
+    if (this.rendered.children) this.removeLayout('children');
+    if (this.rendered.options) this.removeLayout('options');
+  },  
   /*
     Augments all parsed HTML that goes through standart .write() interface
   */
   write: function(node) {
-    this.buildLayout(node, [this, this.getWrapper()]);
+    this.addLayout('written', node, [this, this.getWrapper()]);
   },
   /*
     Augments all inserted nodes that come from partial html updates
@@ -83,7 +107,7 @@ LSD.Module.Layout.events = {
   },
   
   DOMNodeInsertedBefore: function(node, target) {
-    this.buildLayout(node, [this, this.getWrapper()], {before: target});
+    this.buildLayout(node, [this, this.getWrapper()], null, {before: target});
   }
 };
 

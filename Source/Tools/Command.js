@@ -3,7 +3,7 @@
  
 script: Checkbox.js
  
-description: Abstract command
+description: A triggerable interaction abstraction
  
 license: Public domain (http://unlicense.org).
 

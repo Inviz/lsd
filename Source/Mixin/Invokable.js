@@ -56,7 +56,7 @@ LSD.Mixin.Invokable = new Class({
   
   invoke: function(invoker) {
     this.invoker = invoker;
-    this.fireEvent('invoke', invoker);
+    this.fireEvent('invoke', arguments);
     this.fireEvent('register', ['invoker', invoker]);
   },
   

@@ -34,6 +34,7 @@ LSD.Module.Ambient = new Class({
     LSD.Module.Allocations,
     LSD.Module.Relations,
     LSD.Module.Proxies,
-    LSD.Module.Container
+    LSD.Module.Container,
+    LSD.Module.Interpolations
   ]
 });

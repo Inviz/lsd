@@ -59,7 +59,7 @@ LSD.Module.Layers = new Class({
   },
   
   renderLayers: function(dirty) {
-    var updated = new FastArray, style = this.style, layers = style.layers, offset = this.offset;
+    var updated = new Object.Array, style = this.style, layers = style.layers, offset = this.offset;
     for (var property in dirty) if (layers[property]) updated.push.apply(updated, layers[property]);
     
     var result = {};

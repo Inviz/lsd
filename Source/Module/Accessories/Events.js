@@ -102,11 +102,14 @@ var Events = Object.append(LSD.Module.Events, {
         if (target.call) {
           if ((target = target.call(this))) 
             for (var event in bound) Events.setEvent.call(target, event, bound[event], revert);
-        } else if (initial) {
-          Events.watchEventTarget.call(this, name, function(object, state) {
-            Events.setStoredEvents.call(object, events, state, this);
-          })
-        } else if (target.getter && this[target.getter]) this[target.getter][revert ? 'removeEvents' : 'addEvents'](bound)
+        } else {
+          if (initial && !target.registers) {
+            Events.watchEventTarget.call(this, name, function(object, state) {
+              Events.setStoredEvents.call(object, events, state, this);
+            })
+          }
+          if (target.getter && this[target.getter]) this[target.getter][revert ? 'removeEvents' : 'addEvents'](bound);
+        }
       return this;
     }
   },

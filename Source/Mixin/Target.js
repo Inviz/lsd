@@ -96,7 +96,7 @@ provides:
     }
   };
   
-  var Keywords = Parser.Keywords = Array.fast('if', 'then', 'else', 'or', 'and', 'before');
+  var Keywords = Parser.Keywords = Array.object('if', 'then', 'else', 'or', 'and', 'before');
 }();
 
 LSD.Behavior.define('[target]', LSD.Mixin.Target);
