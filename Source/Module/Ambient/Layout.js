@@ -53,13 +53,14 @@ LSD.Module.Layout = new Class({
   }),
   
   addLayout: function(name, layout, parent, opts) {
-    var method = this.rendered[name] ? 'add' : 'render';
-    this.layout[method](layout, parent, opts);
+    var old = this.rendered[name];
+    var method = old ? 'add' : 'render';
+    this.rendered[name] = this.layout[method](old || layout, parent, opts);
   },
   
   removeLayout: function(name, layout, parent, opts) {
     var rendered = this.rendered[name];
-    if (rendered) this.layout.remove(layout, parent, opts);
+    if (rendered) this.layout.remove(rendered, parent, opts);
   },
   
   buildLayout: function(layout, parent) {

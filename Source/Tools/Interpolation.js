@@ -24,7 +24,6 @@ provides:
     this.input = input;
     this.output = output;
     this.source = source;
-    if (source) this.fetch(true);
   };
   
   LSD.Interpolation.Function = function(input, output, source, name) {
@@ -33,7 +32,6 @@ provides:
     this.source = source;
     this.name = name;
     this.args = Array.prototype.slice.call(input, 0);
-    this.fetch(true)
   };
   
   LSD.Interpolation.Selector = function(input, output, source) {
@@ -56,8 +54,7 @@ provides:
       }
     }.bind(this));
     this.value = this.collection = [];
-    if (!source || !source.lsd) throw "Selector should be applied on widgets"
-    this.fetch(true);
+    if (!source || !source.lsd) throw "Selector should be applied on widgets";
   };
   
   LSD.Interpolation.prototype = {
@@ -74,9 +71,18 @@ provides:
       if (this.parent) this.parent.set();
     },
     
+    attach: function() {
+      return this.fetch(true);
+    },
+    
+    detach: function() {
+      return this.fetch(false);
+    },
+    
     fetch: function(state) {
       if (!this.setter) this.setter = this.set.bind(this);
       (this.source.call ? this.source : this.request).call(this, this.input, this.setter, this.source, state);
+      return this;
     },
     
     request: function(input, callback, source, state) {
@@ -87,7 +93,7 @@ provides:
       var output = this.output;
       if (!output) return;
       if (output.branch) {
-        output[value == null || (value.push && value.length === 0) ? 'hide' : 'show']();
+        output.set(value);
       } else if (output.call) {
         output(value !== null);
       } else {
@@ -107,17 +113,21 @@ provides:
   };
   
   LSD.Interpolation.Function.prototype = Object.append({}, LSD.Interpolation.prototype, {
-    fetch: function() {
-      for (var i = 0, j = this.args.length, arg; i < j; i++)
-        if ((this.args[i] && (arg = this.args[i] = LSD.Interpolation.compile(this.args[i], null, this.source)))) {
-          if (arg.interpolation) {
-            if (!arg.parent) {
-              arg.parent = this;
-              if (arg.value == null) var stop = true;
-            }
+    fetch: function(state) {
+      for (var i = 0, j = this.args.length, arg; i < j; i++) {
+        if ((arg = this.args[i]) == null) continue;
+        if (!arg.interpolation) {
+          arg = LSD.Interpolation.compile(this.args[i], null, this.source);
+          if (!arg.parent) {
+            arg.parent = this;
+            if (arg.value == null) var stop = true;
           }
         }
+        if (arg.interpolation) arg.fetch(state);
+        this.args[i] = arg;
+      }
       if (!stop) this.set();
+      return this;
     },
     
     execute: function() {
@@ -335,6 +345,7 @@ provides:
         if (!callback || callback === true) callback = widget;
         compiled = LSD.Interpolation.compile(match[1], expression, callback, true);
         compiled.placeholder = match[0];
+        compiled.attach();
         Element.store(expression, 'interpolation', compiled);
         last = index;
       }

@@ -18,6 +18,7 @@ requires:
   - LSD.Module.Relations
   - LSD.Module.Proxies
   - LSD.Module.Container
+  - LSD.Module.Interpolations
 
 provides: 
   - LSD.Module.Ambient
