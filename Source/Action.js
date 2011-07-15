@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires: 
   - LSD
+  - LSD.Helpers
  
 provides: 
   - LSD.Action

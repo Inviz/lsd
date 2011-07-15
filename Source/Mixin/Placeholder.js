@@ -43,12 +43,7 @@ LSD.Mixin.Placeholder = new Class({
         }
       }
     },
-    states: {
-      placeheld: {
-        enabler: 'placehold',
-        disabler: 'unplacehold'
-      }
-    }
+    states: Array.object('placeheld')
   },
   
   getPlaceholder: function(){

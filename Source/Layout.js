@@ -274,7 +274,7 @@ LSD.Layout.prototype = Object.append(new Options, {
       parent.appendChild(child, override);
     }
     if (child.lsd) {
-      var doc = child.parentNode.document;
+      var doc = parent.document;
       if (child.document != doc) child.setDocument(doc);
     }
     return true;
