@@ -25,6 +25,8 @@ LSD.Action.Submit = LSD.Action.build({
   enable: function(target, event) {
     if (this.retrieve(target)) return;
     var args = Array.prototype.slice.call(arguments, 1);
+    var widget = LSD.Module.DOM.find(target, true);
+    if (widget) target = widget;
     if (target.lsd && !target.submit && this.invoker != target && (!event || event.type != 'click')) {
       if (target.chainPhase == -1 || (target.getCommandAction && target.getCommandAction() == 'submit')) 
         return target.callChain.apply(target, args);

@@ -57,9 +57,9 @@ LSD.Mixin.Command = new Class({
   
   click: function() {
     if (this.disabled) return false;
-    this.fireEvent('click');
+    this.fireEvent('click', arguments);
     this.getCommand().click();
-    this.callChain();
+    this.callChain.apply(this, arguments);
   },
   
   setCommandType: function(type) {

@@ -32,7 +32,7 @@ LSD.Action.Update = LSD.Action.build({
     var children = LSD.slice(fragment.childNodes);
     var element = target.lsd ? target.toElement() : target;
     var container = (target.lsd || (widget.element == target && widget)) ? widget[this.options.container ? 'getWrapper' : 'toElement']() : element;
-    var args = [container, (widget.element == element ? widget.parentNode : widget), fragment, children, content];
+    var args = [container, widget, fragment, children, content];
     this.options.update.apply(this, args);
   },
   

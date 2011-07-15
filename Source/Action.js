@@ -34,14 +34,12 @@ LSD.Action.initialize = function(options) {
   if (options.enabler) LSD.Action[LSD.toClassName(options.enabler)] = LSD.Action.build({
     enable: options.enable,
     disable: options.disable,
-    getState: options.getState
+    getState: function() { return true; }
   })
   if (options.disabler) LSD.Action[LSD.toClassName(options.disabler)] = LSD.Action.build({
     enable: options.disable,
     disable: options.enable,
-    getState: options.getState && function() {
-      return !options.getState.apply(this, arguments)
-    }.bind(this)
+    getState: function() { return true; }
   })
 };
 
