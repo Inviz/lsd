@@ -29,7 +29,7 @@ LSD.Object.prototype = {
       var onBeforeChange = this._beforechange;
       if (onBeforeChange) for (var i = 0, fn; fn = onBeforeChange[i++];) fn(key, old, false);
     }
-    if (key == 'person' && value == false) debugger
+
     this[key] = value;
     var onChange = this._change;
     if (onChange) for (var i = 0, fn; fn = onChange[i++];) fn(key, value, true);
