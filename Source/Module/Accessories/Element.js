@@ -74,9 +74,9 @@ LSD.Module.Element = new Class({
     var build = query.build;
     delete query.element, delete query.build;
     var attrs = {}
-    for (var attribute in this.attrubutes) 
+    for (var attribute in this.attributes) 
       if (this.attributes.hasProperty(attribute)) 
-        attrs[attribute] = this.attributes[attribute]
+        attrs[attribute] = this.attributes[attribute];
     Object.merge(attrs, options.element, query.attributes);
     var tag = query.tag || attrs.tag || this.getElementTag();
     delete attrs.tag; delete query.tag;
