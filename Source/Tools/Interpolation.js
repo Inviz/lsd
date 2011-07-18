@@ -67,7 +67,7 @@ provides:
     
     onSet: function(value) {
       if (value == null && this.placeholder) value = this.placeholder;
-      if (value != null && this.output) this.update(value);
+      if (this.output) this.update(value);
       if (this.parent) this.parent.set();
     },
     

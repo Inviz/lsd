@@ -37,8 +37,8 @@ LSD.Module.Attributes = new Class({
         self.fireEvent('selectorChange', ['attributes', name, state]);
         if (LSD.States.Attributes[name]) if (self[name]) self.setStateTo(name, state);
         if (self.element) {
-          if (state) self.element.removeAttribute(name);
-          else self.element.setAttribute(name, value)
+          if (state) self.element.setAttribute(name, value)
+          else self.element.removeAttribute(name);
         }
       }).addEvent('beforechange', function(name, value, state) { 
         self.fireEvent('selectorChange', ['attributes', name, state]);

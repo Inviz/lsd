@@ -52,15 +52,20 @@ LSD.Module.Layout = new Class({
     return new LSD.Layout(this, null, options);
   }),
   
-  addLayout: function(name, layout, parent, opts) {
+  addLayout: function(name, layout, parent, opts, memo) {
     var old = this.rendered[name];
-    var method = old ? 'add' : 'render';
-    this.rendered[name] = this.layout[method](old || layout, parent, opts);
+    if (old) {
+      this.layout.add(old, parent, memo)
+    } else {
+      var first = layout.push && layout.length && layout[0];
+      var method = (first && first.nodeType && ((first.nodeType != 1) || (!first.lsd))) ? 'children' : 'render';
+      this.rendered[name] = this.layout[method](layout, parent, opts, memo);
+    }
+    return this.rendered[name];
   },
   
-  removeLayout: function(name, layout, parent, opts) {
-    var rendered = this.rendered[name];
-    if (rendered) this.layout.remove(rendered, parent, opts);
+  removeLayout: function(name, layout, parent, opts, memo) {
+    return this.layout.remove(this.rendered[name] || layout, parent, memo);
   },
   
   buildLayout: function(layout, parent) {
@@ -82,8 +87,8 @@ LSD.Module.Layout.events = {
     this.getLayout();
     if (!this.options.lazy && this.layout.origin == this && this.options.traverse !== false) {
       if (this.origin && !this.options.clone) this.element.replaces(this.origin);
-      var nodes = (this.origin || this.element).childNodes;
-      this.addLayout('children', nodes, [this, this.getWrapper()], this.options.clone ? {clone: true} : null);
+      var nodes = LSD.slice((this.origin || this.element).childNodes);
+      if (nodes.length) this.addLayout('children', nodes, [this, this.getWrapper()], this.options.clone ? {clone: true} : null);
     }
     if (this.options.layout) this.addLayout('options', this.options.layout, [this, this.getWrapper()]);
   },
