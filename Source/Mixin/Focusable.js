@@ -22,66 +22,53 @@ provides:
   
 LSD.Mixin.Focusable = new Class({
   options: {
+    pseudos: Array.object('activatable'),
     actions: {
       focusable: {
         target: false,
         enable: function(target) {
-          if (target.tabindex != null) {
-            target.attributes.tabindex = target.tabindex
-            if (target.focuser) target.element.set('tabindex', target.tabindex)
-            delete target.tabindex;
-          }
           if (target.attributes.tabindex == -1) return;
-          target.getFocuser();
-          target.addEvents(target.events.focus);
-          target.element.addEvents(target.bindEvents({mousedown: 'retain'}));
+          if (!this.isNativelyFocusable()) target.getFocuser();
+          target.addEvents(LSD.Mixin.Focusable.events);
         },
         
         disable: function(target) {
-          target.blur();
-          if (target.options.tabindex == -1) return;
-          target.tabindex = target.options.tabindex || 0;
-          target.element.set('tabindex', -1)
-          target.attributes.tabindex = -1;
-          target.removeEvents(target.events.focus);
-          target.element.removeEvents(target.bindEvents({mousedown: 'retain'}));
+          if (target.focused) target.blur();
+          if (target.focuser) target.focuser.destroy();
+          if (target.attributes.tabindex == -1) return;
+          target.removeEvents(LSD.Mixin.Focusable.events);
+          target.setAttribute('tabindex', target.tabindex);
         }
       }
-    }
+    },
+    states: Array.object('focused')
   },
   
   getFocuser: function() {
     if (!this.focuser) this.focuser = new QFocuser(this.toElement(), {
       onWidgetFocus: this.onFocus.bind(this),
       onWidgetBlur: this.onBlur.bind(this),
-      tabIndex: this.getAttribute('tabindex')
+      tabIndex: this.attributes.tabindex
     });
     return this.focuser;
   },
   
   focus: function(element) {
     if (element !== false) {
-      this.getFocuser().focus(element || this.element);
+      if (this.focuser) this.focuser.focus(element.localName ? element : this.element);
+      else this.element.focus();
       this.document.activeElement = this;
     }
     if (this.focused) return;
     this.focused = true;
-    this.fireEvent('focus', arguments);
-    this.onStateChange('focused', true);
     LSD.Mixin.Focusable.Propagation.focus(this);
   },
   
   blur: function(propagated) {
     if (!this.focused) return;
     this.focused = false;
-    this.fireEvent('blur', arguments);
-    this.onStateChange('focused', false);
+    if (!this.focuser) this.element.blur();
     if (!propagated) LSD.Mixin.Focusable.Propagation.blur.delay(10, this, this);
-  },
-  
-  retain: function(e) {
-    if (e) e.preventDefault();
-    this.focus();
   },
   
   onFocus: function() {
@@ -91,6 +78,7 @@ LSD.Mixin.Focusable = new Class({
   
   onBlur: function() {
     var active = this.document.activeElement;
+      console.error('onBlur', active, active == this, this.tagName);
     if (active == this) delete this.document.activeElement;
     while (active && (active = active.parentNode)) if (active == this) return;
     this.blur();
@@ -98,8 +86,16 @@ LSD.Mixin.Focusable = new Class({
   
   getKeyListener: function() {
     return this.getFocuser().getKeyListener()
+  },
+  
+  isNativelyFocusable: function() {
+    return this.getElementTag() == 'input';
   }
 });
+
+LSD.Mixin.Focusable.events = {
+  mousedown: 'focus'
+};
 
 LSD.Mixin.Focusable.Propagation = {
   focus: function(parent) {

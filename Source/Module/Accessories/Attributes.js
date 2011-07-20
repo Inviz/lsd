@@ -35,10 +35,11 @@ LSD.Module.Attributes = new Class({
       });
       this.attributes = (new LSD.Object).addEvent('change', function(name, value, state) {
         self.fireEvent('selectorChange', ['attributes', name, state]);
-        if (LSD.States.Attributes[name]) if (self[name]) self.setStateTo(name, state);
+        if (LSD.States.Attributes[name]) self.setStateTo(name, state);
         if (self.element) {
-          if (state) self.element.setProperty(name, value)
-          else self.element.setProperty(name, false);
+          if (state) self.element.setAttribute(name, value);
+          else self.element.removeAttribute(name);
+          if (LSD.Attributes.Boolean[name]) self.element[name] = state;
         }
       }).addEvent('beforechange', function(name, value, state) { 
         self.fireEvent('selectorChange', ['attributes', name, state]);
@@ -66,14 +67,7 @@ LSD.Module.Attributes = new Class({
     } else {
       if (this.options && this.options.interpolate)
         value = LSD.Interpolation.attempt(value, this.options.interpolate) || value;
-      if (this.attributes[name] != value) {
-        if (LSD.States.Attributes[name]) {
-          var mode = (value == true || value == name);
-          if (this[name] != mode) this.setStateTo(name, mode);
-        }
-        this.attributes.set(name, value);
-        if (this.element && this.element[name] != value) this.element.setAttribute(name, value);
-      }
+      this.attributes.set(name, value);
     }
     return this;
   },

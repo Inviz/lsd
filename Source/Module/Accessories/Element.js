@@ -95,6 +95,7 @@ LSD.Module.Element = new Class({
   },
   
   getElementTag: function(soft) {
+    if (this.element) return LSD.toLowerCase(this.element.tagName);
     var options = this.options, element = options.element;
     if (element && element.tag) return element.tag;
     if (!soft) switch (options.inline) {
@@ -186,7 +187,7 @@ LSD.Module.Element.events = {
     Extracts and sets layout options from attached element
   */
   attach: function(element) {
-    if (!this.extracted && this.options.extract !== false) {
+    if (!this.extracted && this.options.extract !== false && (!this.built || this.origin)) {
       this.extracted = LSD.Module.Element.extract(element, this);
       this.setOptions(this.extracted);
     }

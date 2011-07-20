@@ -86,12 +86,12 @@ LSD.Module.Allocations = new Class({
 LSD.Module.Events.addEvents.call(LSD.Module.Allocations.prototype, {
   getRelated: function(type, id, classes, attributes, pseudos) {
     if (!LSD.Allocations[type]) return;
-    var allocation = LSD.Module.Allocations.prepare(type, {}, classes, attributes, pseudos);
+    var allocation = LSD.Module.Allocations.prepare(type, classes, attributes, pseudos);
     return this.allocate(allocation);
   }
 });
 
-LSD.Module.Allocations.prepare = function(type, options, classes, attributes, pseudos) {
+LSD.Module.Allocations.prepare = function(type, classes, attributes, pseudos) {
   var name, kind;
   if (attributes)
     for (var i = 0, attribute; attribute = attributes[i++];) 
@@ -108,7 +108,7 @@ LSD.Module.Allocations.prepare = function(type, options, classes, attributes, ps
         default:
           (options.pseudos || (options.pseudos = {}))[pseudo.key] = pseudo.value || true;
       }
-  return {type: type, name: name, kind: kind, options: options}
+  return {type: type, name: name, kind: kind}
 }
 
 LSD.Allocations = {

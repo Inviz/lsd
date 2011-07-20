@@ -46,14 +46,9 @@ provides:
         case "$$":
           this.element = this.source.toElement().ownerDocument.body;
           return '';
-        case "&":
-          return '';
-        case "&&":
-          if (this.source.root) this.source = this.source.root;
-          return '';
       }
     }.bind(this));
-    this.value = this.collection = [];
+    this.collection = [];
     if (!source || !source.lsd) throw "Selector should be applied on widgets";
   };
   
@@ -123,8 +118,8 @@ provides:
             if (arg.value == null) var stop = true;
           }
         }
-        if (arg.interpolation) arg.fetch(state);
         this.args[i] = arg;
+        if (arg.interpolation) arg.fetch(state);
       }
       if (!stop) this.set();
       return this;
@@ -134,7 +129,8 @@ provides:
       for (var i = 0, args = [], j = this.args.length, arg; i < j; i++)
         if ((arg = this.args[i]) && arg.interpolation && arg.value == null) return null;
         else args[i] = (arg && typeof arg.value != 'undefined') ? arg.value : arg;
-      if (this.name) {
+        if (this.args[0].type == 'selector') debugger
+        if (this.name) {
         return functions[this.name].apply(functions, args)
       } else {
         return args[0];
@@ -152,21 +148,22 @@ provides:
     },
     
     set: function(node, state) {
-      if (this.process && !this.process(node)) return;
+      if (this.filter && !this.filter(node)) return;
       if (state) {
         this.collection.push(node);
       } else {
         var index = this.collection.indexOf(node);
         if (index > -1) this.collection.splice(index, 1);
       }
-      this.onSet(this.collection);
+      this.value = this.collection.length ? this.collection : 0;
+      this.onSet(this.value);
     }
   });
   
   // Set up helpers
   var functions = LSD.Interpolation.Functions = {
     count: function(elements) {
-      return elements.push ? elements.length : 1
+      return elements.push ? elements.length : +!!elements
     },
     
     pluralize: function(count, singular, plural) {
@@ -223,7 +220,7 @@ provides:
   var R_TRANSLATE = SheetParser.Value.tokenize;
   var R_FIND = /\\?\{([^{}]+)\}/g;
   var R_VARIABLE = /^[a-z0-9][a-z_\-0-9.\[\]]*$/ig;
-  var R_SELECTOR_CONTEXT = /^\s*([$&]+)\s*/
+  var R_SELECTOR_CONTEXT = /^\s*([$]+)\s*/
   var parsed = {};
   var combinators = Array.object('+', '>', '!+', '++', '!~', '~~', '&', '&&', '$', '$$');
   

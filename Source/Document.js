@@ -92,10 +92,14 @@ LSD.Document = new Class({
       widget = target.uid && Element.retrieve(target, 'widget');
       var a = (LSD.toLowerCase(target.tagName) == 'a');
       if (a) {
-        if (!widget) widget = new LSD.Widget(target, {
-          document: this, 
-          pseudos: ['clickable', 'command']
-        });
+        if (!widget) {
+          var parent = LSD.Module.DOM.find(target)
+          widget = new LSD.Widget(target, {
+            document: this, 
+            pseudos: ['clickable', 'command']
+          });
+          parent.appendChild(widget, false);
+        }
         event.preventDefault();
       }
       if (widget && widget.pseudos.clickable) {

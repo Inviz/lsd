@@ -89,6 +89,6 @@ if (!window.console.log) window.console.log = function() {};
 
 (function(toString) {
   Type.isEnumerable = function(item){
-    return (item != null && typeof item.length == 'number' && toString.call(item) != '[object Function]' && !item.localName && !item.nodeType);
+    return (item != null && !item.localName && !item.nodeType && toString.call(item) != '[object Function]' && typeof item.length == 'number');
   };
 })(Object.prototype.toString);
