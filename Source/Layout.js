@@ -375,7 +375,6 @@ LSD.Layout.prototype = Object.append(new Options, {
       */
       if (widget) {
         if ((group = widget.mutations[' '])) stack.push([' ', group]);
-        console.error('collect', group, widget.tagName)
         if ((group = widget.mutations['>'])) stack.push(['>', group]);
       }
     } else {  
