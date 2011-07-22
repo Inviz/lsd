@@ -25,6 +25,7 @@ sources:
   - Source/Tools/Object.js
   - Source/Tools/Helpers.js
   - Source/Tools/Command.js
+  - Source/Tools/Require.js
   - Source/Document.js
   - Source/LSD.js
   - Source/Type.js
