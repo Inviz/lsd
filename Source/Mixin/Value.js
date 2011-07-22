@@ -37,6 +37,7 @@ LSD.Mixin.Value = new Class({
   
   setValue: function(value, unset) {
     if (value == null || (value.event && value.type)) value = this.getDefaultValue();
+    
     else if (value.getValue) value = this.processValue(value.getValue());
     var result = false;
     if (this.isValueDifferent(value) ^ unset) {
@@ -105,7 +106,8 @@ LSD.Mixin.Value = new Class({
   },
   
   getDefaultValue: function() {
-    return this.processValue(this.getRawValue());
+    var value = this.getRawValue();
+    if (value != null) return this.processValue(value);
   },
   
   getRawValue: function() {

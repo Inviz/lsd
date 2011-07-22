@@ -9,6 +9,7 @@ license: Public domain (http://unlicense.org).
  
 requires:
   - LSD.Mixin
+  - require
   
 uses:
   - CKEDITOR

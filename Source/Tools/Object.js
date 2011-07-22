@@ -92,6 +92,11 @@ LSD.Object.prototype = {
     for (var name in this) if (this.hasProperty(name)) object[name] = this[name];
     return {};
   },
+  join: function(separator) {
+    var ary = [];
+    for (var name in this) if (this.hasProperty(name)) ary.push(name);
+    return ary.join(separator)
+  },
   hasProperty: function(name) {
     return this.hasOwnProperty(name) && (name.charAt(0) != '_')
   }
