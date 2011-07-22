@@ -36,7 +36,7 @@ LSD.Module.Attributes = new Class({
       this.attributes = (new LSD.Object).addEvent('change', function(name, value, state) {
         self.fireEvent('selectorChange', ['attributes', name, state]);
         if (LSD.States.Attributes[name]) self.setStateTo(name, state);
-        if (self.element) {
+        if (self.element && (name != 'type' || LSD.toLowerCase(self.element.tagName) != 'input')) {
           if (state) self.element.setAttribute(name, value);
           else self.element.removeAttribute(name);
           if (LSD.Attributes.Boolean[name]) self.element[name] = state;
@@ -57,13 +57,12 @@ LSD.Module.Attributes = new Class({
   },
 
   setAttribute: function(name, value) {
-    if (LSD.Attributes.Numeric[name]) value = value.toInt();
-    else {
+    if (!LSD.Attributes.Numeric[name]) {
       var logic = LSD.Attributes.Setter[name];
       if (logic) logic.call(this, value)
-    }
+    } else value = value.toInt();
     if (name.substr(0, 5) == 'data-') {
-      this.dataset.set(name.substr(5, name.length - 5), value);
+      this.dataset.set(name.substring(5), value);
     } else {
       if (this.options && this.options.interpolate)
         value = LSD.Interpolation.attempt(value, this.options.interpolate) || value;
@@ -74,7 +73,7 @@ LSD.Module.Attributes = new Class({
   
   removeAttribute: function(name) {
     if (name.substr(0, 5) == 'data-') {
-      delete this.dataset.unset(name.substr(5, name.length - 5));
+      delete this.dataset.unset(name.substring(5));
     } else this.attributes.unset(name)
     return this;
   },

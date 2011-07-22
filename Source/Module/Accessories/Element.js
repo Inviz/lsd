@@ -83,7 +83,12 @@ LSD.Module.Element = new Class({
     if (query.attributes || query.classes || query.pseudos) this.setOptions(query);
     if (!element || build) {
       this.element = new Element(tag, attrs);
-    } else var element = this.element = document.id(element).set(attrs);
+    } else {
+      var element = this.element = document.id(element);
+      for (var name in attrs) 
+        if (name != 'type' || tag != 'input') 
+          element.setAttribute(name, attrs[name] === true ? name : attrs[name]);
+    }
     var classes = [];
     if (this.tagName != tag) classes.push('lsd', this.tagName)
     for (var klass in this.classes) 

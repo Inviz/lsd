@@ -42,7 +42,7 @@ LSD.Module.Tag = new Class({
   
   setSource: function(source) {
     if (!source) source = this.getSource(true);
-    if (this.source != source) {
+    if (this.source != (source && source.join ? source.join('-') : source)) {
       if (source.length) {
         var role = this.context.find(source);
         if (role && role != this.role) {

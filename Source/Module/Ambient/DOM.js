@@ -202,8 +202,8 @@ LSD.Module.DOM = new Class({
     var wrapper = this.getWrapper();
     if (hard && this.written) for (var node; node = this.written.shift();) Element.dispose(node);
     var fragment = document.createFragment(content);
-    var written = Array.prototype.slice.call(fragment.childNodes, 0);
-    if (!hard) this.written.push.apply(this.written, written);
+    var written = LSD.slice(fragment.childNodes);
+    if (!hard && this.written) this.written.push.apply(this.written, written);
     else this.written = written;
     wrapper.appendChild(fragment);
     this.fireEvent('write', [written, hard])
@@ -352,4 +352,4 @@ Object.append(LSD.Module.DOM, {
 LSD.Options.document = {
   add: 'setDocument',
   remove: 'unsetDocument'
-}
+};
