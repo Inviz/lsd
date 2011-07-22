@@ -395,7 +395,6 @@ LSD.Layout.prototype = Object.append(new Options, {
   popMutations: function(parent, stack) {
     if (parent[1] && parent[1] != parent[0].element) return stack;
     var widget = parent[0] || parent;
-    if (!widget) debugger
     var group;
     if (widget && stack) {
       if ((group = widget.mutations[' '])) 

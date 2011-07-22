@@ -129,7 +129,6 @@ provides:
       for (var i = 0, args = [], j = this.args.length, arg; i < j; i++)
         if ((arg = this.args[i]) && arg.interpolation && arg.value == null) return null;
         else args[i] = (arg && typeof arg.value != 'undefined') ? arg.value : arg;
-        if (this.args[0].type == 'selector') debugger
         if (this.name) {
         return functions[this.name].apply(functions, args)
       } else {
