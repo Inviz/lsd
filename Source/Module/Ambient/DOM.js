@@ -24,7 +24,7 @@ provides:
 
 LSD.Module.DOM = new Class({
   options: {
-    nodeType: 1,
+    nodeType: 1
   },
   
   constructors: {
