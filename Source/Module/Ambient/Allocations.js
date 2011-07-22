@@ -43,7 +43,7 @@ LSD.Module.Allocations = new Class({
         var customized = LSD.Allocations[index];
         if (group[kind]) return group[kind];
       } else {
-        for (var id = kind; allocations[++id];);
+        for (var id = kind; allocations[++id];) null;
       }
     } else {
       if (allocations[type]) return allocations[type];
