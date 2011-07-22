@@ -340,6 +340,10 @@ Expectations.events = {
     check.call(this, 'tag', old, false);
     if (tag) check.call(this, 'tag', tag, true);
     if (old && this.parentNode && !this.removed) this.parentNode.dispatchEvent('nodeTagChanged', [this, tag, old]);
+  },
+  stateAdded: function(name) {
+    if ((LSD.States.Attributes[name] && this.attributes && this.attributes[name]) || (this.classes && this.classes[name])) 
+      this.setStateTo(name, true);
   }
 };
 
