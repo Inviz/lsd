@@ -26,6 +26,7 @@ provides:
         target: function() {
           if (!this.attributes.target) return;
           return this.parseTargetSelector(this.attributes.target).map(function(chain) {
+            chain = Object.append({}, chain);
             if (!chain.action) chain.action = this.getTargetAction(); 
             if (!chain.action) return;
             if (chain.selector) {
