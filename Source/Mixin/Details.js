@@ -14,7 +14,7 @@ requires:
   - Widgets/LSD.Widget.Menu.Context
 
 provides:
-  - LSD.Trait.Menu
+  - LSD.Trait.Details
  
 ...
 */

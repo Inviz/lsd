@@ -30,9 +30,14 @@ provides:
             if (!chain.action) chain.action = this.getTargetAction(); 
             if (!chain.action) return;
             if (chain.selector) {
-              chain.target = function() {
-                return this.getElements(chain.selector);
-              }.bind(this);
+              chain.target = function(callback, state, revert) {
+                if (chain.selector.expressions[0][0].combinator.charAt(0) != '$') {
+                  this[(state == true && revert) ? 'unwatch' : 'watch'](chain.selector, callback);
+                  return true;
+                } else {
+                  return this.getElements(chain.selector);
+                }
+              }.bind(this)
             };
             switch (chain.keyword) {
               case "before":
@@ -97,7 +102,7 @@ provides:
     }
   };
   
-  var Keywords = Parser.Keywords = Array.object('if', 'then', 'else', 'or', 'and', 'before');
+  var Keywords = Parser.Keywords = Array.object('if', 'then', 'else', 'or', 'and', 'before', 'do');
 }();
 
 LSD.Behavior.define('[target]', LSD.Mixin.Target);

@@ -69,11 +69,13 @@ LSD.Mixin.Request = new Class({
         if (this.chainPhase == -1 || (this.chainPhase == this.getActionChain().length - 1))  
           this.eachLink('optional', arguments, true);
     }.bind(this));
+    this.fireEvent('send', options);
     return request.send(options);
   },
   
   stop: function() {
     if (this.request) this.request.cancel();
+    this.fireEvent('stop');
     return this;
   },
   

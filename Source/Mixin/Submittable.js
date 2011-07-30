@@ -41,6 +41,7 @@ LSD.Mixin.Submittable = new Class({
   },
   
   submit: function(event) {
+    this.fireEvent('beforeSubmit', arguments);
     if (event && event.type == 'submit' && event.target == this.element)
       event.preventDefault();
     var submission = this.captureEvent('submit', arguments);

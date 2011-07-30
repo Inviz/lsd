@@ -31,36 +31,38 @@ LSD.Mixin.Invokable = new Class({
         }
       }
     },
-    states: {
-      invoked: {
-        enabler: 'invoke',
-        disabler: 'revoke'
-      }
-    },
+    states: Array.object('invoked'),
     events: {
       _invokable: {
         submit: function() {
           this.revoke(true);
         },
-        cancel: 'revoke'
+        cancel: 'revoke',
+        setParent: function(widget) {
+          this.invoke(widget)
+        },
+        unsetParent: 'revoke'
       }
     }
   },
   
   constructors: {
     invoker: function() {
+      console.error([this.invoker, this.options.invoker])
       var invoker = this.invoker || this.options.invoker;
       if (invoker) this.invoke(invoker);
     }
   },
   
   invoke: function(invoker) {
+    console.error('invoked', invoker.tagName);
     this.invoker = invoker;
     this.fireEvent('invoke', arguments);
     this.fireEvent('register', ['invoker', invoker]);
   },
   
   revoke: function(soft) {
+    console.error('revoked');
     var invoker = this.invoker;
     if (soft !== true) this.invoker.uncallChain();
     this.fireEvent('revoke', invoker);

@@ -124,10 +124,17 @@ var Expectations = LSD.Module.Expectations = new Class({
       var id = selector.id;
       var index = (combinator == ' ' && id) ? 'id' : combinator;
       remove(this.expectations[index][index == 'id' ? id : selector.tag], callback);
-      if (this.document) this.getElements(selector.structure).each(function(widget) {
-        if (selector.state) widget.unexpect(selector.state, callback);
-        if (iterator) iterator(widget)
-      });
+      if (this.document) {
+        if (!selector.structure) {
+          var separated = separate(selector);
+          selector.structure = { Slick: true, expressions: [[separated.structure]] }
+          if (separated.state) selector.state = separated.state;
+        }
+        this.getElements(selector.structure).each(function(widget) {
+          if (selector.state) widget.unexpect(selector.state, callback);
+          if (iterator) iterator(widget)
+        });
+      }
     } else {
       if (iterator) iterator(this);
       for (var types = ['pseudos', 'classes', 'attributes'], type, i = 0; type = types[i++];) {
@@ -190,22 +197,28 @@ var Expectations = LSD.Module.Expectations = new Class({
 Expectations.setRootExpectation = function(exp, callback, state) {
   if (state) {
     var finder = function(widget, state) {
-      if (exp.tag == '*' && !exp.classes && !exp.attributes) {
-        if (state) widget.expect({combinator: ' ', pseudos: exp.pseudos}, callback, true);
-        else widget.unexpect({combinator: ' ', pseudos: exp.pseudos}, callback, true, function(widget) {
-          callback(widget, false);
-        })
-      } else {
-        var expression = {combinator: ' ', tag: exp.tag, classes: exp.classes, pseudos: exp.pseudos, attributes: exp.attributes};
-        widget[state ? 'expect' : 'unexpect'](expression, callback);
-      }
+      Expectations.advanceRootExpectation(exp, widget, callback, state);
     };
     finder.callback = callback;
     return this.expect('::root', finder);
   } else {
-    return this.unexpect('::root', callback);
+    return this.unexpect('::root', callback, null, function(widget) {
+      Expectations.advanceRootExpectation(exp, widget, callback, false);
+    });
   }
 };
+
+Expectations.advanceRootExpectation = function(exp, widget, callback, state) {
+  if (exp.tag == '*' && !exp.classes && !exp.attributes && !exp.id) {
+    if (state) widget.expect({combinator: ' ', pseudos: exp.pseudos}, callback, true);
+    else widget.unexpect({combinator: ' ', pseudos: exp.pseudos}, callback, true, function(widget) {
+      callback(widget, false);
+    })
+  } else {  
+    var expression = {combinator: ' ', tag: exp.tag, classes: exp.classes, pseudos: exp.pseudos, attributes: exp.attributes, id: exp.id};
+    widget[state ? 'expect' : 'unexpect'](expression, callback, null, callback);
+  }
+}
 
 var check = function(type, value, state, target) {
   var expectations = this.expectations

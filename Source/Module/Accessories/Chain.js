@@ -60,10 +60,12 @@ LSD.Module.Chain = new Class({
   
   eachLink: function(filter, args, ahead, revert, target) {
     if (filter && filter.indexOf) filter = Iterators[filter];
-    if (args != null && !args.push) args = LSD.slice(args); 
-    
+    if (args != null && !args.push) args = LSD.slice(args);     
     var chain = this.currentChain || (this.currentChain = this.getActionChain.apply(this, args));
-    if (!chain.length) return this.clearChain();
+    if (!chain.length) {
+      if (this.chainPhase > -1) this.clearChain();
+      return false;
+    }
     var index = this.chainPhase;
     if (ahead) index += +ahead;
     if (ahead == 1 && index == chain.length) {
@@ -80,7 +82,7 @@ LSD.Module.Chain = new Class({
       };
       if (action) {
         if (revert) {
-          var last = phases.getLast();
+          var last = phases[phases.length - 1];
           if (last && last.asynchronous && last.index < this.chainPhase) break;
           phases.pop();
           if (!phases.length) revert = true;
@@ -113,44 +115,47 @@ LSD.Module.Chain = new Class({
     if (command.call && (!(command = command.apply(this, args))));
     else if (command.indexOf) command = {action: command}
     var action = this.getAction(command.action);
-    var targets = command.target;
-    if (targets && targets.call && (!(targets = targets.call(this)) || (targets.length === 0))) return true;
-    if (command.arguments != null) {
-      var cargs = command.arguments && command.arguments.call ? command.arguments.call(this) : command.arguments;
-      args = [].concat(cargs == null ? [] : cargs, args || []);
-    }
     if (state == null && command.state != null) state = command.state;
-    var promised = [], succeed = [], failed = [], self = this;
-    var perform = function(target) {
-      var value = self.getActionState(action, [target].concat(args), state, revert);
+    var promised, succeed, failed, cargs;
+    var perform = function(target, targetstate) {
+      if (targetstate !== true || targetstate !== false) targetstate = state;
+      var value = this.getActionState(action, [target].concat(args), targetstate, revert);
       var method = value ? 'commit' : 'revert';
+      if (!cargs && command.arguments != null) {
+        cargs = command.arguments && command.arguments.call ? command.arguments.call(this) : command.arguments;
+        args = [].concat(cargs == null ? [] : cargs, args || []);
+      }
       var result = action[method](target, args);
       if (result && result.callChain && (command.promise !== false)) {
-        if (value) var phases = self.eachLink('success', arguments, ahead + 1);
+        // Execute onSuccess callbacks ahead (to be possibly unrolled on failure)
+        if (value) var phases = this.eachLink('success', arguments, ahead + 1);
+        if (!promised) promised = [], succeed = [], failed = [];
         promised.push(result);
         // waits for completion
         var callback = function(args, state) {
           (state ? succeed : failed).push([target, args]);
           result.removeEvents(events);
           // Try to fork off execution if action lets so 
-          if (state && (self != target) && command.fork) {
+          if (state && (this != target) && command.fork) {
             if (target.chainPhase == -1) target.callChain.apply(target, args);
             else target.eachLink('optional', args, true);
           };
           if (failed.length + succeed.length != promised.length) return;
-          if (failed.length) self.eachLink('alternative', args, true, false, succeed);
-          if (self.currentChain && self.chainPhase < self.currentChain.length - 1)
-            if (succeed.length) self.eachLink('regular', args, true, false, succeed);
+          if (failed.length) this.eachLink('alternative', args, true, false, succeed);
+          if (this.currentChain && this.chainPhase < this.currentChain.length - 1)
+            if (succeed.length) this.eachLink('regular', args, true, false, succeed);
         }
         var events = {
           complete: function() {
-            callback(arguments, true);
-          },
+            callback.call(this, arguments, true);
+          }.bind(this),
           cancel: function() {
-            self.eachLink('success', arguments, ahead + phases.length - 1, phases || true);
-            self.eachLink('failure', arguments, ahead + 1);
-            callback(arguments, false);
-          }
+            // Unroll onSuccess callbacks
+            this.eachLink('success', arguments, ahead + phases.length - 1, phases || true);
+            // Then execute onFailure
+            this.eachLink('failure', arguments, ahead + 1);
+            callback.call(this, arguments, false);
+          }.bind(this)
         }
         // If it may fail, we should not simply wait for completion
         if (result.onFailure) {
@@ -162,7 +167,13 @@ LSD.Module.Chain = new Class({
         return;
       } else if (result === false) return;
       return value;
-    };
+    }.bind(this);
+    
+    var targets = command.target;
+    if (targets && targets.call) {
+      targets = targets.call(this, perform, state, revert);
+      if (targets === true || targets === false || targets == null) return targets;
+    }
     action.invoker = this;
     var ret = (targets) ? (targets.map ? targets.map(perform) : perform(targets)) : perform(this);
     delete action.invoker;
@@ -220,6 +231,10 @@ var Iterators = LSD.Module.Chain.Iterators = {
             default: return;
           }
     }
+  },
+  
+  quickstart: function(link) {
+    return link.action && (link.keyword == 'do');
   }
 }
 

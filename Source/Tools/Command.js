@@ -42,10 +42,6 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
   
   attach: function(widget) {
     for (var name in this.$states) {
-      if (!widget.$states[name]) {
-        widget.addState(name);
-        widget.$states[name].origin = this;
-      }
       this.linkState(widget, name, name, true);
       widget.linkState(this, name, name, true);
     }
@@ -58,7 +54,6 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
     widget.fireEvent('unregister', ['command', this]);
     for (var name in this.$states) {
       this.linkState(widget, name, name, false);
-      if (widget.$states[name].origin == this); widget.removeState(name);
     }
     this.widgets.erase(widget);
     return this;
@@ -67,6 +62,7 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
   setType: function(type, unset) {
     if (this.type == type) return;
     if (this.type) this.unsetType(type);
+    this.type = type;
     switch (type) {
       case "checkbox":
         /*
@@ -108,17 +104,22 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
           if (!group) group = groups[name] = [];
           group.push(this);
           this.group = group;
-          this.events = {
-            click: function() {
-              this.check.apply(this, arguments);
-            },
-            check: function() {
-              group.each(function(sibling) {
-                if (sibling != this) sibling.uncheck();
-              }, this);
-            }
-          };
         }
+        this.events = {
+          click: function() {
+            this.check.apply(this, arguments);
+          },
+          check: function() {
+            if (group) group.each(function(sibling) {
+              if (sibling != this) {
+                sibling.uncheck();
+                if (sibling.widgets) sibling.widgets.each(function(widget) {
+                  widget.uncallChain();
+                })
+              }
+            }, this);
+          }
+        };
     }
     if (this.events) this.addEvents(this.events);
   },

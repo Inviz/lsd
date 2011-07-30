@@ -24,7 +24,7 @@ LSD.Action.Invoke = LSD.Action.build({
     var widget = LSD.Module.DOM.find(target);
     this.store(target, widget);
     var result = widget.invoke.apply(widget, [this.invoker].concat(Array.slice(arguments, 1)));
-    return (result == true || result == widget) ? false : result;
+    return (result === true || result === false || result == widget) ? false : result;
   },
   
   disable: function(target) {

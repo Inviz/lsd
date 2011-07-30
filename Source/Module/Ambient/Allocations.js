@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Module
   - LSD.Module.Events
+  - LSD.Position
 
 provides:
   - LSD.Module.Allocations
@@ -39,9 +40,11 @@ LSD.Module.Allocations = new Class({
     if (allocation.multiple) {
       var group = allocations[type] || (allocations[type] = {});
       if (kind) {
+        var id = kind;
         var index = type + '-' + kind;
         var customized = LSD.Allocations[index];
         if (group[kind]) return group[kind];
+        if (opts) opts = opts[kind];
       } else {
         for (var id = kind; allocations[++id];) null;
       }
@@ -49,7 +52,8 @@ LSD.Module.Allocations = new Class({
       if (allocations[type]) return allocations[type];
     }
     if (allocation.call) {
-      allocation = allocation.apply(this, [options].concat(args));
+      args[0] = options;
+      allocation = allocation.apply(this, args);
       if (allocation.nodeType) object = allocation;
     } else {
       if (allocation.options)
@@ -60,24 +64,37 @@ LSD.Module.Allocations = new Class({
       delete options.multiple;
       delete options.options;
       if (options.source && options.source.call) options.source = options.source.call(this, kind, options);
-      options.invoker = this;
-      var parent = options.parent ? (options.parent.call ? options.parent.call(this) : option.parent) : this;
+      var parent = options.parent ? (options.parent.call ? options.parent.call(this) : options.parent) : this;
       delete options.parent;
       if (!parent.lsd) parent = [this, parent];
       object = this.buildLayout(options.source || options.tag, parent, options);
+      if (object.localName && options.position) {
+        Element.store(object, 'position', new LSD.Position(object, this, options.position));
+      }
     };
-    (group || allocations)[kind || id] = object;
+    if (id == null) id = type;
+    (group || allocations)[id] = object;
     return object;
   },
   
   release: function(type, name, widget) {
-    var allocations = this.allocations, group = allocations[type];
-    if (group) {
-      if (!name) name = 1;
-      if (group[name]) {
-        group[name].dispose();
-        delete group[name];
+    var group = this.allocations, object = group[type];
+    if (object) {
+      if (!object.nodeType) {
+        var index = name || group.length;
+        group = object;
+        object = group[index];
       }
+      if (object.localName) {
+        var position = Element.retrieve(object, 'position');
+        if (position) {
+          position.detach();
+          Element.eliminate(object, 'position');
+          delete position;
+        }
+      }
+      object.parentNode.removeChild(object);
+      delete group[index || type];
     }
   }
   
@@ -114,10 +131,7 @@ LSD.Module.Allocations.prepare = function(type, classes, attributes, pseudos) {
 LSD.Allocations = {
   
   lightbox: {
-    source: 'body-lightbox',
-    parent: function() {
-      return document.body;
-    }
+    source: 'body-lightbox'
   },
   
   dialog: {
@@ -133,9 +147,6 @@ LSD.Allocations = {
         kind ? {attributes: {kind: kind}} : null,
         options
       )
-    },
-    parent: function() {
-      return document.body;
     }
   },
   
@@ -145,6 +156,15 @@ LSD.Allocations = {
   
   scrollbar: {
     source: 'scrollbar'
+  },
+  
+  message: function(options, message, type) {
+    if (!options) options = {};
+    if (!options.source) options.source = 'p.message';
+    if (message) options.content = message;
+    if (type) (options.classes || (options.classes = {}))[type] = true;
+    options.parent = document.body;
+    return options;
   },
   
   editor: function(options, type, name) {

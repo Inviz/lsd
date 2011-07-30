@@ -35,9 +35,11 @@ provides:
 !function() {
 
 LSD.Mixin.Validity = new Class({
-  initialize: function() {
-    this.parent.apply(this, arguments);
-    this.addClass(this.attributes.required ? 'required' : 'optional');
+  constructors: {
+    validity: function() {
+      this.setState(this.attributes.required ? 'required' : 'optional');
+      this.addEvents(LSD.Mixin.Validity.events);
+    }
   },
   
   checkValidity: function() {
@@ -56,15 +58,20 @@ LSD.Mixin.Validity = new Class({
   
   validate: function(value) {
     if (value !== true && !this.checkValidity()) return false;
-    this.setStateTo('valid', true);
-    this.setStateTo('invalid', false);
+    if (this.invalid) this.setStateTo('invalid', false, arguments);
+    if (!this.valid) this.setStateTo('valid', true, arguments);
     return true;
   },
   
   invalidate: function(value) {
-    this.setStateTo('invalid', true);
-    this.setStateTo('valid', false);
+    if (this.valid) this.setStateTo('valid', false, arguments);
+    if (!this.invalid) this.setStateTo('invalid', true, arguments);
     return true;
+  },
+  
+  unvalidate: function() {
+    if (this.valid) this.setStateTo('valid', false);
+    if (this.invalid) this.setStateTo('invalid', false);
   },
   
   setCustomValidity: function(validity) {
@@ -72,6 +79,23 @@ LSD.Mixin.Validity = new Class({
     this.validity.customError = true;
   }
 });
+
+LSD.Mixin.Validity.events = {
+  invalidate: function(message) {
+    this.allocate('message', message, 'error', LSD.Mixin.Validity.message)
+  },
+  
+  unvalidate: function() {
+    this.release('message');
+  }
+};
+
+LSD.Mixin.Validity.message = {
+  position: 'right',
+  parent: function() {
+    return document.body
+  }
+};
 
 var Attributes = LSD.Mixin.Validity.Attributes = {
   required: function(value) {

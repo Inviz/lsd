@@ -90,15 +90,17 @@ LSD.Object.prototype = {
   toObject: function() {
     var object = {};
     for (var name in this) if (this.hasProperty(name)) object[name] = this[name];
-    return {};
-  },
-  join: function(separator) {
-    var ary = [];
-    for (var name in this) if (this.hasProperty(name)) ary.push(name);
-    return ary.join(separator)
-  },
+    return object;
+  }, 
   hasProperty: function(name) {
     return this.hasOwnProperty(name) && (name.charAt(0) != '_')
   }
 };
 
+LSD.Object.join = function(object, separator) {
+  var ary = [];
+  for (var name in object) 
+    if (object.hasProperty ? object.hasProperty(name) : object.hasOwnProperty(name)) 
+      ary.push(name);
+  return ary.join(separator)
+};

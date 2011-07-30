@@ -93,20 +93,27 @@ LSD.Module.DOM = new Class({
       widget.dispatchEvent('nodeRemoved', node);
     });
     this.fireEvent('unregister', ['parent', widget]);
+    this.fireEvent('unsetParent', [widget, widget.document])
     this.removed = true;
     unset.call(this, widget, index); 
     delete this.parentNode;
     delete this.removed;
   },
   
-  appendChild: function(widget, override) {
-    widget.parentNode = this;
-    if (!widget.quiet && (override !== false) && this.toElement()) (override || function() {
-      this.element.appendChild(widget.toElement());
-    }).apply(this, arguments);
-    delete widget.parentNode;
-    widget.setParent(this, this.childNodes.push(widget) - 1);
-    delete widget.quiet;
+  appendChild: function(child, override) {
+    // set parent first, so when child is possibly built via toElement call, it notifies parents
+    child.parentNode = this;
+    if (!child.quiet && override !== false) {
+      var element = this.toElement();
+      if (child.getParentElement) element = child.getParentElement(this.element, this);
+      if (override && override.call) override = override(element, child.toElement());
+      console.log('hope hey', override, element, child.toElement())
+      if (override !== false) (override || element).appendChild(child.toElement());
+    }
+    delete child.parentNode;
+    // set parent 'for real' and do callbacks
+    child.setParent(this, this.childNodes.push(child) - 1);
+    delete child.quiet;
     return true;
   },
   
@@ -149,20 +156,14 @@ LSD.Module.DOM = new Class({
     return clone;
   },
   
-  setDocument: function(document, revert) {
-    LSD.Module.DOM.walk(this, function(child) {
-      if (revert) {
-        delete child.ownerDocument;
-        delete child.document;
-      } else child.ownerDocument = child.document = document;
-      child.fireEvent(revert ? 'unregister' : 'register', ['document', document]);
-      child.fireEvent(revert ? 'unsetDocument' : 'setDocument', document);
-    });
+  setDocument: function(document) {
+    LSD.Module.DOM.setDocument(this, document);
     return this;
   },
   
   unsetDocument: function(document) {
-    return this.setDocument(document, true);
+    LSD.Module.DOM.setDocument(this, document, true);
+    return this;
   },
   
   inject: function(widget, where, quiet) {
@@ -344,6 +345,17 @@ Object.append(LSD.Module.DOM, {
     } else {
       return target.getAttribute('itemid');
     }
+  },
+  
+  setDocument: function(node, document, revert) {
+    LSD.Module.DOM.walk(node, function(child) {
+      if (revert) {
+        delete child.ownerDocument;
+        delete child.document;
+      } else child.ownerDocument = child.document = document;
+      child.fireEvent(revert ? 'unregister' : 'register', ['document', document]);
+      child.fireEvent(revert ? 'unsetDocument' : 'setDocument', document);
+    });
   }
 });
 

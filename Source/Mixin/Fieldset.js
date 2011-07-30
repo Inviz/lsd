@@ -26,6 +26,9 @@ LSD.Mixin.Fieldset = new Class({
           scopes: {
             submittable: {
               filter: '[name]:valued'
+            },
+            invalid: {
+              filter: ':invalid'
             }
           },
           callbacks: {
@@ -49,7 +52,6 @@ LSD.Mixin.Fieldset = new Class({
       return {
         events: {
           request: {
-            request: 'validateFields',
             badRequest: 'parseFieldErrors'
           },
           self: {
@@ -74,9 +76,9 @@ LSD.Mixin.Fieldset = new Class({
   },
   
   checkValidity: function() {
-    var valid = true;
-    for (var i = 0, element; element = this.elements[i++];) if (!element.checkValidity()) valid = false;
-    return valid;
+    return this.elements.every(function(element) { 
+      return element.checkValidity();
+    });
   },
   
   getData: function() {
@@ -106,8 +108,19 @@ LSD.Mixin.Fieldset = new Class({
       var field = this.names[name];
       if (!field) continue;
       field.invalidate(errors[name]);
-      this.invalid = true;
     }
+    this.errors = errors;
+    this.addEvent('beforeSubmit:once', this.removeFieldErrors);
+  },
+  
+  removeFieldErrors: function() {
+    var errors = this.errors;
+    for (var name in errors) {
+      var field = this.names[name];
+      if (!field) continue;
+      if (field.invalid) field.setStateTo('invalid', false);
+    }
+    delete this.errors
   },
 
   parseFieldErrors: function(response) {
@@ -118,8 +131,8 @@ LSD.Mixin.Fieldset = new Class({
     } else { //rooted response (publication: {errors: {}}), new rails
       var regex = Fieldset.rPrefixAppender;
       for (var model in response) {
-        var value = response[model], errors = value.errors;
-        if (!errors) continue;
+        var value = response[model]; 
+        if (!(errors = value.errors)) continue;
         for (var i = 0, error; error = errors[i++];)
           result[Fieldset.getName(model, error[0])] = error[1];
       }
@@ -178,12 +191,6 @@ LSD.Mixin.Fieldset = new Class({
     }
     return object
   },
-
-  invalidateFields: function(errors) {
-    this.getFields(errors, function(field, error) {
-      field.invalidate(error);
-    });
-  },
   
   getFieldsByName: function(fields, callback, root) {
     if (fields.call && (callback = fields)) fields = null;
@@ -194,13 +201,6 @@ LSD.Mixin.Fieldset = new Class({
     }.bind(this));
   },
   
-  validateFields: function(fields) {
-    if (!this.invalid) return;
-    this.elements.each(function(field) {
-      if (field.invalid) field.validate(true);
-    });
-  },
-
   getModelName: function() {
     for (var name in this.params) if (!this.params[name].nodeType) return name;
   }

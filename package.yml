@@ -67,6 +67,8 @@ sources:
   - Source/Mixin/Root.js
   - Source/Mixin/Sortable.js
   - Source/Mixin/Invokable.js
+  - Source/Mixin/Slider.js
+  - Source/Mixin/Date.js
   - Source/Module/Ambient/Allocations.js
   - Source/Module/Ambient/Container.js
   - Source/Module/Ambient/DOM.js
@@ -94,10 +96,7 @@ sources:
   - Source/Module/Graphics/Layers.js
   - Source/Module/Graphics/Shape.js
   - Source/Module/Graphics.js
-  - Source/Trait/Menu.js
   - Source/Trait/Input.js
-  - Source/Trait/Slider.js
-  - Source/Trait/Date.js
   - Source/Action/Create.js
   - Source/Action/Update.js
   - Source/Action/Delete.js

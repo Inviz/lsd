@@ -37,7 +37,7 @@ LSD.Mixin.Focusable = new Class({
           if (target.focuser) target.focuser.destroy();
           if (target.attributes.tabindex == -1) return;
           target.removeEvents(LSD.Mixin.Focusable.events);
-          target.setAttribute('tabindex', target.tabindex);
+          //target.setAttribute('tabindex', target.tabindex);
         }
       }
     },
@@ -59,14 +59,10 @@ LSD.Mixin.Focusable = new Class({
       else this.element.focus();
       this.document.activeElement = this;
     }
-    if (this.focused) return;
-    this.focused = true;
     LSD.Mixin.Focusable.Propagation.focus(this);
   },
   
   blur: function(propagated) {
-    if (!this.focused) return;
-    this.focused = false;
     if (!this.focuser) this.element.blur();
     if (!propagated) LSD.Mixin.Focusable.Propagation.blur.delay(10, this, this);
   },
@@ -77,11 +73,15 @@ LSD.Mixin.Focusable = new Class({
   },
   
   onBlur: function() {
-    var active = this.document.activeElement;
-      console.error('onBlur', active, active == this, this.tagName);
-    if (active == this) delete this.document.activeElement;
-    while (active && (active = active.parentNode)) if (active == this) return;
-    this.blur();
+    this.blurring = true;
+    !function() {
+      if (this.blurring === false) return;
+      delete this.blurring;
+      var active = this.document.activeElement;
+      if (active == this) delete this.document.activeElement;
+      while (active && (active = active.parentNode)) if (active == this) return;
+      this.blur();
+    }.delay(20, this);
   },
   
   getKeyListener: function() {
@@ -99,7 +99,10 @@ LSD.Mixin.Focusable.events = {
 
 LSD.Mixin.Focusable.Propagation = {
   focus: function(parent) {
-    while (parent = parent.parentNode) if (parent.getFocuser) parent.focus(false);
+    while (parent = parent.parentNode) if (parent.focus) {
+      parent.focus(false);
+      if (parent.blurring) parent.blurring = false;
+    }
   },
   
   blur: function(parent) {
@@ -110,7 +113,7 @@ LSD.Mixin.Focusable.Propagation = {
     }
     while (parent = parent.parentNode) {
       if (active && hierarchy.contains(parent)) break;
-      if (parent.options && (parent.attributes.tabindex != null) && parent.blur) parent.blur(true);
+      if (parent.blur) parent.blur(true);
     }
   }
 };

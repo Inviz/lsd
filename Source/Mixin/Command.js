@@ -43,8 +43,16 @@ LSD.Mixin.Command = new Class({
     },
     events: {
       _command: {
-        'setDocument': 'getCommand'
+        'setDocument': function() {
+          this.eachLink('quickstart', true, true, !this.getCommandState());
+        },
       }
+    }
+  },
+  
+  constructors: {
+    command: function() {
+      if (this.getCommandType() != 'command' && !this.$states.checked) this.addState('checked');
     }
   },
   
@@ -59,7 +67,8 @@ LSD.Mixin.Command = new Class({
     if (this.disabled) return false;
     this.fireEvent('click', arguments);
     this.getCommand().click();
-    this.callChain.apply(this, arguments);
+    var method = this.getCommandState() ? 'callChain' : 'uncallChain';
+    return this[method].apply(this, arguments) != false;
   },
   
   setCommandType: function(type) {
@@ -72,10 +81,6 @@ LSD.Mixin.Command = new Class({
     delete this.commandType
   },
   
-  getCommandType: function() {
-    return this.commandType || (this.pseudos.checkbox && 'checkbox') || (this.pseudos.radio && 'radio') || 'command';
-  },
-  
   getCommandAction: function() {
     return this.attributes.commandaction || this.options.commandAction || this.captureEvent('getCommandAction', arguments);
   },
@@ -86,8 +91,22 @@ LSD.Mixin.Command = new Class({
   
   getCommandRadioGroup: function() {
     return this.attributes.radiogroup || this.attributes.name || this.options.radiogroup || this.captureEvent('getCommandRadioGroup');
-  }
+  },
   
+});
+
+Object.append(LSD.Mixin.Command, {
+  getCommandType: function() {
+    return this.commandType || (this.pseudos.checkbox && 'checkbox') || (this.pseudos.radio && 'radio') || 'command';
+  },
+  
+  getCommandState: function() {
+    return (LSD.Mixin.Command.getCommandType.call(this) == 'command') || this.checked;
+  }
+});
+
+['getCommandType', 'getCommandState'].each(function(method) {
+  LSD.Mixin.Command.implement(method, LSD.Mixin.Command[method]);
 });
 
 LSD.Options.commandType = {

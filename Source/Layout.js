@@ -112,16 +112,12 @@ LSD.Layout.prototype = Object.append(new Options, {
     }
     // Append widget into parent widget without moving elements
     if (widget) {
-      if (!widget.parentNode) {
-        var override = function() {
-          if (widget.toElement().parentNode == container) return;
-          if (cloning)
-            this.appendChild(container, widget.element)
-          else if (widget.origin == element && element.parentNode && element.parentNode == container)
-            element.parentNode.replaceChild(widget.element, element);
-        }.bind(this);
-        this.appendChild(ascendant, widget, memo, override)
-      }
+      this.appendChild(ascendant, widget, memo, function(container, child) {
+        if (widget.origin == element && element.parentNode && element.parentNode == container) {
+          element.parentNode.replaceChild(widget.element, element);
+        } else if (!child.parentNode) return parent[1] || container;
+        return false;
+      });
     } else {
       if (cloning) var clone = element.cloneNode(false);
       if (cloning || (ascendant.origin ? (ascendant.origin == element.parentNode) : (!element.parentNode || element.parentNode.nodeType == 11))) 
@@ -209,15 +205,21 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   selector: function(string, parent, opts) {
-    var options = Object.append({context: this.options.context}, opts, LSD.Layout.parse(string, parent[0] || parent));
+    var options = Object.merge({context: this.options.context}, opts);
+    delete options.source;
+    Object.merge(options, LSD.Layout.parse(string, parent[0] || parent));
     if (!options.tag || (options.tag != '*' && (options.source || this.context.find(options.tag) || !LSD.Layout.NodeNames[options.tag]))) {
       var allocation = options.allocation;
-      if (allocation) var widget = (parent[0] || parent).allocate(allocation.type, allocation.kind, allocation.options);
-      else var widget = this.context.create(options), self = this;
+      if (allocation) {
+        var widget = (parent[0] || parent).allocate(allocation.type, allocation.kind, allocation.options);
+        // Set the new parent, if an allocated node comes with the parent
+        if (widget.parentNode) {
+          if (widget.lsd) parent = [widget.parentNode, (widget.element && widget.element.parentNode) || widget.parentNode.element]
+          else parent = [parent[0] || parent, widget.parentNode];
+        }
+      } else var widget = this.context.create(options), self = this;
       if (widget.element && widget.element.childNodes.length) var nodes = LSD.slice(widget.element.childNodes);
-      this.appendChild(parent, widget, opts, function() {
-        self.appendChild(parent, widget.toElement());
-      });
+      this.appendChild(parent, widget, opts, parent[1]);
       options = {};
       for (var option in opts) if (LSD.Layout.Inheritable[option]) options[option] = opts[option];
       opts = options;
@@ -234,8 +236,9 @@ LSD.Layout.prototype = Object.append(new Options, {
       }
       var element = document.createElement(tag);
       for (var name in props) element.setAttribute(name, props[name]);
-      if (options.classes) element.className = options.classes.join(' ');
+      if (options.classes) element.className = LSD.Object.join(options.classes, ' ');
       if (parent) this.appendChild(parent, element);
+      if (options.content) element.innerHTML = options.content;
     }
     return widget || element;
   },
@@ -292,34 +295,30 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
 
   set: function(layout, parent, memo, state) {
-    var method = state ? 'appendChild' : 'removeChild', value;
     switch (typeOf(layout)) {
       case "array": case "collection":
-        for (var i = 0, j = layout.length; i < j; i++)
-          if ((value = layout[i])) {
-            this[method](parent, value, memo);
-            if (value.nodeType == 8) {
-              var keyword = Element.retrieve(value, 'keyword');
-              if (keyword && keyword !== true) keyword[state ? 'attach' : 'detach']();
-            }
-          }
+        for (var i = 0, j = layout.length, value; i < j; i++)
+          if ((value = layout[i])) this.manipulate(state, parent, value, memo);
         break;
       case "object":
-        for (var key in layout)
-          if ((value = layout[key])) {
-            value = value[0]
-            if (!value) return;
-            this[method](parent, value, memo);
-            if (value.nodeType == 8) {
-              var keyword = Element.retrieve(value, 'keyword');
-              if (keyword && keyword !== true) keyword[state ? 'attach' : 'detach']();
-            }
-          }
+        for (var key in layout) {
+          var value = layout[key];
+          if (value && (value = value[0])) this.manipulate(state, parent, value, memo);
+        }
         break;
-      case "widget": case "string":
-        this[method](parent, layout);
+      case "widget": case "string":  
+        this.manipulate(state, parent, layout);
     }
     return layout;
+  },
+  
+  manipulate: function(state, parent, child, memo) {  
+    var method = state ? 'appendChild' : 'removeChild';
+    this[method](parent, child, memo);
+    if (child.nodeType == 8) {
+      var keyword = Element.retrieve(child, 'keyword');
+      if (keyword && keyword !== true) keyword[state ? 'attach' : 'detach']();
+    }
   },
   
   appendChild: function(parent, child, memo, override) {
@@ -358,7 +357,7 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
 
   prepareOptions: function(opts) {
-    opts = Object.append({lazy: true}, opts);
+    opts = Object.append({lazy: true, layout: this}, opts);
     if (this.options.context && LSD.Widget.prototype.options.context != this.options.context)
       opts.context = this.options.context;
     if (this.options.interpolation) opts.interpolation = this.options.interpolation;
@@ -750,9 +749,10 @@ Object.append(LSD.Layout, {
         var source = LSD.Layout.getSource(options, options.tag);
         if (source.push) options.source = source;
       }
-    if (parsed.classes) options.classes = parsed.classes.map(Macro.map('value'));
+    if (parsed.classes) for (var all = parsed.classes, pseudo, i = 0; klass = all[i++];) 
+        (options.classes || (options.classes = {}))[klass.value] = true;
     if (parsed.pseudos) for (var all = parsed.pseudos, pseudo, i = 0; pseudo = all[i++];) 
-      (options.pseudos || (options.pseudos = [])).push(pseudo.key);
+      (options.pseudos || (options.pseudos = {}))[pseudo.key] = true;
     return options;
   },
   

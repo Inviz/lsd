@@ -89,11 +89,9 @@ LSD.Module.Element = new Class({
         if (name != 'type' || tag != 'input') 
           element.setAttribute(name, attrs[name] === true ? name : attrs[name]);
     }
-    var classes = [];
-    if (this.tagName != tag) classes.push('lsd', this.tagName)
-    for (var klass in this.classes) 
-      if (this.classes.hasProperty(klass)) classes.include(klass)
-    if (classes.length) this.element.className = classes.join(' ');
+    var classes = LSD.Object.join(this.classes, ' ');
+    if (this.tagName != tag) classes = 'lsd ' + this.tagName + ' ' + classes;
+    if (classes.length) this.element.className = classes;
 
     if (this.style) for (var property in this.style.element) this.element.setStyle(property, this.style.element[property]);
     return this.element;

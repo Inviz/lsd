@@ -104,8 +104,7 @@ LSD.Document = new Class({
       }
       if (widget && widget.pseudos.clickable) {
         event.stopPropagation();
-        widget.click(event);
-        break;
+        if (widget.click(event)) break;
       }
     };
   },
@@ -140,7 +139,7 @@ LSD.Document = new Class({
   },
   
   setBody: function(element) {
-    if (!element) element = this.getBodyElement()
+    if (!element) element = this.getBodyElement();
     this.fireEvent('beforeBody', element);
     var options = {
       document: this, 

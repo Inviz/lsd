@@ -10,16 +10,16 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Trait
+  - LSD.Mixin
   - More/Date
 
 provides:
-  - LSD.Trait.Date
+  - LSD.Mixin.Date
  
 ...
 */
 
-LSD.Trait.Date = new Class({
+LSD.Mixin.Date = new Class({
   options: {
     date: {
       interval: 'month',
@@ -28,8 +28,15 @@ LSD.Trait.Date = new Class({
   },
   
   setDate: function(date) {
+    if (date && !date.getDate) {
+      var source = date;
+      date = this.parseDate(date);
+    }
+    if (!date) return;
+    if (source) this.dateSource = source;
+    else if (this.dateSource) delete this.dateSource;
     this.date = date;
-    if (date) this.fireEvent('setDate', date)
+    this.fireEvent('setDate', [date, source])
   },
   
   formatDate: function(date) {
@@ -49,18 +56,21 @@ LSD.Trait.Date = new Class({
     return new Date;
   },
   
-  parseDate: function(date) {
-    return Date.parse(date);
+  parseDate: function(input) {
+    var date = Date.parse(input);
+    if (date.isValid()) return date;
   },
   
-  increment: function(number) {
+  increment: function(number, interval) {
     number = number.toInt ? number.toInt() : 1;
-    this.setDate(this.getDate().increment(this.options.date.interval, number))
+    this.setDate(this.getDate().clone().increment(interval || this.options.date.interval, number))
   },
 
-  decrement: function(number) {
+  decrement: function(number, interval) {
     number = number.toInt ? number.toInt() : 1;
-    this.setDate(this.getDate().decrement(this.options.date.interval, number))
+    this.setDate(this.getDate().clone().decrement(interval || this.options.date.interval, number))
   }
   
 });
+
+LSD.Behavior.define(':date', LSD.Mixin.Date);

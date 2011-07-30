@@ -47,10 +47,11 @@ var LSD = Object.append(new Events, {
       working:  {enabler: 'busy',       disabler: 'idle'},
       chosen:   {enabler: 'choose',     disabler: 'forget'},
       empty:    {enabler: 'empty',      disabler: 'fill',      property: 'unfilled', initial: true},
-      invalid:  {enabler: 'invalidate', disabler: 'validate',   events: {enabler: 'invalid', disabler: 'valid'}},
-      valid:    {enabler: 'validate',   disabler: 'invalidate', events: {enabler: 'valid', disabler: 'invalid'}},
+      invalid:  {enabler: 'invalidate', disabler: 'unvalidate'},
+      valid:    {enabler: 'validate',   disabler: 'unvalidate'},
       editing:  {enabler: 'edit',       disabler: 'finish'},
-      placeheld:{enabler: 'placehold',  disabler: 'unplacehold'}
+      placeheld:{enabler: 'placehold',  disabler: 'unplacehold'},
+      invoked:  {enabler: 'invoke',     disabler: 'revoke'}
     },
     Positive: {
       disabled: 'disabled',

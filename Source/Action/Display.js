@@ -23,19 +23,19 @@ provides:
 LSD.Action.Display = LSD.Action.build({
   enable: function(target) {
     var widget = LSD.Module.DOM.find(target, true);
-    if (widget && widget.show) widget.show();
-    else if (target.setStyle) {
-      target.setStyle('display', target.retrieve('style:display') || 'inherit');
+    if (widget) widget.show();
+    else if (target.localName) {
+      target.style.display = Element.retrieve(target, 'style:display') || 'inherit';
       target.removeAttribute('hidden');
     }
   },
   
   disable: function(target) {
     var widget = LSD.Module.DOM.find(target, true);
-    if (widget && widget.hide) widget.hide();
-    else if (target.setStyle) {
-      target.store('style:display', target.getStyle('display'));
-      target.setStyle('display', 'none');
+    if (widget) widget.hide();
+    else if (target.localName) {
+      Element.store(target, 'style:display', target.getStyle('display'));
+      target.style.display = 'none';
       target.setAttribute('hidden', 'hidden');
     }
   },

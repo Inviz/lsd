@@ -20,17 +20,13 @@ provides:
 
 
 LSD.Action.Clone = LSD.Action.build({
-  enable: function(target, where) {
+  enable: function(target, before) {
     var widget = LSD.Module.DOM.find(target);
-    if (widget == target) var element = widget.element, parent = widget.parentNode;
-    else var element = target, parent = widget;
-    var clone = widget.layout.render(element, parent, {clone: true});
-    switch(where) {
-      case "before": case "after": case "top": case "bottom":
-        break;
-      default:
-        where = 'after'
-    };
-    document.id(clone).inject(target, where);
+    if ((target.lsd ? widget : widget.element) == target) 
+      var element = widget.element, parent = widget.parentNode;
+    else 
+      var element = target, parent = widget;
+    var hook = before === true ? element : element.nextSibling;
+    var clone = widget.layout.render(element, [parent, element.parentNode], {clone: true}, {before: hook});
   }
 });
