@@ -107,7 +107,6 @@ LSD.Module.DOM = new Class({
       var element = this.toElement();
       if (child.getParentElement) element = child.getParentElement(this.element, this);
       if (override && override.call) override = override(element, child.toElement());
-      console.log('hope hey', override, element, child.toElement())
       if (override !== false) (override || element).appendChild(child.toElement());
     }
     delete child.parentNode;

@@ -32,7 +32,7 @@ Object.append(LSD.Module.Interpolations, {
         if (value == null) {
           saved.unwatch(key, callback);
           delete saved;
-        } else if (typeof value == 'object' && value && !value.push && !value.indexOf) {  
+        } else if (typeof value == 'object' && value.watch) {  
           saved = value;
           value.watch(key, callback);
         } else {
@@ -88,7 +88,7 @@ Object.append(LSD.Module.Interpolations, {
     if (name.toObject) {
       var callback = LSD.Module.Interpolations.getInterpolationCallback.call(this);
       name.addEvent('change', callback).addEvent('beforechange', callback);
-      for (var property in name) if (name.hasProperty(property)) 
+      for (var property in name) if (name.has(property)) 
         LSD.Module.Interpolations.addInterpolator.call(this, property, name[property]);
     } else if (name.call) {
 
@@ -116,7 +116,7 @@ Object.append(LSD.Module.Interpolations, {
     if (name.toObject) {
       var callback = LSD.Module.Interpolations.getInterpolationCallback.call(this);
       name.removeEvent('change', callback).removeEvent('beforechange', callback);
-      for (var property in name) if (name.hasProperty(property)) this.removeInterpolator(property, name[property])
+      for (var property in name) if (name.has(property)) this.removeInterpolator(property, name[property])
     } else if (name.call) {
 
     } else if (!name.indexOf) {

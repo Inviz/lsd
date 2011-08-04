@@ -23,4 +23,4 @@ LSD.Mixin.Details = new Class({
   
 });
 
-LSD.Behaviour.define(':details', LSD.Mixin.Details);
+LSD.Behaviour.define(':details', 'details');

@@ -289,6 +289,18 @@ Events.Targets = {
     }
   }
 };
+
+Events.States = {
+  Positive: {
+    disabled: 'disabled',
+    focused: 'focused'
+  },
+  Negative: {
+    enabled: 'disabled',
+    blured: 'focused'
+  }
+};
+
 !function(Known, Positive, Negative) {
   Object.each(Object.append({}, Positive, Negative), function(name, condition) {
     var events = {}, positive = !!Positive[name], state = Known[name];
@@ -302,7 +314,7 @@ Events.Targets = {
       events: events
     }
   });
-}(LSD.States.Known, LSD.States.Positive, LSD.States.Negative)
+}(LSD.States, Events.States.Positive, Events.States.Negative);
 
 
 /*

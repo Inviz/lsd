@@ -179,4 +179,4 @@ LSD.Mixin.Resizable = new Class({
   }
 });
 
-LSD.Behavior.define('[resizable][resizable!=false]', LSD.Mixin.Resizable);
+LSD.Behavior.define('[resizable][resizable!=false]', 'resizable');

@@ -30,6 +30,14 @@ LSD.Module.Tag = new Class({
     tag: function(options) {
       if (options.context) this.setContext(options.context)
       this.nodeType = options.nodeType;
+      var self = this;
+      this.mixins = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old) {
+        if (state) {
+          if (old == null) return self.mixin(LSD.Mixin[LSD.toClassName(name)], true);
+        } else {
+          self.unmix(LSD.Mixin[LSD.toClassName(name)], true);
+        }
+      })
     }
   },
   
@@ -99,18 +107,22 @@ LSD.Module.Tag = new Class({
   },
 
   mixin: function(mixin, light) {
-    if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
-    Class.mixin(this, mixin, light);
-    this.setOptions(mixin.prototype.options);
-    this.construct(mixin.prototype)
+    if (typeof mixin == 'string') {
+      this.mixins.add(mixin);
+    } else {
+      var options = Class.mixin(this, mixin, light);
+      this.setOptions(this.construct(mixin.prototype));
+    }
     return this;
   },
 
   unmix: function(mixin, light) {
-    if (typeof mixin == 'string') mixin = LSD.Mixin[LSD.capitalize(mixin)];
-    this.unsetOptions(mixin.prototype.options);
-    this.destruct(mixin.prototype)
-    Class.unmix(this, mixin, light);
+    if (typeof mixin == 'string') {
+      this.mixins.remove(mixin);
+    } else {
+      this.unsetOptions(this.destruct(mixin.prototype));
+      Class.unmix(this, mixin, light);
+    }
     return this;
   }
   

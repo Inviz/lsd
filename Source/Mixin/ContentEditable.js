@@ -122,4 +122,4 @@ LSD.Mixin.ContentEditable = new Class({
   }
 });
 
-LSD.Behavior.define('[contenteditable=editor]', LSD.Mixin.ContentEditable);
+LSD.Behavior.define('[contenteditable=editor]', 'content_editable');

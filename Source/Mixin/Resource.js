@@ -78,4 +78,4 @@ LSD.Mixin.Resource = new Class({
   }
 });
 
-LSD.Behavior.define(':resource, [itemscope]', LSD.Mixin.Resource);
+LSD.Behavior.define(':resource, [itemscope]', 'resource');

@@ -25,7 +25,7 @@ LSD.Microdata = function(element, name) {
   this._name = name;
 };
 
-LSD.Microdata.prototype = new LSD.Object({
+LSD.Microdata.prototype = Object.append(new LSD.Object, {
   add: function(element, property, value) {
     var group = (this._elements || (this._elements = {}))[property];
     if (!group) group = element

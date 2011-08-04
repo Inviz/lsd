@@ -24,23 +24,25 @@ LSD.Module.Attributes = new Class({
   constructors: {
     attributes: function() {
       var self = this;
-      this.pseudos = (new LSD.Object).addEvent('change', function(name, value, state) {
+      this.pseudos = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, quiet) {
+        if (!quiet && LSD.States[name]) self.states[state ? 'add' : 'remove'](name, 'pseudos');
         self.fireEvent('selectorChange', ['pseudos', name, state]);
-        if (self.$states[name]) self.setStateTo(name, state);
-      });
-      this.classes = (new LSD.Object).addEvent('change', function(name, value, state) {
-        self.fireEvent('selectorChange', ['classes', name, state]);
-        if (LSD.States.Known[name]) self.setStateTo(name, state);
+      })
+      this.classes = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, quiet) {
+        if (!quiet && LSD.States[name]) self.states[state ? 'add' : 'remove'](name, 'classes');
         if (self.element) self.element[state ? 'addClass' : 'removeClass'](name);
+        self.fireEvent('selectorChange', ['classes', name, state]);
       });
-      this.attributes = (new LSD.Object).addEvent('change', function(name, value, state) {
-        self.fireEvent('selectorChange', ['attributes', name, state]);
-        if (LSD.States.Attributes[name]) self.setStateTo(name, state);
+      this.attributes = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, quiet) {
+        if (!quiet && LSD.States[name]) self.states[state ? 'add' : 'remove'](name, 'attributes');
+        value = LSD.Module.Attributes.resolve(name, value, self);
         if (self.element && (name != 'type' || LSD.toLowerCase(self.element.tagName) != 'input')) {
-          if (state) self.element.setAttribute(name, value);
+          if (state) self.element.setAttribute(name, LSD.Attributes[name] == 'boolean' ? name : value);
           else self.element.removeAttribute(name);
-          if (LSD.Attributes.Boolean[name]) self.element[name] = state;
+          if (LSD.Attributes[name] == 'boolean') self.element[name] = state;
         }
+        self.fireEvent('selectorChange', ['attributes', name, state]);
+        return value;
       }).addEvent('beforechange', function(name, value, state) { 
         self.fireEvent('selectorChange', ['attributes', name, state]);
       });
@@ -57,15 +59,9 @@ LSD.Module.Attributes = new Class({
   },
 
   setAttribute: function(name, value) {
-    if (!LSD.Attributes.Numeric[name]) {
-      var logic = LSD.Attributes.Setter[name];
-      if (logic) logic.call(this, value)
-    } else value = value.toInt();
     if (name.substr(0, 5) == 'data-') {
       this.dataset.set(name.substring(5), value);
     } else {
-      if (this.options && this.options.interpolate)
-        value = LSD.Interpolation.attempt(value, this.options.interpolate) || value;
       this.attributes.set(name, value);
     }
     return this;
@@ -74,7 +70,7 @@ LSD.Module.Attributes = new Class({
   removeAttribute: function(name) {
     if (name.substr(0, 5) == 'data-') {
       delete this.dataset.unset(name.substring(5));
-    } else this.attributes.unset(name)
+    } else this.attributes.unset(name, this.attributes[name]);
     return this;
   },
   
@@ -84,7 +80,7 @@ LSD.Module.Attributes = new Class({
   },
 
   removePseudo: function(name) {
-    this.pseudos.unset(name);
+    this.pseudos.unset(name, true);
     return this;
   },
   
@@ -94,7 +90,7 @@ LSD.Module.Attributes = new Class({
   },
 
   removeClass: function(name){
-    this.classes.unset(name);
+    this.classes.unset(name, true);
     return this;
   },
   
@@ -102,51 +98,38 @@ LSD.Module.Attributes = new Class({
     return this.classes[name]
   },
   
-  setState: function(name) {
-    var attribute = LSD.States.Attributes[name];
-    if (attribute) this.setAttribute(attribute, attribute)
-    else this.addClass(LSD.States.Known[name] ? name : 'is-' + name);
-    this.addPseudo(name);
-    return this;
-  },
-  
-  unsetState: function(name) {
-    var attribute = LSD.States.Attributes[name];
-    if (attribute) this.removeAttribute(attribute);
-    else this.removeClass(LSD.States.Known[name] ? name : 'is-' + name);
-    this.removePseudo(name);
-    return this;
-  },
-  
-  getSelector: function(){
+  getSelector: function() {
     var parent = this.parentNode;
     var selector = (parent && parent.getSelector) ? parent.getSelector() + ' ' : '';
     selector += this.tagName;
     if (this.attributes.id) selector += '#' + this.attributes.id;
-    for (var klass in this.classes)  if (this.classes.hasProperty(klass))  selector += '.' + klass;
-    for (var pseudo in this.pseudos) if (this.pseudos.hasProperty(pseudo)) selector += ':' + pseudo;
-    for (var name in this.attributes) if (this.attributes.hasProperty(name))
-      if (name != 'id') selector += '[' + name + '=' + this.attributes[name] + ']';
+    for (var klass in this.classes)  if (this.classes.has(klass))  selector += '.' + klass;
+    for (var pseudo in this.pseudos) if (this.pseudos.has(pseudo)) selector += ':' + pseudo;
+    for (var name in this.attributes) if (this.attributes.has(name))
+      if (name != 'id') {
+        selector += '[' + name;
+        if (LSD.Attributes[name] != 'boolean') selector += '=' + this.attributes[name]
+        selector += ']';
+      }
     return selector;
-  },
-  
-  onStateChange: function(state, value, args) {
-    var args = Array.prototype.slice.call(arguments, 0);
-    args.slice(1, 2); //state + args
-    this[value ? 'setState' : 'unsetState'][args && ("length" in args) ? 'apply' : 'call'](this, args);
-    this.fireEvent('stateChange', [state, args]);
-    return true;
   }
 });
 
-LSD.Attributes.Setter = {
-  'id': function(id) {
+LSD.Module.Attributes.List = {
+  tabindex: 'number',
+  width:    'number',
+  height:   'number',
+  readonly: 'boolean',
+  disabled: 'boolean',
+  hidden:   'boolean',
+  checked:  'boolean',
+  id: function(id) {
     this.id = id;
   },
   'class': function(value) {
     value.split(' ').each(this.addClass.bind(this));
   },
-  'style': function(value) {
+  style: function(value) {
     value.split(/\s*;\s*/).each(function(definition) {
       var bits = definition.split(/\s*:\s*/)
       if (!bits[1]) return;
@@ -156,6 +139,24 @@ LSD.Attributes.Setter = {
       //this.setStyle.apply(this, bits);
     }, this);
   }
+};
+
+Object.each(LSD.Module.Attributes.List, function(value, name) {
+  if (!LSD.Attributes[name]) LSD.Attributes[name] = value;
+});
+
+LSD.Module.Attributes.resolve = function(name, value, bind) {
+  var attribute = LSD.Attributes[name];
+  switch (attribute) {
+    case "boolean":
+      return (name == value || value === true);
+    case "number":
+      return parseFloat(name);
+    default:
+      if (attribute && attribute.call) 
+        return attribute.call(bind || this, value)
+  }
+  return value;
 };
 
 Object.append(LSD.Options, {

@@ -45,34 +45,14 @@ LSD.Mixin.Fieldset = new Class({
     }
   },
   
-  constructors: {
-    fieldset: function() {
-      this.names = {};
-      this.params = {};
-      return {
-        events: {
-          request: {
-            badRequest: 'parseFieldErrors'
-          },
-          self: {
-            beforeNodeBuild: function(query, widget) {
-              if (!widget.options.clone) return;
-              var attrs = query.attributes, attributes = widget.attributes;
-              var name = attributes.name, id = attributes.id;
-              // bump name index
-              if (name) (attrs || (attrs = {})).name = Fieldset.bumpName(name) || name;
-              // bump id index
-              if (id) (attrs || (attrs = {})).id = Fieldset.bumpId(id) || id;
-              if (widget.tagName == 'label') {
-                var four = attributes['for'];
-                if (four) (attrs || (attrs = {}))['for'] = Fieldset.bumpId(four) || four;
-              }
-              if (attrs) query.attributes = attrs;
-            }
-          }
-        }
-      }
-    }
+  onMix: function() {
+    this.names = {};
+    this.params = {};
+    this.addEvents(LSD.Mixin.Fieldset.events);
+  },
+  
+  onUnmix: function() {
+    this.removeEvents(LSD.Mixin.Fieldset.events);
   },
   
   checkValidity: function() {
@@ -230,6 +210,28 @@ var Fieldset = Object.append(LSD.Mixin.Fieldset, {
   }
 });
 
-LSD.Behavior.define(':fieldset', Fieldset);
+Fieldset.events = {
+  request: {
+    badRequest: 'parseFieldErrors'
+  },
+  self: {
+    beforeNodeBuild: function(query, widget) {
+      if (!widget.options.clone) return;
+      var attrs = query.attributes, attributes = widget.attributes;
+      var name = attributes.name, id = attributes.id;
+      // bump name index
+      if (name) (attrs || (attrs = {})).name = Fieldset.bumpName(name) || name;
+      // bump id index
+      if (id) (attrs || (attrs = {})).id = Fieldset.bumpId(id) || id;
+      if (widget.tagName == 'label') {
+        var four = attributes['for'];
+        if (four) (attrs || (attrs = {}))['for'] = Fieldset.bumpId(four) || four;
+      }
+      if (attrs) query.attributes = attrs;
+    }
+  }
+};
+
+LSD.Behavior.define(':fieldset', 'fieldset');
 
 }();

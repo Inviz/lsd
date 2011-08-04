@@ -75,12 +75,11 @@ LSD.Module.Element = new Class({
     delete query.element, delete query.build;
     var attrs = {}
     for (var attribute in this.attributes) 
-      if (this.attributes.hasProperty(attribute)) 
+      if (this.attributes.has(attribute)) 
         attrs[attribute] = this.attributes[attribute];
     Object.merge(attrs, options.element, query.attributes);
     var tag = query.tag || attrs.tag || this.getElementTag();
     delete attrs.tag; delete query.tag;
-    if (query.attributes || query.classes || query.pseudos) this.setOptions(query);
     if (!element || build) {
       this.element = new Element(tag, attrs);
     } else {
@@ -134,7 +133,7 @@ LSD.Module.Element.extract = function(element, widget) {
   }, attrs = options.attributes;
   for (var i = 0, attribute, name; attribute = element.attributes[i++];) {
     name = attribute.name;
-    attrs[name] = LSD.Attributes.Boolean[name] || attribute.value || "";
+    attrs[name] = LSD.Attributes[name] == 'boolean' || attribute.value || "";
   }
   var klass = attrs['class'];
   if (klass) {

@@ -44,7 +44,7 @@ LSD.Mixin.Value = new Class({
       result = this.writeValue(value, unset);
       var previous = this.getPreviousValue();
       this.fireEvent('change', [value, previous]);
-      if (!this.click) this.callChain(value, previous);
+      if (!this.click && previous != null) this.callChain(value, previous);
     }
     return result
   },
@@ -159,4 +159,4 @@ LSD.Mixin.Value = new Class({
   }
 });
 
-LSD.Behavior.define(':value', LSD.Mixin.Value);
+LSD.Behavior.define(':value', 'value');

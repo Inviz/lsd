@@ -73,4 +73,4 @@ LSD.Mixin.Date = new Class({
   
 });
 
-LSD.Behavior.define(':date', LSD.Mixin.Date);
+LSD.Behavior.define(':date', 'date');

@@ -110,4 +110,4 @@ LSD.Mixin.Draggable = new Class({
   
 });
 
-LSD.Behavior.define('[draggable]', LSD.Mixin.Draggable);
+LSD.Behavior.define('[draggable]', 'draggable');

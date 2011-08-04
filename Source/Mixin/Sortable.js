@@ -131,4 +131,4 @@ LSD.Mixin.Sortable = new Class({
   
 });
 
-LSD.Behavior.define(':sortable', LSD.Mixin.Sortable);
+LSD.Behavior.define(':sortable', 'sortable');

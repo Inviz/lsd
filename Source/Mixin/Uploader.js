@@ -71,10 +71,8 @@ LSD.Mixin.Uploader = new Class({
     }
   },
   
-  constructors: {
-    uploader: function() {
-      this.blobs = {};
-    }
+  onMix: function() {
+    this.blobs = {};
   },
   
   getUploader: function() {
@@ -176,7 +174,7 @@ LSD.Mixin.Uploader = new Class({
   addFile: function(blob) {
     var widget = new (this.getUploaderFileClass());
     widget.widget = this;
-    widget.setState('complete');
+    widget.states.add('complete');
     widget.build();
     widget.setBase(this.getUploader());
     widget.setFile(blob);
@@ -206,15 +204,15 @@ LSD.Mixin.Upload = new Class({
         if (this.progress) this.progress.set(progress.percentLoaded);
       },
       start: function() {
-        this.setState('started');
+        this.states.add('started');
       },
       complete: function() {
         if (this.progress) this.progress.set(100);
-        this.unsetState('started');
-        this.setState('complete');
+        this.states.remove('started');
+        this.states.add('complete');
       },
       stop: function() {
-        this.unsetState('started');
+        this.states.remove('started');
       },
       remove: 'dispose'
     }
@@ -273,5 +271,5 @@ LSD.Widget.Filelist.File = new Class({
   }
 });
 
-LSD.Behavior.define(':uploader', LSD.Mixin.Uploader);
-LSD.Behavior.define(':upload', LSD.Mixin.Upload);
+LSD.Behavior.define(':uploader', 'uploader');
+LSD.Behavior.define(':upload', 'upload');

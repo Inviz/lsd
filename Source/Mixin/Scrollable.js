@@ -66,4 +66,4 @@ LSD.Mixin.Scrollable = new Class({
   })
 });
 
-LSD.Behavior.define('[scrollable]', LSD.Mixin.Scrollable);
+LSD.Behavior.define('[scrollable]', 'scrollable');

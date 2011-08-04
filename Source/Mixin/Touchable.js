@@ -38,4 +38,4 @@ LSD.Mixin.Touchable = new Class({
   }
 });
 
-LSD.Behavior.define(':touchable', LSD.Mixin.Touchable);
+LSD.Behavior.define(':touchable', 'touchable');

@@ -32,4 +32,4 @@ LSD.Mixin.Unselectable = new Class({
   }
 });
 
-LSD.Behavior.define(':unselectable', LSD.Mixin.Unselectable);
+LSD.Behavior.define(':unselectable', 'unselectable');

@@ -22,85 +22,171 @@ LSD.Object = function(object) {
   if (object) for (var key in object) this.set(key, object[key]);
 }
 LSD.Object.prototype = {
-  set: function(key, value) {
+  set: function(key, value, arg) {
     var old = this[key];
-    if (old === value) return false;
-    if (old) {
-      var onBeforeChange = this._beforechange;
-      if (onBeforeChange) for (var i = 0, fn; fn = onBeforeChange[i++];) fn(key, old, false);
-    }
-
+    if (old === value && typeof old != 'undefined') return false;
+    if (old) this.fireEvent('beforechange', key, old, false);
     this[key] = value;
-    var onChange = this._change;
-    if (onChange) for (var i = 0, fn; fn = onChange[i++];) fn(key, value, true);
+    this[key] = value = this.fireEvent('change', key, value, true, old, arg);
     var watched = this._watched;
-    if (watched && (watched = watched[key])) for (var i = 0, fn; fn = watched[i++];) fn(value, old);
+    if (watched && (watched = watched[key])) 
+      for (var i = 0, fn; fn = watched[i++];) 
+        if (fn.call) fn(value, old);
+        else LSD.Object.callback(this, fn, key, value, old, arg);
     return true;
   },
-  unset: function(key, value) {
+  unset: function(key, value, arg) {
     var old = this[key];
-    if (old == null) return false;
-    for (var i = 0, a = this._change, fn; a && (fn = a[i++]);) fn(key, old, false);
+    if (old == null && value != null) return false;
+    this.fireEvent('change', key, old, false, null, arg);
     var watched = this._watched;
-    if (watched && (watched = watched[key])) for (var i = 0, fn; fn = watched[i++];) fn(null, old);
+    if (watched && (watched = watched[key])) 
+      for (var i = 0, fn; fn = watched[i++];) 
+        if (fn.call) fn(null, old);
+        else LSD.Object.callback(this, fn, key, null, old, arg);
     delete this[key];
     return true;
   },
-  addEvent: function(name, callback) {
-    var key = '_' + name;
-    (this[key] || (this[key] = [])).push(callback);
+  add: function(key, arg) {
+    return this.set(key, true, arg)
+  },
+  remove: function(key, arg) {
+    return this.unset(key, true, arg)
+  },
+  fireEvent: function(key, a, b, c, d, e) {
+    var storage = this._events;
+    if (storage) {
+      var collection = storage[key];
+      if (collection) for (var i = 0, fn; fn = collection[i++];) {
+        var result = fn(a, b, c, d, e);
+        if (result != null) b = result;
+      }
+    }
+    return b;
+  },
+  addEvent: function(key, callback) {
+    var storage = this._events;
+    if (!storage) storage = this._events = {};
+    (storage[key] || (storage[key] = [])).push(callback);
     return this;
   },
-  removeEvent: function(name, callback) {
-    var key = '_' + name;
-    var index = this[key].indexOf(callback);
-    if (index > -1) this[key].splice(0, 1);
+  removeEvent: function(key, callback) {
+    var storage = this._events;
+    var key = key;
+    var index = storage[key].indexOf(callback);
+    if (index > -1) storage[key].splice(0, 1);
     return this;
   },
-  watch: function(name, callback, lazy) {
-    var index = name.indexOf('.');
+  watch: function(key, callback, lazy) {
+    var index = key.indexOf('.');
     if (index > -1) {
       var finder = function(value, old) {
-        (value || old)[value ? 'watch' : 'unwatch'](name.substring(index + 1), callback);
+        (value || old)[value ? 'watch' : 'unwatch'](key.substring(index + 1), callback);
       };
       finder.callback = callback;
-      this.watch(name.substr(0, index), finder)
+      this.watch(key.substr(0, index), finder)
     } else {
       var watched = (this._watched || (this._watched = {}));
-      (watched[name] || (watched[name] = [])).push(callback);
-      var value = this[name];
-      if (!lazy && value != null) callback(value);
+      (watched[key] || (watched[key] = [])).push(callback);
+      var value = this[key];
+      if (!lazy && value != null) {
+        if (callback.call) callback(value);
+        else LSD.Object.callback(this, callback, key, value);
+      }
     }
   },
-  unwatch: function(name, callback) {
-    var index = name.indexOf('.');
+  unwatch: function(key, callback) {
+    var index = key.indexOf('.');
     if (index > -1) {
-      this.unwatch(name.substr(0, index), callback)
-    } else {
-      var watched = this._watched[name];
-      for (var i = 0, fn; fn = watched[i++];) {
-        if (fn == callback || fn.callback == callback) {
-          watched.splice(i, 1);
-          if (value != null) fn(null, value);
-          break;
+      this.unwatch(key.substr(0, index), callback)
+    } else if (this._watched) {
+      var watched = this._watched[key];
+      var value = this[key];
+      for (var i = 0, fn; fn = watched[i]; i++) {
+        var match = fn.callback || fn;
+        if (match.push) {
+          if (!callback.push || callback[0] != match[0] || callback[1] != match[1]) continue;
+        } else if (match != callback && fn != callback) continue;
+        watched.splice(i, 1);
+        if (value != null) {
+          if (callback.call) fn(null, value);
+          else LSD.Object.callback(this, fn, key, null, value);
         }
+        break;
       }
     }
   },
   toObject: function() {
     var object = {};
-    for (var name in this) if (this.hasProperty(name)) object[name] = this[name];
+    for (var key in this) if (this.has(key)) object[key] = this[key];
     return object;
   }, 
-  hasProperty: function(name) {
-    return this.hasOwnProperty(name) && (name.charAt(0) != '_')
+  has: function(key) {
+    return this.hasOwnProperty(key) && (key.charAt(0) != '_')
   }
 };
 
+/*
+  Stack object is an object that may have its values set from multiple sources.
+  All of `set` and `unset` calls are logged, so when the value gets unset, 
+  it returns to previous value (that was set before by a different external object).
+
+  It was designed to be symetric, so every .set is paired with .unset. Originally,
+  unset raised exception when it could not find its value set before.
+  
+  That perhaps is too idealistic and doenst work in real world, so you can
+  value that was set before by some `set`/`unset` pair can be unset by an outside
+  `unset` call. Then a paired `unset` just will silently do nothing.
+*/
+
+LSD.Object.Stack = function(object) {
+  if (object) for (var key in object) this.set(key, object[key]);
+};
+
+LSD.Object.Stack.prototype = Object.append(new LSD.Object, {
+  set: function(key, value, arg) {
+    var stack = this._stack;
+    if (!stack) stack = this._stack = {};
+    var group = stack[key];
+    if (!group) group = stack[key] = []
+    var length = (value == null) ? group.unshift(value) : group.push(value);
+    return LSD.Object.prototype.set.call(this, key, group[length - 1], arg);
+  },
+  unset: function(key, value, arg) {
+    var group = this._stack[key], length = group.length;
+    for (var j = length; --j > -1; ) {
+      if (group[j] === value) {
+        group.splice(j, 1);
+        break;
+      }
+    }
+    value = group[length - 2];
+    var method = length == 1 ? 'unset' : 'set';
+    if (j == -1) return //throw "The value can not be unset, because it was not set before"
+    return LSD.Object.prototype[method].call(this, key, value, arg);
+  }
+})
+
 LSD.Object.join = function(object, separator) {
   var ary = [];
-  for (var name in object) 
-    if (object.hasProperty ? object.hasProperty(name) : object.hasOwnProperty(name)) 
-      ary.push(name);
+  for (var key in object) 
+    if (object.has ? object.has(key) : object.hasOwnProperty(key)) 
+      ary.push(key);
   return ary.join(separator)
+};
+
+LSD.Object.callback = function(object, callback, key, value, old, arg) {
+  if (callback.substr) var subject = object, property = callback;
+  else if (callback.watch) var subject = callback, property = key;
+  else if (callback.push) var subject = callback[0], property = callback[1];
+  else throw "Callbacks should be either functions, strings, objects, or [object, string] arrays"
+  if (property === true || property == false) property = key;
+  // check for circular calls
+  if (arg != null && arg.push) {
+    for (var i = 0, a; a = arg[i++];)
+      if (a[0] == object && a[1] == property) return;
+  } else arg = [];
+  arg.push([object, key]);
+  if (value != null || typeof old == 'undefined') subject.set(property, value, arg);
+  if (value == null || typeof old != 'undefined') subject.unset(property, old, arg);
 };

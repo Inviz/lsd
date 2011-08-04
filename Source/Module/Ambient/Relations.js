@@ -74,6 +74,9 @@ LSD.Relation.Traits = {
           }
         }
       }
+    },
+    states: {
+      add: Array.object('selected')
     }
   },
   
@@ -87,7 +90,6 @@ LSD.Relation.Traits = {
       return widget.pseudos.item;
     },
     states: {
-      use: Array.object('collapsed'),
       set: {
         collapsed: 'hidden'
       },

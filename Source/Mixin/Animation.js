@@ -74,4 +74,4 @@ LSD.Mixin.Animation = new Class({
   
 });
 
-LSD.Behavior.define('[animation]', LSD.Mixin.Animation);
+LSD.Behavior.define('[animation]', 'animation');

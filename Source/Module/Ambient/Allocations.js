@@ -68,8 +68,12 @@ LSD.Module.Allocations = new Class({
       delete options.parent;
       if (!parent.lsd) parent = [this, parent];
       object = this.buildLayout(options.source || options.tag, parent, options);
-      if (object.localName && options.position) {
-        Element.store(object, 'position', new LSD.Position(object, this, options.position));
+      var position = options.position;
+      if (position && object.localName) {
+        if (position.match || position.push) position = {attachment: position};
+        if (!position.anchor && position.anchor !== false) position.anchor = this;
+        if (!position.boundaries && position.boundaries !== false) position.boundaries = true;
+        Element.store(object, 'position', new LSD.Position(object, position));
       }
     };
     if (id == null) id = type;

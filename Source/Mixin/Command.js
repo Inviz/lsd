@@ -44,15 +44,10 @@ LSD.Mixin.Command = new Class({
     events: {
       _command: {
         'setDocument': function() {
+          this.getCommand();
           this.eachLink('quickstart', true, true, !this.getCommandState());
         },
       }
-    }
-  },
-  
-  constructors: {
-    command: function() {
-      if (this.getCommandType() != 'command' && !this.$states.checked) this.addState('checked');
     }
   },
   
@@ -69,6 +64,10 @@ LSD.Mixin.Command = new Class({
     this.getCommand().click();
     var method = this.getCommandState() ? 'callChain' : 'uncallChain';
     return this[method].apply(this, arguments) != false;
+  },
+  
+  unclick: function() {
+    return this.uncallChain.apply(this, arguments);
   },
   
   setCommandType: function(type) {
@@ -91,7 +90,7 @@ LSD.Mixin.Command = new Class({
   
   getCommandRadioGroup: function() {
     return this.attributes.radiogroup || this.attributes.name || this.options.radiogroup || this.captureEvent('getCommandRadioGroup');
-  },
+  }
   
 });
 
@@ -114,4 +113,4 @@ LSD.Options.commandType = {
   remove: 'unsetCommandType'
 };
 
-LSD.Behavior.define(':command, :radio, :checkbox, [accesskey]', LSD.Mixin.Command);
+LSD.Behavior.define(':command, :radio, :checkbox, [accesskey]', 'command');

@@ -52,8 +52,7 @@ LSD.Mixin.List = new Class({
             link: {
               checked: 'selected',
               selected: 'checked'
-            },
-            add: Array.object('selected', 'checked')
+            }
           },
           callbacks: {
             fill: 'fill',
@@ -96,4 +95,4 @@ LSD.Mixin.List = new Class({
 });
 
 
-LSD.Behavior.define(':list', LSD.Mixin.List);
+LSD.Behavior.define(':list', 'list');

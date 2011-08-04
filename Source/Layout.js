@@ -738,7 +738,7 @@ Object.append(LSD.Layout, {
     } 
     if (parsed.id) (options.attributes || (options.attributes = {})).id = parsed.id
     if (parsed.attributes) for (var all = parsed.attributes, attribute, i = 0; attribute = all[i++];) {
-      var value = attribute.value || LSD.Attributes.Boolean[attribute.key] || "";
+      var value = attribute.value || LSD.Attributes[attribute.key] == 'number' || "";
       (options.attributes || (options.attributes = {}))[attribute.key] = value;
     }
     if (parsed.tag != '*' && parsed.combinator != '::')

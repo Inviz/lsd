@@ -59,4 +59,4 @@ LSD.Mixin.Choice = new Class({
 });
 
 
-LSD.Behavior.define(':choice', LSD.Mixin.Choice);
+LSD.Behavior.define(':choice', 'choice');

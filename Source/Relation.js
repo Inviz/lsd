@@ -308,20 +308,18 @@ var Options = LSD.Relation.Options = {
   
   states: {
     add: function(widget, states) {
-      var get = states.get, set = states.set, add = states.add, lnk = states.link, use = states.use;
-      if (get) for (var from in get) widget.linkState(this.origin, from, (get[from] === true) ? from : get[from]);
-      if (set) for (var to in set) this.origin.linkState(widget, to, (set[to] === true) ? to : set[to]);
-      if (use) for (var to in use) this.origin.addState(widget, to, (use[to] === true) ? to : use[to]);
-      if (add) for (var index in add) widget.addState(index, add[index]);
-      if (lnk) for (var to in lnk) widget.linkState(widget, to, (lnk[to] === true) ? to : lnk[to]);
+      var get = states.get, set = states.set, add = states.add, lnk = states.link;
+      if (add) for (var index in add) widget.states.set(index);
+      if (get) for (var from in get) widget.states.watch(from, [this.origin.states, get[from]]);
+      if (set) for (var to in set) this.origin.states.watch(to, [widget.states, set[to]]);
+      if (lnk) for (var to in lnk) widget.states.watch(to, [widget.states, lnk[to]])
     },
     remove: function(widget, states) {
-      var get = states.get, set = states.set, add = states.add, lnk = states.link, use = states.use;
-      if (get) for (var from in get) widget.unlinkState(this.origin, from, (get[from] === true) ? from : get[from]);
-      if (set) for (var to in set) this.origin.unlinkState(widget, to, (set[to] === true) ? to : set[to]);
-      if (use) for (var to in use) this.origin.removeState(widget, to, (use[to] === true) ? to : use[to]);
-      if (add) for (var index in add) widget.removeState(index, add[index]);
-      if (lnk) for (var to in lnk) widget.unlinkState(widget, to, (lnk[to] === true) ? to : lnk[to]);
+      var get = states.get, set = states.set, add = states.add, lnk = states.link;
+      if (add) for (var index in add) widget.states.unset(index)
+      if (get) for (var from in get) widget.states.unwatch(from, [this.origin.states, get[from]]);
+      if (set) for (var to in set) this.origin.states.unwatch(to, [widget.states, set[to]]);
+      if (lnk) for (var to in lnk) widget.states.unwatch(to, [widget.states, lnk[to]])
     }
   },
   

@@ -9,9 +9,10 @@ license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
-requires:
-  - Ext/States
+requires: 
   - LSD.Module
+  - LSD.Object
+  - Ext/States
   
 provides: 
   - LSD.Module.States
@@ -19,10 +20,46 @@ provides:
 ...
 */
 
-LSD.Module.States = States;
+LSD.Module.States = new Class({
+  Implements: States,
+  
+  constructors: {
+    states: function() {
+      this.states = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, quiet) {
+        var known = LSD.States[name];
+        var method = value && state ? 'add' : 'remove';
+        if (known && state && (old == null || value != null)) this.addState(name);
+        if (!(old == null && value == null)) {
+          if (LSD.Attributes[name] != 'boolean') {
+            if (quiet != 'classes') this.classes[method](LSD.States[name] ? name : 'is-' + name, true);
+          } else {
+            if (quiet != 'attributes') this.attributes[method](name, true);
+          }
+          if (quiet != 'pseudos') this.pseudos[method](name, true);
+        }
+        if (known) {
+          this.setStateTo(name, value && state, null, false);
+          if (!state) this.removeState(name);
+        }
+      }.bind(this))
+    }
+  },
+
+  onStateChange: function(state, value, args, callback) {
+    var args = Array.prototype.slice.call(arguments, 0);
+    args.slice(1, 2); //state + args
+    if (callback !== false) this.states[value ? 'add' : 'remove'](state);
+    this.fireEvent('stateChange', [state, args]);
+    return true;
+  }
+});
 
 LSD.Options.states = {
-  add: 'addState',
-  remove: 'removeState',
+  add: function(name, value) {
+    this.states.set(name);
+  },
+  remove: function(name, value) {
+    this.states.unset(name);
+  },
   iterate: true
 };

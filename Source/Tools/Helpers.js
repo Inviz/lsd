@@ -33,7 +33,7 @@ Object.append(LSD, {
   
   toClassName: function(classnamed) {
     return function(string) {
-      return (classnamed[string]) || (classnamed[string] = string.replace(/(^|-)([a-z])/g, function(a, b, c) { return (b ? '.' : '') + c.toUpperCase()}))
+      return (classnamed[string]) || (classnamed[string] = string.replace(/(^|-|_)([a-z])/g, function(a, b, c) { return (b == '-' ? '.' : '') + c.toUpperCase()}))
     }
   }(LSD.classnamed = {}),
   

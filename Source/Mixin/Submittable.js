@@ -62,4 +62,4 @@ LSD.Mixin.Submittable = new Class({
   }
 });
 
-LSD.Behavior.define(':submittable', LSD.Mixin.Submittable);
+LSD.Behavior.define(':submittable', 'submittable');

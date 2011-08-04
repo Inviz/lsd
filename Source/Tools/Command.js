@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD
+  - Ext/States
  
 provides: 
   - LSD.Command
@@ -41,22 +42,56 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
   },
   
   attach: function(widget) {
-    for (var name in this.$states) {
-      this.linkState(widget, name, name, true);
-      widget.linkState(this, name, name, true);
-    }
     widget.fireEvent('register', ['command', this]);
+    if (this.disabled) widget.states.add('disabled');
+    if (!this.bound) this.bound = {}
+    if (!this.bound.enable) this.bound.enable = this.enable.bind(this);
+    if (!this.bound.disable) this.bound.disable = this.disable.bind(this);
+    if (this.type && this.type != 'command') {
+      widget.states.set('checked');
+      if (this.checked) widget.states.add('checked');
+      if (!this.bound.check) this.bound.check = this.check.bind(this);
+      if (!this.bound.uncheck) this.bound.uncheck = this.uncheck.bind(this);
+      widget.addEvent('check', this.bound.check);
+      widget.addEvent('uncheck', this.bound.uncheck);
+      if (widget.checked) this.check();
+    }
+    widget.addEvent('disable', this.bound.disable);
+    widget.addEvent('enable', this.bound.enable);
+    if (widget.disabled) this.disable();
     this.widgets.push(widget);
     return this;
   },
   
   detach: function(widget) {
     widget.fireEvent('unregister', ['command', this]);
-    for (var name in this.$states) {
-      this.linkState(widget, name, name, false);
+    if (this.disabled) widget.states.remove('disabled');
+    if (this.type && this.type != 'command') {
+      widget.states.unset('checked');
+      if (this.checked) widget.states.remove('checked');
+      widget.removeEvent('check', this.bound.check);
+      widget.removeEvent('uncheck', this.bound.uncheck);
     }
+    widget.removeEvent('disable', this.bound.disable);
+    widget.removeEvent('enable', this.bound.enable);
     this.widgets.erase(widget);
     return this;
+  },
+  
+  check: function() {
+    for (var i = 0, widget; widget = this.widgets[i++];) widget.states.add('checked');
+  },
+  
+  uncheck: function() {
+    for (var i = 0, widget; widget = this.widgets[i++];) widget.states.remove('checked');
+  },
+  
+  disable: function() {
+    for (var i = 0, widget; widget = this.widgets[i++];) widget.disable.add('disabled');
+  },
+  
+  enable: function() {
+    for (var i = 0, widget; widget = this.widgets[i++];) widget.enable.remove('disabled');
   },
   
   setType: function(type, unset) {
@@ -80,7 +115,7 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
           click: function() {
             this.toggle();
           }
-        }
+        };
         break;
         
 
@@ -114,18 +149,37 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
               if (sibling != this) {
                 sibling.uncheck();
                 if (sibling.widgets) sibling.widgets.each(function(widget) {
-                  widget.uncallChain();
+                  widget.unclick();
                 })
               }
             }, this);
           }
         };
     }
-    if (this.events) this.addEvents(this.events);
+    if (this.events) {
+      this.addEvents(this.events);
+      if (!this.bound) this.bound = {};
+      if (!this.bound.check) this.bound.check = this.check.bind(this);
+      if (!this.bound.uncheck) this.bound.uncheck = this.uncheck.bind(this);
+      for (var i = 0, widget; widget = this.widgets[i++];) {
+        widget.states.set('checked');
+        if (this.checked) widget.states.add('checked');
+        widget.addEvent('check', this.bound.check);
+        widget.addEvent('uncheck', this.bound.uncheck);
+      }
+    }
   },
   
   unsetType: function() {
     if (this.events) {
+      if (this.type != 'command') {
+        for (var i = 0, widget; widget = this.widgets[i++];) {
+          widget.states.unset('checked');
+          if (this.checked) widget.states.remove('checked');
+          widget.removeEvent('check', this.bound.check);
+          widget.removeEvent('uncheck', this.bound.uncheck);
+        }
+      }
       this.removeEvents(this.events);
       delete this.events;
     }

@@ -37,7 +37,7 @@ LSD.Mixin.Focusable = new Class({
           if (target.focuser) target.focuser.destroy();
           if (target.attributes.tabindex == -1) return;
           target.removeEvents(LSD.Mixin.Focusable.events);
-          //target.setAttribute('tabindex', target.tabindex);
+          target.setAttribute('tabindex', target.tabindex);
         }
       }
     },
@@ -85,7 +85,7 @@ LSD.Mixin.Focusable = new Class({
   },
   
   getKeyListener: function() {
-    return this.getFocuser().getKeyListener()
+    return this.isNativelyFocusable() ? this.toElement : this.getFocuser().getKeyListener()
   },
   
   isNativelyFocusable: function() {
@@ -118,4 +118,4 @@ LSD.Mixin.Focusable.Propagation = {
   }
 };
 
-LSD.Behavior.define('[tabindex][tabindex!=-1], :focusable', LSD.Mixin.Focusable);
+LSD.Behavior.define('[tabindex][tabindex!=-1], :focusable', 'focusable');

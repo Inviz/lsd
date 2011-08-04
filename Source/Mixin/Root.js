@@ -39,23 +39,19 @@ LSD.Mixin.Root = new Class({
     }
   },
   
-  constructors: {
-    root: function() {
-      this.root = this;
-      this.fireEvent('setRoot', this);
-      this.fireEvent('relate', [this, 'root']);
-      this.fireEvent('register', ['root', this]);
-    }
+  onMix: function() {
+    this.root = this;
+    this.fireEvent('setRoot', this);
+    this.fireEvent('relate', [this, 'root']);
+    this.fireEvent('register', ['root', this]);
   },
   
-  desconstructors: {
-    root: function() {
-      delete this.root;
-      this.fireEvent('unsetRoot', this);
-      this.fireEvent('unregister', ['root', this]);
-      this.fireEvent('unrelate', [this, 'root']);
-    }
+  onUnmix: function() {
+    delete this.root;
+    this.fireEvent('unsetRoot', this);
+    this.fireEvent('unregister', ['root', this]);
+    this.fireEvent('unrelate', [this, 'root']);
   }
 });
 
-LSD.Behavior.define(':root', LSD.Mixin.Root);
+LSD.Behavior.define(':root', 'root');

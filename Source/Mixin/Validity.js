@@ -35,11 +35,13 @@ provides:
 !function() {
 
 LSD.Mixin.Validity = new Class({
-  constructors: {
-    validity: function() {
-      this.setState(this.attributes.required ? 'required' : 'optional');
-      this.addEvents(LSD.Mixin.Validity.events);
-    }
+  onMix: function() {
+    this.states.add(this.attributes.required ? 'required' : 'optional');
+    this.addEvents(LSD.Mixin.Validity.events);
+  },
+  
+  onUnmix: function() {
+    this.removeEvents(LSD.Mixin.Validity.events)
   },
   
   checkValidity: function() {
@@ -91,7 +93,7 @@ LSD.Mixin.Validity.events = {
 };
 
 LSD.Mixin.Validity.message = {
-  position: 'right',
+  position: ['top', 'left'],
   parent: function() {
     return document.body
   }
@@ -121,6 +123,6 @@ var Attributes = LSD.Mixin.Validity.Attributes = {
   }
 }
 
-LSD.Behavior.define('[name], :value', LSD.Mixin.Validity);
+LSD.Behavior.define('[name], :value', 'validity');
 
 }();
