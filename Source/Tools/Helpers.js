@@ -72,7 +72,22 @@ Object.append(LSD, {
     return ary;
   } : function(list, start) {
     return Array.prototype.slice.call(list, start || 0);
-  })
+  }),
+  
+  reverseMerge: function(object, another) {
+    for (var name in another) {
+      var old = object[name], value = another[name];
+      if (old !== value) {
+        if (typeof old == 'undefined') {
+          if (!value.nodeType && !value.$family) value = Object.clone(value)
+          object[name] = value;
+        } else if (!old.nodeType && !old.$family) {
+          LSD.reverseMerge(old, value);
+        }
+      }
+    }
+    return object;
+  }
 });
 
 if (!window.console) window.console = {};

@@ -33,7 +33,7 @@ LSD.Module.Tag = new Class({
       var self = this;
       this.mixins = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old) {
         if (state) {
-          if (old == null) return self.mixin(LSD.Mixin[LSD.toClassName(name)], true);
+          if (old == null) self.mixin(LSD.Mixin[LSD.toClassName(name)], true);
         } else {
           self.unmix(LSD.Mixin[LSD.toClassName(name)], true);
         }

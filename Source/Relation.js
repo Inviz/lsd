@@ -46,7 +46,7 @@ LSD.Relation.prototype = Object.append({
       this.target = null;
       this.memo.target = Options.target.call(this, options.target, true);
     }
-    for (name in options) {
+    for (var name in options) {
       var setter = Options[name], value = options[name];
       if (!setter || !setter.call) 
         for (var i = 0, widget; widget = this.widgets[i++];) 

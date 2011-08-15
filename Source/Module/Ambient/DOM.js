@@ -73,7 +73,7 @@ LSD.Module.DOM = new Class({
     var previous = this.previousSibling;
     var start = previous ? (previous.sourceLastIndex || previous.sourceIndex) : widget.sourceIndex || (widget.sourceIndex = 1);
     var sourceIndex = start;
-    LSD.Module.DOM.walk(this, function(node) {
+    LSD.Module.DOM.each(this, function(node) {
       node.sourceIndex = ++sourceIndex;
       if (node.sourceLastIndex) node.sourceLastIndex += start;
       for (var parent = widget; parent; parent = parent.parentNode) {
@@ -89,7 +89,7 @@ LSD.Module.DOM = new Class({
   
   unsetParent: function(widget, index) {
     if (!widget) widget = this.parentNode;
-    LSD.Module.DOM.walk(this, function(node) {
+    LSD.Module.DOM.each(this, function(node) {
       widget.dispatchEvent('nodeRemoved', node);
     });
     this.fireEvent('unregister', ['parent', widget]);
@@ -103,10 +103,15 @@ LSD.Module.DOM = new Class({
   appendChild: function(child, override) {
     // set parent first, so when child is possibly built via toElement call, it notifies parents
     child.parentNode = this;
+    var result = this.captureEvent('appendChild', arguments);
+    if (result === false) return false;
     if (!child.quiet && override !== false) {
       var element = this.toElement();
       if (child.getParentElement) element = child.getParentElement(this.element, this);
-      if (override && override.call) override = override(element, child.toElement());
+      if (override && override.call) {
+        override = override(element, child.toElement());
+        if (override == null) override = false;
+      }
       if (override !== false) (override || element).appendChild(child.toElement());
     }
     delete child.parentNode;
@@ -225,10 +230,6 @@ LSD.Module.DOM = new Class({
   unwatchInjection: function(callback) { 
     this.removeEvent('setDocument', callback);
   },
-  
-  onElementDispose: function() {
-    if (this.parentNode) this.dispose();
-  },
 
   dispose: function() {
     var parent = this.parentNode;
@@ -272,8 +273,16 @@ var unset = function(widget, index) {
   if (parent.lastChild == this) parent.lastChild = previous;
 };
 
-var inserters = {
+/*
+  `inject` and `grab` methods accept optional argument that defines
+  the position where the element should be placed.
+  
+  These are the unedited duplicate of mootools element inserters.
+  All of the manipilations boil down to either `insertBefore` or
+  `appendChild`.
+*/
 
+var inserters = {
   before: function(context, element){
     var parent = element.parentNode;
     if (parent) return parent.insertBefore(context, element);
@@ -291,37 +300,79 @@ var inserters = {
   top: function(context, element){
     return element.insertBefore(context, element.firstChild);
   }
-
 };
 
-LSD.Module.Events.addEvents.call(LSD.Module.DOM.prototype, {
-  destroy: function() {
-    if (this.parentNode) this.dispose();
+Object.append(LSD.Module.DOM, {
+  dispose: function(target) {
+    
   },
   
-  element: {
-    /*
-      When dispose event comes from the element, 
-      it is is already removed from dom
-    */
-    dispose: 'onElementDispose'
-  }
-});
-
-Object.append(LSD.Module.DOM, {
-  walk: function(element, callback, bind, memo) {
-    var widget = element.lsd ? element : LSD.Module.DOM.find(element, true);
+  destroy: function(target) {
+    var node = LSD.Module.DOM.identify(target);
+    LSD.Module.DOM.walk(node.element, function(element) {
+      var widget = element.uid && LSD.Module.DOM.find(element, true);
+      if (widget) widget.destroy(true);
+    });
+    Element.destroy(node.element);
+  },
+  
+  clone: function(target, parent, before) {
+    var node = LSD.Module.DOM.identify(target);
+    parent = (parent === true) ? [node.parent, node.element.parentNode] : parent || false;  
+    before = before === true ? node.element : before || node.element.nextSibling;
+    return node.parent.layout.render(node.element, parent, {clone: true}, {before: before});
+  },
+  
+  setDocument: function(node, document, revert) {
+    LSD.Module.DOM.each(node, function(child) {
+      if (revert) {
+        delete child.ownerDocument;
+        delete child.document;
+      } else child.ownerDocument = child.document = document;
+      child.fireEvent(revert ? 'unregister' : 'register', ['document', document]);
+      child.fireEvent(revert ? 'unsetDocument' : 'setDocument', document);
+    });
+  },
+  
+  walk: function(target, callback, bind, memo) {
+    if (target.lsd) target = target.element || target.toElement();
+    var result = callback.call(bind || this, target, memo);
+    if (result !== false)
+      for (var nodes = target.childNodes, node, i = 0; node = nodes[i]; i++) 
+        if (node.nodeType == 1) LSD.Module.DOM.walk(node, callback, bind, memo);
+    return memo;
+  },
+  
+  each: function(target, callback, bind, memo) {
+    var widget = target.lsd ? target : LSD.Module.DOM.find(target, true);
     if (widget) {
       var result = callback.call(bind || this, widget, memo);
+      if (result === false) return memo;
       if (result) (memo || (memo = [])).push(widget);
     }
-    for (var nodes = element.childNodes, node, i = 0; node = nodes[i]; i++) 
-      if (node.nodeType == 1) LSD.Module.DOM.walk(node, callback, bind, memo); 
+    for (var nodes = target.childNodes, node, i = 0; node = nodes[i]; i++) 
+      if (node.nodeType == 1) LSD.Module.DOM.each(node, callback, bind, memo); 
     return memo;
   },
   
   find: function(target, lazy) {
     return target.lsd ? target : ((!lazy || target.uid) && Element[lazy ? 'retrieve' : 'get'](target, 'widget'));
+  },
+  
+  identify: function(target) {
+    var widget = LSD.Module.DOM.find(target);
+    if ((target.lsd ? widget : widget && widget.element) == target) 
+      return {element: widget.element, widget: widget, parent: widget.parentNode};
+    else 
+      return {element: target, parent: widget};
+  },
+
+  getID: function(target) {
+    if (target.lsd) {
+      return target.attributes.itemid;
+    } else {
+      return target.getAttribute('itemid');
+    }
   },
   
   findNext: function(target) {
@@ -336,25 +387,6 @@ Object.append(LSD.Module.DOM, {
             else stack.push(item.parentNode);
           }
     return widget;
-  },
-  
-  getID: function(target) {
-    if (target.lsd) {
-      return target.attributes.itemid;
-    } else {
-      return target.getAttribute('itemid');
-    }
-  },
-  
-  setDocument: function(node, document, revert) {
-    LSD.Module.DOM.walk(node, function(child) {
-      if (revert) {
-        delete child.ownerDocument;
-        delete child.document;
-      } else child.ownerDocument = child.document = document;
-      child.fireEvent(revert ? 'unregister' : 'register', ['document', document]);
-      child.fireEvent(revert ? 'unsetDocument' : 'setDocument', document);
-    });
   }
 });
 

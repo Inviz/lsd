@@ -32,50 +32,58 @@ LSD.Module.Proxies = new Class({
   
   removeProxy: function(name, proxy) {
     this.proxies.erase(proxy);
-  },
-  
-  proxyChild: function(child) {
-    for (var i = 0, proxy; proxy = this.proxies[i++];) {
-      if (!proxy.condition.call(this, child)) continue;
-      var self = this;
-      var reinject = function(target) {
-        var where = proxy.where && proxy.where.call ? proxy.where.call(self, child) : proxy.where;
-        if (proxy.rewrite === false) {
-          self.appendChild(child, function() {
-            target.grab(child, where);
-          }, true);
-        } else {
-          child.inject(target, where);
-        }
-      };
-      var container = proxy.container;
-      if (container.call) {
-        if ((container = container.call(this, reinject))) reinject(container);
-      } else {
-        this.use(container, reinject)
-      }
-      return true;
+  }
+});
+
+Object.append(LSD.Module.Proxies, {
+  match: function(node, proxy, parent) {
+    if (node.lsd) {
+      if (!node.element) node.toElement();
+      if (proxy.selector) return proxy.selector === true || node.match(proxy.selector);
+    } else {
+      if (proxy.mutation) return proxy.mutation === true || (node.nodeType == 1 && Slick.matchNode(node, proxy.mutation, parent || proxy.element))
+      if (proxy.text) return node.nodeType == 3;
     }
   },
   
-  appendChild: function(widget, adoption, proxy) {
-    var element = widget.element || widget;
-    var parent = element.parentNode;
-    if (proxy !== true && !this.canAppendChild(widget)) {
-      if (element == parent) {
-        if (widget.parentNode) widget.dispose();
-        else if (widget.element.parentNode) widget.element.dispose();
-      }
+  invoke: function(parent, child, proxy, memo) {
+    if (proxy.callback) proxy.callback.call(parent, child, proxy, memo);
+    var container = proxy.container && proxy.container.call ? proxy.container.call(parent, child, proxy) : proxy.container;
+    if (container === false) {
+      if (!proxy.queued) proxy.queued = [];
+      proxy.queued.push(child);
+      if (child.parentNode) child.parentNode.removeChild(child);
       return false;
-    };
-    return LSD.Module.DOM.prototype.appendChild.call(this, widget, adoption);
-  },
-  
-  canAppendChild: function(child) {
-    return !this.proxyChild(child);
+    }
+    var result = {};
+    if (container && container !== true) {
+      if (child.lsd) {
+        if (container.localName) {
+          result.override = function(parent, child) {
+            container.appendChild(child);
+          }
+        }
+        if (container.lsd) result.parent = container;
+        else result.parent = [parent[0] || parent, container];
+        if (proxy.rewrite === false) result.parent[0] == parent[0] || parent;
+      } else {
+        result.parent = container;
+      }
+    }
+    if (proxy.before) result.before = proxy.before.call ? proxy.before.call(parent, child, proxy) : proxy.before;
+    else if (proxy.after) {
+      var after = (proxy.after.call ? proxy.after.call(parent, child, proxy) : proxy.after);
+      if (after) result.before = after.nextSibling;
+    }
+    return result;
   }
-  
 });
+
+LSD.Module.Proxies.events = {
+  appendChild: function(child) {
+    
+  }
+}
 
 LSD.Options.proxies = {
   add: 'addProxy',

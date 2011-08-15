@@ -105,7 +105,7 @@ Combinators['&&'] = Combinators['$$'];
 for (var combinator in Combinators) 
   if (combinator != '::') Combinators[combinator + '::'] = Combinators['::'];
 
-for (name in Combinators) Slick.defineCombinator(name, Combinators[name]);
+for (var name in Combinators) Slick.defineCombinator(name, Combinators[name]);
 
 LSD.Module.Selectors.Features = {
   brokenStarGEBTN: false,

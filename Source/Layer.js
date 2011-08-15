@@ -63,7 +63,7 @@ LSD.Layer.prototype = {
     }
     layer.commands = commands;
     widget.shapes[this.name] = layer;
-    for (command in commands) {
+    for (var command in commands) {
       var value = commands[command];
       if (layer[command] && command != 'move') {
         if (!value || !previous || !Object.equals(previous[command], value)) layer[command][value && value.push ? 'apply' : 'call'](layer, value);

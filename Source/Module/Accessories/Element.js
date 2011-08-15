@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Module
   - LSD.Module.Events
+  - LSD.Layout
 
 provides: 
   - LSD.Module.Element
@@ -46,6 +47,13 @@ LSD.Module.Element = new Class({
     if (!this.built) this.build();
     this.fireEvent('register', ['element', this.element]);
     if (this.options.key) this.element.store(this.options.key, this).fireEvent('attach', this);
+    /*
+      Extracts and sets layout options from attached element
+    */
+    if (!this.extracted && this.options.extract !== false && (!this.built || this.origin)) {
+      this.extracted = LSD.Module.Element.extract(element, this);
+      this.setOptions(this.extracted);
+    }
     return this.element;
   },
 
@@ -53,6 +61,13 @@ LSD.Module.Element = new Class({
     this.fireEvent('unregister', ['element', this.element]);
     if (this.options.key) this.element.eliminate(this.options.key, this).fireEvent('detach', this)
     delete this.element;
+    /*
+      Unsets options previously extracted from the detached element
+    */
+    if (this.extracted) {
+      this.unsetOptions(this.extracted);
+      delete this.extracted, delete this.origin;
+    }
   },
   
   toElement: function(){
@@ -70,6 +85,7 @@ LSD.Module.Element = new Class({
     element = query.element = element || this.element;
     var options = this.options;
     this.fireEvent('beforeBuild', query);
+    if (element) LSD.Module.Element.validate(this, query);
     if (this.parentNode) this.parentNode.dispatchEvent('beforeNodeBuild', [query, this]);
     var build = query.build;
     delete query.element, delete query.build;
@@ -88,11 +104,12 @@ LSD.Module.Element = new Class({
         if (name != 'type' || tag != 'input') 
           element.setAttribute(name, attrs[name] === true ? name : attrs[name]);
     }
-    var classes = LSD.Object.join(this.classes, ' ');
-    if (this.tagName != tag) classes = 'lsd ' + this.tagName + ' ' + classes;
-    if (classes.length) this.element.className = classes;
-
+    var classes = [];
+    if (this.tagName != tag) classes.push('lsd ', this.tagName);
+    for (var name in this.classes) if (this.classes.has(name)) classes.include(name);
+    if (classes.length) this.element.className = classes.join(' ');
     if (this.style) for (var property in this.style.element) this.element.setStyle(property, this.style.element[property]);
+    this.attach(this.element);
     return this.element;
   },
   
@@ -102,7 +119,7 @@ LSD.Module.Element = new Class({
     if (element && element.tag) return element.tag;
     if (!soft) switch (options.inline) {
       case null:
-        return this.tagName;
+        return LSD.Layout.NodeNames[this.tagName] ? this.tagName : "div";
       case true:
         return "span";
       case false:
@@ -114,7 +131,9 @@ LSD.Module.Element = new Class({
   
   destroy: function() {
     this.fireEvent('beforeDestroy');
+    if (this.parentNode) this.dispose();
     this.element.destroy();
+    this.detach();
     return this;
   },
   
@@ -163,61 +182,35 @@ LSD.Module.Element.extract = function(element, widget) {
   }
   if (i == 1) delete options.attributes;
   return options;
-}
+};
+
+/*
+  Extract options off from widget and makes it rebuild element if it doesnt fit.
+*/
+LSD.Module.Element.validate = function(widget, query) {
+  if (widget.options.extract !== false || widget.options.clone) {
+    widget.extracted = LSD.Module.Element.extract(query.element, widget);
+    widget.setOptions(widget.extracted);
+    Object.merge(query, widget.extracted);
+  }
+  var tag = widget.getElementTag(true);
+  if (widget.options.clone || (tag && LSD.toLowerCase(query.element.tagName) != tag)) {
+    widget.origin = query.element;
+    query.tag = tag;
+    query.build = true;
+  }
+};
 
 LSD.Module.Element.events = {
   /*
-    A lazy widget will not attach to element until it's built or attached
+    Preparation happens when widget is initialized. If element was passed into
+    constructor, it will go through a build/attach routine from the start. 
+    
+    A widget may be set to defer the attachment with a `lazy` option set to true. 
   */
   prepare: function(options, element) {
     if (options.lazy) this.origin = element;
     else if (element) this.build(element);
-  },
-  /*
-    If a the widget was built before it was attached, attach it after the build
-  */
-  build: function() {
-    this.attach.apply(this, arguments);
-  },
-  /*
-    Detaches element when it's destroyed
-  */
-  destroy: function() {
-    this.detach.apply(this, arguments);
-  },
-  /*
-    Extracts and sets layout options from attached element
-  */
-  attach: function(element) {
-    if (!this.extracted && this.options.extract !== false && (!this.built || this.origin)) {
-      this.extracted = LSD.Module.Element.extract(element, this);
-      this.setOptions(this.extracted);
-    }
-  },
-  /*
-    Unsets options previously extracted from the detached element
-  */
-  detach: function() {
-    if (!this.extracted) return;
-    this.unsetOptions(this.extracted);
-    delete this.extracted, delete this.origin;
-  },
-  /*
-    Extract options off from widget and makes it rebuild element if it doesnt fit.
-  */
-  beforeBuild: function(query) {
-    if (!query.element) return;
-    if (this.options.extract !== false || this.options.clone) {
-      this.extracted = LSD.Module.Element.extract(query.element, this);
-      this.setOptions(this.extracted);
-      Object.merge(query, this.extracted);
-    }
-    var tag = this.getElementTag(true);
-    if (this.options.clone || (tag && LSD.toLowerCase(query.element.tagName) != tag)) {
-      this.origin = query.element;
-      query.tag = tag;
-      query.build = true;
-    }
   }
 };
 

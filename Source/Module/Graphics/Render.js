@@ -52,7 +52,7 @@ LSD.Module.Render = new Class({
   */
   
   update: function(recursive) {
-    if (recursive) LSD.Module.DOM.walk(this, function(widget) {
+    if (recursive) LSD.Module.DOM.each(this, function(widget) {
       widget.update();
     });
   },

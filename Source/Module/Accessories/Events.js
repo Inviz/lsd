@@ -90,7 +90,7 @@ var Events = Object.append(LSD.Module.Events, {
       var events = this.events[name], initial = !events;
       if (!events) events = this.events[name] = {};
       var bound = this.lsd ? this.bindEvents(fn) : fn;
-      for (event in bound) {
+      for (var event in bound) {
         var group = (events[event] || (events[event] = []));
         if (revert) {
           var i = group.indexOf(bound[event]);
@@ -185,7 +185,7 @@ var Events = Object.append(LSD.Module.Events, {
       if (!(event = events[i])) continue;
       if (!method) var method = Type.isEnumerable(args) ? 'apply' : 'call';
       var result = event[method](this, args);
-      if (result) return result;
+      if (result != null) return result;
     }
   },
   
@@ -344,7 +344,7 @@ LSD.Options.events = {
 
 Class.Mutators.$events = function(events) {
   var category = this.prototype.$events || (this.prototype.$events = {});
-  for (name in events) {
+  for (var name in events) {
     var type = category[name] || (category[name] = []);
     type.push.apply(type, events[name]);
   }
@@ -352,7 +352,7 @@ Class.Mutators.$events = function(events) {
 
 Class.Mutators.events = function(events) {
   var category = this.prototype.events || (this.prototype.events = {});
-  for (label in events) {
+  for (var label in events) {
     var group = events[label];
     var type = category[label] || (category[label] = {});
     for (var name in group) {

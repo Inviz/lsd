@@ -65,7 +65,7 @@ LSD.Module.Options = new Class({
 });
 
 LSD.Module.Options.setOption = function(name, value, unset, context) {
-  setter = (context || LSD.Options)[name];
+  var setter = (context || LSD.Options)[name];
   if (!setter) {
     Object.merge(this.options, name, value);
     return this;

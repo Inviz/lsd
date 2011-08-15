@@ -47,7 +47,7 @@ LSD.Mixin.Validity = new Class({
   checkValidity: function() {
     var validity = this.validity = {};
     var value = this.getValue();
-    for (attribute in Attributes) {
+    for (var attribute in Attributes) {
       var constraint = this.attributes[attribute]
       if (!constraint) continue;
       var result = Attributes[attribute].call(this, value, constraint)

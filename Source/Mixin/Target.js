@@ -31,7 +31,6 @@ provides:
             if (chain.selector) {
               chain.target = function(callback, state, revert) {
                 if (chain.selector.expressions[0][0].combinator.charAt(0) != '$') {
-                  console.log('watchin nigga', chain.selector, this.lsd)
                   this[(state == true && revert) ? 'unwatch' : 'watch'](chain.selector, callback);
                   return true;
                 } else {

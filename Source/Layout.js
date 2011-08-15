@@ -33,82 +33,85 @@ provides:
   extract attributes and classes from elements. 
 */
 
-LSD.Layout = function(widget, layout, options) {
+LSD.Layout = function(widget, layout, memo) {
   this.origin = widget;
-  this.setOptions(options);
-  this.context = LSD[this.options.context.capitalize()];
   if (widget) if (!layout && !widget.lsd) {
     layout = widget;
     widget = null;
   } else if (!widget.lsd) widget = this.convert(widget);
-  if (layout) this.render(layout, widget);
+  if (layout) this.render(layout, widget, memo);
 };
 
-LSD.Layout.prototype = Object.append(new Options, {
-  
-  options: {
-    clone: false,
-    context: 'element',
-    interpolate: null
-  },
-  
+LSD.Layout.context = 'element';
+
+LSD.Layout.prototype = Object.append({
   $family: Function.from('layout'),
   
-  render: function(layout, parent, opts, memo) {
+  render: function(layout, parent, memo) {
     if (layout.getLayout) layout = layout.getLayout();
     var type = (layout.push) ? 'array' : (layout.item && ('length' in layout)) ? 'children' : 
       layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : layout.indexOf ? 'string' : 'object';
-    var result = this[type](layout, parent, opts, memo);
+    var result = this[type](layout, parent, memo);
     if (!this.result) this.result = result;
     return result;
   },
   
   // type handlers
   
-  array: function(array, parent, opts, memo) {
+  array: function(array, parent, memo) {
     for (var i = 0, result = [], length = array.length; i < length; i++) 
-      result[i] = this.render(array[i], parent, opts, memo)
+      result[i] = this.render(array[i], parent, memo)
     return result;
   },
   
-  element: function(element, parent, opts, memo) {
+  /*
+    Process single element. The ultimate goal is to create a widget to be used with the given
+    element. But if the widget is not found, the element may still be used as a source of 
+    microdata, or as an intermediate node in a complex mutation. It also handles cloning of nodes.
+    
+    If a method is invoked on an element directly, it postpones a processing and enters a `walk` 
+    loop instead. The walk loop takes care about all the child node iteration and prepares the
+    meta information to process an element in correct context of parents and siblings. Then it
+    calls `element` method back with all the data in `memo`.
+    
+    An element then goes through a `match` routine, which iterates through things on the stack
+    and matches selectors against a node. There are two results of this action:
+      
+    * A node may be mutated into a widget, if the mutation selector matches. A mutation provides
+      options for the widget, to be initialized shortly after. If multiple mutations match, their
+      options are merged together.
+    * A node may advance complex mutation selectors. If a node is a `<li>` element, and there's a
+      `li > a` selector on the stack, the match creates a new mutation `> a` to be used for 
+      childnodes of the `<li>` element.
+      
+    If there was a succesful mutation a widget is created. Otherwise, function attempts to convert
+    the node into widget (if the node is `<input type=text>` it will try to find `Input.Text` and 
+    `Input` widgets). If there was no widget, but the layout is set to clone with `memo.clone`, 
+    it clones the node.
+    
+    Then, it appends the result (widget or node) into a parent node.
+  */
+  
+  element: function(element, parent, memo) {
     // Prepare options and run walker (once per element tree)
-    if (!opts || !opts.lazy) return this.walk(element, parent, opts, memo);
-    /*
-      Match all selectors in the stack and find a right mutation
-    */
-    var stack = memo.stack, index = stack.length;
-    if (index) {
-      var mutation, advanced, tagName = LSD.toLowerCase(element.tagName);
-      for (var i = index, item, result, ary = ['*', tagName]; item = stack[--i];)
-        for (var j = 0, value = item[1] || item, tag; tag = ary[j++];)
-          if ((group = value[tag]))
-            for (var k = 0, possibility, sel; possibility = group[k++];) {
-              var result = possibility[1];
-              if ((!mutation || (result && !result.indexOf)) && (sel = possibility[0])) {
-                if ((!sel.id && !sel.classes && !sel.attributes && !sel.pseudos) ? (tagName == sel.tag || j == 0) :
-                  (Slick.matchSelector(element, sel.tag, sel.id, sel.classes, sel.attributes, sel.pseudos)))
-                  if (!result || !result.call || (result = result(element)))
-                    if (!result || !result.push) {
-                      mutation = result || true;
-                    } else (advanced || (advanced = [])).push(result);
-              }
-            }
-      if (advanced) memo.advanced = advanced;
-    }
-    var converted = element.uid && Element.retrieve(element, 'widget');
-    var cloning = (opts && opts.clone) || this.options.clone, group;
+    if (!memo || !memo.walking) return this.walk(element, parent, memo);
+    this.match(element, memo);
+    var group, converted = element.uid && Element.retrieve(element, 'widget');
     var ascendant = parent[0] || parent, container = parent[1] || parent.toElement();
     // Create, clone or reuse a widget.
     if (!converted) {
-      if (mutation) {
-        var options = Object.append({}, opts, mutation.indexOf ? LSD.Layout.parse(mutation) : mutation);
-        var widget = this.context.create(element, options);
+      if (!memo.defaults) memo.defaults = this.getOptions(memo, parent);
+      // Retrieve the widget type object that finds the appropriate classes for widgets
+      if (!memo.type) memo.type = this.getType(memo, parent);
+      if (memo.options) {
+        // If there are options produced by the selector matching routine, it's a widget
+        var widget = memo.type.create(element, memo.options);
       } else {
-        var widget = this.context.convert(element, opts);
+        // Otherwise, try converting the element (will turn <input type=date> into Input.Date)
+        var widget = memo.type.convert(element, memo.defaults);
       }
     } else {
-      var widget = cloning ? converted.cloneNode(false, opts) : converted;
+      var widget = memo.clone ? converted.cloneNode(false) : converted;
     }
     // Append widget into parent widget without moving elements
     if (widget) {
@@ -119,25 +122,34 @@ LSD.Layout.prototype = Object.append(new Options, {
         return false;
       });
     } else {
-      if (cloning) var clone = element.cloneNode(false);
-      if (cloning || (ascendant.origin ? (ascendant.origin == element.parentNode) : (!element.parentNode || element.parentNode.nodeType == 11))) 
-        this.appendChild(container, clone || element, memo);
+      if (memo.clone) var clone = element.cloneNode(false);
+      this.appendChild(container, clone || element, memo);
     }
     return widget || clone || element;
   },
   
-  children: function(children, parent, opts, memo) {
+  /*
+    Process child nodes of an element. Child node collection is actually an array,
+    and should be given to the function as array. What makes `children` different from
+    `array` is that it keeps track of sibling combinators like `~` and `+` and maintains
+    the mutation stack, by collecting mutations and proxies from parent widget via `push` 
+    & `pop`
+  */
+  
+  children: function(children, parent, memo) {
     if (!memo) memo = {};
-    var stack = memo.stack = this.pushMutations(parent, memo.stack);
+    if (!memo.type) memo.type = this.getType(memo, parent);
+    var widget = (!parent[1] || parent[1] == parent[0].element);
+    if (widget) this.push(parent, memo);
     for (var j = children.length - 1, child; j > -1 && (child = children[j]) && child.nodeType != 1; j--);
-    var args = [null, parent, opts, memo];
+    var args = [null, parent, memo];
     for (var i = 0, child, previous, result = []; child = children[i]; i++) {
       /*
         Pick up selectors targetting on a node's next siblings
       */
       if (previous && i) {
-        if ((group = previous.mutations['~'])) stack.push(['~', group]);
-        if ((group = previous.mutations['+'])) stack.push(['+', group]);
+        if ((group = previous.mutations['~'])) memo.stack.push(['~', group]);
+        if ((group = previous.mutations['+'])) memo.stack.push(['+', group]);
       }
       memo.last = (i == j);
       memo.first = (i == 0);
@@ -145,28 +157,45 @@ LSD.Layout.prototype = Object.append(new Options, {
       /*
         If the child is element, walk it again and render it there, otherwise render it right away
       */
-      previous = (child.nodeType == 1 ? this.walk : this.render).apply(this, args);
-      if (!previous.lsd) previous = null;
+      if (child.nodeType == 1) {
+        previous = this.walk.apply(this, args);
+        if (!previous.lsd) previous = null;
+      } else {
+        this[LSD.Layout.NodeTypes[child.nodeType]].apply(this, args);
+        previous = null;
+      }
     }
-    
     delete memo.last; delete memo.first;
-    this.popMutations(parent, stack)
+    if (widget) this.pop(parent, memo)
     return children;
   },
   
-  textnode: function(element, parent, opts) {
-    var cloning = (opts && opts.clone || this.options.clone);
-    if (cloning) var clone = element.cloneNode();
-    this.appendChild(parent, clone || element);
-    LSD.Interpolation.textnode(clone || element, this.options.interpolate, parent[0] || parent);
+  /*
+    Process a single textnode. It may be cloned and/or interpolated. Interpolation is a process
+    of finding variable expressions in text content. LSD uses `{hello}` syntax to embed variables
+    in text. There are multiple ways of adding values for those variables in widgets - selectors,
+    field values, microdata and custom dictionaries.
+  */
+  
+  textnode: function(element, parent, memo) {
+    if (memo && memo.clone) var clone = element.cloneNode(false);
+    this.appendChild(parent, clone || element, memo);
+    LSD.Interpolation.textnode(clone || element, parent[0] || parent);
     return clone || element;
   },
   
-  comment: function(comment, parent, opts, memo) {
+  /*
+    Process a single comment node. LSD uses comments as boundaries of conditional blocks of HTML.
+    A comment like `<!-- if hello -->` will make all contents after the comment definition on that
+    level be displayed only if `hello` expression evaluates to true. Expressions are in fact
+    interpolations that are bound to show or hide parts of layout.
+  */
+  
+  comment: function(comment, parent, memo) {
     var keyword = Element.retrieve(comment, 'keyword');
     this.appendChild(parent, comment, memo);
     if (keyword) return keyword === true ? comment : keyword;
-    else keyword = this.keyword(comment.nodeValue, parent, opts, memo, comment);
+    else keyword = this.keyword(comment.nodeValue, parent, memo, comment);
     if (keyword) {
       Element.store(comment, 'keyword', keyword);
       if (keyword !== true) (memo.branches || (memo.branches = [])).push(keyword);
@@ -174,58 +203,152 @@ LSD.Layout.prototype = Object.append(new Options, {
     } else return comment;
   },
   
-  fragment: function(element, parent, opts) {
-    return this.children(element.childNodes, parent, opts);
+  /*
+    Process a document fragment. The best way to build and process HTML DOM elements is to do
+    all the things in memory first, and then inject the already-prepared element tree into the
+    document. Fragments are used to create a virtual DOM tree from a HTML string via 
+    document.createFragment(html). They are also useful, because they can operate on multiple nodes
+    coming from a fragment. So there may be more than one root node parsed from HTML, but they
+    are processed as a single fragment node.
+  */
+  
+  fragment: function(element, parent, memo) {
+    return this.children(LSD.slice(element.childNodes), parent, memo);
   },
   
-  string: function(string, parent, opts) {
+  /*
+    Creates a text node from a string and try to interpolate it.
+  */
+  
+  string: function(string, parent, memo) {
     var element = parent[1] || parent.toElement();
     var textnode = element.ownerDocument.createTextNode(string);
-    this.appendChild(element, textnode);
-    LSD.Interpolation.textnode(textnode, this.options.interpolate, parent[0] || parent);
+    this.appendChild(element, textnode, memo);
+    LSD.Interpolation.textnode(textnode, parent[0] || parent);
     return textnode;
   },
   
-  object: function(object, parent, opts, memo) {
+  /*
+    Create from a javascript object layout template. 
+  */
+  
+  object: function(object, parent, memo) {
     var result = {}, layout, branch;
     for (var selector in object) {
-      layout = object[selector] === true ? null : object[selector];
+      layout = object[selector] === true || !object[selector] ? null : object[selector];
       if (!memo) memo = {};
-      if ((branch = this.keyword(selector, parent, opts, memo))) {
+      if ((branch = this.keyword(selector, parent, memo))) {
         (memo.branches || (memo.branches = [])).push(branch);
-        branch.setLayout(layout);
+        branch.setLayout(layout, true);
         result[selector] = [branch, layout];
       } else {
-        if (branch && memo && memo.branches && memo.branches[memo.branches.length - 1] == branch) memo.branches.pop();
-        var rendered = this.selector(selector, parent, opts);
-        result[selector] = [rendered, !layout || this.render(layout, rendered.lsd ? rendered : [parent[0] || parent, rendered], null, opts)];
+        if (branch && memo && memo.branches && memo.branches[memo.branches.length - 1] == branch) {
+          memo.branches.pop();
+          branch = null;
+        }
+        var rendered = this.selector(selector, parent, memo);
+        if (rendered.promise) {
+          rendered.children = layout;
+          result[selector] = [rendered, layout];
+        } else {
+          result[selector] = [rendered, !layout || this.render(layout, rendered.lsd ? rendered : [parent[0] || parent, rendered], null, memo)];
+        }
       }
     }
+    if (memo.predecessors) delete memo.predecessors;
     return result;
   },
   
-  selector: function(string, parent, opts) {
-    var options = Object.merge({context: this.options.context}, opts);
-    delete options.source;
-    Object.merge(options, LSD.Layout.parse(string, parent[0] || parent));
-    if (!options.tag || (options.tag != '*' && (options.source || this.context.find(options.tag) || !LSD.Layout.NodeNames[options.tag]))) {
+  /*
+    Builds a single node from a selector. It accepts raw selectors in form of strings
+    and also options set. The result may be either element or widget.
+    
+    The method creates widget if:
+    
+      * If a tag name is not a standart HTML element tag name. A custom tag means widget.
+      * A tag name and attributes combination matches a known widget class name 
+        in current scope. e.g. `input[type=text][kind=colorful]` matches 
+        `Input.Text.Colorful` class name. Only `type` and `kind` attribute have the 
+        subclassing semantics.
+      * Selector is given as parsed options object and `source` option is given. 
+        It makes the method skip all tests and build the widget with that source.
+        It often happens after element mutation and results in a source expression,
+        which is basically another selector that has enough information about the 
+        widget class to be used.
+      
+      If a tag name in selector has dashes which makes the method treat it like a `source`
+      option described above. For example, `p-more[name=signin]` does not imply `p` tag,
+      but `p-more` source which translates to P.More class name. If the actual class
+      object is not found by that name, a widget is created without specific role. 
+        
+      If a `memo.lazy` flag is set, the node is not rendered immediately. Function
+      returns a `Promise` object that keeps all options around. Those options later
+      may be passed to this `selector` method again to be finally built. Promise object
+      is compatible with Proxy options object and is used that way by an `object` layout
+      method. Proxies set expectation of an element that was meant to be rendered and 
+      lets other parts of layout to be rendered. While those parts are rendered,
+      the elements being processed and matched against all promise expectations.
+      That allows layout engine to reuse DOM nodes that happen to match the selector
+      instead of building its own new DOM nodes. 
+  */
+  
+  selector: function(string, parent, memo) {
+    if (string.match) var options = LSD.Layout.parse(string, parent);
+    else var options = string;
+    if (!memo) memo = {};
+    if (!memo.type) memo.type = this.getType(memo, parent);
+    var source = options.source;
+    if (source && source.match && !source.match(LSD.Layout.rSimpleSource)) {
+      delete options.source;
+      Object.merge(options, LSD.Layout.parse(source, parent));
+    }
+    if (options.allocation || options.source || (options.tag && (memo.type.find(options.tag) || !LSD.Layout.NodeNames[options.tag]))) {
       var allocation = options.allocation;
+      // If a pseudo class is recognized as allocatable widget, 
+      // it needs to retrieve the selectors that gives additional options
       if (allocation) {
-        var widget = (parent[0] || parent).allocate(allocation.type, allocation.kind, allocation.options);
-        // Set the new parent, if an allocated node comes with the parent
-        if (widget.parentNode) {
-          if (widget.lsd) parent = [widget.parentNode, (widget.element && widget.element.parentNode) || widget.parentNode.element]
-          else parent = [parent[0] || parent, widget.parentNode];
+        if (memo.lazy) {
+          var allocated = (parent[0] || parent).preallocate(allocation);
+          // The node is prematurely built, because allocation is not lazy
+          if (allocated.nodeType) return allocated;
+          if (!allocated.source) throw "Allocation of type " + allocation.type + " did not provide `source` selector to build nodes"
+          memo.options = allocated;
+          var selector = allocated.selector || allocated.source;
+          if (options.order) selector += options.order;
+          if (options.combinator) selector = options.order + selector;
+          // Parse selector coming from allocation and pass the promise
+          return this.selector(selector, parent, memo);
+        } else {
+          var widget = (parent[0] || parent).allocate(allocation.type, allocation.kind, allocation.options);
+          if (widget.parentNode) {
+            if (widget.lsd) parent = [widget.parentNode, (widget.element && widget.element.parentNode) || widget.parentNode.element]
+            else parent = [parent[0] || parent, widget.parentNode];
+          }
         }
-      } else var widget = this.context.create(options), self = this;
+      } else {  
+        if (!memo.defaults) memo.defaults = this.getOptions(memo, parent);
+        var opts = Object.append({}, memo.defaults, memo.options, options);
+        if (memo.lazy) return new LSD.Layout.Promise(this, string, true, parent, opts, memo);
+        if (options.combinator) {
+          memo.combinator = options.combinator;
+          delete options.combinator;
+        }
+        var widget = memo.type.create(opts);
+      }
       if (widget.element && widget.element.childNodes.length) var nodes = LSD.slice(widget.element.childNodes);
-      this.appendChild(parent, widget, opts, parent[1]);
-      options = {};
-      for (var option in opts) if (LSD.Layout.Inheritable[option]) options[option] = opts[option];
-      opts = options;
-      if (nodes && nodes.length) this.children(nodes, [widget, widget.element], opts);
+      this.appendChild(parent, widget, memo, parent[1]);
+      if (nodes && nodes.length) this.children(nodes, [widget, widget.element], memo);
     } else {  
-      var props = {}, tag = (options.tag == '*') ? 'div' : options.tag;
+      if (memo.options) {
+        options = Object.merge(memo.options, options);
+        delete memo.options;
+      }
+      if (options.combinator) {
+        memo.combinator = options.combinator;
+        delete options.combinator;
+      }
+      if (memo.lazy) return new LSD.Layout.Promise(this, string, false, parent, options, memo);
+      var props = {}, tag = (!options.tag || options.tag == '*') ? 'div' : options.tag;
       if (options.id) props.id = options.id;
       var attributes = options.attributes;
       if (attributes) for (var attr, i = 0, l = attributes.length; i < l; i++){
@@ -236,14 +359,14 @@ LSD.Layout.prototype = Object.append(new Options, {
       }
       var element = document.createElement(tag);
       for (var name in props) element.setAttribute(name, props[name]);
-      if (options.classes) element.className = LSD.Object.join(options.classes, ' ');
-      if (parent) this.appendChild(parent, element);
+      if (options.classes) element.className = LSD.Object.prototype.join.call(options.classes, ' ');
+      if (parent) this.appendChild(parent, element, memo);
       if (options.content) element.innerHTML = options.content;
     }
     return widget || element;
   },
   
-  keyword: function(text, parent, opts, memo, element) {
+  keyword: function(text, parent, memo, element) {
     var parsed = LSD.Layout.extractKeyword(text);
     if (!parsed) return;
     var keyword = LSD.Layout.Keyword[parsed.keyword];
@@ -270,7 +393,6 @@ LSD.Layout.prototype = Object.append(new Options, {
       options.parent = parentbranch;
       options.widget = parent[0] || parent;
       options.element = element;
-      options.options = opts;
       return new LSD.Layout.Branch(options);
     } else {
       if (options.layout) {
@@ -280,15 +402,20 @@ LSD.Layout.prototype = Object.append(new Options, {
   },
   
   /* 
-    Remove rendered content from DOM. It only argument from DOM, keeping
-    all of its contents untouched. 
+    Remove rendered content from DOM. It only removes argument from DOM, keeping
+    all of its contents untouched.
+    
+    The function accepts all kind of arguments, but it works best when paired with
+    results of `render()`. This way the meta-constructs like conditions and loops
+    will be preserved and gracefully removed.
   */
   remove: function(layout, parent, memo) {
     return this.set(layout, parent, memo, false)
   },
 
   /*
-    Re-add once rendered content that was removed
+    Re-add once rendered content that was removed. When a `render`ed chunk of layout
+    was removed, `add` is the function that will gracefully add it back. 
   */
   add: function(layout, parent, memo) {
     return this.set(layout, parent, memo, true)
@@ -307,32 +434,80 @@ LSD.Layout.prototype = Object.append(new Options, {
         }
         break;
       case "widget": case "string":  
-        this.manipulate(state, parent, layout);
+        return this.manipulate(state, parent, layout);
     }
     return layout;
   },
   
-  manipulate: function(state, parent, child, memo) {  
-    var method = state ? 'appendChild' : 'removeChild';
-    this[method](parent, child, memo);
+  manipulate: function(state, parent, child, memo) {
+    if (state) {
+      this.appendChild(parent, child, memo);
+    } else {
+      this.removeChild(child.parentNode || parent, child, memo)
+    }
     if (child.nodeType == 8) {
       var keyword = Element.retrieve(child, 'keyword');
       if (keyword && keyword !== true) keyword[state ? 'attach' : 'detach']();
     }
+    return child;
   },
   
-  appendChild: function(parent, child, memo, override) {
-    if (parent.push) parent = parent[child.lsd ? 0 : 1] || parent;
-    if (!child.lsd && parent.lsd) parent = parent.toElement();
-    if (child.parentNode == parent) return;
-    if (memo && memo.before) {
-      var before = memo.before;
+  /*
+    Places a node in a parent node. The function appends node in the end of
+    the parent node by default. Alternatively, a node given with `memo.before` 
+    will be used as a place to insert before.
+    
+    `override` function may be used when a widget is inserted into another widget
+    but DOM manipulation should be altered in some way. 
+    
+    A function may be given proxies stack with `memo.proxies`. The stack is then
+    be iterated and proxies are matched against the child node. Upon a succesful
+    match, a proxy function returns an object with values that may specify a new
+    `parent`, `override` or `before` variables for manipulation.
+  */
+  
+  appendChild: function(parents, child, memo, override) {
+    if (parents.push) var widget = parents[0], element = parents[1];
+    else if (parents.lsd) var widget = parents, element = widget.element || widget.toElement();
+    else var element = parents;
+    var parent = child.lsd ? widget : element, before;
+    if (memo && memo.combinator) {
+      var combinator = LSD.Layout.Combinators[memo.combinator];
+      if (combinator) {
+        var result = combinator(parent, child);
+        if (result) {
+          if (result.parent) parent = result.parent;
+          if (result.before) before = result.before;
+        }
+      }
+      delete memo.combinator;
+    }
+    if (memo && memo.proxies)
+      proxy: for (var i = 0, group, proxies, close; group = memo.proxies[i++];) {
+        proxies = group[1];
+        close = element == group[0];
+        for (var j = 0, proxy; proxy = proxies[j++];) {
+          if (close || proxy.deep || proxy.element == element) {
+            if (LSD.Module.Proxies.match(child, proxy, group[0])) {
+              var result = LSD.Module.Proxies.invoke(parent, child, proxy, memo);
+              if (result) {
+                if (result.parent) parent = result.parent;
+                if (result.override) override = result.override;
+                if (result.before) before = result.before;
+                break proxy
+              } else if (result === false) return false;
+            }
+          }
+        }
+      }
+    if (before || (memo && (before = memo.before))) {
       if (!parent.lsd) {
         if (before.lsd) before = before.toElement();
         parent = before.parentNode;
       };
       parent.insertBefore(child, before, override);
     } else {
+      if (child.parentNode == parent) return;
       parent.appendChild(child, override);
     }
     if (child.lsd) {
@@ -350,52 +525,156 @@ LSD.Layout.prototype = Object.append(new Options, {
     return true;
   },
   
-  inheritOptions: function(opts) {
-    var options = {};
-    for (var option in opts) if (LSD.Layout.Inheritable[option]) options[option] = opts[option];
-    return options;
-  },
-
-  prepareOptions: function(opts) {
-    opts = Object.append({lazy: true, layout: this}, opts);
-    if (this.options.context && LSD.Widget.prototype.options.context != this.options.context)
-      opts.context = this.options.context;
-    if (this.options.interpolation) opts.interpolation = this.options.interpolation;
-    return opts;
+  /* 
+    Realize layout promises, reuse found elements and build 
+    the ones that are missing
+  */
+  realize: function(layout, memo) {
+    if (!memo) memo = {};
+    if (layout.hasOwnProperty('length')) {
+      for (var i = 0, j = layout.length, value; i < j; i++)
+        if ((value = layout[i])) layout[i] = this.realize(value, memo);
+    } else if (layout.nodeType) {
+      return;
+    } else if (!layout.promise) {
+      for (var key in layout) {
+        var row = layout[key];
+        var value = row[0]
+        var children = row[1];
+        if (value) {
+          if (value.promise) {
+            row[0] = value.result || value.realize(memo);
+            row[1] = children = value.advanced;
+          }
+          if (children && children !== true) this.realize(children, memo);
+        }
+      }
+    } else {
+      return layout.result || layout.realize(memo);
+    }
   },
   
-  pushMutations: function(parent, stack) {
-    if (stack && parent[1] && parent[1] != parent[0].element) return stack;
-    var widget = parent[0] || parent;
-    var group;
+  /*
+    Match all selectors in the stack and finds a right mutation
+  */
+  match: function(element, memo, soft) {
+    var stack = memo.stack
+    var options, advanced, tagName = LSD.toLowerCase(element.tagName);
+    /* 
+      Matching process happens twice. First time, it matches against 
+      selectors on the stack with no regard to tag name (as `*`),
+      and the other time it takes tag name into account
+    */
+    for (var i = stack.length, item, result, ary = ['*', tagName]; item = stack[--i];)
+      for (var j = 0, value = item[1] || item, tag; tag = ary[j++];)
+        if ((group = value[tag]))
+          for (var k = 0, possibility, exp; possibility = group[k++];) {
+            var exp = possibility[0], result = possibility[1];
+            if ((!exp.classes && !exp.attributes && !exp.pseudos) 
+              // Quickly match tag and id, if other things dont matter
+              ? ((j == 0 || tagName == exp.tag) && (!exp.id || element.id == exp.id))
+              // Or do a full match
+              : (Slick.matchSelector(element, exp.tag, exp.id, exp.classes, exp.attributes, exp.pseudos)))
+              /* 
+                If selector matches, proceed and execute callback
+                A callback may be a:
+                
+                * **string**, to be evaluated as a mutation selector
+                  and parsed into options
+                * **object**, with options for widget
+                * **a function**, that may return a group of mutations
+                  that should be applied to the following elements
+                * **true**, to initialize widget on that element with 
+                  no specific options.
+                  
+                An element may match more than one mutation. In 
+                that case options extracted from parsing selectors
+                will be merged together. 
+                
+                If callbacks produced options, the widget will 
+                be initialized on that element with those options.
+                
+                `soft` parameter tells matcher to skip mutations
+                and only advance selectors instead.
+              */
+              if (!result || !result.call || (result = result(element))) {
+                if (!result) result = true;
+                if (result.push) {
+                  (advanced || (advanced = [])).push(result);
+                } else if (!soft) {  
+                  if (!options) options = this.getOptions(memo);
+                  if (result !== true) 
+                    options = LSD.reverseMerge(options, result.match ? LSD.Layout.parse(result) : result);
+                }
+              }
+            }
+    if (advanced) memo.advanced = advanced;      
+    if (options) memo.options = options;
+  },
+  
+  /*
+    Collect mutations and proxies from the widget. When it is first called
+    on a memo that doesnt have things collected from parent widgets,
+    it attempts to walk up and restore the context. Restored mutation stack
+    is limited to parents, so ~ and + combinators are not processed on parent
+    nodes for speed. So only > and <space> combiantors will be collected. 
+  */
+  
+  push: function(parent, memo) {
+    var group, stack = memo.stack;
     if (stack) {
+      var widget = parent[0] || parent;
       /* 
         Collect mutations from a widget
       */
-      if (widget) {
-        if ((group = widget.mutations[' '])) stack.push([' ', group]);
-        if ((group = widget.mutations['>'])) stack.push(['>', group]);
+      if ((group = widget.mutations[' '])) stack.push([' ', group]);
+      if ((group = widget.mutations['>'])) stack.push(['>', group]);
+      if (widget.proxies) (memo.proxies || (memo.proxies = [])).push([parent[1] || parent.element, widget.proxies]);
+    } else {
+      var element = parent[1] || parent.element;
+      var stack = memo.stack = [], direct;
+      for (var parents = [], node = element; node && node.nodeType == 1; node = node.parentNode) 
+        parents.push(node);
+      for (var i = parents.length, node, widget; node = parents[--i];) {
+        this.match(node, memo, true);
+        if (direct) {
+          for (var j = 0, index; index = direct[j++];) stack.splice(index, 1);
+          direct = null;
+        }
+        if (memo.advanced) {
+          stack.push.apply(stack, memo.advanced);
+          reduce: for (var j = stack.length; group = stack[--j];) {
+            switch (group[0]) {
+              case '+': case '~':
+                stack.splice(j, 1);
+                break;
+              case '>':
+                (direct || (direct = [])).push(j);
+                break;
+              default:
+                break reduce;
+            }
+          }
+          delete memo.advanced;
+        }
+        widget = node.uid && LSD.Module.DOM.find(node, true);
+        if (widget) {
+          if ((group = widget.mutations[' '])) stack.push([' ', group]);
+          if (i == 0 && (group = widget.mutations['>'])) stack.push(['>', group]);
+          if (widget.proxies) (memo.proxies || (memo.proxies = [])).push([node, widget.proxies]);
+        }
       }
-    } else {  
-      stack = [];
-      if (widget) {
-        if ((group = widget.mutations['>'])) stack.push(group);
-        for (var node = widget, group; node; node = node.parentNode)
-          if ((group = node.mutations[' '])) stack.push(group);
-        //for (var node = ascendant; node; node = node.previousSibling) {
-        //  if ((group = node.mutations['+'])) stack.push(group);
-        //  if ((group = node.mutations['-'])) stack.push(group);
-        //}
-      }
-    }
-    return stack;
+    }  
   },
   
-  popMutations: function(parent, stack) {
-    if (parent[1] && parent[1] != parent[0].element) return stack;
-    var widget = parent[0] || parent;
-    var group;
-    if (widget && stack) {
+  /*
+    Remove proxies that were collected from given widget from 
+    current stacks.
+  */
+  
+  pop: function(parent, memo) {
+    var group, widget = parent[0] || parent, stack = memo.stack;
+    if (stack) {
       if ((group = widget.mutations[' '])) 
         for (var j = stack.length; --j > -1;)
           if (stack[j][1] == group) {
@@ -409,33 +688,41 @@ LSD.Layout.prototype = Object.append(new Options, {
             break;
           }
     }
+    if (widget.proxies && memo.proxies) {
+      for (var j = memo.proxies.length, group; group = memo.proxies[--j];)
+        if (group[1] == widget.proxies) {
+          memo.proxies.splice(j, 1);
+          break;
+        }
+    }
   },
   
-  walk: function(element, parent, opts, memo) {
-  
-    if (!opts || !opts.lazy) var prepared = opts = this.prepareOptions(opts);
-  
+  walk: function(element, parent, memo) {
     var ascendant = parent[0] || parent;
     /*
       Retrieve the stack if the render was not triggered from the root of the layout
     */
     if (!memo) memo = {};
+    memo.walking = true;
     var stack = memo.stack;
-    if (!stack) stack = memo.stack = this.pushMutations(parent, memo.stack);
+    if (!stack) {
+      this.push(parent, memo);
+      stack = memo.stack;
+    }
     /* 
-      Render the given element
+      Render the given element (may clone element or translate it to widget)
     */
     var children = LSD.slice(element.childNodes);
-    var ret = this.element(element, parent, opts, memo);
+    var ret = this.element(element, parent, memo);
     if (ret.lsd) var widget = ret;
     else if (ret.branch) {
       (memo.branches || (memo.branches = [])).push(ret);
-    } else if (opts.clone) var clone = ret;
+    } else if (memo.clone) var clone = ret;
     /* 
-      Put away selectors in the stack that should not be matched against widget children
+      Put away selectors in the stack that should not be matched against element's child nodes
     */
     var group, direct, following;
-    for (var i = stack.length; group = stack[--i];) {
+    reduce: for (var i = stack.length; group = stack[--i];) {
       switch (group[0]) {
         case '+':
           stack.pop();
@@ -445,6 +732,9 @@ LSD.Layout.prototype = Object.append(new Options, {
           break;
         case '>':
           (direct || (direct = [])).push(stack.pop());
+          break;
+        default:
+          break reduce;
       }
     }
     /*
@@ -452,18 +742,21 @@ LSD.Layout.prototype = Object.append(new Options, {
     */
     var advanced = memo.advanced;
     if (advanced) {
-      for (var i = 0, group; group = advanced[i]; i++) {
+      map: for (var i = 0, group; group = advanced[i]; i++) {
         switch (group[0]) {
           case ' ': case '>':
             advanced.splice(i--, 1);
             stack.push(group);
             break;
+          default:
+            break map;
         }
       }
       delete memo.advanced;
     }
+    delete memo.options;
     /* 
-      Put away reversed direction option, since it does not affect child nodes
+      Put away reversed insertion direction option, because it does not affect child nodes
     */
     var before = memo.before;
     if (before) delete memo.before;
@@ -480,14 +773,10 @@ LSD.Layout.prototype = Object.append(new Options, {
     var newParent = [widget || ascendant, clone || (widget && widget.element) || element];
     var ascendant = parent[0] || parent;
     /*
-      Put away prepared options and leave only the inheritable ones
-    */
-    if (prepared) opts = this.inheritOptions(opts);
-    /*
       Iterate children
     */
     var first = memo.first, last = memo.last;
-    if (children.length) this.children(children, newParent, opts, memo);
+    if (children.length) this.children(children, newParent, memo);
     /*
       Restore reversed insertion direction
     */
@@ -501,16 +790,205 @@ LSD.Layout.prototype = Object.append(new Options, {
       Put back selectors for next siblings
     */
     if (!last) {
-      if (following) for (var i = 0; group = following[i++];) stack.push(group);
       if (direct) for (var i = 0; group = direct[i++];) stack.push(group);
+      if (following) for (var i = 0; group = following[i++];) stack.push(group);
     }
     /*
       Reduce the microdata path
     */
     if (scope) itempath.pop();
+    /*
+      Notify widget that children are processed
+    */
+    if (widget) widget.fireEvent('DOMChildNodesRendered')
     return ret;
+  },
+  
+  getOptions: function(memo, parent) {
+    return {
+      lazy: true,
+      context: memo.context || (parent && (parent[0] || parent).options.context) || LSD.Layout.context
+    };
+  },
+  
+  getType: function(memo, parent) {
+    var context = memo.context || (parent && (parent[0] || parent).options.context) || LSD.Layout.context;
+    return LSD[LSD.toClassName(context)];
   }
 });
+
+LSD.Layout.rSimpleSource = /^[a-z-_0-9]+$/;
+/*
+  Combinator methods are used in appendChild/removeChild manipulations.
+  All of those (and more) are also implemented for matching in Slick. 
+  
+  When the layout is pattern matched, Slick first looks for nodes that
+  satisfy selector expressions with combinator to reuse. But if it does
+  not find those, LSD builds them there.
+  
+  Combinators preceeded with exclaimation mark, are Slick's invention.
+  It logically inverts the meaning of combinator, so where a `+` means
+  next node, `!+` means previous node.
+*/
+LSD.Layout.Combinators = {
+  /*
+    Insert a node next to the parent
+  */
+  '+': function(parent, child) {
+    return {parent: parent.parentNode, before: parent.nextSibling};
+  },
+  /*
+    Insert a node previous to the parent
+  */
+  '!+': function(parent, child) {
+    return {parent: parent.parentNode, before: parent};
+  },
+  /*
+    Insert node as a last node at parent's level
+  */
+  '~': function(parent, child) {
+    return {parent: parent.parentNode};
+  },
+  /*
+    Inwert node as a first node at parent's level
+  */
+  '!~': function(parent, child) {
+    return {parent: parent.parentNode, before: parent.parentNode.firstChild};
+  },
+  /*
+    Insert node as a first child
+  */
+  '^': function(parent, child) {
+    return {before: parent.firstChild}
+  }
+};
+
+/*
+  ++ and ~~ combinators act as their + and ~ counterparts, but they also look
+  back too. So `++` reads as `next child or previous child`. It makes sense
+  for matching phase.
+  
+  Although, when a node is built, there's only one node that can not be inserted
+  previously to the node and next to the same node simultaneously. So they insert
+  ahead, just like `+` and `~`. 
+*/
+LSD.Layout.Combinators['++'] = LSD.Layout.Combinators['+'];
+LSD.Layout.Combinators['~~'] = LSD.Layout.Combinators['~'];
+
+/*
+  When a lazy layout is set to render selector, it creates a promise object first.
+  The promise object holds all variables required to really render the piece,
+  but it postpones the rendering to future. The promise object is used as a proxy
+  definition on widget, giving layout a chance to render other chunks of layout that
+  are not lazy. When other chunks are rendered, they are matched against current
+  proxies on a widget. And when there's a match, proxy (which is really a promise object)
+  uses the matched node to and does not build a new one.
+  
+  Then, a `layout.realize()` call sets all promised objects to render if they didnt
+  match any nodes built in other chunks of layout.
+*/
+
+LSD.Layout.Promise = function(layout, selector, lsd, parent, options, memo) {
+  selector = selector.replace(LSD.Layout.Promise.rOrderCombinator, function(whole, match) {
+    this.order = match;
+    return "";
+  }.bind(this))
+  var parsed = Slick.parse(selector), expressions = parsed.expressions[0];
+  // makes proxy deep - look into elements
+  this.deep = true;
+  this.layout = layout;
+  this.options = options;
+  this.promise = true;
+  this.lsd = lsd;
+  this[lsd ? 'selector' : 'mutation'] = selector;
+  this.widget = parent[0] || parent;
+  this.element = parent[1] || parent.element || parent.toElement();
+  this.parent = parent;
+  this.attach(memo);
+};
+LSD.Layout.Promise.rOrderCombinator = /\s*([+~])\s*$/;
+
+
+LSD.Layout.Promise.prototype = {
+  attach: function(memo) {
+    this.memo = memo;
+    if ((this.combinator = memo.combinator)) delete memo.combiantor;
+    memo.promised = true;
+    var predecessors = memo.predecessors
+    if (predecessors) {
+      this.predecessors = predecessors.slice(0);
+      this.index = this.predecessors.length;
+      // Look for previous promises that had + combinator and pair them with this promise
+      for (var i = predecessors.length, predecessor; predecessor = predecessors[--i];) {
+        if (predecessor.order == '+' && !predecessor.next) {
+          this.previous = predecessor;
+          this.previous.next = this;
+          break;
+        }
+      }
+    } else this.index = 0;
+    if (this.order) {
+      if (!predecessors) predecessors = memo.predecessors = [];
+      predecessors.push(this);
+    }
+    // promise adds itself to the widget as proxy
+    // so its properties are treated as proxy options.
+    // `callback` method is called like if it was a proxy setting
+    this.widget.addProxy('promise', this);
+  },
+  
+  detach: function() {
+    if (this.order) {
+      var predecessors = this.memo && this.memo.predecessors;
+      if (predecessors) 
+        for (var i = predecessors.length, predecessor; predecessor = predecessors[--i];)
+          if (predecessor == this) predecessors.splice(i, 1);
+    }
+    this.widget.removeProxy('promise', this)
+  },
+  
+  advance: function(memo) {
+    this.advanced = this.layout.render(this.children, this.result.lsd ? this.result : [this.widget, this.result], this.memo)
+  },
+  
+  callback: function(child, proxy, memo) {
+    proxy.realize(memo, child)
+  },
+  
+  realize: function(memo, result) {
+    this.detach();
+    var stored = this.options.stored;
+    if (stored) delete this.options.stored;
+    if (!result) {
+      if (this.previous && this.previous.result) this.before = this.previous.result.nextSibling;
+      var before = this.before;
+      if (before) {
+        var old = memo.before;
+        memo.before = before;
+      }
+      result = this.layout.selector(this.options, this.parent, memo);
+      if (this.before) memo.before = old;
+    }
+    this.result = result;
+    var predecessors = this.predecessors;
+    if (predecessors)
+      for (var i = predecessors.length, predecessor; predecessor = predecessors[--i];) {
+        var before = predecessor.before;
+        if ((predecessor.order == '+' && predecessor.next == this) || !predecessor.following || predecessor.following.index > this.index) {
+          predecessor.before = result;
+          predecessor.following = this;
+        }
+      }
+    if (this.next) this.next.after = result;
+    if (this.children) this.advance(memo);
+    if (stored && result.store) {
+      for (var name in stored) stored[name].call(this, result);
+      result.store('allocation', stored);
+      delete this.options.stored;
+    }
+  }
+};
+
 LSD.Layout.Branch = function(options) {
   this.options = options;
   this.id = ++LSD.Layout.Branch.UID;
@@ -638,11 +1116,11 @@ LSD.Layout.Branch.prototype = Object.append({
     }
     return layout;
   },
-  setLayout: function(layout) {
+  setLayout: function(layout, soft) {
     this.layout = layout.push ? this.validate(layout) : layout;
     if (this.checked) {
       this.show();
-    } else this.hide();
+    } else if (!soft) this.hide();
   },
   getLayout: function(layout) {
     return this.layout;
@@ -681,7 +1159,6 @@ LSD.Layout.NodeNames = Array.object('!doctype', 'a', 'abbr', 'acronym', 'address
 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strike', 
 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'textarea', 'tfoot', 'th', 'thead', 
 'time', 'title', 'tr', 'ul', 'var', 'video', 'wbr');
-LSD.Layout.Inheritable = Array.object('context', 'interpolation', 'clone', 'lazy');
 
 LSD.Layout.Keyword = {
   'if': function(expression) {
@@ -724,23 +1201,31 @@ Object.append(LSD.Layout, {
     var options = {};
     var expressions = (selector.Slick ? selector : Slick.parse(selector)).expressions[0];
     var parsed = expressions[0];
+    if (expressions.length > 1) var order = expressions[expressions.length - 1].combinator;
     if (parsed.combinator != ' ') {
       if (parsed.combinator == '::') {
         if (LSD.Allocations[parsed.tag]) {
-          options.allocation = LSD.Module.Allocations.prepare(parsed.tag, parsed.classes, parsed.attributes, parsed.pseudos);
+          var allocation = options.allocation = LSD.Module.Allocations.compile(parsed.tag, parsed.classes, parsed.attributes, parsed.pseudos);
+          if (allocation.options && allocation.options.source) {
+            var source = allocation.options.source;
+            delete allocation.options.source
+          }
         } else {
           var relation = (parent[0] || parent).relations[parsed.tag];
           if (!relation) throw "Unknown pseudo element ::" + parsed.tag;
           var source = relation.getSource();
-          if (source) Object.append(options, LSD.Layout.parse(source, parent[0] || parent));
-        }
+        }  
+        if (source && (!source.match || !source.match(rSIMPLE_SOURCE))) 
+          Object.merge(options, LSD.Layout.parse(source, parent));
       } else options.combinator = parsed.combinator;
-    } 
-    if (parsed.id) (options.attributes || (options.attributes = {})).id = parsed.id
-    if (parsed.attributes) for (var all = parsed.attributes, attribute, i = 0; attribute = all[i++];) {
-      var value = attribute.value || LSD.Attributes[attribute.key] == 'number' || "";
-      (options.attributes || (options.attributes = {}))[attribute.key] = value;
     }
+    if (order && order != ' ') options.order = order;
+    if (parsed.id) (options.attributes || (options.attributes = {})).id = parsed.id
+    if (parsed.attributes) 
+      for (var all = parsed.attributes, attribute, i = 0; attribute = all[i++];) {
+        var value = attribute.value || LSD.Attributes[attribute.key] == 'number' || "";
+        (options.attributes || (options.attributes = {}))[attribute.key] = value;
+      }
     if (parsed.tag != '*' && parsed.combinator != '::')
       if (parsed.tag.indexOf('-') > -1) 
         options.source = parsed.tag.split('-');
@@ -749,10 +1234,12 @@ Object.append(LSD.Layout, {
         var source = LSD.Layout.getSource(options, options.tag);
         if (source.push) options.source = source;
       }
-    if (parsed.classes) for (var all = parsed.classes, pseudo, i = 0; klass = all[i++];) 
+    if (parsed.classes) 
+      for (var all = parsed.classes, pseudo, i = 0; klass = all[i++];) 
         (options.classes || (options.classes = {}))[klass.value] = true;
-    if (parsed.pseudos) for (var all = parsed.pseudos, pseudo, i = 0; pseudo = all[i++];) 
-      (options.pseudos || (options.pseudos = {}))[pseudo.key] = true;
+    if (parsed.pseudos) 
+      for (var all = parsed.pseudos, pseudo, i = 0; pseudo = all[i++];) 
+        (options.pseudos || (options.pseudos = {}))[pseudo.key] = true;
     return options;
   },
   

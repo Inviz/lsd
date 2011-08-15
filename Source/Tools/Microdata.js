@@ -62,7 +62,7 @@ LSD.Microdata.element = function(element, widget, parent) {
         for (var node = widget; node; node = (!parent && node.parentNode)) {
           LSD.Module.Interpolations.addInterpolator.call(node, itemprop, scope);
         if (!widget.itemPropertyExportCallback) widget.itemPropertyExportCallback = function(name, value, state) {
-          if (!value.watch) widget[state ? 'addInterpolator' : 'removeInterpolator'](name, value);
+          if (!value.watch || !value.set) widget[state ? 'addInterpolator' : 'removeInterpolator'](name, value);
         }
         if (scope && widget.itemscope && widget.itemscope == scope)
           scope.addEvent('change', widget.itemPropertyExportCallback).addEvent('beforechange', widget.itemPropertyExportCallback);

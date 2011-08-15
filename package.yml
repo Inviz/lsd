@@ -71,7 +71,6 @@ sources:
   - Source/Mixin/Slider.js
   - Source/Mixin/Date.js
   - Source/Module/Ambient/Allocations.js
-  - Source/Module/Ambient/Container.js
   - Source/Module/Ambient/DOM.js
   - Source/Module/Ambient/Selectors.js
   - Source/Module/Ambient/Expectations.js

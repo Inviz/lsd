@@ -23,13 +23,6 @@ LSD.Mixin.List = new Class({
   options: {
     endless: true,
     force: false,
-    proxies: {
-      container: {
-        condition: function(widget) {
-          return !!widget.setList
-        }
-      }
-    },
     shortcuts: {
       previous: 'previous',
       next: 'next'
@@ -73,11 +66,11 @@ LSD.Mixin.List = new Class({
   },
   
   sort: function(sort) {
-    return this.getItems().sort(sort)
+    return this.items.sort(sort)
   },
   
   filter: function(filter) {
-    return this.getItems().filter(filter)
+    return this.items.filter(filter)
   },
   
   next: function() {

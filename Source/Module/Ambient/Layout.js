@@ -35,7 +35,7 @@ LSD.Module.Layout = new Class({
   },
   
   setLayout: function(layout) {
-    if (typeOf(layout) == 'layout') this.layout = this;
+    if (typeOf(layout) == 'layout') this.layout = layout;
     else this.options.layout = layout;
   },
   
@@ -44,38 +44,39 @@ LSD.Module.Layout = new Class({
     else delete this.options.layout;
   },
   
-  getLayout: Macro.getter('layout', function() {
-    var options = {};
-    if (this.options.clone) options.clone = true;
-    if (this.options.interpolate) options.interpolate = this.options.interpolate.bind(this)
-    if (this.options.context) options.context = this.options.context;
-    return new LSD.Layout(this, null, options);
-  }),
+  getLayout: function() {
+    if (!this.layout) this.layout = new LSD.Layout(this);
+    return this.layout;
+  },
   
-  addLayout: function(name, layout, parent, opts, memo) {
+  addLayout: function(name, layout, parent, memo) {
+    if (!memo) memo = {};
     var old = this.rendered[name];
     if (old) {
       this.layout.add(old, parent, memo)
     } else {
       var first = layout.push && layout.length && layout[0];
       var method = (first && first.nodeType && ((first.nodeType != 1) || (!first.lsd))) ? 'children' : 'render';
-      this.rendered[name] = this.layout[method](layout, parent, opts, memo);
+      old = this.rendered[name] = this.layout[method](layout, parent, memo);
+    }
+    if (memo.promised) {
+      delete memo.promised;
+      this.addEvent('DOMChildNodesRendered:once', function() {
+        this.layout.realize(old)
+      })
     }
     return this.rendered[name];
   },
   
-  removeLayout: function(name, layout, parent, opts, memo) {
+  removeLayout: function(name, layout, parent, memo) {
     return this.layout.remove(this.rendered[name] || layout, parent, memo);
   },
   
-  buildLayout: function(layout, parent) {
-    var method = layout.charAt ? 'selector' : 'render';
+  buildLayout: function(layout, parent, memo) {
+    var args = [layout, (!parent && !parent !== false) ? this : parent, memo];
     var instance = this.getLayout();
-    if (!parent && parent !== false) {
-      var args = Array.prototype.slice.call(arguments, 0);
-      args[1] = this;
-    }
-    return instance[method].apply(instance, args || arguments);
+    var method = layout.charAt ? 'selector' : 'render';
+    return instance[method].apply(instance, args);
   }
 });
 
@@ -85,12 +86,19 @@ LSD.Module.Layout.events = {
   */
   build: function() {
     this.getLayout();
-    if (!this.options.lazy && this.layout.origin == this && this.options.traverse !== false) {
-      if (this.origin && !this.options.clone) this.element.replaces(this.origin);
-      var nodes = LSD.slice((this.origin || this.element).childNodes);
-      if (nodes.length) this.addLayout('children', nodes, [this, this.getWrapper()], this.options.clone ? {clone: true} : null);
+    if (this.options.layout) {
+      var memo = {lazy: this.options.lazy || this.layout.origin == this}, parents = [this, this.getWrapper()];
+      this.addLayout('options', this.options.layout, parents, memo);
     }
-    if (this.options.layout) this.addLayout('options', this.options.layout, [this, this.getWrapper()]);
+    if (!this.options.lazy && this.layout.origin == this && this.options.traverse !== false) {
+      if (this.origin && !this.options.clone && this.origin.parentNode) this.element.replaces(this.origin);
+      var nodes = LSD.slice((this.origin || this.element).childNodes);
+      var opts = {}
+      if (this.options.context) opts.context = this.options.context;
+      if (this.options.clone) opts.clone = this.options.clone;
+      if (nodes.length) this.addLayout('children', nodes, [this, this.getWrapper()], opts);
+      this.fireEvent('DOMChildNodesRendered')
+    }
   },
   /* 
     Destroys the built layout with the widget 
@@ -111,7 +119,6 @@ LSD.Module.Layout.events = {
   DOMNodeInserted: function(node) {
     this.buildLayout(node, [this, this.getWrapper()]);
   },
-  
   DOMNodeInsertedBefore: function(node, target) {
     this.buildLayout(node, [this, this.getWrapper()], null, {before: target});
   }

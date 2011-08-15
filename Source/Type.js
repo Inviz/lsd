@@ -72,8 +72,7 @@ LSD.Type.prototype = {
   },
   
   convert: function(element, options) {
-    var source = options.source || (options.tag && LSD.Layout.getSource(options.attributes, options.tag)) || LSD.Layout.getSource(element);
-    if (!this.find(source)) return;
+    if (!this.find(LSD.Layout.getSource(element))) return;
     var klass = this.klass || LSD.Widget;
     return new LSD.Widget(element, options);
   }

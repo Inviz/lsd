@@ -24,17 +24,17 @@ LSD.Module.Attributes = new Class({
   constructors: {
     attributes: function() {
       var self = this;
-      this.pseudos = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, quiet) {
-        if (!quiet && LSD.States[name]) self.states[state ? 'add' : 'remove'](name, 'pseudos');
+      this.pseudos = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
+        if (!memo && LSD.States[name]) self.states[state ? 'add' : 'remove'](name, 'pseudos');
         self.fireEvent('selectorChange', ['pseudos', name, state]);
       })
-      this.classes = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, quiet) {
-        if (!quiet && LSD.States[name]) self.states[state ? 'add' : 'remove'](name, 'classes');
+      this.classes = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
+        if (!memo && LSD.States[name]) self.states[state ? 'add' : 'remove'](name, 'classes');
         if (self.element) self.element[state ? 'addClass' : 'removeClass'](name);
         self.fireEvent('selectorChange', ['classes', name, state]);
       });
-      this.attributes = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, quiet) {
-        if (!quiet && LSD.States[name]) self.states[state ? 'add' : 'remove'](name, 'attributes');
+      this.attributes = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
+        if (!memo && LSD.States[name]) self.states[state ? 'add' : 'remove'](name, 'attributes');
         value = LSD.Module.Attributes.resolve(name, value, self);
         if (self.element && (name != 'type' || LSD.toLowerCase(self.element.tagName) != 'input')) {
           if (state) self.element.setAttribute(name, LSD.Attributes[name] == 'boolean' ? name : value);
@@ -46,6 +46,7 @@ LSD.Module.Attributes = new Class({
       }).addEvent('beforechange', function(name, value, state) { 
         self.fireEvent('selectorChange', ['attributes', name, state]);
       });
+      this.storage = new LSD.Object;
       this.dataset = new LSD.Object;
     }
   },
@@ -112,6 +113,20 @@ LSD.Module.Attributes = new Class({
         selector += ']';
       }
     return selector;
+  },
+  
+  store: function(name, value) {
+    return this.storage.set(name, value);
+  },
+  
+  retrieve: function(name, placeholder) {
+    var value = this.storage[name];
+    if (value == null) return placeholder
+    return value;
+  },
+  
+  eliminate: function(name, value) {
+    return this.storage.unset(name, value)
   }
 });
 

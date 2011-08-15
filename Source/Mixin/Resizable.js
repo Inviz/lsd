@@ -117,7 +117,7 @@ LSD.Mixin.Resizable = new Class({
       return ((value == 'inherit') || (value == 'auto') || child.style.expressed[prop]) ? value : null
     }
     if (!this.liquid) {
-      this.liquid = LSD.Module.DOM.walk(this, function(child) { 
+      this.liquid = LSD.Module.DOM.each(this, function(child) { 
         return getLiquid(c, 'width')
       }) || []
       this.liquid.include(this.resized);

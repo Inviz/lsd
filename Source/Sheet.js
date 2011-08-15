@@ -88,7 +88,7 @@ LSD.Sheet = new Class({
           var result = definition[value.push ? 'apply' : 'call'](this, value);
           if (result === false) value = false;
           else if (result !== true) {
-            for (prop in result) styles[prop] = Value.compile(result[prop]);
+            for (var prop in result) styles[prop] = Value.compile(result[prop]);
             continue
           }
         }
@@ -168,7 +168,7 @@ LSD.Sheet.Rule = function(selector, style) {
   this.index = LSD.Sheet.Rule.index ++;
   this.expressions = selector.expressions[0];
   this.specificity = this.getSpecificity();
-  for (property in style) {
+  for (var property in style) {
     var cc = property.camelCase();
     var type = (LSD.Sheet.Rule.separate && LSD.Sheet.isElementStyle(cc)) ? 'implied' : 'style';
     if (!this[type]) this[type] = {}; 
