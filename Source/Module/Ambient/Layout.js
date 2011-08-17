@@ -90,8 +90,8 @@ LSD.Module.Layout.events = {
       var memo = {lazy: this.options.lazy || this.layout.origin == this}, parents = [this, this.getWrapper()];
       this.addLayout('options', this.options.layout, parents, memo);
     }
+    if (this.origin && !this.options.clone && this.origin.parentNode) this.element.replaces(this.origin);
     if (!this.options.lazy && this.layout.origin == this && this.options.traverse !== false) {
-      if (this.origin && !this.options.clone && this.origin.parentNode) this.element.replaces(this.origin);
       var nodes = LSD.slice((this.origin || this.element).childNodes);
       var opts = {}
       if (this.options.context) opts.context = this.options.context;

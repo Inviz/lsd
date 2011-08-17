@@ -49,14 +49,18 @@ LSD.Module.Allocations = new Class({
     }
     var id = (kind == null) ? type : kind;
     var options = this.preallocate.apply(this, arguments);
-    var parent = options.parent;
-    delete options.parent;
-    var object = this.buildLayout(options.source || options.tag, parent, {options: options});
-    var stored = options.stored;
-    if (stored && object.store) {
-      for (var name in stored) stored[name].apply(this, object);
-      object.store('allocation', stored);
-      delete options.stored;
+    if (options.nodeType) {
+      var object = options;
+    } else {
+      var parent = options.parent;
+      delete options.parent;
+      var object = this.buildLayout(options.source || options.tag, parent, {options: options});
+      var stored = options.stored;
+      if (stored && object.store) {
+        for (var name in stored) stored[name].apply(this, object);
+        object.store('allocation', stored);
+        delete options.stored;
+      }
     }
     if (id == null) id = type;
     (group || this.allocations)[id] = object;
@@ -110,43 +114,41 @@ LSD.Module.Allocations = new Class({
     }
     if (allocation.call) {
       allocation = allocation.apply(this, arguments);
-      if (allocation.nodeType) var object = allocation;
+      if (allocation.nodeType) return allocation;
     } else {
       if (allocation.options)
         var generated = allocation.options.call ? allocation.options.call(this, options, kind) : allocation.options;
     }
-    if (!object) {
-      options = Object.merge({}, allocation, generated, customized, opts, options);
-      delete options.multiple;
-      delete options.options;
-      if (options.source && options.source.call) options.source = options.source.call(this, kind, options);
-      var parent = options.parent ? (options.parent.call ? options.parent.call(this) : options.parent) : this;
-      //switch (parent) {
-      //  case "parent":
-      //    parent = this.parentNode;
-      //    break;
-      //  case "root":
-      //    parent = this.root;
-      //    break;
-      //  case "document":
-      //    parent = document.body;
-      //}
-      if (!parent.lsd) parent = [this, parent];
-      options.parent = parent.push ? [].concat(parent) : parent;
-      var callbacks;
-      for (var name in options) if (options[name]) {
-        var handler = LSD.Module.Allocations.Options[name];
-        if (handler) {
-          var result = handler.call(this, options[name], true);
-          if (result != null) {
-            if (!callbacks) callbacks = {};
-            callbacks[name] = result;
-            delete options[name];
-          }
+    options = Object.merge({}, allocation, generated, customized, opts, options);
+    delete options.multiple;
+    delete options.options;
+    if (options.source && options.source.call) options.source = options.source.call(this, kind, options);
+    var parent = options.parent ? (options.parent.call ? options.parent.call(this) : options.parent) : this;
+    //switch (parent) {
+    //  case "parent":
+    //    parent = this.parentNode;
+    //    break;
+    //  case "root":
+    //    parent = this.root;
+    //    break;
+    //  case "document":
+    //    parent = document.body;
+    //}
+    if (!parent.lsd) parent = [this, parent];
+    options.parent = parent.push ? [].concat(parent) : parent;
+    var callbacks;
+    for (var name in options) if (options[name]) {
+      var handler = LSD.Module.Allocations.Options[name];
+      if (handler) {
+        var result = handler.call(this, options[name], true);
+        if (result != null) {
+          if (!callbacks) callbacks = {};
+          callbacks[name] = result;
+          delete options[name];
         }
-      }  
-      if (callbacks) options.stored = callbacks;
-    };
+      }
+    }  
+    if (callbacks) options.stored = callbacks;
     return options;
   }
   
