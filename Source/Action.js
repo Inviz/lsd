@@ -109,8 +109,7 @@ LSD.Action.prototype = {
       this.target.watch(this.options.watches, this.watch.bind(this));
     } else if (!this.state || (name && this.target[name])) {
       if (this.target.lsd) {
-        this.target.addEvent('setDocument', this.injection || ((this.injection = this.inject.bind(this))));
-        if (this.target.document) this.inject();
+        this.target.objects.watch('document', this.injection || ((this.injection = this.inject.bind(this))));
       } else this.inject();
     }
   },
@@ -121,7 +120,7 @@ LSD.Action.prototype = {
     else if (this.options.uses) {
       
     } else {
-      this.target.removeEvent('setDocument', this.injection);
+      this.target.objects.unwatch('document', this.injection);
     }
     if (this.enabled) this.disable();
     if (this.state) {

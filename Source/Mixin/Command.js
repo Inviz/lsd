@@ -41,12 +41,12 @@ LSD.Mixin.Command = new Class({
         if (action) return {action: action, priority: 10}
       }
     },
-    events: {
-      _command: {
-        'setDocument': function() {
+    actions: {
+      command: {
+        enable: function() {
           this.getCommand();
           this.eachLink('quickstart', true, true, !this.getCommandState());
-        },
+        }
       }
     }
   },

@@ -90,7 +90,7 @@ LSD.Module.DOM = new Class({
     if (child.lsd) {
       // set parent 'for real' and do callbacks
       child.setParent(this, this.childNodes.push(child) - 1);
-      if (this.document && child.document != this.document) LSD.Module.DOM.setDocument(child, this.document);
+      if (this.document && child.objects.document != this.document) LSD.Module.DOM.setDocument(child, this.document);
     }
     return true;
   },
@@ -200,15 +200,6 @@ LSD.Module.DOM = new Class({
     this.inject(el, 'after');
     el.dispose();
     return this;
-  },
-  
-  watchInjection: function(callback) {
-    this.addEvent('setDocument', callback);
-    if (this.document) callback.call(this, this.document.element)
-  },
-  
-  unwatchInjection: function(callback) { 
-    this.removeEvent('setDocument', callback);
   },
 
   dispose: function() {
