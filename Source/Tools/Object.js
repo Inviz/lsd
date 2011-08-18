@@ -47,11 +47,14 @@ LSD.Object.prototype = {
     delete this[key];
     return true;
   },
-  add: function(key, memo) {
+  include: function(key, memo) {
     return this.set(key, true, memo)
   },
-  remove: function(key, memo) {
+  erase: function(key, memo) {
     return this.unset(key, true, memo)
+  },
+  write: function(key, value, memo) {
+    return this[value == null ? 'unset' : 'set'](key, value, memo);
   },
   fireEvent: function(key, a, b, c, d, e) {
     var storage = this._events;
@@ -64,10 +67,10 @@ LSD.Object.prototype = {
     }
     return b;
   },
-  addEvent: function(key, callback) {
+  addEvent: function(key, callback, unshift) {
     var storage = this._events;
     if (!storage) storage = this._events = {};
-    (storage[key] || (storage[key] = [])).push(callback);
+    (storage[key] || (storage[key] = []))[unshift ? 'unshift' : 'push'](callback);
     return this;
   },
   removeEvent: function(key, callback) {
@@ -141,9 +144,9 @@ LSD.Object.prototype = {
   It was designed to be symetric, so every .set is paired with .unset. Originally,
   unset raised exception when it could not find its value set before.
   
-  That perhaps is too idealistic and doenst work in real world, so you can
-  value that was set before by some `set`/`unset` pair can be unset by an outside
-  `unset` call. Then a paired `unset` just will silently do nothing.
+  That perhaps is too idealistic and doenst work in real world, so value that was 
+  set by some `set`/`unset` pair, can be unset by an outside `unset` call. 
+  A paired `unset` having nothing to unset will silently do nothing.
 */
 
 LSD.Object.Stack = function(object) {

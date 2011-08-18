@@ -28,27 +28,25 @@ LSD.Module.Allocations = new Class({
   },
   
   allocate: function(type, kind, options) {
-    options = arguments[arguments.length - 1];
-    if (options.type) {
-      type = options.type;
-      if (options.kind) kind = options.kind;
+    if ((options = arguments[arguments.length - 1]).indexOf) options = null
+    if (options) {
+      if (!type || type == options) type = options.type;
+      if (!kind || type == options) kind = options.kind;
       options = options.options || {};
     }
     var allocation = LSD.Allocations[type];
     if (!allocation) throw "Dont know how to allocate " + type;
     var group = this.allocations[type];
-    if (allocation.multiple && kind == null) {
-      if (!group.length) group.length = 0;
-      kind = group.length++;
+    if (allocation.multiple) {
+      if (!group) group = this.allocations[type] = {};
+      if (kind == null) kind = (group.length ? group.length++ : (group.length = 1) - 1);
+      else if (group[kind]) return group[kind];
+      var id = kind;
+    } else {
+      if (group) return group;
+      var id = type;
     }
-    if (group) {
-      if (kind && group[kind]) return group[kind];
-      else return group;
-    } else if (allocation.multiple) {
-      group = this.allocations[type] = {};
-    }
-    var id = (kind == null) ? type : kind;
-    var options = this.preallocate.apply(this, arguments);
+    options = this.preallocate.apply(this, arguments);
     if (options.nodeType) {
       var object = options;
     } else {
@@ -68,10 +66,10 @@ LSD.Module.Allocations = new Class({
   },
   
   release: function(type, kind, options) {
-    options = arguments[arguments.length - 1];
-    if (options.type) {
-      type = options.type;
-      if (options.kind) kind = options.kind;
+    if ((options = arguments[arguments.length - 1]).indexOf) options = null
+    if (options) {
+      if (!type || type == options) type = options.type;
+      if (!kind || type == options) kind = options.kind;
       options = options.options || {};
     }
     var allocation = LSD.Allocations[type];
@@ -95,10 +93,10 @@ LSD.Module.Allocations = new Class({
   },
   
   preallocate: function(type, kind, options) {
-    options = arguments[arguments.length - 1];
-    if (options.type) {
-      type = options.type;
-      if (options.kind) kind = options.kind;
+    if ((options = arguments[arguments.length - 1]).indexOf) options = null
+    if (options) {
+      if (!type || type == options) type = options.type;
+      if (!kind || type == options) kind = options.kind;
       options = options.options || {};
     }
     var allocation = LSD.Allocations[type];

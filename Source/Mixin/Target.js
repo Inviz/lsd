@@ -30,7 +30,7 @@ provides:
             if (!chain.action && !(chain.action = this.getTargetAction())) return;
             if (chain.selector) {
               chain.target = function(callback, state, revert) {
-                if (chain.selector.expressions[0][0].combinator.charAt(0) != '$') {
+                if (chain.keyword == 'watch' || (chain.keyword == 'do' && chain.selector.expressions[0][0].combinator.charAt(0) != '$')) {
                   this[(state == true && revert) ? 'unwatch' : 'watch'](chain.selector, callback);
                   return true;
                 } else {
@@ -101,7 +101,7 @@ provides:
     }
   };
   
-  var Keywords = Parser.Keywords = Array.object('if', 'then', 'else', 'or', 'and', 'before', 'do');
+  var Keywords = Parser.Keywords = Array.object('if', 'then', 'else', 'or', 'and', 'before', 'do', 'watch');
 }();
 
 LSD.Behavior.define('[target]', LSD.Mixin.Target);

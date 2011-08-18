@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Module.DOM
+  - LSD.Module.Selectors
   - LSD.Module.Layout
   - LSD.Module.Expectations
   - LSD.Module.Mutations
@@ -28,6 +29,7 @@ provides:
 LSD.Module.Ambient = new Class({
   Implements: [
     LSD.Module.DOM, 
+    LSD.Module.Selectors,
     LSD.Module.Layout,
     LSD.Module.Expectations,
     LSD.Module.Mutations,

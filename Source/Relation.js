@@ -89,12 +89,12 @@ LSD.Relation.prototype = Object.append({
     this.add(widget);
     this.applyOptions(widget);
     this.fireEvent('add', widget);
-    LSD.Module.Expectations.relate(this.origin, this.name, widget);
+    LSD.Module.Expectations.relate(this.origin, this.name, widget, true);
   },
   
   onLose: function(widget) {
     if (widget == this) return;
-    LSD.Module.Expectations.unrelate(this.origin, this.name, widget);
+    LSD.Module.Expectations.relate(this.origin, this.name, widget, false);
     if (this.remove(widget) === false) return;
     this.fireEvent('remove', widget);
     this.applyOptions(widget, true);
@@ -169,7 +169,7 @@ var Options = LSD.Relation.Options = {
     if (target.call) target = target.call(this.origin);
     if (this.targeted == target) return;
     this.targeted = target;
-    if (memo) this.origin.objects.unwatch(target, memo);
+    if (memo) this.origin.properties.unwatch(target, memo);
     if (state) {
       if (Targets[target]) {
         var watcher = function(object) {
@@ -180,7 +180,7 @@ var Options = LSD.Relation.Options = {
             if (expectation) Options.expectation.call(this, expectation, true, this.memo.expectation);
           }
         }.bind(this);
-        this.origin.objects.watch(target, watcher);
+        this.origin.properties.watch(target, watcher);
         return watcher;
       } else {
         if (this.origin[target]) this.target = this.origin[target];

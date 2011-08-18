@@ -95,13 +95,13 @@ LSD.Widget.Form.Edit = new Class({
 
   finish: function() {
     //console.log('revert', [].concat(this.objects))
-    for (var object; object = this.objects.shift();) this.revert(object);
+    for (var object; object = this.properties.shift();) this.revert(object);
     this.submitter.dispose();
     this.canceller.dispose();
   },
   
   convert: function(element, name, type) {
-    this.objects.push(element)
+    this.properties.push(element)
     return this.getReplacement(element, name, type).replaces(element);
   },
   

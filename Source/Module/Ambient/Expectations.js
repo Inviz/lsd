@@ -13,6 +13,7 @@ requires:
   - LSD.Module
   - LSD.Module.Events
   - LSD.Module.Attributes
+  - LSD.Module.Properties
 
 provides: 
   - LSD.Module.Expectations
@@ -28,36 +29,15 @@ var Expectations = LSD.Module.Expectations = new Class({
     expectations: function() {
       if (!this.expectations) this.expectations = {tag: {}}
       var self = this;
-      this.objects = (new LSD.Object).addEvent('change', function(name, value, state, old, memo) {
-        var property = Expectations.Properties[name] || name;
-        var alias = Expectations.Aliases[name];
-        var events = self.events && self.events[name];
-        if (!state) old = value;
-        if (old != null) {
-          self.fireEvent('unset' + name.capitalize(), old);
-          if (old.lsd) Expectations.unrelate(self, name, old);
-          if (events) LSD.Module.Events.setStoredEvents.call(old, events, false, self);
-          switch(name) {
-            case "parent":
-              notify.call(self, '!>', old.tagName, false, old);
-              for (var parent = old; parent; parent = parent.parentNode) notify.call(self, '!', parent.tagName, false, parent);
-          }
-          if (alias) delete self[alias];
-          delete self[property];
-        }
-        if (state && value != null) {
-          if (value.lsd) Expectations.relate(self, name, value);
-          switch(name) {
-            case "parent":
-              notify.call(self, '!>', value.tagName, true, value);
-              for (var parent = value; parent; parent = parent.parentNode) notify.call(self, '!', parent.tagName, true, parent);
-          }
-          if (alias) self[alias] = value;
-          self[property] = value;
-          self.fireEvent('set' + name.capitalize(), value);
-          if (events) LSD.Module.Events.setStoredEvents.call(value, events, true, self);
-        }
-      });
+      this.properties.addEvent('change', function(name, value, state, old) {
+        if (value && value.lsd) Expectations.relate(self, name, value, state);
+        var property = Expectations.Properties[name];
+        if (property) property.call(self, value, state);
+      }).addEvent('beforechange', function(name, value, state) {
+        if (value.lsd) Expectations.relate(self, name, value, state);
+        var property = Expectations.Properties[name];
+        if (property) property.call(self, value, state);
+      })
     }
   },
   
@@ -142,7 +122,6 @@ var Expectations = LSD.Module.Expectations = new Class({
     if (iterator === true) iterator = function(widget) {
       if (widget.match(selector)) callback(widget, false);
     };
-    
     var id = selector.id, combinator = selector.combinator;
     switch (combinator) {
       case '&':
@@ -210,18 +189,18 @@ var Expectations = LSD.Module.Expectations = new Class({
           if (!widgets[i]) {
             widgets[i] = widget;
             unresolved--;
-            if (!unresolved) callback.apply(this, widgets.concat(state))
+            if (!unresolved) callback.apply(this, widgets.concat(state));
           }
         } else {
           if (widgets[i]) {
-            if (!unresolved) callback.apply(this, widgets.concat(state))
+            if (!unresolved) callback.apply(this, widgets.concat(state));
             delete widgets[i];
             unresolved++;
           }
         }
       }
-      this.watch(selector, watcher)
-    }, this)
+      this.watch(selector, watcher);
+    }, this);
   }
 });
 
@@ -251,26 +230,25 @@ Expectations.advanceRootExpectation = function(exp, widget, callback, state) {
   }
 };
 
-Expectations.relate = function(object, name, subject) {
-  var expectations = subject.expectations;
-  if (expectations) {
-    var type = expectations['!::'];
-    if (!type) type = expectations['!::'] = {};
-    var group = type[name];
-    if (!group) group = type[name] = [];
-    group.push(object);
-    notify.call(object, '::', name, true, subject);
+Expectations.relate = function(object, name, subject, state) {
+  if (state) {
+    var expectations = subject.expectations;
+    if (expectations) {
+      var type = expectations['!::'];
+      if (!type) type = expectations['!::'] = {};
+      var group = type[name];
+      if (!group) group = type[name] = [];
+      group.push(object);
+      notify.call(object, '::', name, true, subject);
+    }
+  } else {
+    var expectations = subject.expectations;
+    if (expectations) {
+      notify.call(object, '::', name, false, subject);
+      subject.expectations['!::'][name].erase(object);
+    }
   }
 };
-
-Expectations.unrelate = function(object, name, subject) {
-  var expectations = subject.expectations;
-  if (expectations) {
-    notify.call(object, '::', name, false, subject);
-    subject.expectations['!::'][name].erase(object);
-  }
-}
-
 
 
 var check = function(type, value, state, target) {
@@ -351,18 +329,6 @@ var separate = function(selector) {
   return separated;
 };
 
-Expectations.Properties = {
-  parent: 'parentNode',
-  next: 'nextSibling',
-  previous: 'previousSibling',
-  first: 'firstChild',
-  last: 'lastChild'
-};
-
-Expectations.Aliases = {
-  document: 'ownerDocument'
-};
-
 Expectations.events = {
   selectorChange: check,
   nodeInserted: function(widget) {
@@ -398,6 +364,13 @@ Expectations.events = {
     check.call(this, 'tag', old, false);
     if (tag) check.call(this, 'tag', tag, true);
     if (old && this.parentNode && !this.removed) this.parentNode.dispatchEvent('nodeTagChanged', [this, tag, old]);
+  }
+};
+
+Expectations.Properties = {
+  parent: function(value, state, old, memo) {
+    notify.call(this, '!>', value.tagName, false, value);
+    for (var parent = value; parent; parent = parent.parentNode) notify.call(this, '!', parent.tagName, state, parent);
   }
 };
 

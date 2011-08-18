@@ -22,21 +22,21 @@ LSD.Mixin.Root = new Class({
     events: {
       _root: {
         nodeInserted: function(node) {
-          if (!node.root) node.objects.set('root', this);
+          if (!node.root) node.properties.set('root', this);
         },
         nodeRemoved: function(node) {
-          if (node.root == this) node.objects.unset('root', this);
+          if (node.root == this) node.properties.unset('root', this);
         }
       }
     }
   },
   
   onMix: function() {
-    this.objects.set('root', this);
+    this.properties.set('root', this);
   },
   
   onUnmix: function() {
-    this.objects.unset('root', this);
+    this.properties.unset('root', this);
   }
 });
 

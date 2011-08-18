@@ -54,7 +54,7 @@ LSD.Trait.Slider = new Class({
       mode: this.options.mode
     })).set(parseFloat(this.options.value));
     slider.addEvent('change', this.onSet.bind(this));
-    this.objects.set('slide', slider);
+    this.properties.set('slide', slider);
     return slider;
   }),
   

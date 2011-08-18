@@ -100,7 +100,7 @@ var Events = Object.append(LSD.Module.Events, {
       var target = Events.Targets[name];
       if (target)
         if (target === true) {
-          if (this.objects[name]) this.objects[name][revert ? 'removeEvents' : 'addEvents'](bound);
+          if (this.properties[name]) this.properties[name][revert ? 'removeEvents' : 'addEvents'](bound);
         } else if (target.call) {
           if ((target = target.call(this))) 
             for (var event in bound) Events.setEvent.call(target, event, bound[event], revert);

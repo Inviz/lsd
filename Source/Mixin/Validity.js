@@ -36,7 +36,7 @@ provides:
 
 LSD.Mixin.Validity = new Class({
   onMix: function() {
-    this.states.add(this.attributes.required ? 'required' : 'optional');
+    this.states.include(this.attributes.required ? 'required' : 'optional');
     this.addEvents(LSD.Mixin.Validity.events);
   },
   

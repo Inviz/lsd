@@ -25,16 +25,16 @@ LSD.Module.Attributes = new Class({
     attributes: function() {
       var self = this;
       this.pseudos = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
-        if (!memo && LSD.States[name]) self.states[state ? 'add' : 'remove'](name, 'pseudos');
+        if (!memo && LSD.States[name]) self.states[state ? 'include' : 'erase'](name, 'pseudos');
         self.fireEvent('selectorChange', ['pseudos', name, state]);
       })
       this.classes = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
-        if (!memo && LSD.States[name]) self.states[state ? 'add' : 'remove'](name, 'classes');
+        if (!memo && LSD.States[name]) self.states[state ? 'include' : 'erase'](name, 'classes');
         if (self.element) self.element[state ? 'addClass' : 'removeClass'](name);
         self.fireEvent('selectorChange', ['classes', name, state]);
       });
       this.attributes = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
-        if (!memo && LSD.States[name]) self.states[state ? 'add' : 'remove'](name, 'attributes');
+        if (!memo && LSD.States[name]) self.states[state ? 'include' : 'erase'](name, 'attributes');
         value = LSD.Module.Attributes.resolve(name, value, self);
         if (self.element && (name != 'type' || LSD.toLowerCase(self.element.tagName) != 'input')) {
           if (state) self.element.setAttribute(name, LSD.Attributes[name] == 'boolean' ? name : value);
@@ -46,7 +46,6 @@ LSD.Module.Attributes = new Class({
       }).addEvent('beforechange', function(name, value, state) { 
         self.fireEvent('selectorChange', ['attributes', name, state]);
       });
-      this.storage = new LSD.Object;
       this.dataset = new LSD.Object;
     }
   },
@@ -76,22 +75,22 @@ LSD.Module.Attributes = new Class({
   },
   
   addPseudo: function(name){
-    this.pseudos.set(name, true);
+    this.pseudos.include(name);
     return this;
   },
 
   removePseudo: function(name) {
-    this.pseudos.unset(name, true);
+    this.pseudos.erase(name);
     return this;
   },
   
   addClass: function(name) {
-    this.classes.set(name, true);
+    this.classes.include(name);
     return this;
   },
 
   removeClass: function(name){
-    this.classes.unset(name, true);
+    this.classes.erase(name);
     return this;
   },
   
@@ -113,20 +112,6 @@ LSD.Module.Attributes = new Class({
         selector += ']';
       }
     return selector;
-  },
-  
-  store: function(name, value) {
-    return this.storage.set(name, value);
-  },
-  
-  retrieve: function(name, placeholder) {
-    var value = this.storage[name];
-    if (value == null) return placeholder
-    return value;
-  },
-  
-  eliminate: function(name, value) {
-    return this.storage.unset(name, value)
   }
 });
 

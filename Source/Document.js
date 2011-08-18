@@ -104,7 +104,7 @@ LSD.Document = new Class({
       }
       if (widget && widget.pseudos.clickable) {
         event.stopPropagation();
-        if (widget.click(event)) break;
+         if (widget.click(event)) break;
       }
     };
   },

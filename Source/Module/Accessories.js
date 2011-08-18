@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Module.Options
+  - LSD.Module.Properties
   - LSD.Module.States
   - LSD.Module.Attributes
   - LSD.Module.Events
@@ -18,8 +19,7 @@ requires:
   - LSD.Module.Styles
   - LSD.Module.Shortcuts
   - LSD.Module.Element
-  - LSD.Module.Selectors
-  - LSD.Module.Tag
+  - LSD.Module.Mixins
   - LSD.Module.Chain
   - LSD.Module.Actions
   
@@ -32,15 +32,15 @@ provides:
 LSD.Module.Accessories = new Class({
   Implements: [
     LSD.Module.Options,
+    LSD.Module.Properties,
     LSD.Module.States,
     LSD.Module.Attributes,
+    LSD.Module.Element,
+    LSD.Module.Mixins,
     LSD.Module.Events,
     LSD.Module.Dimensions,
     LSD.Module.Styles,
     LSD.Module.Shortcuts,
-    LSD.Module.Tag,
-    LSD.Module.Element,
-    LSD.Module.Selectors,
     LSD.Module.Chain,
     LSD.Module.Actions
   ]

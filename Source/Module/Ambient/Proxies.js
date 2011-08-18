@@ -48,7 +48,6 @@ Object.append(LSD.Module.Proxies, {
       if (!node.element) node.toElement();
       if (proxy.selector) return proxy.selector === true || Slick.matchNode(node, proxy.selector, parent || proxy.widget);
     } else {
-      console.log(Slick.matchNode(node, proxy.mutation, parent || proxy.element), [node, proxy.mutation, parent || proxy.element])
       if (proxy.mutation) return proxy.mutation === true || (node.nodeType == 1 && Slick.matchNode(node, proxy.mutation, parent || proxy.element))
       if (proxy.text) return node.nodeType == 3;
     }
@@ -97,7 +96,6 @@ Object.append(LSD.Module.Proxies, {
       if ((proxies = node.proxies)) 
         for (var j = 0, proxy; proxy = proxies[j++];)
           if ((node == widget || proxy.deep) && (!memo || !memo.stored || !memo.stored.proxy || memo.stored.proxy.proxy != proxy)) {
-            console.log('matching', child, proxy)
             if (LSD.Module.Proxies.match(child, proxy, proxy.selector ? widget : proxy.element))
               return LSD.Module.Proxies.invoke(child.lsd ? widget : element, child, proxy, memo);
           }

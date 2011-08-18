@@ -45,7 +45,7 @@ LSD.Module.Element = new Class({
       } else this.element = document.id(element);
     }
     if (!this.built) this.build();
-    this.objects.set('element', this.element);
+    this.properties.set('element', this.element);
     if (this.options.key) this.element.store(this.options.key, this).fireEvent('attach', this);
     /*
       Extracts and sets layout options from attached element
@@ -59,7 +59,7 @@ LSD.Module.Element = new Class({
 
   detach: function(element) {
     if (this.options.key) this.element.eliminate(this.options.key, this).fireEvent('detach', this)
-    this.objects.unset('element', this.element);
+    this.properties.unset('element', this.element);
     /*
       Unsets options previously extracted from the detached element
     */
@@ -96,13 +96,15 @@ LSD.Module.Element = new Class({
     var tag = query.tag || attrs.tag || this.getElementTag();
     delete attrs.tag; delete query.tag;
     if (!element || build) {
-      this.element = new Element(tag, attrs);
+      element = this.element = new Element(tag, attrs.type ? {type: attrs.type} : null);
     } else {
-      var element = this.element = document.id(element);
-      for (var name in attrs) 
-        if (name != 'type' || tag != 'input') 
-          element.setAttribute(name, attrs[name] === true ? name : attrs[name]);
-    }
+      element = this.element = document.id(element);
+    }  
+    for (var name in attrs) 
+      if (name != 'type' || tag != 'input') {
+        if (LSD.Attributes[name] == 'boolean') element[name] = true;
+        element.setAttribute(name, attrs[name] === true ? name : attrs[name]);
+      }
     var classes = [];
     if (this.tagName != tag) classes.push('lsd ', this.tagName);
     for (var name in this.classes) if (this.classes.has(name)) classes.include(name);

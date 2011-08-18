@@ -28,7 +28,7 @@ LSD.Mixin.Uploader = new Class({
         enable: function() {
           if (this.attributes.multiple) this.options.uploader.multiple = true;
           var uploader = this.getUploader();
-          this.objects.set('uploader', uploader);
+          this.properties.set('uploader', uploader);
           var target = this.getUploaderTarget();
           if (target) uploader.attach(target);
           this.getStoredBlobs().each(this.addFile, this);
@@ -36,7 +36,7 @@ LSD.Mixin.Uploader = new Class({
         disable: function() {
           var uploader = this.getUploader();
           uploader.detach(this.getUploaderTarget())
-          this.objects.unset('uploader', uploader);
+          this.properties.unset('uploader', uploader);
         }
       }
     },
@@ -175,7 +175,7 @@ LSD.Mixin.Uploader = new Class({
   addFile: function(blob) {
     var widget = new (this.getUploaderFileClass());
     widget.widget = this;
-    widget.states.add('complete');
+    widget.states.include('complete');
     widget.build();
     widget.setBase(this.getUploader());
     widget.setFile(blob);
@@ -205,15 +205,15 @@ LSD.Mixin.Upload = new Class({
         if (this.progress) this.progress.set(progress.percentLoaded);
       },
       start: function() {
-        this.states.add('started');
+        this.states.include('started');
       },
       complete: function() {
         if (this.progress) this.progress.set(100);
-        this.states.remove('started');
-        this.states.add('complete');
+        this.states.erase('started');
+        this.states.include('complete');
       },
       stop: function() {
-        this.states.remove('started');
+        this.states.erase('started');
       },
       remove: 'dispose'
     }

@@ -90,7 +90,8 @@ sources:
   - Source/Module/Accessories/Options.js
   - Source/Module/Accessories/States.js
   - Source/Module/Accessories/Element.js
-  - Source/Module/Accessories/Tag.js
+  - Source/Module/Accessories/Mixins.js
+  - Source/Module/Accessories/Properties.js
   - Source/Module/Accessories.js
   - Source/Module/Graphics/Render.js
   - Source/Module/Graphics/Layers.js

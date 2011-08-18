@@ -79,7 +79,7 @@ LSD.Mixin.Resizable = new Class({
       return this.resizer.element = element;
     }
     var resizer = this.resizer = new Drag(element, Object.append(this.options, this.options.resizer));
-    this.objects.set('resizer', resizer);
+    this.properties.set('resizer', resizer);
     resizer.addEvents({
       'beforeStart': this.onBeforeResize.bind(this),
       'start': this.onResizeStart.bind(this),

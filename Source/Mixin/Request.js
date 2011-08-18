@@ -85,7 +85,7 @@ LSD.Mixin.Request = new Class({
       this.request = this[type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options);
       if (!this.request.type) {
         this.request.type = type;
-        this.objects.set('request', this.request);
+        this.properties.set('request', this.request);
       }
     }
     return this.request;

@@ -45,7 +45,7 @@ LSD.Module.DOM = new Class({
   setParent: function(widget, index){
     if (!widget.lsd) widget = LSD.Module.DOM.find(widget);
     if (!widget) return;
-    var changed = this.objects.set('parent', widget);
+    var changed = this.properties.set('parent', widget);
     set.call(this, widget, index);
     var previous = this.previousSibling;
     var start = previous ? (previous.sourceLastIndex || previous.sourceIndex) : widget.sourceIndex || (widget.sourceIndex = 1);
@@ -71,7 +71,7 @@ LSD.Module.DOM = new Class({
     });
     this.removed = true;
     unset.call(this, widget, index); 
-    this.objects.unset('parent', widget);
+    this.properties.unset('parent', widget);
     delete this.removed;
   },
   
@@ -90,7 +90,7 @@ LSD.Module.DOM = new Class({
     if (child.lsd) {
       // set parent 'for real' and do callbacks
       child.setParent(this, this.childNodes.push(child) - 1);
-      if (this.document && child.objects.document != this.document) LSD.Module.DOM.setDocument(child, this.document);
+      if (this.document && child.properties.document != this.document) LSD.Module.DOM.setDocument(child, this.document);
     }
     return true;
   },
@@ -130,7 +130,7 @@ LSD.Module.DOM = new Class({
   },
 
   cloneNode: function(children, options) {
-    var clone = this.context.create(this.element.cloneNode(children), Object.merge({
+    var clone = this.factory.create(this.element.cloneNode(children), Object.merge({
       source: this.source,
       tag: this.tagName,
       pseudos: this.pseudos.toObject(),
@@ -214,17 +214,17 @@ LSD.Module.DOM = new Class({
 
 var set = function(widget, index) {
   var siblings = widget.childNodes, length = siblings.length;
-  if (siblings[0] == this) widget.objects.set('first', this);
-  if (siblings[siblings.length - 1] == this) widget.objects.set('last', this);
+  if (siblings[0] == this) widget.properties.write('first', this);
+  if (siblings[siblings.length - 1] == this) widget.properties.write('last', this);
   if (index == null) index = length - 1;
   var previous = siblings[index - 1], next = siblings[index + 1];
   if (previous) {
-    previous.objects.set('next', this);
-    this.objects.set('previous', previous);
+    previous.properties.write('next', this);
+    this.properties.write('previous', previous);
   }
   if (next) {
-    next.objects.set('previous', this);
-    this.objects.set('next', next);
+    next.properties.write('previous', this);
+    this.properties.write('next', next);
   }
 };
 
@@ -233,15 +233,21 @@ var unset = function(widget, index) {
   if (index == null) index = siblings.indexOf(this);
   var previous = siblings[index - 1], next = siblings[index + 1];
   if (previous) {
-    previous.objects.set('next', next);
-    this.objects.unset('previous', previous);
+    previous.properties.write('next', next);
+    this.properties.unset('previous', previous);
   }
   if (next) {
-    this.objects.set('next', previous);
-    next.objects.unset('previous', this);
+    if (previous) this.properties.write('next', previous);
+    next.properties.unset('previous', this);
   }
-  if (parent.firstChild == this) parent.objects.set('first', next);
-  if (parent.lastChild == this) parent.objects.set('last', previous);
+  if (parent.firstChild == this) {
+    if (next) parent.properties.write('first', next);
+    else parent.properties.unset('first', this);
+  }
+  if (parent.lastChild == this) {
+    if (previous) parent.properties.write('last', previous);
+    else parent.properties.unset('last', this);
+  }
 };
 
 /*
@@ -297,7 +303,7 @@ Object.append(LSD.Module.DOM, {
   setDocument: function(node, document, revert) {
     var widget = node.lsd ? node : LSD.Module.DOM.find(node);
     LSD.Module.DOM.each(node, function(child) {
-      child.objects[revert ? 'unset' : 'set']('document', document)
+      child.properties[revert ? 'unset' : 'set']('document', document)
     });
   },
   

@@ -42,14 +42,14 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
   },
   
   attach: function(widget) {
-    widget.objects.set('command', this);
-    if (this.disabled) widget.states.add('disabled');
+    widget.properties.set('command', this);
+    if (this.disabled) widget.states.include('disabled');
     if (!this.bound) this.bound = {}
     if (!this.bound.enable) this.bound.enable = this.enable.bind(this);
     if (!this.bound.disable) this.bound.disable = this.disable.bind(this);
     if (this.type && this.type != 'command') {
       widget.states.set('checked');
-      if (this.checked) widget.states.add('checked');
+      if (this.checked) widget.states.include('checked');
       if (!this.bound.check) this.bound.check = this.check.bind(this);
       if (!this.bound.uncheck) this.bound.uncheck = this.uncheck.bind(this);
       widget.addEvent('check', this.bound.check);
@@ -64,11 +64,11 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
   },
   
   detach: function(widget) {
-    widget.objects.unset('command', this);
-    if (this.disabled) widget.states.remove('disabled');
+    widget.properties.unset('command', this);
+    if (this.disabled) widget.states.erase('disabled');
     if (this.type && this.type != 'command') {
       widget.states.unset('checked');
-      if (this.checked) widget.states.remove('checked');
+      if (this.checked) widget.states.erase('checked');
       widget.removeEvent('check', this.bound.check);
       widget.removeEvent('uncheck', this.bound.uncheck);
     }
@@ -79,11 +79,11 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
   },
   
   check: function() {
-    for (var i = 0, widget; widget = this.widgets[i++];) widget.states.add('checked');
+    for (var i = 0, widget; widget = this.widgets[i++];) widget.states.include('checked');
   },
   
   uncheck: function() {
-    for (var i = 0, widget; widget = this.widgets[i++];) widget.states.remove('checked');
+    for (var i = 0, widget; widget = this.widgets[i++];) widget.states.erase('checked');
   },
   
   disable: function() {
@@ -163,7 +163,7 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
       if (!this.bound.uncheck) this.bound.uncheck = this.uncheck.bind(this);
       for (var i = 0, widget; widget = this.widgets[i++];) {
         widget.states.set('checked');
-        if (this.checked) widget.states.add('checked');
+        if (this.checked) widget.states.include('checked');
         widget.addEvent('check', this.bound.check);
         widget.addEvent('uncheck', this.bound.uncheck);
       }
@@ -175,7 +175,7 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
       if (this.type != 'command') {
         for (var i = 0, widget; widget = this.widgets[i++];) {
           widget.states.unset('checked');
-          if (this.checked) widget.states.remove('checked');
+          if (this.checked) widget.states.erase('checked');
           widget.removeEvent('check', this.bound.check);
           widget.removeEvent('uncheck', this.bound.uncheck);
         }
