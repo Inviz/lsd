@@ -64,6 +64,7 @@ LSD.Module.Chain = new Class({
     var chain = this.currentChain || (this.currentChain = this.getActionChain.apply(this, args));
     if (!chain.length) {
       if (this.chainPhase > -1) this.clearChain();
+      else delete this.currentChain;
       return false;
     }
     var index = this.chainPhase;

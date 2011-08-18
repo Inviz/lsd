@@ -95,8 +95,8 @@ LSD.Document = new Class({
         if (!widget) {
           var parent = LSD.Module.DOM.find(target)
           widget = new LSD.Widget(target, {
-            document: this, 
-            pseudos: ['clickable', 'command']
+            pseudos: ['clickable', 'command'],
+            document: this
           });
           parent.appendChild(widget, false);
         }
