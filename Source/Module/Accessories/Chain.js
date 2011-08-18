@@ -120,12 +120,12 @@ LSD.Module.Chain = new Class({
     var promised, succeed, failed, cargs;
     var perform = function(target, targetstate) {
       if (targetstate !== true || targetstate !== false) targetstate = state;
-      var value = this.getActionState(action, [target].concat(args), targetstate, revert);
-      var method = value ? 'commit' : 'revert';
       if (!cargs && command.arguments != null) {
         cargs = command.arguments && command.arguments.call ? command.arguments.call(this) : command.arguments;
         args = [].concat(cargs == null ? [] : cargs, args || []);
       }
+      var value = this.getActionState(action, [target].concat(args), targetstate, revert);
+      var method = value ? 'commit' : 'revert';
       var result = action[method](target, args);
       if (result && result.callChain && (command.promise !== false)) {
         // Execute onSuccess callbacks ahead (to be possibly unrolled on failure)
