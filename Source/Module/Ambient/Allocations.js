@@ -182,12 +182,7 @@ LSD.Module.Allocations.Options = {
       proxy.container = false;
       this.addProxy('allocated', proxy);
       var callback = function(object) {
-        if (object.lsd) var element = object.element || object.toElement(), widget = object;
-        else var element = object, widget = this;
-        if (proxy.queued) 
-          for (var i = 0, child; child = proxy.queued[i++];)
-            this.layout.appendChild(child.lsd ? widget : element, child, null, child.lsd ? element : null);
-        proxy.container = object;
+        LSD.Module.Proxies.realize(object, this, proxy)
       }.bind(this);
       callback.proxy = proxy;
       return callback;

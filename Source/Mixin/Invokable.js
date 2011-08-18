@@ -55,7 +55,7 @@ LSD.Mixin.Invokable = new Class({
     console.error('invoked', invoker.tagName);
     this.invoker = invoker;
     this.fireEvent('invoke', arguments);
-    this.fireEvent('register', ['invoker', invoker]);
+    this.objects.set('invoker', invoker);
   },
   
   revoke: function(soft) {
@@ -63,7 +63,7 @@ LSD.Mixin.Invokable = new Class({
     var invoker = this.invoker;
     if (soft !== true) this.invoker.uncallChain();
     this.fireEvent('revoke', invoker);
-    this.fireEvent('unregister', ['invoker', invoker]);
+    this.objects.unset('invoker', invoker);
   },
   
   getInvoker: function() {

@@ -45,7 +45,7 @@ LSD.Module.Element = new Class({
       } else this.element = document.id(element);
     }
     if (!this.built) this.build();
-    this.fireEvent('register', ['element', this.element]);
+    this.objects.set('element', this.element);
     if (this.options.key) this.element.store(this.options.key, this).fireEvent('attach', this);
     /*
       Extracts and sets layout options from attached element
@@ -58,9 +58,8 @@ LSD.Module.Element = new Class({
   },
 
   detach: function(element) {
-    this.fireEvent('unregister', ['element', this.element]);
     if (this.options.key) this.element.eliminate(this.options.key, this).fireEvent('detach', this)
-    delete this.element;
+    this.objects.unset('element', this.element);
     /*
       Unsets options previously extracted from the detached element
     */
@@ -152,7 +151,7 @@ LSD.Module.Element.extract = function(element, widget) {
   }, attrs = options.attributes;
   for (var i = 0, attribute, name; attribute = element.attributes[i++];) {
     name = attribute.name;
-    attrs[name] = LSD.Attributes[name] == 'boolean' || attribute.value || "";
+    attrs[name] = LSD.Attributes[name] == 'boolean' || attribute.value || true;
   }
   var klass = attrs['class'];
   if (klass) {

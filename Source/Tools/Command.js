@@ -42,7 +42,7 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
   },
   
   attach: function(widget) {
-    widget.fireEvent('register', ['command', this]);
+    widget.objects.set('command', this);
     if (this.disabled) widget.states.add('disabled');
     if (!this.bound) this.bound = {}
     if (!this.bound.enable) this.bound.enable = this.enable.bind(this);
@@ -64,7 +64,7 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
   },
   
   detach: function(widget) {
-    widget.fireEvent('unregister', ['command', this]);
+    widget.objects.unset('command', this);
     if (this.disabled) widget.states.remove('disabled');
     if (this.type && this.type != 'command') {
       widget.states.unset('checked');

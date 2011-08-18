@@ -99,11 +99,13 @@ var Events = Object.append(LSD.Module.Events, {
       }
       var target = Events.Targets[name];
       if (target)
-        if (target.call) {
+        if (target === true) {
+          if (this.objects[name]) this.objects[name][revert ? 'removeEvents' : 'addEvents'](bound);
+        } else if (target.call) {
           if ((target = target.call(this))) 
             for (var event in bound) Events.setEvent.call(target, event, bound[event], revert);
         } else {
-          if (initial && !target.registers) {
+          if (initial && target.events) {
             Events.watchEventTarget.call(this, name, function(object, state) {
               Events.setStoredEvents.call(object, events, state, this);
             })
@@ -195,18 +197,6 @@ var Events = Object.append(LSD.Module.Events, {
     }
   }
 });
-
-LSD.Module.Events.addEvents.call(LSD.Module.Events.prototype, {
-  register: function(name, object) {
-    var events = this.events && this.events[name];
-    if (events) Events.setStoredEvents.call(object, events, true, this);
-  },
-  unregister: function(name, object) {
-    var events = this.events && this.events[name];
-    if (events) Events.setStoredEvents.call(object, events, false, this);
-  }
-});
-
 /*
   Inject generic methods into the module prototype
 */
@@ -256,38 +246,10 @@ Events.Targets = {
   mobile: function() {
     return this;
   },
-  element: {
-    getter: 'element',
-    registers: true,
-    events: {
-      attach: true,
-      detach: false
-    }
-  },
-  document: {
-    getter: 'document',
-    registers: true,
-    events: {
-      setDocument: true,
-      unsetDocument: false
-    }
-  },
-  parent: {
-    getter: 'parentNode',
-    registers: true,
-    events: {
-      setParent: true,
-      unsetParent: false
-    }
-  },
-  root: {
-    getter: 'root',
-    registers: true,
-    events: {
-      setRoot: true,
-      unsetRoot: false
-    }
-  }
+  element: true,
+  document: true,
+  parent: true,
+  root: true
 };
 
 Events.States = {

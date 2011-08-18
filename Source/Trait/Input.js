@@ -55,7 +55,7 @@ LSD.Trait.Input = new Class({
   
   getInput: Macro.getter('input', function() {
     var input = new Element('input', Object.append({'type': 'text'}, this.options.input));
-    this.fireEvent('register', ['input', input]);
+    this.objects.set('input', input)
     return input;
   }),
   

@@ -89,12 +89,12 @@ LSD.Relation.prototype = Object.append({
     this.add(widget);
     this.applyOptions(widget);
     this.fireEvent('add', widget);
-    this.origin.fireEvent('relate', [widget, this.name]);
+    LSD.Module.Expectations.relate(this.origin, this.name, widget);
   },
   
   onLose: function(widget) {
     if (widget == this) return;
-    this.origin.fireEvent('unrelate', [widget, this.name]);
+    LSD.Module.Expectations.unrelate(this.origin, this.name, widget);
     if (this.remove(widget) === false) return;
     this.fireEvent('remove', widget);
     this.applyOptions(widget, true);
@@ -169,25 +169,22 @@ var Options = LSD.Relation.Options = {
     if (target.call) target = target.call(this.origin);
     if (this.targeted == target) return;
     this.targeted = target;
-    if (memo) this.origin.removeEvents(memo);
-    var setting = Targets[target];
-    if (setting) {
-      var relation = this, events = Object.map(setting.events, function(value, event) {
-        return function(object) {
-          if (value) {
-            relation.target = object.nodeType == 9 ? object.body : object;
-            var selector = relation.options.selector, expectation = relation.options.expectation;
-            if (selector) Options.selector.call(relation, selector, true, relation.memo.selector, 1);
-            if (expectation) Options.expectation.call(relation, expectation, true, relation.memo.expectation);
+    if (memo) this.origin.objects.unwatch(target, memo);
+    if (state) {
+      if (Targets[target]) {
+        var watcher = function(object) {
+          if (object) {
+            this.target = object.nodeType == 9 ? object.body : object;
+            var selector = this.options.selector, expectation = this.options.expectation;
+            if (selector) Options.selector.call(this, selector, true, this.memo.selector, 1);
+            if (expectation) Options.expectation.call(this, expectation, true, this.memo.expectation);
           }
-        }
-      })
-      this.origin.addEvents(events);
-      if (setting.getter && !this.target)
-        if ((this.target = this.origin[setting.getter])) events[Object.keyOf(setting, true)](this.target);
-      return events;
-    } else {
-      if (this.origin[target]) this.target = this.origin[target];
+        }.bind(this);
+        this.origin.objects.watch(target, watcher);
+        return watcher;
+      } else {
+        if (this.origin[target]) this.target = this.origin[target];
+      }
     }
   },
   

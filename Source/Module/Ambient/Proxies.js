@@ -26,12 +26,19 @@ LSD.Module.Proxies = new Class({
   },
   
   addProxy: function(name, proxy) {
-    for (var i = 0, other; (other = this.proxies[i]) && ((proxy.priority || 0) < (other.priority || 0)); i++);
-    this.proxies.splice(i, 0, proxy);
+    var selector = proxy.selector || proxy.mutation;
+    if (selector && selector !== true && selector.match('^\s*[+~]')) var object = this.parentNode;
+    else var object = this;
+    for (var i = 0, other; (other = object.proxies[i]) && ((proxy.priority || 0) < (other.priority || 0)); i++);
+    object.proxies.splice(i, 0, proxy);
   },
   
   removeProxy: function(name, proxy) {
-    this.proxies.erase(proxy);
+    var selector = proxy.selector || proxy.mutation;
+    if (selector && selector !== true && selector.match('^\s*[+~]')) var object = this.parentNode;
+    else var object = this;
+    var index = object.proxies.indexOf(proxy);
+    if (index > -1) object.proxies.splice(index, 1);
   }
 });
 
@@ -39,7 +46,7 @@ Object.append(LSD.Module.Proxies, {
   match: function(node, proxy, parent) {
     if (node.lsd) {
       if (!node.element) node.toElement();
-      if (proxy.selector) return proxy.selector === true || node.match(proxy.selector);
+      if (proxy.selector) return proxy.selector === true || Slick.matchNode(node, proxy.selector, parent || proxy.widget);
     } else {
       if (proxy.mutation) return proxy.mutation === true || (node.nodeType == 1 && Slick.matchNode(node, proxy.mutation, parent || proxy.element))
       if (proxy.text) return node.nodeType == 3;
@@ -52,30 +59,56 @@ Object.append(LSD.Module.Proxies, {
     if (container === false) {
       if (!proxy.queued) proxy.queued = [];
       proxy.queued.push(child);
-      if (child.parentNode) child.parentNode.removeChild(child);
       return false;
     }
     var result = {};
     if (container && container !== true) {
       if (child.lsd) {
         if (container.localName) {
-          result.override = function(parent, child) {
-            container.appendChild(child);
-          }
+          result.element = container;
+        } else if (container.lsd) {
+          result.widget = container;
+          result.element = container.element || container.toElement()
+        } else {
+          result.widget = parent[0];
+          result.element = container;
         }
-        if (container.lsd) result.parent = container;
-        else result.parent = [parent[0] || parent, container];
-        if (proxy.rewrite === false) result.parent[0] == parent[0] || parent;
+        if (proxy.rewrite === false) {
+          result.widget = parent[0];
+        }
       } else {
         result.parent = container;
       }
+      if (container === child) return false;
     }
-    if (proxy.before) result.before = proxy.before.call ? proxy.before.call(parent, child, proxy) : proxy.before;
-    else if (proxy.after) {
+    if (proxy.before) {
+      result.before = proxy.before.call ? proxy.before.call(parent, child, proxy) : proxy.before;
+    } else if (proxy.after) {
       var after = (proxy.after.call ? proxy.after.call(parent, child, proxy) : proxy.after);
       if (after) result.before = after.nextSibling;
     }
     return result;
+  },
+  
+  perform: function(widget, child, memo) {
+    var element = widget.element || widget.toElement();
+    for (var node = widget, proxies; node; node = node.parentNode)
+      if ((proxies = node.proxies)) 
+        for (var j = 0, proxy; proxy = proxies[j++];)
+          if ((node == widget || proxy.deep) && (!memo || !memo.stored || !memo.stored.proxy || memo.stored.proxy.proxy != proxy)) 
+            if (LSD.Module.Proxies.match(child, proxy, proxy.selector ? widget : proxy.element))
+              return LSD.Module.Proxies.invoke(child.lsd ? widget : element, child, proxy, memo);
+  },
+  
+  realize: function(node, origin, proxy) {
+    proxy.container = node;
+    if (proxy.queued) {
+      if (node.lsd) var element = node.element || node.toElement(), widget = node;
+      else var element = node, widget = origin;
+      for (var i = 0, child; child = proxy.queued[i++];) {
+        origin.layout.appendChild([widget, element], child, false, child.lsd ? element : null, element);
+      }
+    }
   }
 });
 

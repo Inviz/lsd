@@ -27,15 +27,16 @@ LSD.Mixin.Uploader = new Class({
       uploader: {
         enable: function() {
           if (this.attributes.multiple) this.options.uploader.multiple = true;
-          this.fireEvent('register', ['uploader', this.getUploader()]);
+          var uploader = this.getUploader();
+          this.objects.set('uploader', uploader);
           var target = this.getUploaderTarget();
-          if (target) this.getUploader().attach(target);
+          if (target) uploader.attach(target);
           this.getStoredBlobs().each(this.addFile, this);
         },
         disable: function() {
-          this.getUploader().removeEvents(this.events.uploader);
-          this.getUploader().detach(this.getUploaderTarget())
-          this.fireEvent('unregister', ['uploader', this.getUploader()]);
+          var uploader = this.getUploader();
+          uploader.detach(this.getUploaderTarget())
+          this.objects.unset('uploader', uploader);
         }
       }
     },

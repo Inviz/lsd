@@ -77,7 +77,7 @@ LSD.Mixin.Draggable = new Class({
   getDragger: function() {
     if (this.dragger) return this.dragger;
     var element = this.element;
-    this.addEvent('setDocument', function() {
+    this.addEvent('ready', function() {
       var position = element.getPosition();
       element.left = position.x - element.getStyle('margin-left').toInt();
       element.top = position.y - element.getStyle('margin-top').toInt();

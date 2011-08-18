@@ -60,10 +60,10 @@ LSD.Module.Layout = new Class({
       old = this.rendered[name] = this.layout[method](layout, parent, memo);
     }
     if (memo.promised) {
-      delete memo.promised;
+      memo.promised = false;
       this.addEvent('DOMChildNodesRendered:once', function() {
         this.layout.realize(old)
-      })
+      });
     }
     return this.rendered[name];
   },
@@ -73,7 +73,7 @@ LSD.Module.Layout = new Class({
   },
   
   buildLayout: function(layout, parent, memo) {
-    var args = [layout, (!parent && !parent !== false) ? this : parent, memo];
+    var args = [layout, (!parent && parent !== false) ? this : parent, memo];
     var instance = this.getLayout();
     var method = layout.charAt ? 'selector' : 'render';
     return instance[method].apply(instance, args);
@@ -98,6 +98,7 @@ LSD.Module.Layout.events = {
       if (this.options.clone) opts.clone = this.options.clone;
       if (nodes.length) this.addLayout('children', nodes, [this, this.getWrapper()], opts);
       this.fireEvent('DOMChildNodesRendered')
+      this.fireEvent('ready');
     }
   },
   /* 

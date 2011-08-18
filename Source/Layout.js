@@ -113,18 +113,9 @@ LSD.Layout.prototype = Object.append({
     } else {
       var widget = memo.clone ? converted.cloneNode(false) : converted;
     }
-    // Append widget into parent widget without moving elements
-    if (widget) {
-      this.appendChild(ascendant, widget, memo, function(container, child) {
-        if (widget.origin == element && element.parentNode && element.parentNode == container) {
-          element.parentNode.replaceChild(widget.element, element);
-        } else if (!child.parentNode) return parent[1] || container;
-        return false;
-      });
-    } else {
-      if (memo.clone) var clone = element.cloneNode(false);
-      this.appendChild(container, clone || element, memo);
-    }
+    if (!widget && memo.clone) var clone = element.cloneNode(false);
+    // Append a node to parent
+    this.appendChild([ascendant, container], widget || clone || element, memo);
     return widget || clone || element;
   },
   
@@ -223,7 +214,7 @@ LSD.Layout.prototype = Object.append({
   string: function(string, parent, memo) {
     var element = parent[1] || parent.toElement();
     var textnode = element.ownerDocument.createTextNode(string);
-    this.appendChild(element, textnode, memo);
+    this.appendChild([parent[0] || parent, element], textnode, memo);
     LSD.Interpolation.textnode(textnode, parent[0] || parent);
     return textnode;
   },
@@ -247,11 +238,13 @@ LSD.Layout.prototype = Object.append({
           branch = null;
         }
         var rendered = this.selector(selector, parent, memo);
+        var combinator = memo.combinator;
+        if (combinator) delete memo.combinator;
         if (rendered.promise) {
           rendered.children = layout;
-          result[selector] = [rendered, layout];
+          result[selector] = [rendered, layout, combinator];
         } else {
-          result[selector] = [rendered, !layout || this.render(layout, rendered.lsd ? rendered : [parent[0] || parent, rendered], null, memo)];
+          result[selector] = [rendered, !layout || this.render(layout, rendered.lsd ? rendered : [parent[0] || parent, rendered], null, memo), combinator];
         }
       }
     }
@@ -327,12 +320,12 @@ LSD.Layout.prototype = Object.append({
         }
       } else {  
         if (!memo.defaults) memo.defaults = this.getOptions(memo, parent);
-        var opts = Object.append({}, memo.defaults, memo.options, options);
-        if (memo.lazy) return new LSD.Layout.Promise(this, string, true, parent, opts, memo);
+        var opts = Object.merge({}, memo.defaults, memo.options, options);
         if (options.combinator) {
           memo.combinator = options.combinator;
           delete options.combinator;
         }
+        if (memo.lazy) return new LSD.Layout.Promise(this, string, true, parent, opts, memo);
         var widget = memo.type.create(opts);
       }
       if (widget.element && widget.element.childNodes.length) var nodes = LSD.slice(widget.element.childNodes);
@@ -348,17 +341,10 @@ LSD.Layout.prototype = Object.append({
         delete options.combinator;
       }
       if (memo.lazy) return new LSD.Layout.Promise(this, string, false, parent, options, memo);
-      var props = {}, tag = (!options.tag || options.tag == '*') ? 'div' : options.tag;
-      if (options.id) props.id = options.id;
-      var attributes = options.attributes;
-      if (attributes) for (var attr, i = 0, l = attributes.length; i < l; i++){
-        attr = attributes[i];
-        if (props[attr.key] != null) continue;
-        if (attr.value != null && attr.operator == '=') props[attr.key] = attr.value;
-        else if (!attr.value && !attr.operator) props[attr.key] = props[attr.key];
-      }
+      var tag = (!options.tag || options.tag == '*') ? 'div' : options.tag;
       var element = document.createElement(tag);
-      for (var name in props) element.setAttribute(name, props[name]);
+      var attributes = options.attributes;
+      if (attributes) for (var name in attributes) element.setAttribute(name, attributes[name]);
       if (options.classes) element.className = LSD.Object.prototype.join.call(options.classes, ' ');
       if (parent) this.appendChild(parent, element, memo);
       if (options.content) element.innerHTML = options.content;
@@ -422,6 +408,7 @@ LSD.Layout.prototype = Object.append({
   },
 
   set: function(layout, parent, memo, state) {
+    if (!memo) memo = {};
     switch (typeOf(layout)) {
       case "array": case "collection":
         for (var i = 0, j = layout.length, value; i < j; i++)
@@ -429,8 +416,13 @@ LSD.Layout.prototype = Object.append({
         break;
       case "object":
         for (var key in layout) {
-          var value = layout[key];
-          if (value && (value = value[0])) this.manipulate(state, parent, value, memo);
+          var value = layout[key], element;
+          if (value && (element = value[0])) {
+            var combinator = value[2];
+            if (combinator) memo.combinator = combinator;
+            this.manipulate(state, parent, element, memo);
+            if (combinator) delete memo.combinator;
+          }
         }
         break;
       case "widget": case "string":  
@@ -443,7 +435,12 @@ LSD.Layout.prototype = Object.append({
     if (state) {
       this.appendChild(parent, child, memo);
     } else {
-      this.removeChild(child.parentNode || parent, child, memo)
+      var node = child.parentNode;
+      if (node) {
+        var parents = [].concat(parent);
+        parents[+!child.lsd] = node;
+      }
+      this.removeChild(parents || parent, child, memo)
     }
     if (child.nodeType == 8) {
       var keyword = Element.retrieve(child, 'keyword');
@@ -457,71 +454,71 @@ LSD.Layout.prototype = Object.append({
     the parent node by default. Alternatively, a node given with `memo.before` 
     will be used as a place to insert before.
     
-    `override` function may be used when a widget is inserted into another widget
-    but DOM manipulation should be altered in some way. 
-    
-    A function may be given proxies stack with `memo.proxies`. The stack is then
+    A stack of proxies is retrieved from the widget. The stack is then
     be iterated and proxies are matched against the child node. Upon a succesful
     match, a proxy function returns an object with values that may specify a new
     `parent`, `override` or `before` variables for manipulation.
   */
   
-  appendChild: function(parents, child, memo, override) {
+  appendChild: function(parents, child, memo) {
     if (parents.push) var widget = parents[0], element = parents[1];
     else if (parents.lsd) var widget = parents, element = widget.element || widget.toElement();
     else var element = parents;
-    var parent = child.lsd ? widget : element, before;
+    if (child.lsd) {
+      var parent = widget;
+      if (!child.document && widget.document) child.document = child.ownerDocument = widget.document;
+    } else var parent = element;
+    var before;
     if (memo && memo.combinator) {
       var combinator = LSD.Layout.Combinators[memo.combinator];
       if (combinator) {
         var result = combinator(parent, child);
         if (result) {
-          if (result.parent) parent = result.parent;
+          if (result.parent) {
+            if (child.lsd) widget = result.parent;
+            else element = result.parent;
+          }
           if (result.before) before = result.before;
         }
       }
-      delete memo.combinator;
     }
-    if (memo && memo.proxies)
-      proxy: for (var i = 0, group, proxies, close; group = memo.proxies[i++];) {
-        proxies = group[1];
-        close = element == group[0];
-        for (var j = 0, proxy; proxy = proxies[j++];) {
-          if (close || proxy.deep || proxy.element == element) {
-            if (LSD.Module.Proxies.match(child, proxy, group[0])) {
-              var result = LSD.Module.Proxies.invoke(parent, child, proxy, memo);
-              if (result) {
-                if (result.parent) parent = result.parent;
-                if (result.override) override = result.override;
-                if (result.before) before = result.before;
-                break proxy
-              } else if (result === false) return false;
-            }
-          }
-        }
+    if (memo && memo.bypass) {
+      delete memo.bypass;
+    } else if (widget) {
+      if (child.lsd && !child.parentNode) child.parentNode = widget;
+      var proxy = LSD.Module.Proxies.perform(widget, child, memo);
+      if (proxy) {
+        if (proxy.widget && child.lsd) parent = proxy.widget;
+        if (proxy.element) 
+          if (child.lsd) element = proxy.element;
+          else parent = proxy.element;
+        if (proxy.before) before = proxy.before;
+      } else if (proxy === false) {
+        if (element && element.parentNode) element.parentNode.removeChild(element);
+        if (widget && widget.parentNode) widget.parentNode.removeChild(child);
+        return false;
       }
-    if (before || (memo && (before = memo.before))) {
+    }
+    if (!before && memo && memo.before) before = memo.before;
+    if (before) {
       if (!parent.lsd) {
         if (before.lsd) before = before.toElement();
         parent = before.parentNode;
       };
-      parent.insertBefore(child, before, override);
+      parent.insertBefore(child, before, element);
     } else {
-      if (child.parentNode == parent) return;
-      parent.appendChild(child, override);
-    }
-    if (child.lsd) {
-      var doc = parent.document;
-      if (child.document != doc) child.setDocument(doc);
+      widget.appendChild(child, element);
     }
     return true;
   },
   
-  removeChild: function(parent, child, override) {
-    if (parent.push) parent = parent[child.lsd ? 0 : 1] || parent;
-    if (!child.lsd && parent.lsd) parent = parent.toElement();
+  removeChild: function(parents, child) {
+    if (parents.push) var widget = parents[0], element = parents[1];
+    else if (parents.lsd) var widget = parents, element = widget.element || widget.toElement();
+    else var element = parents;
+    var parent = child.lsd ? widget : element;
     if (child.parentNode != parent) return;
-    parent.removeChild(child, override);
+    widget.removeChild(child, element);
     return true;
   },
   
@@ -661,7 +658,6 @@ LSD.Layout.prototype = Object.append({
         if (widget) {
           if ((group = widget.mutations[' '])) stack.push([' ', group]);
           if (i == 0 && (group = widget.mutations['>'])) stack.push(['>', group]);
-          if (widget.proxies) (memo.proxies || (memo.proxies = [])).push([node, widget.proxies]);
         }
       }
     }  
@@ -687,13 +683,6 @@ LSD.Layout.prototype = Object.append({
             stack.splice(j, 1)
             break;
           }
-    }
-    if (widget.proxies && memo.proxies) {
-      for (var j = memo.proxies.length, group; group = memo.proxies[--j];)
-        if (group[1] == widget.proxies) {
-          memo.proxies.splice(j, 1);
-          break;
-        }
     }
   },
   
@@ -800,7 +789,10 @@ LSD.Layout.prototype = Object.append({
     /*
       Notify widget that children are processed
     */
-    if (widget) widget.fireEvent('DOMChildNodesRendered')
+    if (widget) {
+      widget.fireEvent('DOMChildNodesRendered');
+      widget.fireEvent('ready');
+    }
     return ret;
   },
   
@@ -908,7 +900,6 @@ LSD.Layout.Promise = function(layout, selector, lsd, parent, options, memo) {
 };
 LSD.Layout.Promise.rOrderCombinator = /\s*([+~])\s*$/;
 
-
 LSD.Layout.Promise.prototype = {
   attach: function(memo) {
     this.memo = memo;
@@ -966,7 +957,12 @@ LSD.Layout.Promise.prototype = {
         var old = memo.before;
         memo.before = before;
       }
+      var combinator = this.combinator;
+      if (combinator) memo.combinator = combinator;
+      memo.stored = stored;
+      memo.bypass = true;
       result = this.layout.selector(this.options, this.parent, memo);
+      delete memo.stored;
       if (this.before) memo.before = old;
     }
     this.result = result;
@@ -984,7 +980,6 @@ LSD.Layout.Promise.prototype = {
     if (stored && result.store) {
       for (var name in stored) stored[name].call(this, result);
       result.store('allocation', stored);
-      delete this.options.stored;
     }
   }
 };

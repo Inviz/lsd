@@ -3,7 +3,7 @@
  
 script: Expectations.js
  
-description: A trait that allows to wait for related widgets until they are ready
+description: A trait that allows to wait for related \s until they are ready
  
 license: Public domain (http://unlicense.org).
 
@@ -27,6 +27,37 @@ var Expectations = LSD.Module.Expectations = new Class({
   constructors: {
     expectations: function() {
       if (!this.expectations) this.expectations = {tag: {}}
+      var self = this;
+      this.objects = (new LSD.Object).addEvent('change', function(name, value, state, old, memo) {
+        var property = Expectations.Properties[name] || name;
+        var alias = Expectations.Aliases[name];
+        var events = self.events && self.events[name];
+        if (!state) old = value;
+        if (old != null) {
+          self.fireEvent('unset' + name.capitalize(), old);
+          if (old.lsd) Expectations.unrelate(self, name, old);
+          if (events) LSD.Module.Events.setStoredEvents.call(old, events, false, self);
+          switch(name) {
+            case "parent":
+              notify.call(self, '!>', old.tagName, false, old);
+              for (var parent = old; parent; parent = parent.parentNode) notify.call(self, '!', parent.tagName, false, parent);
+          }
+          if (alias) delete self[alias];
+          delete self[property];
+        }
+        if (state && value != null) {
+          if (value.lsd) Expectations.relate(self, name, value);
+          switch(name) {
+            case "parent":
+              notify.call(self, '!>', value.tagName, true, value);
+              for (var parent = value; parent; parent = parent.parentNode) notify.call(self, '!', parent.tagName, true, parent);
+          }
+          if (alias) self[alias] = value;
+          self[property] = value;
+          self.fireEvent('set' + name.capitalize(), value);
+          if (events) LSD.Module.Events.setStoredEvents.call(value, events, true, self);
+        }
+      });
     }
   },
   
@@ -218,7 +249,29 @@ Expectations.advanceRootExpectation = function(exp, widget, callback, state) {
     var expression = {combinator: ' ', tag: exp.tag, classes: exp.classes, pseudos: exp.pseudos, attributes: exp.attributes, id: exp.id};
     widget[state ? 'expect' : 'unexpect'](expression, callback, null, callback);
   }
+};
+
+Expectations.relate = function(object, name, subject) {
+  var expectations = subject.expectations;
+  if (expectations) {
+    var type = expectations['!::'];
+    if (!type) type = expectations['!::'] = {};
+    var group = type[name];
+    if (!group) group = type[name] = [];
+    group.push(object);
+    notify.call(object, '::', name, true, subject);
+  }
+};
+
+Expectations.unrelate = function(object, name, subject) {
+  var expectations = subject.expectations;
+  if (expectations) {
+    notify.call(object, '::', name, false, subject);
+    subject.expectations['!::'][name].erase(object);
+  }
 }
+
+
 
 var check = function(type, value, state, target) {
   var expectations = this.expectations
@@ -278,7 +331,7 @@ var remove = function(array, callback) {
       break;
     }
   }
-}
+};
 
 var separate = function(selector) {
   if (selector.state || selector.structure) return selector
@@ -298,7 +351,20 @@ var separate = function(selector) {
   return separated;
 };
 
+Expectations.Properties = {
+  parent: 'parentNode',
+  next: 'nextSibling',
+  previous: 'previousSibling',
+  first: 'firstChild',
+  last: 'lastChild'
+};
+
+Expectations.Aliases = {
+  document: 'ownerDocument'
+};
+
 Expectations.events = {
+  selectorChange: check,
   nodeInserted: function(widget) {
     var expectations = this.expectations, type = expectations.tag, tag = widget.tagName;
     if (!type) type = expectations.tag = {};
@@ -328,27 +394,6 @@ Expectations.events = {
     group.push(widget);
     update.call(this, widget, tag, true);
   },
-  relate: function(widget, tag) {
-    var expectations = widget.expectations, type = expectations['!::'];
-    if (!type) type = expectations['!::'] = {};
-    var group = type[tag];
-    if (!group) group = type[tag] = [];
-    group.push(this);
-    notify.call(this, '::', tag, true, widget);
-  },
-  unrelate: function(widget, tag) {
-    notify.call(this, '::', tag, false, widget);
-    widget.expectations['!::'][tag].erase(this);
-  },
-  setParent: function(parent) {
-    notify.call(this, '!>', parent.tagName, true, parent);
-    for (; parent; parent = parent.parentNode) notify.call(this, '!', parent.tagName, true, parent);
-  },
-  unsetParent: function(parent) {
-    notify.call(this, '!>', parent.tagName, false, parent);
-    for (; parent; parent = parent.parentNode) notify.call(this, '!', parent.tagName, false, parent);
-  },
-  selectorChange: check,
   tagChanged: function(tag, old) {
     check.call(this, 'tag', old, false);
     if (tag) check.call(this, 'tag', tag, true);
