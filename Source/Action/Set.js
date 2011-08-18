@@ -28,7 +28,7 @@ LSD.Action.Set = LSD.Action.build({
       default:
         if (widget && widget.findItemByValue) {
           var item = widget.findItemByValue(value);
-          if (item) item.check();
+          if (item) item.click();
         } else if (!target.lsd) target.set('html', value);
         break;
     }
