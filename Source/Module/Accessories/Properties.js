@@ -123,8 +123,9 @@ Object.append(LSD.Options, {
 LSD.Module.Properties.Methods = {
   tag: function(value, state, old) {
     if (!state || old) 
-      if (this.source) this.properties.unset('source', this.source);
-    this.properties.set('source', LSD.Module.Properties.getSource(this, state ? value : false));
+      if (this.source && !this.options.source) this.properties.unset('source', this.source);
+    var source = this.options.source || LSD.Module.Properties.getSource(this, state ? value : false);
+    if (this.source != source) this.properties.set('source', source);
   },
   
   context: function(value, state, old) {

@@ -1223,7 +1223,7 @@ Object.append(LSD.Layout, {
       }
     if (parsed.tag != '*' && parsed.combinator != '::')
       if (parsed.tag.indexOf('-') > -1) 
-        options.source = parsed.tag.split('-');
+        options.source = parsed.tag;
       else {
         options.tag = parsed.tag;
         var source = LSD.Layout.getSource(options, options.tag);
