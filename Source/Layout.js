@@ -11,9 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD
-  - LSD.Interpolation
   - LSD.Helpers
-  - LSD.Microdata
   - More/Object.Extras
 
 provides: 
@@ -171,7 +169,7 @@ LSD.Layout.prototype = Object.append({
   textnode: function(element, parent, memo) {
     if (memo && memo.clone) var clone = element.cloneNode(false);
     this.appendChild(parent, clone || element, memo);
-    LSD.Interpolation.textnode(clone || element, parent[0] || parent);
+    LSD.Layout.interpolate(clone || element, parent[0] || parent);
     return clone || element;
   },
   
@@ -215,7 +213,7 @@ LSD.Layout.prototype = Object.append({
     var element = parent[1] || parent.toElement();
     var textnode = element.ownerDocument.createTextNode(string);
     this.appendChild([parent[0] || parent, element], textnode, memo);
-    LSD.Interpolation.textnode(textnode, parent[0] || parent);
+    LSD.Layout.interpolate(textnode, parent[0] || parent);
     return textnode;
   },
   
@@ -291,7 +289,7 @@ LSD.Layout.prototype = Object.append({
     if (!memo) memo = {};
     if (!memo.type) memo.type = this.getType(memo, parent);
     var source = options.source;
-    if (source && source.match && !source.match(LSD.Layout.rSimpleSource)) {
+    if (source && source.match && !source.match(LSD.Layout.rSource)) {
       delete options.source;
       Object.merge(options, LSD.Layout.parse(source, parent));
     }
@@ -312,7 +310,7 @@ LSD.Layout.prototype = Object.append({
           // Parse selector coming from allocation and pass the promise
           return this.selector(selector, parent, memo);
         } else {
-          var widget = (parent[0] || parent).allocate(allocation.type, allocation.kind, allocation.options);
+          var widget = (parent[0] || parent).allocate(allocation);
           if (widget.parentNode) {
             if (widget.lsd) parent = [widget.parentNode, (widget.element && widget.element.parentNode) || widget.parentNode.element]
             else parent = [parent[0] || parent, widget.parentNode];
@@ -753,7 +751,7 @@ LSD.Layout.prototype = Object.append({
       Scan element for microdata
     */
     var itempath = memo.itempath;
-    var scope = LSD.Microdata.element(element, widget || ascendant, itempath && itempath[itempath.length - 1]);
+    var scope = LSD.Microdata.extract(element, widget || ascendant, itempath && itempath[itempath.length - 1]);
     if (scope) (itempath || (itempath = memo.itempath = [])).push(scope);
     if (widget && itempath) widget.itempath = itempath;
     /*
@@ -808,8 +806,6 @@ LSD.Layout.prototype = Object.append({
     return LSD[LSD.toClassName(context)];
   }
 });
-
-LSD.Layout.rSimpleSource = /^[a-z-_0-9]+$/;
 /*
   Combinator methods are used in appendChild/removeChild manipulations.
   All of those (and more) are also implemented for matching in Slick. 
@@ -867,281 +863,14 @@ LSD.Layout.Combinators = {
 LSD.Layout.Combinators['++'] = LSD.Layout.Combinators['+'];
 LSD.Layout.Combinators['~~'] = LSD.Layout.Combinators['~'];
 
-/*
-  When a lazy layout is set to render selector, it creates a promise object first.
-  The promise object holds all variables required to really render the piece,
-  but it postpones the rendering to future. The promise object is used as a proxy
-  definition on widget, giving layout a chance to render other chunks of layout that
-  are not lazy. When other chunks are rendered, they are matched against current
-  proxies on a widget. And when there's a match, proxy (which is really a promise object)
-  uses the matched node to and does not build a new one.
-  
-  Then, a `layout.realize()` call sets all promised objects to render if they didnt
-  match any nodes built in other chunks of layout.
-*/
-
-LSD.Layout.Promise = function(layout, selector, lsd, parent, options, memo) {
-  selector = selector.replace(LSD.Layout.Promise.rOrderCombinator, function(whole, match) {
-    this.order = match;
-    return "";
-  }.bind(this))
-  var parsed = Slick.parse(selector), expressions = parsed.expressions[0];
-  // makes proxy deep - look into elements
-  this.deep = true;
-  this.layout = layout;
-  this.options = options;
-  this.promise = true;
-  this.lsd = lsd;
-  this[lsd ? 'selector' : 'mutation'] = selector;
-  this.widget = parent[0] || parent;
-  this.element = parent[1] || parent.element || parent.toElement();
-  this.parent = parent;
-  this.attach(memo);
-};
-LSD.Layout.Promise.rOrderCombinator = /\s*([+~])\s*$/;
-
-LSD.Layout.Promise.prototype = {
-  attach: function(memo) {
-    this.memo = memo;
-    if ((this.combinator = memo.combinator)) delete memo.combiantor;
-    memo.promised = true;
-    var predecessors = memo.predecessors
-    if (predecessors) {
-      this.predecessors = predecessors.slice(0);
-      this.index = this.predecessors.length;
-      // Look for previous promises that had + combinator and pair them with this promise
-      for (var i = predecessors.length, predecessor; predecessor = predecessors[--i];) {
-        if (predecessor.order == '+' && !predecessor.next) {
-          this.previous = predecessor;
-          this.previous.next = this;
-          break;
-        }
-      }
-    } else this.index = 0;
-    if (this.order) {
-      if (!predecessors) predecessors = memo.predecessors = [];
-      predecessors.push(this);
-    }
-    // promise adds itself to the widget as proxy
-    // so its properties are treated as proxy options.
-    // `callback` method is called like if it was a proxy setting
-    this.widget.addProxy('promise', this);
-  },
-  
-  detach: function() {
-    if (this.order) {
-      var predecessors = this.memo && this.memo.predecessors;
-      if (predecessors) 
-        for (var i = predecessors.length, predecessor; predecessor = predecessors[--i];)
-          if (predecessor == this) predecessors.splice(i, 1);
-    }
-    this.widget.removeProxy('promise', this)
-  },
-  
-  advance: function(memo) {
-    this.advanced = this.layout.render(this.children, this.result.lsd ? this.result : [this.widget, this.result], this.memo)
-  },
-  
-  callback: function(child, proxy, memo) {
-    proxy.realize(memo, child)
-  },
-  
-  realize: function(memo, result) {
-    this.detach();
-    var stored = this.options.stored;
-    if (stored) delete this.options.stored;
-    if (!result) {
-      if (this.previous && this.previous.result) this.before = this.previous.result.nextSibling;
-      var before = this.before;
-      if (before) {
-        var old = memo.before;
-        memo.before = before;
-      }
-      var combinator = this.combinator;
-      if (combinator) memo.combinator = combinator;
-      memo.stored = stored;
-      memo.bypass = true;
-      result = this.layout.selector(this.options, this.parent, memo);
-      delete memo.stored;
-      if (this.before) memo.before = old;
-    }
-    this.result = result;
-    var predecessors = this.predecessors;
-    if (predecessors)
-      for (var i = predecessors.length, predecessor; predecessor = predecessors[--i];) {
-        var before = predecessor.before;
-        if ((predecessor.order == '+' && predecessor.next == this) || !predecessor.following || predecessor.following.index > this.index) {
-          predecessor.before = result;
-          predecessor.following = this;
-        }
-      }
-    if (this.next) this.next.after = result;
-    if (this.children) this.advance(memo);
-    if (stored && result.store) {
-      for (var name in stored) stored[name].call(this, result);
-      result.store('allocation', stored);
-    }
-  }
-};
-
-LSD.Layout.Branch = function(options) {
-  this.options = options;
-  this.id = ++LSD.Layout.Branch.UID;
-  this.$events = Object.clone(this.$events);
-  if (options.superbranch) {
-    options.superbranch.addEvents({
-      check: this.unmatch.bind(this),
-      uncheck: this.match.bind(this)
-    });
-    if (!options.superbranch.checked ^ this.options.invert) this.match();
-  } else if (options.expression || options.show) {
-    this.match();
-  } else if (options.template) {
-    LSD.Template[options.template] = this;
-  }
-};
-LSD.Layout.Branch.UID = 0;
-LSD.Template = {};
-
-LSD.Layout.Branch.prototype = Object.append({
-  branch: true,
-  getInterpolation: function() {
-    if (this.interpolation) return this.interpolation;
-    this.interpolation = LSD.Interpolation.compile(this.options.expression, this, this.options.widget, true);
-    return this.interpolation;
-  },
-  match: function() {
-    if (this.options.expression) {
-      var value = this.getInterpolation().attach().value;
-      if ((value == null) ^ this.options.invert) return;
-    }
-    this.check();
-  },
-  unmatch: function(lazy) {
-    if (this.options.expression) {
-      var value = this.interpolation.value;
-      this.interpolation.detach()
-      if ((value == null) ^ this.options.invert) return;
-    }
-    this.uncheck(lazy);
-  },
-  check: function(lazy) {
-    if (!this.checked) {
-      this.checked = true;
-      this.show();
-      if (!lazy) this.fireEvent('check', arguments);
-    }
-  },
-  uncheck: function(lazy) {
-    if (this.checked || this.checked == null) {
-      this.checked = false;
-      this.hide();
-      if (!lazy) this.fireEvent('uncheck', arguments);
-    }  
-  },
-  set: function(value) {
-    this[((value != false && value != null) ^ this.options.invert) ? 'check' : 'uncheck']();
-  },
-  show: function() {
-    var layout = this.layout;
-    if (!layout) return;
-    if (layout.length) for (var i = 0, child, keyword, depth = 0; child = layout[i]; i++) {
-      if (child.call) {
-        if (layout === this.layout) layout = layout.slice(0);
-        var result = child.call(this);
-        if (result) {
-          for (var branch = this; branch; branch = branch.options.parent) branch.dirty = true;
-          if (result.length) layout.splice.apply(layout, [i, 1].concat(result))
-          else layout[i] = result;
-        }
-      }
-    }
-    var before = this.options.element && this.options.element.nextSibling;
-    var rendered = this.options.widget.addLayout(this.id, layout, this.options.widget, this.options.options, {before: before});
-    if (result) this.validate(rendered)
-    if (rendered) this.layout = rendered;
-  },
-  hide: function() {
-    var layout = this.layout;
-    if (!layout) return;
-    this.options.widget.removeLayout(this.id, layout, this.options.widget, this.options.options);
-  },
-  splice: function(branch, layout, baseline) {
-    var offset = 0;
-    if (branch.layout) {
-      if (!layout) layout = this.layout;
-      for (var i = 0, child, keyword; child = branch.layout[i]; i++) {
-        var index = layout.indexOf(child);
-        if (index > -1) {
-          var keyword = Element.retrieve(child, 'keyword');
-          if (keyword && keyword !== true) {
-            offset += this.splice(keyword, layout);
-          }
-          layout.splice(index, 1);
-          i--;
-        }
-      }
-    }
-    return offset;
-  },
-  validate: function(layout) {
-    var validate = true;
-    for (var index, child, i = 0; child = layout[i]; i++) {
-      switch ((child = layout[i]).nodeType) {
-        case 8:
-          if (validate)
-            if (index != null) validate = index = null;
-            else index = i;
-          var keyword = Element.retrieve(child, 'keyword');
-          if (keyword && keyword !== true) i += this.splice(keyword, layout, i)
-          break;
-        case 3:
-          if (validate && child.textContent.match(LSD.Layout.rWhitespace)) break;
-        default:  
-          index = validate = null;
-      }
-    }
-    if (index != null) {  
-      var comment = layout[index];
-      layout[index] = function() {
-        return LSD.slice(document.createFragment(this.expand(comment.nodeValue)).childNodes);
-      };
-      comment.parentNode.removeChild(comment);
-      if (this.options.clean) layout = layout[index];
-    }
-    return layout;
-  },
-  setLayout: function(layout, soft) {
-    this.layout = layout.push ? this.validate(layout) : layout;
-    if (this.checked) {
-      this.show();
-    } else if (!soft) this.hide();
-  },
-  getLayout: function(layout) {
-    return this.layout;
-  },
-  attach: function() {
-    if ((this.options.expression && !this.options.link) || !this.options.superbranch.checked) this.match(true);
-    //this.show();
-  },
-  detach: function() {
-    if (this.options.expression && !this.options.link) this.unmatch(true);
-    this.hide()
-  },
-  expand: function(text) {
-    var depth = 0;
-    text = text.replace(LSD.Layout.rComment, function(whole, start, end) {
-      depth += (start ? 1 : -1);
-      if (depth == !!start) return start ? '<!--' : '-->'
-      return whole;
-    });
-    if (depth) throw "The lazy branch is unbalanced"
-    return text;
-  }
-}, Events.prototype);
-
+// Match boundaries of comments that use short notation, e.g. `<!- ->` 
 LSD.Layout.rComment = /(\<\!-)|(-\>)/g
-LSD.Layout.rWhitespace = /^\s*$/;
+// Check if a string is a simple source declaration, e.g. `grid-list-item`
+LSD.Layout.rSource = /^[a-z-_0-9]+$/;
+// Check if a string is an expression prepended with keyword, e.g. `if true`
+LSD.Layout.rKeywordExpression = /^\s*([a-z]+)(?:\s(.*?))?\s*$/;
+// Find {interpolated} expressions in a string
+LSD.Layout.rInterpolation = /\\?\{([^{}]+)\}/g;
 
 LSD.Layout.NodeTypes = {1: 'element', 3: 'textnode', 8: 'comment', 11: 'fragment'};
 LSD.Layout.NodeNames = Array.object('!doctype', 'a', 'abbr', 'acronym', 'address', 'applet', 'area', 
@@ -1181,10 +910,9 @@ LSD.Layout.Keyword = {
   }
 };
 
-LSD.Layout.rExpression = /^\s*([a-z]+)(?:\s(.*?))?\s*$/;
 Object.append(LSD.Layout, {
   extractKeyword: function(input) {
-    var match = input.match(LSD.Layout.rExpression);
+    var match = input.match(LSD.Layout.rKeywordExpression);
     if (match && LSD.Layout.Keyword[match[1]])
       return {keyword: match[1], expression: match[2]};
   },
@@ -1254,5 +982,26 @@ Object.append(LSD.Layout, {
       }
     }
     return source;
+  },
+  
+  interpolate: function(textnode, widget, callback) {
+    var node = textnode, content = node.textContent, finder, length = content.length;
+    for (var match, index, last, next, compiled; match = LSD.Layout.rInterpolation.exec(content);) {
+      last = index || 0
+      var index = match.index + match[0].length;
+      expression = node;
+      var cut = index - last;
+      if (cut < node.textContent.length) node = node.splitText(index - last);
+      if ((cut = (match.index - last))) expression = expression.splitText(cut);
+      if (!callback || callback === true) callback = widget;
+      compiled = LSD.Script({
+        input: match[1],
+        source: callback,
+        output: expression,
+        placeholder: match[0]
+      });
+      Element.store(expression, 'interpolation', compiled);
+      last = index;
+    }
   }
 });

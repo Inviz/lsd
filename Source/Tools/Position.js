@@ -53,7 +53,6 @@ LSD.Position.fallback = ['flip', 'hug', 'invert'];
           var index = +vertical[pos];
           result[index ? 'y' : 'x'] = (oprops[pos] ? 0 : ((boundaries[dimensions[index]] || 0) - object[dimensions[index]]))
         }
-      console.log(position, boundaries, [result.x, result.y])
       if (boundaries.left) result.x += boundaries.left;  
       if (boundaries.top) result.y += boundaries.top;
     } else {
@@ -83,11 +82,9 @@ LSD.Position.fallback = ['flip', 'hug', 'invert'];
         default:
           query[dimensions[+!index]] = anchor[props[+!index]] + anchor[dimensions[+!index]];
       }
-      console.log(333, query, object, position, [index], +!index, props[+!index], anchor, boundaries)
       // positioning an object at top right relative to anchor,
       // means positioning at bottom right of rectangle space above the anchor. 
       var result = LSD.Position.calculate(object, query, [flip[position[0]], position[1]]);
-      console.log(result)
       if (result) {
         //result[dimensions[+!index]] -= anchor[props[+!index]];
       } else if (fallback) {

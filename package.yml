@@ -20,8 +20,6 @@ sources:
   - Source/ART/ART.Shape.Rectangle.js
   - Source/ART/ART.Shape.Star.js
   - Source/Tools/Behavior.js
-  - Source/Tools/Interpolation.js
-  - Source/Tools/Microdata.js
   - Source/Tools/Object.js
   - Source/Tools/Helpers.js
   - Source/Tools/Command.js
@@ -114,6 +112,14 @@ sources:
   - Source/Action/Counter.js
   - Source/Action/Invoke.js
   - Source/Action.js
+  - Source/Script.js
+  - Source/Script/Variable.js
+  - Source/Script/Function.js
+  - Source/Script/Selector.js
+  - Source/Script/Helpers.js
   - Source/Layout.js
+  - Source/Layout/Branch.js
+  - Source/Layout/Microdata.js
+  - Source/Layout/Promise.js
   - Source/Sheet.js
   - Source/Widget.js

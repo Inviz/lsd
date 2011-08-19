@@ -13,6 +13,9 @@ requires:
   - LSD.Module
   - LSD.Module.Events
   - LSD.Layout
+  - LSD.Layout.Branch
+  - LSD.Layout.Microdata
+  - LSD.Layout.Promise
 
 provides: 
   - LSD.Module.Layout

@@ -10,17 +10,33 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD
+  - LSD.Layout
   - LSD.Object
   - Ext/Element.Item
   
 provides:
   - LSD.Microdata
+  - LSD.Layout.Microdata
   
 ...
 */
 
-LSD.Microdata = function(element, name) {
+/*
+  Microdata is the new HTML5 concept that provides a way to enrich 
+  html elements with arbitary data structures and provides various
+  search engine friendly schemas.
+  
+  Microdata object holds properties for a single item scope. So an
+  element or widget that has `itemscope` attribute creates one 
+  of these objects. Nodes with `itemprop` attribute are added to
+  the object and have the value extracted. When a value in an object
+  is changed, it updates the corresponding node.
+
+  Microdata values can be used in variables on all of parent widgets
+  by default.
+*/
+
+LSD.Layout.Microdata = LSD.Microdata = function(element, name) {
   this._element = element;
   this._name = name;
 };
@@ -49,7 +65,7 @@ LSD.Microdata.prototype = Object.append(new LSD.Object, {
   }
 });
 
-LSD.Microdata.element = function(element, widget, parent) {
+LSD.Microdata.extract = function(element, widget, parent) {
   var itemprop = element.getAttribute('itemprop');
   if (itemprop) {
     var itemscope = element.getAttribute('itemscope');

@@ -22,7 +22,6 @@ provides:
 LSD.Behavior = function() {
   this.attached = [];
   this.expectations = {};
-  this.parsed = {};
 }
 
 LSD.Behavior.prototype = {
@@ -44,16 +43,9 @@ LSD.Behavior.prototype = {
       else widget[state ? 'mixin' : 'unmix'](behavior, true);
     }
     if (proto.expect) {
-      //var parsed// = this.parsed[selector];
-      //if (!parsed) {
-        var parsed = this.parsed[selector] = Object.clone(Slick.parse(selector).expressions[0][0]);
-        delete parsed.combinator;
-      //}
+      var parsed = Object.clone(Slick.parse(selector).expressions[0][0]);
+      delete parsed.combinator;
       proto.expect(parsed, watcher);
-    } else {
-      //var options = proto.options, expectations = options.expectations;
-      //if (!expectations) expectations = options.expecations = {};
-      //expectations[selector] = watcher;
     }
   },
   

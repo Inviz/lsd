@@ -11,8 +11,11 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Module
-  - LSD.Module.Events
-  - LSD.Interpolation
+  - LSD.Script
+  - LSD.Script.Variable
+  - LSD.Script.Function
+  - LSD.Script.Helpers
+  - LSD.Script.Selector
 
 provides: 
   - LSD.Module.Interpolations

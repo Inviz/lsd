@@ -38,18 +38,18 @@ LSD.Module.Properties = new Class({
         var events = self.events && self.events[name];
         if (!state) old = value;
         if (old != null) {
-          self.fireEvent('unset' + name.capitalize(), old);
-          if (events) LSD.Module.Events.setStoredEvents.call(old, events, false, self);
-          if (method) method.call(self, old, false);
           if (alias) delete self[alias];
           delete self[property];
+          self.fireEvent('unset' + name.capitalize(), old);
+          if (events) LSD.Module.Events.setStoredEvents.call(old, events, false, self);
+          if (method) method.call(self, old, false, value, memo);
         }
         if (state && value != null) {
           if (alias) self[alias] = value;
           self[property] = value;
           self.fireEvent('set' + name.capitalize(), value);
           if (events) LSD.Module.Events.setStoredEvents.call(value, events, true, self);
-          if (method) method.call(self, value, true, old);
+          if (method) method.call(self, value, true, old, memo);
         }
       })
     }
@@ -75,7 +75,8 @@ LSD.Module.Properties = new Class({
 
 LSD.Module.Events.addEvents.call(LSD.Module.Properties.prototype, {
   initialize: function() {
-    this.properties.set('source', LSD.Module.Properties.getSource(this));
+    if (!this.options.source)
+      this.properties.set('source', LSD.Module.Properties.getSource(this));
   },
   beforeBuild: function() {
     if (this.source == null) this.properties.set('source', LSD.Module.Properties.getSource(this));
@@ -123,9 +124,9 @@ Object.append(LSD.Options, {
 LSD.Module.Properties.Methods = {
   tag: function(value, state, old) {
     if (!state || old) 
-      if (this.source && !this.options.source) this.properties.unset('source', this.source);
-    var source = this.options.source || LSD.Module.Properties.getSource(this, state ? value : false);
-    if (this.source != source) this.properties.set('source', source);
+      if (this.source) this.properties.unset('source', this.source);
+    var source = this.options.source;
+    this.properties.set('source', source || LSD.Module.Properties.getSource(this, state ? value : false));
   },
   
   context: function(value, state, old) {
@@ -140,14 +141,24 @@ LSD.Module.Properties.Methods = {
   },
   
   source: function(value, state, old) {
+    if (state && value) {
+      var role = this.factory.find(value);
+      if (role && this.role == role) return;
+    }
     if (!state || old) {
-      if (this.role) this.unmix(this.role);
-      if (this.sourced) this.unsetOptions(this.sourced);
-      delete this.role;
+      var previous = this.role;
+      if (previous) {
+        delete this.role;
+        this.unmix(previous);
+      }
+      var options = this.sourced;
+      if (options) {
+        delete this.sourced;
+        this.unsetOptions(this.sourced);
+      }
     }
     if (state) {
-      var role = this.factory.find(value);
-      if (role && role != this.role) {
+      if (role) {
         var kind = this.attributes.kind
         if (kind) role = role[LSD.toClassName(kind)] || role;
         this.role = role;
