@@ -21,9 +21,7 @@ LSD.Mixin.Value = new Class({
     actions: {
       value: {
         enable: function() {
-          if (this.attributes.multiple) {
-            this.values = [];
-          } else {
+          if (!this.attributes.multiple) {
             if (typeof this.value != 'undefined') return;
             this.setValue();
           }
@@ -32,6 +30,12 @@ LSD.Mixin.Value = new Class({
           
         }
       }
+    }
+  },
+  
+  constructors: {
+    value: function() {
+      if (this.attributes.multiple) this.values = [];
     }
   },
   
