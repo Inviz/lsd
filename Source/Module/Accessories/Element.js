@@ -21,11 +21,28 @@ provides:
 */
 
 LSD.Module.Element = new Class({
-  options: {
-    key: 'node',
-    reusable: true,
-    inline: null
-  },
+  
+  /*
+    ## Default options:
+    
+    ### key: 'widget'
+    
+    The key in element storage that widget will use to store itself.
+    When set to false, widget is not written into element storage.
+    
+    ### destructable: true
+    
+    If a widget that was attached to element is getting attached to
+    another element, it will destroy the old element.
+    If a widget is as not `destructable`, it will only detach
+    event handlers.
+    
+    ### inline: null
+    
+    Inline option makes the widget render `<div>` element when true,
+    `<span>` when false, and tries using the widget tag name if 
+    `inline` option is not set
+  */
   
   constructors: {
     element: function() {
@@ -41,12 +58,13 @@ LSD.Module.Element = new Class({
   attach: function(element) {
     if (element) {
       if (this.element) {
-        if (this.built && this.element != element) this[this.options.reusable ? 'detach' : 'destroy']();
+        if (this.built && this.element != element) this[this.options.destructable !== false ? 'destroy' : 'detach']();
       } else this.element = document.id(element);
     }
     if (!this.built) this.build();
     this.properties.set('element', this.element);
-    if (this.options.key) this.element.store(this.options.key, this).fireEvent('attach', this);
+    if (this.options.key !== false) 
+      this.element.store(this.options.key || 'widget', this).fireEvent('attach', this);
     /*
       Extracts and sets layout options from attached element
     */
@@ -58,7 +76,8 @@ LSD.Module.Element = new Class({
   },
 
   detach: function(element) {
-    if (this.options.key) this.element.eliminate(this.options.key, this).fireEvent('detach', this)
+    if (this.options.key !== false) 
+      this.element.eliminate(this.options.key || 'widget', this).fireEvent('detach', this)
     this.properties.unset('element', this.element);
     /*
       Unsets options previously extracted from the detached element
@@ -119,7 +138,7 @@ LSD.Module.Element = new Class({
     var options = this.options, element = options.element;
     if (element && element.tag) return element.tag;
     if (!soft) switch (options.inline) {
-      case null:
+      case null: case undefined:
         return LSD.Layout.NodeNames[this.tagName] ? this.tagName : "div";
       case true:
         return "span";

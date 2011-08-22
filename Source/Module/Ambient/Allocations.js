@@ -51,7 +51,10 @@ LSD.Module.Allocations = new Class({
     } else {
       var parent = options.parent;
       delete options.parent;
-      var object = this.buildLayout(options.source || options.tag, parent, {options: options});
+      if (!options.source || options.source.indexOf) 
+        var object = this.document.layout.selector(options, parent);
+      else 
+        var object = this.document.layout.render(source, parent, {options: options});
       var stored = options.stored;
       if (stored && object.store) {
         for (var name in stored) stored[name].apply(this, object);
@@ -123,7 +126,8 @@ LSD.Module.Allocations = new Class({
     if (kind && !options.attributes || !options.attributes.kind) (options.attributes || (options.attributes = {})).kind = kind;
     delete options.multiple;
     delete options.options;
-    if (options.source && options.source.call) options.source = options.source.call(this, kind, options);
+    var source = options.source;
+    if (source && source.call) options.source = source = source.call(this, kind, options);
     var parent = options.parent ? (options.parent.call ? options.parent.call(this) : options.parent) : this;
     //switch (parent) {
     //  case "parent":

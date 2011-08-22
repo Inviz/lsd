@@ -107,7 +107,7 @@ Object.append(LSD.Module.Proxies, {
       if (node.lsd) var element = node.element || node.toElement(), widget = node;
       else var element = node, widget = origin;
       for (var i = 0, child; child = proxy.queued[i++];) {
-        origin.layout.appendChild([widget, element], child, false, child.lsd ? element : null, element);
+        origin.document.layout.appendChild([widget, element], child, false, child.lsd ? element : null, element);
       }
     }
   }

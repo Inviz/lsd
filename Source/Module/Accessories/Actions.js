@@ -20,10 +20,6 @@ provides:
 */
 
 LSD.Module.Actions = new Class({
-  options: {
-    actions: {}
-  },
-  
   constructors: {
     actions: function() {
       this.actions = {}
@@ -50,27 +46,6 @@ LSD.Module.Actions = new Class({
     return !!((state && state.call ? state.apply(this, args) : state) ^ revert);
   }
 });
-
-LSD.Module.Actions.attach = function(doc) {
-  LSD.Mixin.each(function(mixin, name) {
-    var selector = mixin.prototype.behaviour;
-    if (!selector) return;
-    var attached = {};
-    var watcher = function (widget, state) {
-      if (state) {
-        if (attached[widget.lsd]) return;
-        else attached[widget.lsd] = true;
-        widget.mixin(mixin, true);
-      } else if (attached[widget.lsd]) {
-        delete attached[widget.lsd];
-        widget.unmix(mixin, true);
-      }
-    };
-    selector.split(/\s*,\s*/).each(function(bit) {
-      doc.watch(bit, watcher)
-    })
-  });
-};
 
 LSD.Options.actions = {
   add: 'addAction',

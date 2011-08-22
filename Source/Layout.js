@@ -33,14 +33,13 @@ provides:
 
 LSD.Layout = function(widget, layout, memo) {
   this.origin = widget;
+  this.family = 'layout';
   if (widget) if (!layout && !widget.lsd) {
     layout = widget;
     widget = null;
   } else if (!widget.lsd) widget = this.convert(widget);
   if (layout) this.render(layout, widget, memo);
 };
-
-LSD.Layout.context = 'element';
 
 LSD.Layout.prototype = Object.append({
   $family: Function.from('layout'),
@@ -787,22 +786,19 @@ LSD.Layout.prototype = Object.append({
     /*
       Notify widget that children are processed
     */
-    if (widget) {
-      widget.fireEvent('DOMChildNodesRendered');
-      widget.fireEvent('ready');
-    }
+    if (widget) widget.fireEvent('DOMChildNodesRendered');
     return ret;
   },
   
   getOptions: function(memo, parent) {
     return {
       lazy: true,
-      context: memo.context || (parent && (parent[0] || parent).options.context) || LSD.Layout.context
+      context: memo.context || (parent && (parent[0] || parent).options.context) || (this.document && this.document.options.context)
     };
   },
   
   getType: function(memo, parent) {
-    var context = memo.context || (parent && (parent[0] || parent).options.context) || LSD.Layout.context;
+    var context = memo.context || (parent && (parent[0] || parent).options.context) || (this.document && this.document.options.context)
     return LSD[LSD.toClassName(context)];
   }
 });
@@ -937,9 +933,7 @@ Object.append(LSD.Layout, {
           var relation = (parent[0] || parent).relations[parsed.tag];
           if (!relation) throw "Unknown pseudo element ::" + parsed.tag;
           var source = relation.getSource();
-        }  
-        if (source && (!source.match || !source.match(rSIMPLE_SOURCE))) 
-          Object.merge(options, LSD.Layout.parse(source, parent));
+        }
       } else options.combinator = parsed.combinator;
     }
     if (order && order != ' ') options.order = order;

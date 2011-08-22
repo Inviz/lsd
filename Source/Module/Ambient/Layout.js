@@ -33,53 +33,38 @@ LSD.Module.Layout = new Class({
   
   constructors: {
     layout: function(options) {
-      this.rendered = {};
+      if (!options.document && !this.document && LSD.document) 
+        this.properties.set('document', LSD.document);
+      this.layouts = {};
     }
-  },
-  
-  setLayout: function(layout) {
-    if (typeOf(layout) == 'layout') this.layout = layout;
-    else this.options.layout = layout;
-  },
-  
-  unsetLayout: function(layout) {
-    if (this.layout == layout) delete this.layout;
-    else delete this.options.layout;
-  },
-  
-  getLayout: function() {
-    if (!this.layout) this.layout = new LSD.Layout(this);
-    return this.layout;
   },
   
   addLayout: function(name, layout, parent, memo) {
     if (!memo) memo = {};
-    var old = this.rendered[name];
+    var old = this.layouts[name];
     if (old) {
-      this.layout.add(old, parent, memo)
+      this.document.layout.add(old, parent, memo)
     } else {
       var first = layout.push && layout.length && layout[0];
       var method = (first && first.nodeType && ((first.nodeType != 1) || (!first.lsd))) ? 'children' : 'render';
-      old = this.rendered[name] = this.layout[method](layout, parent, memo);
+      old = this.layouts[name] = this.document.layout[method](layout, parent, memo);
     }
     if (memo.promised) {
       memo.promised = false;
+      console.error('promise')
       this.addEvent('DOMChildNodesRendered:once', function() {
-        this.layout.realize(old)
+        this.document.layout.realize(old)
       });
     }
-    return this.rendered[name];
+    return this.layouts[name];
   },
   
   removeLayout: function(name, layout, parent, memo) {
-    return this.layout.remove(this.rendered[name] || layout, parent, memo);
+    return this.document.layout.remove(this.layouts[name] || layout, parent, memo);
   },
   
   buildLayout: function(layout, parent, memo) {
-    var args = [layout, (!parent && parent !== false) ? this : parent, memo];
-    var instance = this.getLayout();
-    var method = layout.charAt ? 'selector' : 'render';
-    return instance[method].apply(instance, args);
+    return this.document.layout[layout.charAt ? 'selector' : 'render'](layout, (!parent && parent !== false) ? this : parent, memo)
   }
 });
 
@@ -88,28 +73,26 @@ LSD.Module.Layout.events = {
     Builds children after element is built
   */
   build: function() {
-    this.getLayout();
-    if (this.options.layout) {
-      var memo = {lazy: this.options.lazy || this.layout.origin == this}, parents = [this, this.getWrapper()];
-      this.addLayout('options', this.options.layout, parents, memo);
+    if (this.properties.layout) {
+      this.addLayout('options', this.properties.layout, [this, this.getWrapper()], {lazy: true});
     }
-    if (this.origin && !this.options.clone && this.origin.parentNode) this.element.replaces(this.origin);
-    if (!this.options.lazy && this.layout.origin == this && this.options.traverse !== false) {
+    if (this.origin && !this.options.clone && this.origin.parentNode && this.origin != this.element) 
+      this.element.replaces(this.origin);
+    if ((!this.options.lazy && this.options.traverse !== false) || (this.origin && !this.element)) {
       var nodes = LSD.slice((this.origin || this.element).childNodes);
       var opts = {}
       if (this.options.context) opts.context = this.options.context;
       if (this.options.clone) opts.clone = this.options.clone;
       if (nodes.length) this.addLayout('children', nodes, [this, this.getWrapper()], opts);
-      this.fireEvent('DOMChildNodesRendered')
-      this.fireEvent('ready');
+      this.fireEvent('DOMChildNodesRendered');
     }
   },
   /* 
     Destroys the built layout with the widget 
   */
   destroy: function() {
-    if (this.rendered.children) this.removeLayout('children');
-    if (this.rendered.options) this.removeLayout('options');
+    if (this.layouts.children) this.removeLayout('children');
+    if (this.layouts.options) this.removeLayout('options');
   },  
   /*
     Augments all parsed HTML that goes through standart .write() interface
@@ -132,7 +115,11 @@ LSD.Module.Events.addEvents.call(LSD.Module.Layout.prototype, LSD.Module.Layout.
 
 Object.append(LSD.Options, {
   layout: {
-    add: 'setLayout',
-    remove: 'unsetLayout'
+    add: function(value) {
+      this.properties.set('layout', value);
+    },
+    remove: function(value) {
+      this.properties.unset('layout', value);
+    }
   }
 });

@@ -17,6 +17,8 @@ requires:
   - More/String.QueryString
   - LSD
   - LSD.Module.Attributes
+  - LSD.Module.Properties
+  - LSD.Module.Render
   - LSD.Module.Selectors
 
 provides:
@@ -42,7 +44,12 @@ provides:
 
 LSD.Document = new Class({
   
-  Implements: [Events, Options, LSD.Module.Attributes],
+  Implements: [Events, Options, LSD.Module.Attributes, LSD.Module.Properties, LSD.Module.Render],
+  
+  options: {
+    context: 'element',
+    namespace: 'LSD'
+  },
   
   initialize: function(document, options) {
     if (document && !document.documentElement) options = [document, document = options][0];
@@ -52,7 +59,11 @@ LSD.Document = new Class({
     this.document = this;
     this.element = document;
     this.sourceIndex = 1;
+    this.layout = this.getLayout();
+    this.factory = Object.getFromPath(window[this.options.namespace], LSD.toClassName(this.options.context));
     LSD.uid(this);
+    if (this.constructors.properties) this.constructors.properties.apply(this, arguments);
+    if (this.constructors.render) this.constructors.render.apply(this, arguments);
     
     /*
       Trick Slick into thinking that LSD elements tree is an XML node 
@@ -131,11 +142,26 @@ LSD.Document = new Class({
     if (LSD.Sheet && LSD.Sheet.stylesheets) for (var i = 0, sheet; sheet = LSD.Sheet.stylesheets[i++];) this.addStylesheet(sheet);
   },
   
+  getLayout: function() {
+    if (this.layout) return this.layout;
+    this.layout = new LSD.Layout;
+    this.layout.document = this;
+    return this.layout;
+  },
+  
+  create: function(element, options) {
+    if (!options) options = {};
+    options.document = this;
+    return this.factory.create(element, options);
+  },
+  
   build: function(document) {
+    this.built = true;
     if (!document) document = this.element || window.document;
     this.setHead(document.head);
     var element = this.element = document.body;
     this.setBody(document.body);
+    this.render();
   },
   
   setBody: function(element) {
@@ -156,6 +182,7 @@ LSD.Document = new Class({
     if (this.options.context) options.context = this.options.context;
     new LSD.Widget(element, options);
     this.fireEvent('body', [this.body, element]);
+    this.childNodes = [this.body];
     return element;
   },
 

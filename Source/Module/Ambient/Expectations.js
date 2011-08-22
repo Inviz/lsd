@@ -27,7 +27,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   
   constructors: {
     expectations: function() {
-      if (!this.expectations) this.expectations = {tag: {}}
+      if (!this.expectations) this.expectations = {}
       var self = this;
       this.properties.addEvent('change', function(name, value, state, old) {
         if (value && value.lsd) Expectations.relate(self, name, value, state);
@@ -252,31 +252,35 @@ Expectations.relate = function(object, name, subject, state) {
 
 
 var check = function(type, value, state, target) {
-  var expectations = this.expectations
-  if (!target) {
-    expectations = expectations.self;
-    target = this;
+  for (var expectations = this.expectations; expectations;) {
+    var subject = target, group = expectations;
+    if (!subject) {
+      group = group.self;
+      subject = this;
+    }
+    group = group && group[type] && group[type][value];
+    if (group) for (var i = 0, expectation; expectation = group[i++];) {
+      var selector = expectation[0];
+      if (selector.structure && selector.state) {
+        if (subject.match(selector.structure)) {
+          if (!state) {
+            if (subject.match(selector.state)) {
+              subject.unexpect(selector.state, expectation[1]);
+              expectation[1](subject, !!state)
+            }
+          } else subject.expect(selector.state, expectation[1])
+        }
+      } else if (subject.match(selector)) expectation[1](subject, !!state)
+    }
+    if (expectations == this.expectations) expectations = Expectations.Default;
+    else break;
   }
-  expectations = expectations && expectations[type] && expectations[type][value];
-  if (expectations) for (var i = 0, expectation; expectation = expectations[i++];) {
-    var selector = expectation[0];
-    if (selector.structure && selector.state) {
-      if (target.match(selector.structure)) {
-        if (!state) {
-          if (target.match(selector.state)) {
-            target.unexpect(selector.state, expectation[1]);
-            expectation[1](target, !!state)
-          }
-        } else target.expect(selector.state, expectation[1])
-      }
-    } else if (target.match(selector)) expectation[1](target, !!state)
-  }
-}
+};
 
 var notify = function(type, tag, state, widget, single) {
   check.call(this, type, tag, state, widget);
   if (!single) check.call(this, type, '*', state, widget);
-}
+};
 
 var update = function(widget, tag, state, single) {
   notify.call(this, ' ', tag, state, widget, single);

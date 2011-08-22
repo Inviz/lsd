@@ -23,12 +23,9 @@ provides:
 !function() {
 
 LSD.Module.DOM = new Class({
-  options: {
-    nodeType: 1
-  },
-  
   constructors: {
     dom: function(options) {
+      this.nodeType = options.nodeType || 1;
       this.childNodes = [];
     }
   },
@@ -90,7 +87,9 @@ LSD.Module.DOM = new Class({
     if (child.lsd) {
       // set parent 'for real' and do callbacks
       child.setParent(this, this.childNodes.push(child) - 1);
-      if (this.document && child.properties.document != this.document) LSD.Module.DOM.setDocument(child, this.document);
+      if (this.document && child.properties.document != this.document) 
+        child.properties.set('document', this.document);
+      if (this.document.rendered && !child.rendered) child.render()
     }
     return true;
   },
@@ -139,16 +138,6 @@ LSD.Module.DOM = new Class({
     return clone;
   },
   
-  setDocument: function(document) {
-    LSD.Module.DOM.setDocument(this, document);
-    return this;
-  },
-  
-  unsetDocument: function(document) {
-    LSD.Module.DOM.setDocument(this, document, true);
-    return this;
-  },
-  
   inject: function(node, where) {
     if (!node.lsd) {
       var instance = LSD.Module.DOM.find(node, true);
@@ -157,6 +146,7 @@ LSD.Module.DOM = new Class({
     if (where === false) {
       if (widget) widget.appendChild(this, false);
     } else if (!inserters[where || 'bottom'](widget ? this : this.toElement(), widget || node)) return false;
+    if (widget && widget.rendered) widget.render();
     return this;
   },
 
@@ -300,13 +290,6 @@ Object.append(LSD.Module.DOM, {
     return child.parent.layout.render(child.element, parent, {clone: true}, {before: before});
   },
   
-  setDocument: function(node, document, revert) {
-    var widget = node.lsd ? node : LSD.Module.DOM.find(node);
-    LSD.Module.DOM.each(node, function(child) {
-      child.properties[revert ? 'unset' : 'set']('document', document)
-    });
-  },
-  
   walk: function(node, callback, bind, memo) {
     if (node.lsd) node = node.element || node.toElement();
     var result = callback.call(bind || this, node, memo);
@@ -366,6 +349,10 @@ Object.append(LSD.Module.DOM, {
 }();
 
 LSD.Options.document = {
-  add: 'setDocument',
-  remove: 'unsetDocument'
+  add: function(document) {
+    this.properties.set('document', document)
+  },
+  remove: function(document) {
+    this.properties.unset('document', document)
+  }
 };

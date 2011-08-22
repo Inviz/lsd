@@ -109,7 +109,7 @@ LSD.Action.prototype = {
       this.target.watch(this.options.watches, this.watch.bind(this));
     } else if (!this.state || (name && this.target[name])) {
       if (this.target.lsd) {
-        this.target.properties.watch('document', this.injection || ((this.injection = this.inject.bind(this))));
+        this.target.properties.watch('rendered', this.injection || ((this.injection = this.inject.bind(this))));
       } else this.inject();
     }
   },
@@ -120,7 +120,7 @@ LSD.Action.prototype = {
     else if (this.options.uses) {
       
     } else {
-      this.target.properties.unwatch('document', this.injection);
+      this.target.properties.unwatch('rendered', this.injection);
     }
     if (this.enabled) this.disable();
     if (this.state) {

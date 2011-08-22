@@ -22,10 +22,6 @@ provides:
 
 
 LSD.Module.Render = new Class({
-  options: {
-    render: null
-  },
-  
   constructors: {
     render: function() {
       this.redraws = 0;
@@ -35,9 +31,9 @@ LSD.Module.Render = new Class({
   
   render: function() {
     if (!this.built) this.build();
-    delete this.halted;
     this.redraws++;
-    this.fireEvent('render', arguments)
+    this.fireEvent('render', arguments);
+    if (!this.rendered) this.properties.set('rendered', true);
     this.childNodes.each(function(child){
       if (child.render) child.render();
     });
@@ -70,22 +66,6 @@ LSD.Module.Render = new Class({
   refresh: function(recursive) {
     this.update(recursive);
     return this.render();
-  },
-  
-
-  /*
-    Halt marks widget as failed to render.
-    
-    Possible use cases:
-    
-    - Dimensions depend on child widgets that are not
-      rendered yet
-    - Dont let the widget render when it is not in DOM
-  */ 
-  halt: function() {
-    if (this.halted) return false;
-    this.halted = true;
-    return true;
   }
 });
 

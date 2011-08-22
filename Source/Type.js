@@ -61,9 +61,9 @@ LSD.Type.prototype = {
     }
     if (!this.queries) this.queries = {};
     else if (this.queries[name] != null) return this.queries[name];
-    name = LSD.toClassName(name);
+    var path = LSD.toClassName(name);
     for (var i = 0, storage; storage = this.pool[i++];) {
-      var result = Object.getFromPath(storage, name);
+      var result = Object.getFromPath(storage, path);
       if (result) return (this.queries[name] = result);
     }
     return (this.queries[name] = false);
