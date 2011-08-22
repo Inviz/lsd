@@ -51,7 +51,6 @@ LSD.Module.Layout = new Class({
     }
     if (memo.promised) {
       memo.promised = false;
-      console.error('promise')
       this.addEvent('DOMChildNodesRendered:once', function() {
         this.document.layout.realize(old)
       });
