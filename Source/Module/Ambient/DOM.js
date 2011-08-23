@@ -43,15 +43,20 @@ LSD.Module.DOM = new Class({
     if (!widget.lsd) widget = LSD.Module.DOM.find(widget);
     if (!widget) return;
     var old = this.properties.parent;
-    var changed = this.properties.set('parent', widget);
-    if (changed) {
-      if (old) old.removeChild(this);
-    } else {
-      var previous = this.childNodes.indexOf(widget);
-      if (previous != index - 1) unset.call(this, widget);
-      this.childNodes.splice(previous, 1);
-      if (previous != index - 1) return;
-    }
+    var length = widget.childNodes.length;
+    if (old)
+      if (old != widget) {
+        old.removeChild(this);
+      } else {
+        var previous = widget.childNodes.indexOf(this);
+        if (previous != index) {
+          var same = index == length - 1 && previous == index - 1;
+          if (!same) unset.call(this, widget);
+          widget.childNodes.splice(previous, 1);
+          if (same) return;
+        } else return
+      }
+    this.properties.set('parent', widget);
     set.call(this, widget, index);
     var previous = this.previousSibling;
     var start = previous ? (previous.sourceLastIndex || previous.sourceIndex) : widget.sourceIndex || (widget.sourceIndex = 1);
@@ -61,7 +66,7 @@ LSD.Module.DOM = new Class({
       if (node.sourceLastIndex) node.sourceLastIndex += start;
       for (var parent = widget; parent; parent = parent.parentNode) {
         parent.sourceLastIndex = (parent.sourceLastIndex || parent.sourceIndex) ;
-        if (!changed) continue;
+        if (old == widget) continue;
         var events = parent.$events.nodeInserted;
         if (!events) continue;
         for (var i = 0, j = events.length, fn; i < j; i++)
