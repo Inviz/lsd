@@ -109,7 +109,7 @@ Object.append(LSD.Options, {
     remove: function(value) {
       this.properties.unset('source', value)
     }
-  },
+  }
   //
   //namespace: {
   //  add: function(value) {
@@ -163,7 +163,7 @@ LSD.Module.Properties.Methods = {
         if (kind) role = role[LSD.toClassName(kind)] || role;
         this.role = role;
         this.mixin(role);
-        if ((this.sourced = this.captureEvent('setRole', role))) 
+        if ((this.sourced = this.captureEvent('setRole', role)))
           this.setOptions(this.sourced);
       }
     }

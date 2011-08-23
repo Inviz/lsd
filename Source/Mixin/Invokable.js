@@ -46,9 +46,13 @@ LSD.Mixin.Invokable = new Class({
     }
   },
   
-  onMix: function() {
-    var invoker = this.invoker || this.options.invoker;
-    if (invoker) this.invoke(invoker);
+  constructors: {
+    invokable: function(options, state) {
+      if (state) {
+        var invoker = this.invoker || this.options.invoker;
+        if (invoker) this.invoke(invoker);
+      }
+    }
   },
   
   invoke: function(invoker) {

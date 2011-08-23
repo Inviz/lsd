@@ -162,92 +162,87 @@ LSD.Module.Element = new Class({
   }
 });
 
-/* 
-  Extracts options from a DOM element.
-*/
-LSD.Module.Element.extract = function(element, widget) {
-  var options = {
-    attributes: {},
-    tag: LSD.toLowerCase(element.tagName)
-  }, attrs = options.attributes;
-  for (var i = 0, attribute, name; attribute = element.attributes[i++];) {
-    name = attribute.name;
-    attrs[name] = LSD.Attributes[name] == 'boolean' || attribute.value || true;
-  }
-  var klass = attrs['class'];
-  if (klass) {
-    options.classes = klass.split(/\s+/).filter(function(name) {
-      switch (name.substr(0, 3)) {
-        case "is-":
-          if (!options.pseudos) options.pseudos = [];
-          options.pseudos.push(name.substr(3, name.length - 3));
-          break;
-        case "id-":
-          i++;
-          options.attributes.id = name.substr(3, name.length - 3);
-          break;
-        default:
-          return true;
-      }
-    })
-    delete attrs['class'];
-    i--;
-  }
-  if (widget) {
-    if (widget.tagName) delete options.tag;
-    for (var name in attrs) if (widget.attributes[name]) {
-      delete attrs[name];
+Object.append(LSD.Module.Element, {
+  /* 
+    Extracts options from a DOM element.
+  */
+  extract: function(element, widget) {
+    var options = {
+      attributes: {},
+      tag: LSD.toLowerCase(element.tagName)
+    }, attrs = options.attributes;
+    for (var i = 0, attribute, name; attribute = element.attributes[i++];) {
+      name = attribute.name;
+      attrs[name] = LSD.Attributes[name] == 'boolean' || (attribute.value == null ? true : attribute.value);
+    }
+    var klass = attrs['class'];
+    if (klass) {
+      options.classes = klass.split(/\s+/).filter(function(name) {
+        switch (name.substr(0, 3)) {
+          case "is-":
+            if (!options.pseudos) options.pseudos = [];
+            options.pseudos.push(name.substr(3, name.length - 3));
+            break;
+          case "id-":
+            i++;
+            options.attributes.id = name.substr(3, name.length - 3);
+            break;
+          default:
+            return true;
+        }
+      })
+      delete attrs['class'];
       i--;
     }
-  }
-  if (i == 1) delete options.attributes;
-  return options;
-};
-
-/*
-  Extract options off from widget and makes it rebuild element if it doesnt fit.
-*/
-LSD.Module.Element.validate = function(widget, query) {
-  if (widget.options.extract !== false || widget.options.clone) {
-    widget.extracted = LSD.Module.Element.extract(query.element, widget);
-    widget.setOptions(widget.extracted);
-    Object.merge(query, widget.extracted);
-  }
-  var tag = widget.getElementTag(true);
-  if (widget.options.clone || (tag && LSD.toLowerCase(query.element.tagName) != tag)) {
-    widget.origin = query.element;
-    query.tag = tag;
-    query.build = true;
-  }
-};
-
-LSD.Module.Element.events = {
+    if (widget) {
+      if (widget.tagName) delete options.tag;
+      for (var name in attrs) if (widget.attributes[name]) {
+        delete attrs[name];
+        i--;
+      }
+    }
+    if (i == 1) delete options.attributes;
+    return options;
+  },
+  
+  /*
+    Extract options off from widget and makes it rebuild element if it doesnt fit.
+  */
+  validate: function(widget, query) {
+    if (widget.options.extract !== false || widget.options.clone) {
+      widget.extracted = LSD.Module.Element.extract(query.element, widget);
+      widget.setOptions(widget.extracted);
+      Object.merge(query, widget.extracted);
+    }
+    var tag = widget.getElementTag(true);
+    if (widget.options.clone || (tag && LSD.toLowerCase(query.element.tagName) != tag)) {
+      widget.properties.set('origin', query.element);
+      query.tag = tag;
+      query.build = true;
+    }
+  },
+  
   /*
     Preparation happens when widget is initialized. If element was passed into
     constructor, it will go through a build/attach routine from the start. 
     
     A widget may be set to defer the attachment with a `lazy` option set to true. 
   */
-  prepare: function(options, element) {
-    if (options.lazy) this.origin = element;
-    else if (element) this.build(element);
+  events: {
+    prepare: function(options, element) {
+      if (options.lazy) {
+        if (element) this.properties.set('origin', element);
+      } else if (element) this.build(element);
+    }
   }
-};
+});
 
 LSD.Options.origin = {
   add: function(object) {
-    if (object.localName) {
-      if (this.built) this.attach(object);
-      else this.origin = object;
-    }
+    this.properties.set('origin', object);
   },
   remove: function(object) {
-    if (object.localName) {
-      if (this.origin == object) {
-        delete this.origin;
-        if (this.attached) this.detach(object);
-      }
-    }
+    this.properties.unset('origin', object);
   }
 };
 

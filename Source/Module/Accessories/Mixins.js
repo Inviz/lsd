@@ -38,8 +38,8 @@ LSD.Module.Mixins = new Class({
     if (typeof mixin == 'string') {
       this.mixins.include(mixin);
     } else {
-      var options = Class.mixin(this, mixin, light);
-      this.setOptions(this.construct(mixin.prototype));
+      Class.mixin(this, mixin, light);
+      this.construct(mixin.prototype, true);
     }
     return this;
   },
@@ -47,8 +47,8 @@ LSD.Module.Mixins = new Class({
   unmix: function(mixin, light) {
     if (typeof mixin == 'string') {
       this.mixins.erase(mixin);
-    } else {
-      this.unsetOptions(this.destruct(mixin.prototype));
+    } else {  
+      this.destruct(mixin.prototype, true);
       Class.unmix(this, mixin, light);
     }
     return this;

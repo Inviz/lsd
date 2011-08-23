@@ -31,23 +31,32 @@ LSD.Module.Options = new Class({
     return this;
   },
   
+  /*
+    Run constructors for a given object. If no object was given,
+    constructs this widget. It collects functions defined in
+    `this.constructors` object and runs them in order (but they
+    should make no assumptions about the order). If a constructor
+    function returns options, the function keeps and sets it to
+    the widget later.
+  */
+  
   construct: function(object, set) {
     if (!object) object = this;
-    var initialized = object.$initialized = [];
+    var initialized = (this.$initialized || (this.$initialized = {}));
     /*
       Run module constructors and keep returned values
     */
     for (var name in object.constructors) {
       var constructor = object.constructors[name];
       if (constructor) {
-        var result = constructor.call(this, object.options);
-        if (result) initialized.push(result);
+        var result = constructor.call(this, object.options, true);
+        if (result) initialized[name] = result;
       }
     }
     /*
       Set options returned from constructors
     */
-    for (var i = 0, value; value = initialized[i++];) this.setOptions(value);
+    for (var name in initialized) this.setOptions(initialized[name]);
     /* 
       Set options from the object
     */
@@ -55,11 +64,24 @@ LSD.Module.Options = new Class({
     return object.options;
   },
   
-  destruct: function(object) {
+  /*
+    Undo all things constructor did. Run all constructors callback
+    with a `state` argument given as false. If a constructor on
+    the object has associated generated options, it unsets them.
+  */
+  destruct: function(object, set) {
     if (!object) object = this;
-    var initialized = object.$initialized;
+    for (var name in object.constructors) {
+      var constructor = object.constructors[name];
+      if (constructor) constructor.call(this, object.options, false);
+      if (this.$initialized[name]) {
+        if (!initialized) var initialized = [];
+        initialized.push(object)
+      }
+    }
     if (initialized)
       for (var i = 0, value; value = initialized[i++];) this.unsetOptions(value);
+    if (set) this.unsetOptions(object.options);
     return object.options;
   }
 });

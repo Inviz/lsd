@@ -57,14 +57,13 @@ LSD.Module.Allocations = new Class({
         var object = this.document.layout.render(source, parent, {options: options});
       var stored = options.stored;
       if (stored && object.store) {
-        for (var name in stored) stored[name].apply(this, object);
+        for (var name in stored) stored[name].call(this, object);
         object.store('allocation', stored);
         delete options.stored;
       }
     }
     if (id == null) id = type;
     (group || this.allocations)[id] = object;
-    console.log('allocated', type, kind, object)
     return object;
   },
   
@@ -86,8 +85,11 @@ LSD.Module.Allocations = new Class({
     if (object && object.retrieve) {
       var options = object.retrieve('allocation');
       if (options) for (var name in options) if (options[name]) {
-        var result = handler.call(this, object, options[name], true, value);
-        if (options[name] != null) object.eliminate(key, options[name]);
+        var handler = LSD.Module.Allocations.Options[name];
+        if (handler) {
+          var result = handler.call(this, object, false, options[name]);
+        }
+        if (options[name] != null) object.eliminate('allocation', options[name]);
       }
       object.parentNode.removeChild(object);
       delete group[index || type];
@@ -254,10 +256,10 @@ LSD.Allocations = {
   message: {
     source: 'p.message',
     parent: 'document',
-    options: function(options, message, type) {
+    options: function(options, type, message) {
       var opts = {}
       opts.content = message;
-      if (type) opts.classes = Object.array(type);
+      if (type) opts.classes = Array.object(type);
       return opts;
     }
   },

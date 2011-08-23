@@ -35,6 +35,22 @@ LSD.Mixin.Fieldset = new Class({
             'add': 'addField',
             'remove': 'removeField'
           }
+        },
+        submitters: {
+          selector: ':submitter',
+          scope: {
+            'default': {
+              filter: '[default]'
+            }
+          },
+          callbacks: {
+            'fill': function() {
+              
+            },
+            'empty': function() {
+              
+            }
+          }
         }
       }
     },
@@ -45,14 +61,17 @@ LSD.Mixin.Fieldset = new Class({
     }
   },
   
-  onMix: function() {
-    this.names = {};
-    this.params = {};
-    this.addEvents(LSD.Mixin.Fieldset.events);
-  },
-  
-  onUnmix: function() {
-    this.removeEvents(LSD.Mixin.Fieldset.events);
+  constructors: {
+    fieldset: function(options, state) {
+      if (state) {
+        this.names = {};
+        this.params = {};
+      } else {
+        delete this.names;
+        delete this.params;
+      }
+      this[state ? 'addEvents' : 'removeEvents'](LSD.Mixin.Fieldset.events);
+    }
   },
   
   checkValidity: function() {

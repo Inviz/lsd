@@ -72,8 +72,11 @@ LSD.Mixin.Uploader = new Class({
     }
   },
   
-  onMix: function() {
-    this.blobs = {};
+  constructors: {
+    uploader: function(options, state) {
+      if (state) this.blobs = {};
+      else delete this.blobs;
+    }
   },
   
   getUploader: function() {

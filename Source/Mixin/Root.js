@@ -31,12 +31,10 @@ LSD.Mixin.Root = new Class({
     }
   },
   
-  onMix: function() {
-    this.properties.set('root', this);
-  },
-  
-  onUnmix: function() {
-    this.properties.unset('root', this);
+  constructors: {
+    root: function(options, state) {
+      this.properties[state ? 'set' : 'unset']('root', this);
+    }
   }
 });
 

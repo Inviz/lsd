@@ -42,7 +42,16 @@ LSD.Module.DOM = new Class({
   setParent: function(widget, index){
     if (!widget.lsd) widget = LSD.Module.DOM.find(widget);
     if (!widget) return;
+    var old = this.properties.parent;
     var changed = this.properties.set('parent', widget);
+    if (changed) {
+      if (old) old.removeChild(this);
+    } else {
+      var previous = this.childNodes.indexOf(widget);
+      if (previous != index - 1) unset.call(this, widget);
+      this.childNodes.splice(previous, 1);
+      if (previous != index - 1) return;
+    }
     set.call(this, widget, index);
     var previous = this.previousSibling;
     var start = previous ? (previous.sourceLastIndex || previous.sourceIndex) : widget.sourceIndex || (widget.sourceIndex = 1);
@@ -209,13 +218,16 @@ var set = function(widget, index) {
   if (index == null) index = length - 1;
   var previous = siblings[index - 1], next = siblings[index + 1];
   if (previous) {
+    if (previous == this) throw "Previous sibling link points to the same node inevitably causing infinite loop";
     previous.properties.write('next', this);
     this.properties.write('previous', previous);
   }
   if (next) {
+    if (next == this) throw "Previous sibling link points to the same node inevitably causing infinite loop";
     next.properties.write('previous', this);
     this.properties.write('next', next);
   }
+  return index;
 };
 
 var unset = function(widget, index) {
@@ -238,6 +250,7 @@ var unset = function(widget, index) {
     if (previous) parent.properties.write('last', previous);
     else parent.properties.unset('last', this);
   }
+  return index;
 };
 
 /*
@@ -285,9 +298,9 @@ Object.append(LSD.Module.DOM, {
   
   clone: function(node, parent, before) {
     var child = LSD.Module.DOM.identify(node);
-    parent = (parent === true) ? [child.parent, child.element.parentNode] : parent || false;  
+    parent = (parent === true || parent == null) ? [child.parent, child.element.parentNode] : parent || false;  
     before = before === true ? child.element : before || child.element.nextSibling;
-    return child.parent.layout.render(child.element, parent, {clone: true}, {before: before});
+    return child.parent.document.layout.render(child.element, parent, {clone: true, before: before});
   },
   
   walk: function(node, callback, bind, memo) {
