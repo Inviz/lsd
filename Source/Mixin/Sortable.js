@@ -54,7 +54,7 @@ LSD.Mixin.Sortable = new Class({
     delete options.snap;
     this.sortables = new Sortables([], options);
     this.properties.set('sortables', this.sortables);
-    this.sortables.addEvents(this.bindEvents({
+    this.sortables.addEvents(this.bind({
       start: 'onSortStart',
       complete: 'onSortComplete',
       sort: 'onSort'

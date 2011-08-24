@@ -32,31 +32,15 @@ LSD.Mixin.Fieldset = new Class({
             }
           },
           callbacks: {
-            'add': 'addField',
-            'remove': 'removeField'
-          }
-        },
-        submitters: {
-          selector: ':submitter',
-          scope: {
-            'default': {
-              filter: '[default]'
-            }
-          },
-          callbacks: {
-            'fill': function() {
-              
-            },
-            'empty': function() {
-              
-            }
+            add: 'addField',
+            remove: 'removeField'
           }
         }
       }
     },
     expects: {
       ':form': function(widget, state) {
-        widget[state ? 'addRelation' : 'removeRelation']('elements', {as: 'form'})
+        widget[state ? 'addRelation' : 'removeRelation']('elements', {as: 'form'});
       }
     }
   },

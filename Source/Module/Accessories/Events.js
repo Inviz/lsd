@@ -30,33 +30,13 @@ LSD.Module.Events = new Class({
 });
 
 var proto = window.Events.prototype;
+var UID = 0;
 var Events = Object.append(LSD.Module.Events, {
-  bindEvents: function(events, bind, args) {
-    var result = {};
-    for (var name in events) {
-      var value = events[name];
-      if (!value || value.call) result[name] = value;
-      else if (value.indexOf) result[name] = Events.bindEvent.call(this, value, bind, args);
-      else result[name] = Events.bindEvents.call(this, value);
-    }
-    return result;
-  },
-  
-  bindEvent: function(name, bind, args) {
-    if (name.map) {
-      var args = name.slice(1);
-      name = name[0];
-    }
-    if (!this.$bound) this.$bound = {};
-    if (!this.$bound[name]) this.$bound[name] = Events.bind(name, bind || this, args);
-    return this.$bound[name];
-  },
-  
   setStoredEvents: function(events, state, bind) {
     var target = Events.Targets[name];
     for (var event in events)
       for (var i = 0, fn, group = events[event]; fn = group[i++];)
-        Events.setEvent.call(this, event, (fn.indexOf && bind ? bind.bindEvent(fn) : fn), !state);
+        Events.setEvent.call(this, event, (fn.indexOf && bind ? bind.bind(fn) : fn), !state);
   },
   
   watchEventTarget: function(name, fn) {
@@ -72,7 +52,7 @@ var Events = Object.append(LSD.Module.Events, {
   },
   
   setEvent: function(name, fn, revert) {
-    if (fn.indexOf && this.lsd) fn = this.bindEvent(fn);
+    if (fn.indexOf && this.lsd) fn = this.bind(fn);
     if (fn.call || (fn.indexOf && !this.lsd)) {
       if (!revert) {
         if (!this.$events) this.$events = {};
@@ -89,7 +69,7 @@ var Events = Object.append(LSD.Module.Events, {
       if (!revert && !this.events) this.events = {};
       var events = this.events[name], initial = !events;
       if (!events) events = this.events[name] = {};
-      var bound = this.lsd ? this.bindEvents(fn) : fn;
+      var bound = this.lsd ? this.bind(fn) : fn;
       for (var event in bound) {
         var group = (events[event] || (events[event] = []));
         if (revert) {
@@ -191,10 +171,28 @@ var Events = Object.append(LSD.Module.Events, {
     }
   },
   
-  bind: function(method, bind, args) {
-    return function() {
-      if (bind[method]) return bind[method].apply(bind, args || arguments);
+  bind: function(method) {
+    if (method.call) {
+      var name = method.BINDUID || (name = method.BINDUID = ++UID);
+    } else if (method.match) {
+      var name = method;
+      method = this[name];
+    } else {
+      var result = {};
+      for (var name in method) {
+        var value = method[name];
+        if (!value || value.call) result[name] = value;
+        else if (value.indexOf) result[name] = Events.bind.call(this, value);
+        else result[name] = Events.bind.call(this, value);
+      }
+      return result;
     }
+    var bind = this;
+    if (!this.$bound) this.$bound = {};
+    return this.$bound[name] || (this.$bound[name] = function() {
+      var fn = method || bind[name];
+      if (fn) return fn.apply(bind, arguments);
+    });
   }
 });
 /*
@@ -202,7 +200,7 @@ var Events = Object.append(LSD.Module.Events, {
 */
 ['addEvent',  'addEvents', 'removeEvent', 'removeEvents', 
  'fireEvent', 'captureEvent', 'dispatchEvent',
- 'bindEvent', 'bindEvents'].each(function(method) {
+ 'bind'].each(function(method) {
   Events.implement(method, Events[method]);
 });
 

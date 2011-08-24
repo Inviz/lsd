@@ -281,6 +281,7 @@ LSD.Allocations = {
   },
   
   submit: function(options) {
+    var widget = this;
     return new Element('input', Object.merge({
       type: 'submit',
       styles: {
@@ -291,11 +292,6 @@ LSD.Allocations = {
         padding: 0,
         overflow: 'hidden',
         position: 'absolute'
-      },
-      events: {
-        click: function(e) {
-          e.preventDefault()
-        }
       }
     }, options));
   }

@@ -247,7 +247,7 @@ var Options = LSD.Relation.Options = {
   callbacks: function(events, state) {
     for (var name in events) {
       var event = events[name];
-      event = event.indexOf ? this.origin.bindEvent(event) : event.bind(this.origin);
+      event = event.indexOf ? this.origin.bind(event) : event.bind(this.origin);
       this[state ? 'addEvent' : 'removeEvent'](name, event);
     }
   },
@@ -346,7 +346,7 @@ var Options = LSD.Relation.Options = {
       widget.removeEvents(events);
     },
     process: function(events) {
-      return this.origin.bindEvents(events);
+      return this.origin.bind(events);
     }
   },
   

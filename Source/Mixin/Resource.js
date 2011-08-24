@@ -52,7 +52,7 @@ LSD.Mixin.Resource = new Class({
       }
       var options = Object.clone(this.options.resource);
       if (prefix) options.prefix = prefix;
-      options.getRequest = this.bindEvent('getRequest');
+      options.getRequest = this.bind('getRequest');
       this.resource = new Resource(name, options);
       if (!this.getRequest) this.setAttribute('href', this.resource.getFormattedURL('plural'));
     }

@@ -414,7 +414,7 @@ LSD.Options.expects = {
     this.unexpect(selector, callback, true);
   },
   iterate: true,
-  process: 'bindEvents'
+  process: 'bind'
 };
 
 LSD.Options.watches = Object.append({}, LSD.Options.expects, {
