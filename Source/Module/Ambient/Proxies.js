@@ -63,22 +63,16 @@ Object.append(LSD.Module.Proxies, {
     }
     var result = {};
     if (container && container !== true) {
-      if (child.lsd) {
-        if (container.localName) {
-          result.element = container;
-        } else if (container.lsd) {
-          result.widget = container;
-          result.element = container.element || container.toElement()
-        } else {
-          result.widget = parent[0];
-          result.element = container;
-        }
-        if (proxy.rewrite === false) {
-          result.widget = parent[0];
-        }
-      } else {
-        result.parent = container;
-      }
+    if (container.localName) {
+      result.element = container;
+      if (proxy.rewrite === false) result.widget = parent[0] || parent;
+    } else if (container.lsd) {
+      result.widget = container;
+      result.element = container.element || container.toElement()
+    } else {
+      result.widget = parent[0] || parent;
+      result.element = container;
+    }
       if (container === child) return false;
     }
     if (proxy.before) {
@@ -95,9 +89,10 @@ Object.append(LSD.Module.Proxies, {
     for (var node = widget, proxies; node; node = node.parentNode)
       if ((proxies = node.proxies)) 
         for (var j = 0, proxy; proxy = proxies[j++];)
-          if ((node == widget || proxy.deep) && (!memo || !memo.stored || !memo.stored.proxy || memo.stored.proxy.proxy != proxy)) {
-            if (LSD.Module.Proxies.match(child, proxy, proxy.selector ? widget : proxy.element))
+          if ((node == widget) || proxy.deep) {
+            if (LSD.Module.Proxies.match(child, proxy, proxy.selector ? widget : proxy.element)) {
               return LSD.Module.Proxies.invoke(child.lsd ? widget : element, child, proxy, memo);
+            }
           }
   },
   

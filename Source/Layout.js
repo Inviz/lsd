@@ -466,45 +466,34 @@ LSD.Layout.prototype = Object.append({
       if (!child.document && widget.document) child.document = child.ownerDocument = widget.document;
     } else var parent = element;
     var before;
-    if (memo && memo.combinator) {
-      var combinator = LSD.Layout.Combinators[memo.combinator];
-      if (combinator) {
-        var result = combinator(parent, child);
-        if (result) {
-          if (result.parent) {
-            if (child.lsd) widget = result.parent;
-            else element = result.parent;
+    if (memo) {
+      if (memo && memo.combinator) {
+        var combinator = LSD.Layout.Combinators[memo.combinator];
+        if (combinator) {
+          var result = combinator(parent, child);
+          if (result) {
+            if (result.parent) {
+              if (child.lsd) widget = result.parent;
+              else element = result.parent;
+            }
+            if (result.before) before = result.before;
           }
-          if (result.before) before = result.before;
         }
       }
-    }
-    if (memo && memo.bypass) {
-      delete memo.bypass;
-    } else if (widget) {
-      if (child.lsd && !child.parentNode) child.parentNode = widget;
-      var proxy = LSD.Module.Proxies.perform(widget, child, memo);
-      if (proxy) {
-        if (proxy.widget && child.lsd) parent = proxy.widget;
-        if (proxy.element) 
-          if (child.lsd) element = proxy.element;
-          else parent = proxy.element;
-        if (proxy.before) before = proxy.before;
-      } else if (proxy === false) {
-        if (element && element.parentNode) element.parentNode.removeChild(element);
-        if (widget && widget.parentNode) widget.parentNode.removeChild(child);
-        return false;
+      if (memo.bypass) {
+        var bypass = true;
+        delete memo.bypass;
       }
+      if (!before && memo.before) before = memo.before;
     }
-    if (!before && memo && memo.before) before = memo.before;
     if (before) {
       if (!parent.lsd) {
         if (before.lsd) before = before.toElement();
         parent = before.parentNode;
       };
-      parent.insertBefore(child, before, element);
+      parent.insertBefore(child, before, element, bypass);
     } else {
-      widget.appendChild(child, element);
+      widget.appendChild(child, element, bypass);
     }
     return true;
   },
