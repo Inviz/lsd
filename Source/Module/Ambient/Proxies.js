@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Module.DOM
+  - LSD.Module
 
 provides: 
   - LSD.Module.Proxies
@@ -27,20 +27,26 @@ LSD.Module.Proxies = new Class({
   
   addProxy: function(name, proxy) {
     var selector = proxy.selector || proxy.mutation;
-    if (selector && selector !== true && selector.match('^\s*[+~]')) var object = this.parentNode;
-    else var object = this;
+    if (selector && selector !== true && selector.match(LSD.Module.Proxies.rOrdered)) 
+      var object = this.parentNode;
+    else 
+      var object = this;
     for (var i = 0, other; (other = object.proxies[i]) && ((proxy.priority || 0) < (other.priority || 0)); i++);
     object.proxies.splice(i, 0, proxy);
   },
   
   removeProxy: function(name, proxy) {
     var selector = proxy.selector || proxy.mutation;
-    if (selector && selector !== true && selector.match('^\s*[+~]')) var object = this.parentNode;
-    else var object = this;
+    if (selector && selector !== true && selector.match(LSD.Module.Proxies.rOrdered)) 
+      var object = this.parentNode;
+    else 
+      var object = this;
     var index = object.proxies.indexOf(proxy);
     if (index > -1) object.proxies.splice(index, 1);
   }
 });
+
+LSD.Module.Proxies.rOrdered = /^\s*[+~]/;
 
 Object.append(LSD.Module.Proxies, {
   match: function(node, proxy, parent) {
