@@ -40,6 +40,7 @@ LSD.Module.Layout = new Class({
   },
   
   addLayout: function(name, layout, parent, memo) {
+    if (parent == null) parent = [this, this.getWrapper()];
     if (!memo) memo = {};
     var old = this.layouts[name];
     if (old) {
@@ -59,11 +60,14 @@ LSD.Module.Layout = new Class({
   },
   
   removeLayout: function(name, layout, parent, memo) {
-    return this.document.layout.remove(this.layouts[name] || layout, parent, memo);
+    if (parent == null) parent = [this, this.getWrapper()];
+    if (this.layouts[name])
+      return this.document.layout.remove(this.layouts[name], parent, memo);
   },
   
   buildLayout: function(layout, parent, memo) {
-    return this.document.layout[layout.charAt ? 'selector' : 'render'](layout, (!parent && parent !== false) ? this : parent, memo)
+    if (parent == null) parent = [this, this.getWrapper()];
+    return this.document.layout[layout.charAt ? 'selector' : 'render'](layout, parent, memo)
   }
 });
 
@@ -73,7 +77,7 @@ LSD.Module.Layout.events = {
   */
   build: function() {
     if (this.properties.layout) {
-      this.addLayout('options', this.properties.layout, [this, this.getWrapper()], {lazy: true});
+      this.addLayout('options', this.properties.layout, null, {lazy: true});
     }
     if (this.origin && !this.options.clone && this.origin.parentNode && this.origin != this.element) 
       this.element.replaces(this.origin);
@@ -82,7 +86,7 @@ LSD.Module.Layout.events = {
       var opts = {};
       if (this.options.context) opts.context = this.options.context;
       if (this.options.clone) opts.clone = this.options.clone;
-      if (nodes.length) this.addLayout('children', nodes, [this, this.getWrapper()], opts);
+      if (nodes.length) this.addLayout('children', nodes, null, opts);
       this.fireEvent('DOMChildNodesRendered');
     }
   },
@@ -97,16 +101,16 @@ LSD.Module.Layout.events = {
     Augments all parsed HTML that goes through standart .write() interface
   */
   write: function(node) {
-    this.addLayout('written', node, [this, this.getWrapper()]);
+    this.addLayout('written', node, null);
   },
   /*
     Augments all inserted nodes that come from partial html updates
   */
   DOMNodeInserted: function(node) {
-    this.buildLayout(node, [this, this.getWrapper()]);
+    this.buildLayout(node, null);
   },
   DOMNodeInsertedBefore: function(node, target) {
-    this.buildLayout(node, [this, this.getWrapper()], null, {before: target});
+    this.buildLayout(node, null, null, {before: target});
   }
 };
 
