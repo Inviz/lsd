@@ -247,6 +247,7 @@ LSD.Allocations = {
   container: {
     source: '.container',
     proxy: {
+      type: 'promise',
       mutation: true,
       priority: -1,
       rewrite: false
