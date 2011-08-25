@@ -53,8 +53,8 @@ Object.append(LSD.Module.Proxies, {
     }
   },
   
-  invoke: function(parent, child, proxy, memo) {
-    if (proxy.callback) proxy.callback.call(parent, child, proxy, memo);
+  invoke: function(parent, child, proxy) {
+    if (proxy.callback) proxy.callback.call(parent, child, proxy);
     var container = proxy.container && proxy.container.call ? proxy.container.call(parent, child, proxy) : proxy.container;
     if (container === false) {
       if (!proxy.queued) proxy.queued = [];
@@ -84,14 +84,14 @@ Object.append(LSD.Module.Proxies, {
     return result;
   },
   
-  perform: function(widget, child, memo) {
+  perform: function(widget, child, bypass) {
     var element = widget.element || widget.toElement();
     for (var node = widget, proxies; node; node = node.parentNode)
       if ((proxies = node.proxies)) 
         for (var j = 0, proxy; proxy = proxies[j++];)
-          if ((node == widget) || proxy.deep) {
+          if (((node == widget) || proxy.deep) && (!proxy.type || proxy.type != bypass)) {
             if (LSD.Module.Proxies.match(child, proxy, proxy.selector ? widget : proxy.element)) {
-              return LSD.Module.Proxies.invoke(child.lsd ? widget : element, child, proxy, memo);
+              return LSD.Module.Proxies.invoke(child.lsd ? widget : element, child, proxy);
             }
           }
   },

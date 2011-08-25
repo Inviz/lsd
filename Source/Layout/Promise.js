@@ -44,6 +44,7 @@ LSD.Layout.Promise = function(layout, selector, lsd, parent, options, memo) {
   this.options = options;
   this.promise = true;
   this.lsd = lsd;
+  this.type = 'promise';
   this[lsd ? 'selector' : 'mutation'] = selector;
   this.widget = parent[0] || parent;
   this.element = parent[1] || parent.element || parent.toElement();
@@ -90,15 +91,16 @@ LSD.Layout.Promise.prototype = {
     this.widget.removeProxy('promise', this)
   },
   
-  advance: function(memo) {
+  advance: function() {
     this.advanced = this.layout.render(this.children, this.result.lsd ? this.result : [this.widget, this.result], this.memo)
   },
   
   callback: function(child, proxy, memo) {
-    proxy.realize(memo, child)
+    proxy.realize(child)
   },
   
-  realize: function(memo, result) {
+  realize: function(result) {
+    var memo = {};
     this.detach();
     var stored = this.options.stored;
     if (stored) delete this.options.stored;
@@ -112,7 +114,7 @@ LSD.Layout.Promise.prototype = {
       var combinator = this.combinator;
       if (combinator) memo.combinator = combinator;
       memo.stored = stored;
-      memo.bypass = true;
+      memo.bypass = 'promise';
       result = this.layout.selector(this.options, this.parent, memo);
       delete memo.stored;
       if (this.before) memo.before = old;
@@ -128,7 +130,7 @@ LSD.Layout.Promise.prototype = {
         }
       }
     if (this.next) this.next.after = result;
-    if (this.children) this.advance(memo);
+    if (this.children) this.advance();
     if (stored && result.store) {
       for (var name in stored) stored[name].call(this, result);
       result.store('allocation', stored);

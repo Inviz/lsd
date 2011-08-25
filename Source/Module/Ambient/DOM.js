@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Module
   - LSD.Module.Events
+  - LSD.Module.Proxies
 
 provides:
   - LSD.Module.DOM
@@ -88,8 +89,8 @@ LSD.Module.DOM = new Class({
   
   appendChild: function(child, element, bypass) {
     if (child.lsd && !child.parentNode) child.parentNode = this;
-    if (!bypass) {
-      var proxy = LSD.Module.Proxies.perform(this, child);
+    if (bypass !== true) {
+      var proxy = LSD.Module.Proxies.perform(this, child, bypass);
       if (proxy) {
         if (proxy.element != null) element = proxy.element;
         if (proxy.widget && child.lsd && proxy.widget != this) {

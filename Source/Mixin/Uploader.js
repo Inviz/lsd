@@ -45,7 +45,6 @@ LSD.Mixin.Uploader = new Class({
         fileComplete: 'onFileComplete',
         fileRemove: 'onFileRemove',
         fileProgress: 'onFileProgress',
-        fileProgress: 'onFileProgress',
         beforeSelect: 'onBeforeFileSelect'
       }
     },
@@ -63,7 +62,6 @@ LSD.Mixin.Uploader = new Class({
       }
     },
     states: Array.object('empty'),
-    filelist: false,
     uploader: {
       instantStart: true,
       timeLimit: 36000,

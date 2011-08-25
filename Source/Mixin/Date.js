@@ -23,7 +23,7 @@ LSD.Mixin.Date = new Class({
   options: {
     date: {
       interval: 'month',
-      format: '%b-%d-%Y'
+      format: '%B %d, %Y'
     }
   },
   

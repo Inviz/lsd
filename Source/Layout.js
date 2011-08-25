@@ -481,7 +481,7 @@ LSD.Layout.prototype = Object.append({
         }
       }
       if (memo.bypass) {
-        var bypass = true;
+        var bypass = memo.bypass;
         delete memo.bypass;
       }
       if (!before && memo.before) before = memo.before;
@@ -512,11 +512,10 @@ LSD.Layout.prototype = Object.append({
     Realize layout promises, reuse found elements and build 
     the ones that are missing
   */
-  realize: function(layout, memo) {
-    if (!memo) memo = {};
+  realize: function(layout) {
     if (layout.hasOwnProperty('length')) {
       for (var i = 0, j = layout.length, value; i < j; i++)
-        if ((value = layout[i])) layout[i] = this.realize(value, memo);
+        if ((value = layout[i])) layout[i] = this.realize(value);
     } else if (layout.nodeType) {
       return;
     } else if (!layout.promise) {
@@ -526,14 +525,14 @@ LSD.Layout.prototype = Object.append({
         var children = row[1];
         if (value) {
           if (value.promise) {
-            row[0] = value.result || value.realize(memo);
+            row[0] = value.result || value.realize();
             row[1] = children = value.advanced;
           }
-          if (children && children !== true) this.realize(children, memo);
+          if (children && children !== true) this.realize(children);
         }
       }
     } else {
-      return layout.result || layout.realize(memo);
+      return layout.result || layout.realize();
     }
   },
   
@@ -921,7 +920,7 @@ Object.append(LSD.Layout, {
         } else {
           var relation = (parent[0] || parent).relations[parsed.tag];
           if (!relation) throw "Unknown pseudo element ::" + parsed.tag;
-          var source = relation.getSource();
+          options.source = relation.getSource();
         }
       } else options.combinator = parsed.combinator;
     }
@@ -932,7 +931,7 @@ Object.append(LSD.Layout, {
         var value = attribute.value || LSD.Attributes[attribute.key] == 'number' || "";
         (options.attributes || (options.attributes = {}))[attribute.key] = value;
       }
-    if (parsed.tag != '*' && parsed.combinator != '::')
+    if (parsed.tag != '*' && parsed.combinator != '::') {
       if (parsed.tag.indexOf('-') > -1) 
         options.source = parsed.tag;
       else {
@@ -940,6 +939,7 @@ Object.append(LSD.Layout, {
         var source = LSD.Layout.getSource(options, options.tag);
         if (source.push) options.source = source;
       }
+    }
     if (parsed.classes) 
       for (var all = parsed.classes, pseudo, i = 0; klass = all[i++];) 
         (options.classes || (options.classes = {}))[klass.value] = true;
