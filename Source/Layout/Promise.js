@@ -95,11 +95,11 @@ LSD.Layout.Promise.prototype = {
     this.advanced = this.layout.render(this.children, this.result.lsd ? this.result : [this.widget, this.result], this.memo)
   },
   
-  callback: function(child, proxy, memo) {
+  callback: function(child, proxy) {
     proxy.realize(child)
   },
   
-  realize: function(result) {
+  realize: function(result, bypass) {
     var memo = {};
     this.detach();
     var stored = this.options.stored;
