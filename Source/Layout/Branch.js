@@ -36,12 +36,12 @@ provides:
   expression. Expression is then parsed and executed. If
   it returns truthy, the layout is rendered. LSD uses LSD.Script,
   a simple language that asynchronously evaluates expressions
-  and updates them as the values change in real time.
+  and updates layout as the values change in real time.
   
   If a condition was truthy and layout was rendered, the expression
-  later may be updated and that could make condition be no longer met.
-  A rendered layout then gets removed from DOM, but later may be 
-  inserted back without rendering it once again.
+  later may update value and make branch no longer meet the condition.
+  A rendered layout then gets removed from DOM, and later may be 
+  inserted back without re-rendering.
   
   When layout is defined in HTML, it uses conditional comments to
   mark blocks of HTML to be displayed on condition. 
@@ -56,6 +56,9 @@ provides:
     </article>
     
   A block gets removed from DOM if a condition doesnt match initially.
+  A branch may have its HTML block wrapped into its own comment making
+  the layout rendering lazy. The comment element containing the lazy
+  HTML will then be replaced with its rendered contents.
   
 */
 
@@ -88,15 +91,20 @@ LSD.Layout.Branch.prototype = Object.append({
   },
   match: function() {
     if (this.options.expression) {
-      var value = this.getInterpolation().attach().value;
+      var interpolation = this.getInterpolation();
+      if (interpolation && interpolation.attach) {
+        var value = interpolation.attach().value;
+      } else var value = interpolation;
       if ((value == null) ^ this.options.invert) return;
     }
     this.check();
   },
   unmatch: function(lazy) {
     if (this.options.expression) {
-      var value = this.interpolation.value;
-      this.interpolation.detach()
+      var interpolation = this.interpolation;
+      if (interpolation && interpolation.detach) {
+        var value = interpolation.detach().value;
+      } else var value = interpolation;
       if ((value == null) ^ this.options.invert) return;
     }
     this.uncheck(lazy);
@@ -132,10 +140,9 @@ LSD.Layout.Branch.prototype = Object.append({
         }
       }
     }
-    var before = this.options.element && this.options.element.nextSibling;
-    var rendered = this.options.widget.addLayout(this.id, layout, this.options.widget, this.options.options, {before: before});
+    var before = this.options.origin && this.options.origin.nextSibling;
+    var rendered = this.options.widget.addLayout(this.id, layout, [this.options.widget, this.options.element], this.options.options, {before: before});
     if (result) this.validate(rendered)
-    if (rendered) this.layout = rendered;
   },
   hide: function() {
     var layout = this.layout;
@@ -160,6 +167,11 @@ LSD.Layout.Branch.prototype = Object.append({
     }
     return offset;
   },
+  /*
+    Checks out if a given layout is a single comment possibly
+    surrounded by whitespace. If it's true, the comment node
+    then removed and its contents is used as a HTML layout.
+  */
   validate: function(layout) {
     var validate = true;
     for (var index, child, i = 0; child = layout[i]; i++) {

@@ -22,8 +22,14 @@ LSD.Mixin.Value = new Class({
       value: {
         enable: function() {
           if (!this.attributes.multiple) {
-            if (typeof this.value != 'undefined') return;
-            this.setValue();
+            if (LSD.Mixin.Command.getCommandType.call(this) == 'command') {
+              if (typeof this.value == 'undefined') this.setValue();
+            } else {
+              this.states.watch('checked', function(value) {
+                if (value) this.setValue();
+                else this.unsetValue();
+              }.bind(this))
+            }
           }
         },
         disable: function() {
@@ -119,11 +125,6 @@ LSD.Mixin.Value = new Class({
   
   getPreviousValue: function() {
     return this.previousValue
-  },
-  
-  shouldCallChainOnValueChange: function() {
-    var type = this.getCommandType ? this.getCommandType() : this.commandType; 
-    return !type || type == 'command';
   },
   
   isValueDifferent: function(value) {

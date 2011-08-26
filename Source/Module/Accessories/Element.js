@@ -107,11 +107,14 @@ LSD.Module.Element = new Class({
     if (this.parentNode) this.parentNode.dispatchEvent('beforeNodeBuild', [query, this]);
     var build = query.build;
     delete query.element, delete query.build;
-    var attrs = {}
+    var attrs = {};
     for (var attribute in this.attributes) 
       if (this.attributes.has(attribute)) 
         attrs[attribute] = this.attributes[attribute];
     Object.merge(attrs, options.element, query.attributes);
+    for (var attribute in attrs)
+      if (this.attributes[attribute] != attrs[attribute]) 
+        this.attributes.set(attribute, attrs[attribute]);
     var tag = query.tag || attrs.tag || this.getElementTag();
     delete attrs.tag; delete query.tag;
     if (!element || build) {

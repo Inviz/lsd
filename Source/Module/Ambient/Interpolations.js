@@ -23,9 +23,16 @@ provides:
 ...
 */
 
-LSD.Module.Interpolations = new Class
+LSD.Module.Interpolations = new Class({
+  constructors: {
+    interpolations: function(options, state) {
+      this[state ? 'addInterpolator' : 'removeInterpolator'](this.dataset)
+    }
+  }
+})
 
 Object.append(LSD.Module.Interpolations, {
+  
   addInterpolation: function(token, callback) {
     var index = token.indexOf('.');
     if (index > -1) {

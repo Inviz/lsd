@@ -92,6 +92,7 @@ LSD.Layout.Promise.prototype = {
   },
   
   advance: function() {
+    this.memo.bypass = 'promise';
     this.advanced = this.layout.render(this.children, this.result.lsd ? this.result : [this.widget, this.result], this.memo)
   },
   

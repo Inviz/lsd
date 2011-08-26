@@ -108,11 +108,13 @@ LSD.Layout.prototype = Object.append({
         var widget = memo.type.convert(element, memo.defaults);
       }
     } else {
-      var widget = memo.clone ? converted.cloneNode(false) : converted;
+      if (!memo.defaults) memo.defaults = this.getOptions(memo, parent);
+      var widget = memo.clone ? converted.cloneNode(false, memo.defaults) : converted;
     }
     if (!widget && memo.clone) var clone = element.cloneNode(false);
     // Append a node to parent
-    this.appendChild([ascendant, container], widget || clone || element, memo);
+    if (!converted || (memo && memo.clone))
+      this.appendChild([ascendant, container], widget || clone || element, memo);
     return widget || clone || element;
   },
   
@@ -302,7 +304,9 @@ LSD.Layout.prototype = Object.append({
           // The node is prematurely built, because allocation is not lazy
           if (allocated.nodeType) return allocated;
           if (!allocated.source) throw "Allocation of type " + allocation.type + " did not provide `source` selector to build nodes"
-          memo.options = allocated;
+          allocated.options = memo.options = Object.merge(allocated.options || {}, options);
+          delete allocated.options.allocation;
+          allocated.options.stored = allocated.stored;
           var selector = allocated.selector || allocated.source;
           if (options.order) selector += options.order;
           if (options.combinator) selector = options.order + selector;
@@ -328,7 +332,7 @@ LSD.Layout.prototype = Object.append({
       if (widget.element && widget.element.childNodes.length) var nodes = LSD.slice(widget.element.childNodes);
       this.appendChild(parent, widget, memo, parent[1]);
       if (nodes && nodes.length) this.children(nodes, [widget, widget.element], memo);
-    } else {  
+    } else {
       if (memo.options) {
         options = Object.merge(memo.options, options);
         delete memo.options;
@@ -359,7 +363,7 @@ LSD.Layout.prototype = Object.append({
     if (options.ends || options.link) {
       if (!(options.superbranch = (memo.branches && memo.branches.pop()))) 
         throw "Alternative branch is missing its original branch";
-      var node = options.superbranch.options.element;
+      var node = options.superbranch.options.origin;
       if (node) {
         for (var layout = []; (node = node.nextSibling) != element;) layout.push(node);
         options.superbranch.setLayout(layout);
@@ -375,7 +379,8 @@ LSD.Layout.prototype = Object.append({
       options.keyword = parsed.keyword;
       options.parent = parentbranch;
       options.widget = parent[0] || parent;
-      options.element = element;
+      options.element = parent[1] || parent.toElement();
+      options.origin = element;
       return new LSD.Layout.Branch(options);
     } else {
       if (options.layout) {
@@ -406,24 +411,21 @@ LSD.Layout.prototype = Object.append({
 
   set: function(layout, parent, memo, state) {
     if (!memo) memo = {};
-    switch (typeOf(layout)) {
-      case "array": case "collection":
-        for (var i = 0, j = layout.length, value; i < j; i++)
-          if ((value = layout[i])) this.manipulate(state, parent, value, memo);
-        break;
-      case "object":
-        for (var key in layout) {
-          var value = layout[key], element;
-          if (value && (element = value[0])) {
-            var combinator = value[2];
-            if (combinator) memo.combinator = combinator;
-            this.manipulate(state, parent, element, memo);
-            if (combinator) delete memo.combinator;
-          }
+    if (layout.nodeType) {
+      return this.manipulate(state, parent, layout);
+    } else if (layout.hasOwnProperty('length')){
+      for (var i = 0, j = layout.length, value; i < j; i++)
+        if ((value = layout[i])) this.manipulate(state, parent, value, memo);
+    } else {
+      for (var key in layout) {
+        var value = layout[key], element;
+        if (value && (element = value[0])) {
+          var combinator = value[2];
+          if (combinator) memo.combinator = combinator;
+          this.manipulate(state, parent, element, memo);
+          if (combinator) delete memo.combinator;
         }
-        break;
-      case "widget": case "string":  
-        return this.manipulate(state, parent, layout);
+      }
     }
     return layout;
   },
@@ -513,11 +515,11 @@ LSD.Layout.prototype = Object.append({
     the ones that are missing
   */
   realize: function(layout) {
-    if (layout.hasOwnProperty('length')) {
+    if ((layout.indexOf && layout.match) || layout.nodeType) {
+      return layout;
+    } else if (layout.hasOwnProperty('length')) {
       for (var i = 0, j = layout.length, value; i < j; i++)
         if ((value = layout[i])) layout[i] = this.realize(value);
-    } else if (layout.nodeType) {
-      return;
     } else if (!layout.promise) {
       for (var key in layout) {
         var row = layout[key];
@@ -531,13 +533,14 @@ LSD.Layout.prototype = Object.append({
           if (children && children !== true) this.realize(children);
         }
       }
+      return layout;
     } else {
       return layout.result || layout.realize();
     }
   },
   
   /*
-    Match all selectors in the stack and finds a right mutation
+    Match all selectors in the stack and find the right mutation
   */
   match: function(element, memo, soft) {
     var stack = memo.stack
@@ -907,45 +910,51 @@ Object.append(LSD.Layout, {
   parse: function(selector, parent) {
     var options = {};
     var expressions = (selector.Slick ? selector : Slick.parse(selector)).expressions[0];
-    var parsed = expressions[0];
-    if (expressions.length > 1) var order = expressions[expressions.length - 1].combinator;
-    if (parsed.combinator != ' ') {
-      if (parsed.combinator == '::') {
-        if (LSD.Allocations[parsed.tag]) {
-          var allocation = options.allocation = LSD.Module.Allocations.compile(parsed.tag, parsed.classes, parsed.attributes, parsed.pseudos);
-          if (allocation.options && allocation.options.source) {
-            var source = allocation.options.source;
-            delete allocation.options.source
+    loop: for (var j = expressions.length, expression; expression = expressions[--j];) {
+      switch (expression.combinator) {
+        case ' ':
+          break;
+        case '::':
+          if (LSD.Allocations[expression.tag]) {
+            var allocation = options.allocation = LSD.Module.Allocations.compile(expression.tag, expression.classes, expression.attributes, expression.pseudos);
+            if (allocation.options && allocation.options.source) {
+              var source = allocation.options.source;
+              delete allocation.options.source
+            }
+          } else {
+            var relation = (parent[0] || parent).relations[expression.tag];
+            if (!relation) throw "Unknown pseudo element ::" + expression.tag;
+            options.source = relation.getSource();
           }
-        } else {
-          var relation = (parent[0] || parent).relations[parsed.tag];
-          if (!relation) throw "Unknown pseudo element ::" + parsed.tag;
-          options.source = relation.getSource();
+          break;
+        default:
+          if (expression.tag == '*' && !expression.classes && !expression.attributes && !expression.pseudos) {
+            options.order = expression.combinator;
+          } else {
+            options.combinator = expression.combinator;
+          }
+      }
+      if (expression.id) (options.attributes || (options.attributes = {})).id = expression.id
+      if (expression.attributes) 
+        for (var all = expression.attributes, attribute, i = 0; attribute = all[i++];) {
+          var value = attribute.value || LSD.Attributes[attribute.key] == 'number' || "";
+          (options.attributes || (options.attributes = {}))[attribute.key] = value;
         }
-      } else options.combinator = parsed.combinator;
+      if (expression.tag != '*' && expression.combinator != '::')
+        if (expression.tag.indexOf('-') > -1) {
+          options.source = expression.tag;
+        } else {
+          options.tag = expression.tag;
+          var source = LSD.Layout.getSource(options, options.tag);
+          if (source.push) options.source = source;
+        }
+      if (expression.classes) 
+        for (var all = expression.classes, pseudo, i = 0; klass = all[i++];) 
+          (options.classes || (options.classes = {}))[klass.value] = true;
+      if (expression.pseudos) 
+        for (var all = expression.pseudos, pseudo, i = 0; pseudo = all[i++];) 
+          (options.pseudos || (options.pseudos = {}))[pseudo.key] = true;
     }
-    if (order && order != ' ') options.order = order;
-    if (parsed.id) (options.attributes || (options.attributes = {})).id = parsed.id
-    if (parsed.attributes) 
-      for (var all = parsed.attributes, attribute, i = 0; attribute = all[i++];) {
-        var value = attribute.value || LSD.Attributes[attribute.key] == 'number' || "";
-        (options.attributes || (options.attributes = {}))[attribute.key] = value;
-      }
-    if (parsed.tag != '*' && parsed.combinator != '::') {
-      if (parsed.tag.indexOf('-') > -1) 
-        options.source = parsed.tag;
-      else {
-        options.tag = parsed.tag;
-        var source = LSD.Layout.getSource(options, options.tag);
-        if (source.push) options.source = source;
-      }
-    }
-    if (parsed.classes) 
-      for (var all = parsed.classes, pseudo, i = 0; klass = all[i++];) 
-        (options.classes || (options.classes = {}))[klass.value] = true;
-    if (parsed.pseudos) 
-      for (var all = parsed.pseudos, pseudo, i = 0; pseudo = all[i++];) 
-        (options.pseudos || (options.pseudos = {}))[pseudo.key] = true;
     return options;
   },
   

@@ -47,7 +47,7 @@ LSD.Module.DOM = new Class({
     var length = widget.childNodes.length;
     if (old)
       if (old != widget) {
-        old.removeChild(this);
+        old.removeChild(this, false);
       } else {
         var previous = widget.childNodes.indexOf(this);
         if (previous != index) {
@@ -132,7 +132,7 @@ LSD.Module.DOM = new Class({
         this.childNodes.splice(index, 1);
       }
     }
-    if (child && child.parentNode) child.parentNode.removeChild(child)
+    if (element !== false && child && child.parentNode) child.parentNode.removeChild(child)
   },
   
   replaceChild: function(insertion, child) {
@@ -185,7 +185,8 @@ LSD.Module.DOM = new Class({
       source: this.source,
       tag: this.tagName,
       pseudos: this.pseudos.toObject(),
-      traverse: !!children
+      traverse: !!children,
+      clone: true
     }, options));
     return clone;
   },
@@ -406,6 +407,7 @@ Object.append(LSD.Module.DOM, {
 });
 
 }();
+
 
 LSD.Options.document = {
   add: function(document) {

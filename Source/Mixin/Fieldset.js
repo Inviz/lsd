@@ -66,15 +66,9 @@ LSD.Mixin.Fieldset = new Class({
   
   getData: function() {
     var data = {}
-    for (var name in this.names) {
-      var memo = this.names[name];
-      if (memo.push) {
-        for (var i = 0, radio; radio = memo[i++];) if (radio.checked) data[name] = radio.toData(); break;
-      } else {
-        var value = memo.toData();
-        if (value != null) data[name] = value;
-      }
-    }
+    this.submittableElements.each(function(element) {
+      data[element.attributes.name] = element.toData();
+    });
     return data;
   },
 

@@ -124,8 +124,8 @@ LSD.Module.Allocations = new Class({
           : allocation.options;
     }
     options = Object.merge({}, allocation, generated, customized, opts, options);
-    if (type && !options.attributes || !options.attributes.type) (options.attributes || (options.attributes = {})).type = type;
-    if (kind && !options.attributes || !options.attributes.kind) (options.attributes || (options.attributes = {})).kind = kind;
+    //if (type && (!options.attributes || !options.attributes.type)) (options.attributes || (options.attributes = {})).type = type;
+    if (kind && (!options.attributes || !options.attributes.kind)) (options.attributes || (options.attributes = {})).kind = kind;
     delete options.multiple;
     delete options.options;
     var source = options.source;
@@ -219,7 +219,12 @@ LSD.Module.Allocations.compile = function(type, classes, attributes, pseudos) {
         default:
           (options.pseudos || (options.pseudos = {}))[pseudo.key] = pseudo.value || true;
       }
-  return {type: type, name: name, kind: kind, options: options}
+  var result = {};
+  if (options.classes || options.attributes || options.pseudos) result.options = options;
+  if (type) result.type = type;
+  if (name) result.name = name;
+  if (kind) result.kind = kind;
+  return result;
 }
 
 LSD.Allocations = {

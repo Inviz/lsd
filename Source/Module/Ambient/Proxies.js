@@ -69,16 +69,16 @@ Object.append(LSD.Module.Proxies, {
     }
     var result = {};
     if (container && container !== true) {
-    if (container.localName) {
-      result.element = container;
-      if (proxy.rewrite === false) result.widget = parent[0] || parent;
-    } else if (container.lsd) {
-      result.widget = container;
-      result.element = container.element || container.toElement()
-    } else {
-      result.widget = parent[0] || parent;
-      result.element = container;
-    }
+      if (container.localName) {
+        result.element = container;
+        if (proxy.rewrite === false) result.widget = parent[0] || parent;
+      } else if (container.lsd) {
+        result.widget = container;
+        result.element = container.element || container.toElement()
+      } else {
+        result.widget = parent[0] || parent;
+        result.element = container;
+      }
       if (container === child) return false;
     }
     if (proxy.before) {
@@ -93,13 +93,11 @@ Object.append(LSD.Module.Proxies, {
   perform: function(widget, child, bypass) {
     var element = widget.element || widget.toElement();
     for (var node = widget, proxies; node; node = node.parentNode)
-      if ((proxies = node.proxies)) 
+      if ((proxies = node.proxies))
         for (var j = 0, proxy; proxy = proxies[j++];)
-          if (((node == widget) || proxy.deep) && (!proxy.type || proxy.type != bypass)) {
-            if (LSD.Module.Proxies.match(child, proxy, proxy.selector ? widget : proxy.element)) {
+          if (((node == widget) || proxy.deep) && (!proxy.type || proxy.type != bypass))
+            if (LSD.Module.Proxies.match(child, proxy, proxy.selector ? widget : proxy.element))
               return LSD.Module.Proxies.invoke(child.lsd ? widget : element, child, proxy);
-            }
-          }
   },
   
   realize: function(node, origin, proxy) {
@@ -113,12 +111,6 @@ Object.append(LSD.Module.Proxies, {
     }
   }
 });
-
-LSD.Module.Proxies.events = {
-  appendChild: function(child) {
-    
-  }
-}
 
 LSD.Options.proxies = {
   add: 'addProxy',

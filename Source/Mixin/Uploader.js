@@ -250,15 +250,11 @@ LSD.Widget.Filelist.File = new Class({
     tag: 'file',
     inline: 'li',
     layout: {
-      '::canceller': 'Cancel',
-      '::progress': true
+      'span::container': '{name}',
+      '::progress': true,
+      '::canceller': 'Cancel'
     },
     pseudos: Array.object('upload'),
-    events: {
-      setFile: function() {
-        this.write(this.name);
-      }
-    },
     has: {
       one: {
         canceller: {
@@ -269,6 +265,13 @@ LSD.Widget.Filelist.File = new Class({
           }
         }
       }
+    }
+  },
+  
+  setProperties: function(properties) {
+    for (var name in properties) {
+      this[name] = properties[name];
+      this.dataset.set(name, properties[name]);
     }
   }
 });

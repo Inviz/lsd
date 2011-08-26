@@ -24,7 +24,7 @@ provides:
   A selector targetted at widgets updates the collection as the widgets
   change and recalculates the expression in real time.
   
-  The only tricky moment is that a simple selector may be recognized as
+  The only tricky part is that a simple selector may be recognized as
   a variable (e.g. `div.container`) or logical expression (`ul > li`) and 
   not fetch the elements. A combinator added before ambigious expression 
   would help parser to recognize selector. Referential combinators 
@@ -35,7 +35,7 @@ provides:
   
   Examples of expressions with selectors:
     
-      // Following selectors will observer changes in DOM and update collection
+      // Following selectors will observe changes in DOM and update collection
       // Because they are targetted at widgets
       
       // Count `item` children in `menu#main` widget
@@ -56,7 +56,7 @@ provides:
       // Find `section` in parents that has no `section` siblings, and a details element next to it
       "$ ! section:only-of-type() + details"
       
-      // Following example is INCORRECT, because it is AMBIGIOUS and will not recognize selector
+      // Following example is INCORRECT, because it is AMBIGIOUS and will not be recognized selector
       "ul > li" // variable `ul` greater than `li`
       
       // CORRECT way: Add a combinator to disambiguate
