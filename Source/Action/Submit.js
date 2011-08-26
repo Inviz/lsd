@@ -40,7 +40,7 @@ LSD.Action.Submit = LSD.Action.build({
         self.eliminate(target);
       };
       var events = { complete: callback, cancel: callback };
-      submission.addEvents(events);
+      if (submission.callChain) submission.addEvents(events);
     }
     return submission
   },
