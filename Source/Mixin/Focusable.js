@@ -89,7 +89,12 @@ LSD.Mixin.Focusable = new Class({
   },
   
   isNativelyFocusable: function() {
-    return this.getElementTag() == 'input';
+    switch (this.getElementTag()) {
+      case 'input': case 'textarea':
+        return true; break;
+      default:
+        return false; break;
+    }
   }
 });
 

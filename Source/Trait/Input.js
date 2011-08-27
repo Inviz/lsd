@@ -53,6 +53,18 @@ LSD.Trait.Input = new Class({
     this.focus();
   },
   
+  onBlur: function() {
+    this.blurring = true;
+    !function() {
+      if (this.blurring === false) return;
+      delete this.blurring;
+      var active = this.document.activeElement;
+      if (active == this) delete this.document.activeElement;
+      while (active && (active = active.parentNode)) if (active == this) return;
+      this.blur();
+    }.delay(20, this);
+  },
+  
   getInput: Macro.getter('input', function() {
     var input = new Element('input', Object.append({'type': 'text'}, this.options.input));
     this.properties.set('input', input)
