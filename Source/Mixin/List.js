@@ -30,8 +30,8 @@ LSD.Mixin.List = new Class({
     has: {
       many: {
         items: {
-          selector: ':item',
           traits: Array.object('selectable'),
+          selector: ':item',
           as: 'list',
           pseudos: Array.object('value'),
           options: function() {
