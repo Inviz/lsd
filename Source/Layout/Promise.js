@@ -100,7 +100,7 @@ LSD.Layout.Promise.prototype = {
     proxy.realize(child)
   },
   
-  realize: function(result, bypass) {
+  realize: function(result) {
     var memo = {};
     this.detach();
     var stored = this.options.stored;
@@ -138,3 +138,35 @@ LSD.Layout.Promise.prototype = {
     }
   }
 };
+
+LSD.Layout.Promise.Textnode = function(layout, text, parent, memo) {
+  this.layout = layout;
+  this.regexp = text.indexOf ? LSD.Layout.regexpify(text) : text;
+  this.string = this.regexp.string;
+  this.container = false;
+  this.parent = parent;
+  this.memo = memo;
+  this.promise = true;
+  this.widget = parent[0] || parent;
+  this.text = true;
+  this.attach(memo)
+};
+
+LSD.Layout.Promise.Textnode.prototype = Object.append({}, LSD.Layout.Promise.prototype, {
+  realize: function(result) {
+    this.detach();
+    if (result) {
+      var string = result.nodeValue;
+      var match = string.match(this.regexp);
+      var object = {}
+      for (var i = 0, bit; bit = match[i + 1]; i++)
+        object[this.regexp._names[i]] = bit;
+      if (i) {
+        Element.store(result, 'interpolator', object);
+        this.widget.addInterpolator(object)
+      }
+    } else {
+      result = this.layout.string(this.string, this.parent);
+    }
+  }
+});

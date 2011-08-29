@@ -87,11 +87,11 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
   },
   
   disable: function() {
-    for (var i = 0, widget; widget = this.widgets[i++];) widget.disable.add('disabled');
+    for (var i = 0, widget; widget = this.widgets[i++];) widget.states.include('disabled');
   },
   
   enable: function() {
-    for (var i = 0, widget; widget = this.widgets[i++];) widget.enable.remove('disabled');
+    for (var i = 0, widget; widget = this.widgets[i++];) widget.states.erase('disabled');
   },
   
   setType: function(type, unset) {

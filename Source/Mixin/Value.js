@@ -64,10 +64,13 @@ LSD.Mixin.Value = new Class({
 
   getValue: function() {
     if (this.attributes.multiple) {
-      if (this.values) this.values = []; 
+      if (!this.values) this.values = []; 
       return this.values.map(this.formatValue, this);
     } else {
-      if (typeof this.value == 'undefined') this.value = this.getDefaultValue();
+      if (typeof this.value == 'undefined') {
+        var value = this.getDefaultValue();
+        if (typeof value == 'undefined') this.setValue(value);
+      }
       return this.formatValue(this.value);
     }
   },

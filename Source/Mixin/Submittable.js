@@ -77,6 +77,7 @@ LSD.Mixin.Submittable = new Class({
     var submission = this.captureEvent('submit', arguments);
     if (submission) return submission;
     else if (submission !== false) this.callChain();
+    this.fireEvent('afterSubmit', arguments);
     return this;
   },
   

@@ -211,6 +211,10 @@ LSD.Layout.prototype = Object.append({
   */
   
   string: function(string, parent, memo) {
+    if (memo && memo.lazy) {
+      var regexp = LSD.Layout.regexpify(string);
+      if (regexp) return new LSD.Layout.Promise.Textnode(this, regexp, parent, memo);
+    }
     var element = parent[1] || parent.toElement();
     var textnode = element.ownerDocument.createTextNode(string);
     this.appendChild([parent[0] || parent, element], textnode, memo);
@@ -994,6 +998,21 @@ Object.append(LSD.Layout, {
       });
       Element.store(expression, 'interpolation', compiled);
       last = index;
+    }
+  },
+  
+  regexpify: function(string) {
+    var names;
+    var source = string.replace(LSD.Layout.rInterpolation, function(m, name) {
+      if (!names) names = [];
+      names.push(name);
+      return '\\s*(.*?)\\s*'
+    });
+    if (names) {
+      var regexp = new RegExp("^" + source + "$", 'mi');
+      regexp.string = string;
+      regexp._names = names;
+      return regexp;
     }
   }
 });

@@ -54,8 +54,8 @@ Object.append(LSD.Module.Proxies, {
       if (!node.element) node.toElement();
       if (proxy.selector) return proxy.selector === true || Slick.matchNode(node, proxy.selector, parent || proxy.widget);
     } else {
-      if (proxy.mutation) return proxy.mutation === true || (node.nodeType == 1 && Slick.matchNode(node, proxy.mutation, parent || proxy.element))
-      if (proxy.text) return node.nodeType == 3;
+      if (proxy.mutation) return proxy.mutation === true || (node.nodeType == 1 && Slick.matchNode(node, proxy.mutation, parent || proxy.element));
+      if (proxy.text) return node.nodeType == 3 && (!proxy.regexp || node.nodeValue.match(proxy.regexp));
     }
   },
   

@@ -74,6 +74,7 @@ LSD.Module.Chain = new Class({
       index = 0;
     }
     var action, phases = revert ? revert.length ? revert : this.chainPhasing : [];
+    var executed = 0;
     for (var link; link = chain[index]; index += (revert ? -1 : 1)) {
       action = link.action ? this.getAction(link.action) : null;
       if (filter) {
@@ -81,6 +82,7 @@ LSD.Module.Chain = new Class({
         if (filtered == null) return phases;
         else if (filtered === false) continue;
       };
+      executed++;
       if (action) {
         if (revert) {
           var last = phases[phases.length - 1];
@@ -98,7 +100,7 @@ LSD.Module.Chain = new Class({
       if (action && result == null) break; //action is asynchronous, stop chain
     }
     if (index >= chain.length) index = chain.length - 1;
-    if (index > -1) {
+    if (index > -1 && executed) {
       this.chainPhase = index;
       if (!revert) this.chainPhasing.push.apply(this.chainPhasing, phases);
     } else this.clearChain();
@@ -137,9 +139,9 @@ LSD.Module.Chain = new Class({
           (state ? succeed : failed).push([target, args]);
           result.removeEvents(events);
           // Try to fork off execution if action lets so 
-          if (state && (this != target) && command.fork) {
-            if (target.chainPhase == -1) target.callChain.apply(target, args);
-            else target.eachLink('optional', args, true);
+          if (state && (this != target) && (command.fork || action.options.fork)) {
+            //if (target.chainPhase == -1) target.callChain.apply(target, args);
+            target.eachLink('optional', args, true);
           };
           if (failed.length + succeed.length != promised.length) return;
           if (failed.length) this.eachLink('alternative', args, true, false, succeed);
