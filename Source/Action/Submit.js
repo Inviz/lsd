@@ -20,8 +20,6 @@ provides:
 
 
 LSD.Action.Submit = LSD.Action.build({
-  fork: true,
-  
   enable: function(target, event) {
     if (this.retrieve(target)) return;
     var args = Array.prototype.slice.call(arguments, 1);
