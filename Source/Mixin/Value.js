@@ -48,7 +48,7 @@ LSD.Mixin.Value = new Class({
   setValue: function(value, unset) {
     if (value == null || (value.event && value.type)) value = this.getDefaultValue();
     else if (value.getValue) {
-      if (!widget.rendered) widget.render();
+      if (!value.rendered) value.render();
       value = this.processValue(value.getValue());
     }
     var result = false;
