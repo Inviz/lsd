@@ -119,7 +119,6 @@ LSD.Mixin.Fieldset = new Class({
           result[Fieldset.getName(model, error[0])] = error[1];
       }
     }
-        console.error(response, 123, result)
     if (Object.getLength(result) > 0) this.addFieldErrors(result);
   },
   
