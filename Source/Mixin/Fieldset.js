@@ -103,8 +103,13 @@ LSD.Mixin.Fieldset = new Class({
   parseFieldErrors: function(response) {
     var result = {}, errors = response.errors;
     if (errors) { //rootless response ({errors: {}), old rails
-      for (var i = 0, error; error = errors[i++];)
-        result[Fieldset.getName(this.getModelName(error[0]), error[0])] = error[1];
+      if (errors.push) {
+        for (var i = 0, error; error = errors[i++];)
+          result[Fieldset.getName(this.getModelName(error[0]), error[0])] = error[1];
+      } else {
+        for (var name in errors)
+          result[Fieldset.getName(this.getModelName(name), name)] = errors[name];
+      }
     } else { //rooted response (publication: {errors: {}}), new rails
       var regex = Fieldset.rPrefixAppender;
       for (var model in response) {
@@ -114,6 +119,7 @@ LSD.Mixin.Fieldset = new Class({
           result[Fieldset.getName(model, error[0])] = error[1];
       }
     }
+        console.error(response, 123, result)
     if (Object.getLength(result) > 0) this.addFieldErrors(result);
   },
   
