@@ -40,12 +40,10 @@ var inserters = {
 
 };
 
-ART.Element.implement({
-  inject: function(element, where){
-    if (element.element) element = element.element;
-    inserters[where || 'bottom'](this.element, element, true);
-    return this;
-  }
-});
+ART.Element.prototype.inject = function(element, where){
+  if (element.element) element = element.element;
+  inserters[where || 'bottom'](this.element, element, true);
+  return this;
+}
 
 }();
