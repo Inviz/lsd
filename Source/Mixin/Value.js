@@ -72,7 +72,7 @@ LSD.Mixin.Value = new Class({
     } else {
       if (typeof this.value == 'undefined') {
         var value = this.getDefaultValue();
-        if (typeof value == 'undefined') this.setValue(value);
+        if (typeof value != 'undefined') this.setValue(value);
       }
       return this.formatValue(this.value);
     }

@@ -28,6 +28,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   constructors: {
     expectations: function() {
       if (!this.expectations) this.expectations = {}
+      else this.expectations = Object.clone(this.expectations)
       var self = this;
       this.properties.addEvent('change', function(name, value, state, old) {
         if (value && value.lsd) Expectations.relate(self, name, value, state);

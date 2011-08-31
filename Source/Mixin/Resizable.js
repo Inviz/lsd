@@ -58,18 +58,19 @@ LSD.Mixin.Resizable = new Class({
     }
   },
   
-  initialize: function() {
-    this.parent.apply(this, arguments);
-    var options = this.options.resizer;
-    var rules = (new Object.Array).concat(this.getAttribute('resizable').split(/\s+/));
-    options.modifiers.x = (!rules.x && rules.y) ? false : 'width';
-    options.modifiers.y = (!rules.y && rules.x) ? false : 'height';
-    options.fit = !!rules.fit;
-  },
-  
-  uninitialize: function() {
-    if (this.handle) this.options.actions.resizable.disable.call(this, this.handle, this.resized);
-    delete this.resizer;
+  constructors: {
+    resizable: function(options, state) {
+      if (state) {
+        var options = this.options.resizer;
+        var rules = (new Object.Array).concat(this.getAttribute('resizable').split(/\s+/));
+        options.modifiers.x = (!rules.x && rules.y) ? false : 'width';
+        options.modifiers.y = (!rules.y && rules.x) ? false : 'height';
+        options.fit = !!rules.fit;
+      } else {
+        if (this.handle) this.options.actions.resizable.disable.call(this, this.handle, this.resized);
+        delete this.resizer;
+      }
+    }
   },
    
   getResizer: function(resized) {

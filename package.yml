@@ -111,6 +111,7 @@ sources:
   - Source/Action/Focus.js
   - Source/Action/Counter.js
   - Source/Action/Invoke.js
+  - Source/Action/Attribute.js
   - Source/Action.js
   - Source/Script.js
   - Source/Script/Variable.js
