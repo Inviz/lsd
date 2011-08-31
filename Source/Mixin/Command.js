@@ -45,7 +45,8 @@ LSD.Mixin.Command = new Class({
       command: {
         enable: function() {
           this.getCommand();
-          this.eachLink('quickstart', true, true, !this.getCommandState());
+          var arg = this.getValue ? this.getValue() : true;
+          this.eachLink('quickstart', arg, true, !this.getCommandState());
         }
       }
     }

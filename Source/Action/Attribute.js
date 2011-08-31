@@ -20,7 +20,8 @@ provides:
 
 LSD.Action.Attribute = LSD.Action.build({
   enable: function(target, name, value) {
-    target.setAttribute(name, value);
+    if (target.lsd) target.attributes.write(name, value);
+    else target.setAttribute(name, value);
   },
   
   disable: function(target, name, value) {
@@ -28,6 +29,8 @@ LSD.Action.Attribute = LSD.Action.build({
   },
   
   getState: function(target, name, value) {
-    return target.attributes[name] != value;
+    var old = target.attributes[name];
+    if (old != null && old.nodeType) old = value.nodeValue;
+    return old != null || old != value
   }
 });

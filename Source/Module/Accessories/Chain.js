@@ -60,7 +60,8 @@ LSD.Module.Chain = new Class({
   
   eachLink: function(filter, args, ahead, revert, target) {
     if (filter && filter.indexOf) filter = Iterators[filter];
-    if (args != null && !args.push) args = LSD.slice(args);     
+    if (args != null && (args.push || args.hasOwnProperty('callee'))) args = LSD.slice(args);
+    else args = [args];  
     var chain = this.currentChain || (this.currentChain = this.getActionChain.apply(this, args));
     if (!chain.length) {
       if (this.chainPhase > -1) this.clearChain();

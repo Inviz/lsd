@@ -21,7 +21,7 @@ var NS = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink', U
   return document.createElementNS(NS, tag);
 };
   
-ART.SVG.Base.implement({
+var Extensions = {
   dash: function(dash) {
     if (dash) {
       this.dashed = true;
@@ -117,6 +117,8 @@ ART.SVG.Base.implement({
   
     return filter;
   }
-});
+};
+
+for (var name in Extensions) ART.SVG.Base.prototype[name] = Extensions[name];
 
 }();
