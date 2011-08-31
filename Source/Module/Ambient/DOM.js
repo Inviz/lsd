@@ -286,14 +286,8 @@ var unset = function(widget, index) {
     if (previous) this.properties.write('next', previous);
     next.properties.unset('previous', this);
   }
-  if (parent.firstChild == this) {
-    if (next) parent.properties.write('first', next);
-    else parent.properties.unset('first', this);
-  }
-  if (parent.lastChild == this) {
-    if (previous) parent.properties.write('last', previous);
-    else parent.properties.unset('last', this);
-  }
+  if (parent.firstChild == this) parent.properties.write('first', next);
+  if (parent.lastChild == this) parent.properties.write('last', previous);
   return index;
 };
 

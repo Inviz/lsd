@@ -54,7 +54,8 @@ LSD.Object.prototype = {
     return this.unset(key, true, memo)
   },
   write: function(key, value, memo) {
-    return this[value == null ? 'unset' : 'set'](key, value, memo);
+    if (value == null) this.unset(key, this[key], memo)
+    else this.set(key, value, memo);
   },
   fireEvent: function(key, a, b, c, d, e) {
     var storage = this._events;
@@ -174,6 +175,12 @@ LSD.Object.Stack.prototype = Object.append(new LSD.Object, {
     var method = length == 1 ? 'unset' : 'set';
     if (j == -1) return //throw "The value can not be unset, because it was not set before"
     return LSD.Object.prototype[method].call(this, key, value, memo);
+  },
+  write: function(key, value, memo) {
+    if (value != null) {
+      if (this[key] != null) this.unset(key, this[key], memo);
+      this.set(key, value, memo);
+    } else if (this[key] != null) this.unset(key, this[key], memo);
   }
 })
 

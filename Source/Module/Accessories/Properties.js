@@ -31,7 +31,7 @@ LSD.Module.Properties = new Class({
     properties: function() {
       var self = this;
       this.storage = new LSD.Object;
-      this.properties = (new LSD.Object).addEvent('change', function(name, value, state, old, memo) {
+      this.properties = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
         var property = LSD.Module.Properties.Exported[name] || name;
         var method = LSD.Module.Properties.Methods[name];
         var alias = LSD.Module.Properties.Aliased[name];
