@@ -17,7 +17,7 @@ provides: [ART.Shape.Ellipse]
 ...
 */
 
-ART.Shape.Ellipse = new Class({
+ART.Shape.Ellipse = new ART.Class({
   
   Extends: ART.Shape,
   

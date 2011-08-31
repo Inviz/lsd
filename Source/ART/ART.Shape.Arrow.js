@@ -18,7 +18,7 @@ provides:
 ...
 */
 
-ART.Shape.Arrow = new Class({
+ART.Shape.Arrow = new ART.Class({
 
   Extends: ART.Shape,
   

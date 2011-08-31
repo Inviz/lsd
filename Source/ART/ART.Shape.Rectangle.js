@@ -17,7 +17,7 @@ provides: [ART.Shape.Rectangle]
 ...
 */
 
-ART.Shape.Rectangle = new Class({
+ART.Shape.Rectangle = new ART.Class({
 
   Extends: ART.Shape,
   

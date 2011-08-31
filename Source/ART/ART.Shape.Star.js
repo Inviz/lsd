@@ -18,7 +18,7 @@ provides:
 ...
 */
 
-ART.Shape.Star = new Class({
+ART.Shape.Star = new ART.Class({
   
   Extends: ART.Shape,
   

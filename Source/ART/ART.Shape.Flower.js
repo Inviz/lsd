@@ -17,7 +17,7 @@ provides: [ART.Shape.Flower]
 ...
 */
 
-ART.Shape.Flower = new Class({
+ART.Shape.Flower = new ART.Class({
   
   Extends: ART.Shape,
   
