@@ -329,7 +329,7 @@ Object.append(LSD.Module.DOM, {
     var child = LSD.Module.DOM.identify(node);
     LSD.Module.DOM.walk(child.element, function(element) {
       var widget = element.uid && LSD.Module.DOM.find(element, true);
-      if (widget) widget.destroy(true);
+      if (widget) (widget['delete'] || widget['destroy']).call(widget, true);
     });
     Element.destroy(child.element);
   },
