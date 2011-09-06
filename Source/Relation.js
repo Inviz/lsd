@@ -85,7 +85,7 @@ LSD.Relation.prototype = Object.append({
   },
   
   onFind: function(widget) {
-    if (widget == this) return;
+    if (widget == this || (this.options.as && widget[this.options.as] && widget[this.options.as] != this.origin)) return;
     this.add(widget);
     this.applyOptions(widget);
     this.fireEvent('add', widget);
@@ -93,7 +93,7 @@ LSD.Relation.prototype = Object.append({
   },
   
   onLose: function(widget) {
-    if (widget == this) return;
+    if (widget == this || (this.options.as && widget[this.options.as] && widget[this.options.as] != this.origin)) return;
     LSD.Module.Expectations.relate(this.origin, this.name, widget, false);
     if (this.remove(widget) === false) return;
     this.fireEvent('remove', widget);
