@@ -128,8 +128,8 @@ LSD.Mixin.Uploader = new Class({
     }
   },
   
-  processValue: function(file) {
-    return file.id || file.uid;
+  processValue: function(blob) {
+    return blob.id || blob.uid || blob._id;
   },
   
   onFileSuccess: function(file, blob) {

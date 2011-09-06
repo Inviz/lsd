@@ -26,6 +26,13 @@ LSD.Mixin.Resource = new Class({
     },
     request: {
       type: 'xhr'
+    },
+    actions: {
+      resource: {
+        enable: function() {
+          this.getResource();
+        }
+      }
     }
   },
   
