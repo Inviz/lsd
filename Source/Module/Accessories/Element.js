@@ -155,8 +155,11 @@ LSD.Module.Element = new Class({
   destroy: function() {
     this.fireEvent('beforeDestroy');
     if (this.parentNode) this.dispose();
-    this.element.destroy();
-    this.detach();
+    var element = this.element;
+    if (element) {
+      this.detach(element);
+      element.destroy();
+    }
     return this;
   },
   

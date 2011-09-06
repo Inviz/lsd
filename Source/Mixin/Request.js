@@ -63,12 +63,7 @@ LSD.Mixin.Request = new Class({
       } else if (arg.call) var callback = arg;
     }
     var request = this.getRequest(options);
-    request.addEvent('complete:once', function() {
-      if (callback) callback();
-      if (request.isSuccess && request.isSuccess() && this.getCommandAction && this.getCommandAction() == 'submit')
-        if (this.chainPhase == -1 || (this.chainPhase == this.getActionChain().length - 1))  
-          this.eachLink('optional', arguments, true);
-    }.bind(this));
+    if (callback) request.addEvent('complete:once', callback);
     this.fireEvent('send', options);
     return request.send(options);
   },
@@ -82,11 +77,16 @@ LSD.Mixin.Request = new Class({
   getRequest: function(options, fresh) {
     var type = (options && options.type) || this.getRequestType();
     if (fresh || !this.request || this.request.type != type) {
-      this.request = this[type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options);
+      var request = this.request = this[type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options);
       if (!this.request.type) {
         this.request.type = type;
         this.properties.set('request', this.request);
       }
+      request.addEvent('complete', function() {
+        if (request.isSuccess && request.isSuccess() && this.getCommandAction && this.getCommandAction() == 'submit')
+          if (this.chainPhase == -1 || (this.chainPhase == this.getActionChain().length - 1))  
+            this.eachLink('optional', arguments, true);
+      }.bind(this));
     }
     return this.request;
   },

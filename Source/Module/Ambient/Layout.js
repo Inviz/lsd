@@ -40,7 +40,7 @@ LSD.Module.Layout = new Class({
   },
   
   addLayout: function(name, layout, parent, memo) {
-    if (parent == null) parent = [this, this.getWrapper()];
+    if (parent == null) parent = [this, (this.wrapper = this.getWrapper())];
     if (!memo) memo = {};
     var old = this.layouts[name];
     if (old) {
@@ -60,7 +60,7 @@ LSD.Module.Layout = new Class({
   },
   
   removeLayout: function(name, layout, parent, memo) {
-    if (parent == null) parent = [this, this.getWrapper()];
+    if (parent == null) parent = [this, this.wrapper];
     if (this.layouts[name])
       return this.document.layout.remove(this.layouts[name], parent, memo);
   },

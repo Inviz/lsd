@@ -34,9 +34,14 @@ LSD.Action.Update = LSD.Action.build({
     } else {
       var children = content.hasOwnProperty('length') ? content : [content];
     }
-    var element = target.lsd ? target.toElement() : target;
+    if (target.lsd) {
+      var element = target.toElement(), parent = target.parentNode;
+    } else {
+      var element = target, parent = widget;
+      if (parent.element == element) parent = parent.parentNode;
+    }
     var container = (target.lsd || (widget.element == target && widget)) ? widget[this.options.container ? 'getWrapper' : 'toElement']() : element;
-    var args = [container, widget, fragment, children, content];
+    var args = [container, parent, fragment, children, content];
     this.options.update.apply(this, args);
   },
   
@@ -59,8 +64,9 @@ LSD.Action.Replace = LSD.Action.build({
   enable: LSD.Action.Update.prototype.options.enable,
 
   update: function(target, parent, fragment, children) {
+    console.log(target, fragment, children)
     target.parentNode.replaceChild(fragment, target);
-    LSD.Module.DOM.destroy(target);
+    LSD.Module.DOM.destroy(target, true);
     parent.fireEvent('DOMNodeInserted', [children, target]);
   }
 });
