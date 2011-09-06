@@ -165,7 +165,7 @@ LSD.Mixin.Value = new Class({
     if (this.canElementHoldValue()) return this.element;
     var name = this.attributes.name;
     if (this.attributes.miltiple) name += '[]';
-    return new Element('input[type=hidden]', {name: name}).inject(this.element);
+    return new Element('input[type=hidden]', {name: name}).inject(this.element, 'top');
   }
 });
 
