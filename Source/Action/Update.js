@@ -28,8 +28,12 @@ LSD.Action.Update = LSD.Action.build({
   enable: function(target, content) {
     if (!content) return LSD.warn('Update action did not recieve content');
     var widget = LSD.Module.DOM.find(target);
-    var fragment = document.createFragment(content);
-    var children = LSD.slice(fragment.childNodes);
+    if (typeof content == 'string') {
+      var fragment = document.createFragment(content);
+      var children = LSD.slice(fragment.childNodes);
+    } else {
+      var children = content.hasOwnProperty('length') ? content : [content];
+    }
     var element = target.lsd ? target.toElement() : target;
     var container = (target.lsd || (widget.element == target && widget)) ? widget[this.options.container ? 'getWrapper' : 'toElement']() : element;
     var args = [container, widget, fragment, children, content];
