@@ -293,6 +293,7 @@ LSD.Allocations = {
       styles: {
         width: 1,
         height: 0,
+        margin: 0,
         display: 'block',
         border: 0,
         padding: 0,

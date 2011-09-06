@@ -123,6 +123,7 @@ LSD.Module.Attributes.List = {
   disabled: 'boolean',
   hidden:   'boolean',
   checked:  'boolean',
+  multiple:  'boolean',
   id: function(id) {
     this.id = id;
   },

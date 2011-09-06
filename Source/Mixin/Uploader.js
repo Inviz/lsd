@@ -106,6 +106,8 @@ LSD.Mixin.Uploader = new Class({
       var Klass = new Class({
         Implements: [adapter.File, this.getUploaderFileClassBase()]
       });
+      if (Klass.prototype.setProperties == adapter.File.prototype.setProperties) 
+        delete Klass.prototype.setProperties;
       adapter.File.Widget = function() {
         return new LSD.Widget().mixin(Klass, true);
       }
@@ -148,12 +150,12 @@ LSD.Mixin.Uploader = new Class({
   },
   
   addBlob: function(file, blob) {
-    this.setValue(blob);
+    if (this.options.uploader.value !== false) this.setValue(blob);
     this.blobs[file.id] = blob;
   },
   
   removeBlob: function(file) {
-    this.setValue(this.blobs[file.id], true);
+    if (this.options.uploader.value !== false) this.setValue(this.blobs[file.id], true);
     delete this.blobs[file.id];    
   },
   
@@ -197,9 +199,6 @@ LSD.Mixin.Upload = new Class({
     events: {
       setBase: function() {
         if (this.target) this.targetWidget = this.target.retrieve('widget');
-        this.build();
-      },
-      build: function() {
         this.inject(this.getWidget());
       },
       progress: function(progress) {
@@ -207,6 +206,10 @@ LSD.Mixin.Upload = new Class({
       },
       start: function() {
         this.states.include('started');
+      },
+      fail: function() {
+        this.states.erase('started');
+        this.states.include('failed');
       },
       complete: function() {
         if (this.progress) this.progress.set(100);
@@ -226,6 +229,13 @@ LSD.Mixin.Upload = new Class({
   
   getWidget: function() {
     return (this.widget || this.base.widget);
+  },
+  
+  setProperties: function(properties) {
+    for (var name in properties) {
+      this[name] = properties[name];
+      this.dataset.set(name, properties[name]);
+    }
   }
 });
 
@@ -265,13 +275,6 @@ LSD.Widget.Filelist.File = new Class({
           }
         }
       }
-    }
-  },
-  
-  setProperties: function(properties) {
-    for (var name in properties) {
-      this[name] = properties[name];
-      this.dataset.set(name, properties[name]);
     }
   }
 });
