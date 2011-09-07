@@ -25,15 +25,18 @@ LSD.Mixin.Value = new Class({
             if (LSD.Mixin.Command.getCommandType.call(this) == 'command') {
               if (typeof this.value == 'undefined') this.setValue();
             } else {
-              this.states.watch('checked', function(value) {
-                if (value) this.setValue();
-                else this.unsetValue();
-              }.bind(this))
+              this.states.watch('checked', this.bind(LSD.Mixin.Value.setValueOnCheck))
             }
           }
         },
         disable: function() {
-          
+          if (!this.attributes.multiple) {
+            if (LSD.Mixin.Command.getCommandType.call(this) == 'command') {
+              if (typeof this.value == 'undefined') this.unsetValue();
+            } else {
+              this.states.unwatch('checked', this.bind(LSD.Mixin.Value.setValueOnCheck))
+            }
+          }
         }
       }
     }
@@ -168,5 +171,10 @@ LSD.Mixin.Value = new Class({
     return new Element('input[type=hidden]', {name: name}).inject(this.element, 'top');
   }
 });
+
+LSD.Mixin.Value.setValueOnCheck = function(value) {
+  if (value) this.setValue();
+  else this.unsetValue();
+};
 
 LSD.Behavior.define(':value', 'value');
