@@ -329,13 +329,20 @@ Object.append(LSD.Module.DOM, {
     
   },
   
-  destroy: function(node, silent) {
-    var child = LSD.Module.DOM.identify(node);
-    LSD.Module.DOM.walk(child.element, function(element) {
+  destroy: function(node) {
+    if (node.lsd) node = node.toElement()
+    LSD.Module.DOM.walk(node, function(element) {
       var widget = element.uid && LSD.Module.DOM.find(element, true);
-      if (widget) ((silent !== true && widget['delete']) ? widget['delete'] : widget['destroy']).call(widget, true);
+      if (widget) widget.destroy.call(widget, true);
     });
-    Element.destroy(child.element);
+    Element.destroy(node);
+  },
+  
+  'delete': function(node) {
+    var child = LSD.Module.DOM.identify(node);
+    if (child.widget && child.widget['delete']) var result = child.widget['delete']();
+    LSD.Module.DOM.destroy(node)
+    return result;
   },
   
   clone: function(node, parent, before) {
