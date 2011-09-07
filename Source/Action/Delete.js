@@ -21,6 +21,6 @@ provides:
 
 LSD.Action.Delete = LSD.Action.build({
   enable: function(target) {
-    return LSD.Module.DOM.destroy(target);
+    return LSD.Module.DOM['delete'](target);
   }
 });

@@ -80,8 +80,9 @@ LSD.Mixin.Resource = new Class({
   },
   
   'delete': function() {
-    this.dispose()
-    return this.getModel().destroy();
+    return this.getModel().destroy(function() {
+      this.destroy();
+    }.bind(this));
   }
 });
 
