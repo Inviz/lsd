@@ -128,17 +128,19 @@ LSD.Module.DOM = new Class({
       child = widget.element;
       var index = this.childNodes.indexOf(widget);
       if (index > -1) {
-        widget.unsetParent(this, index);
         this.childNodes.splice(index, 1);
+        widget.unsetParent(this, index);
       }
     }
     if (element !== false && child && child.parentNode) child.parentNode.removeChild(child)
   },
   
-  replaceChild: function(insertion, child) {
+  replaceChild: function(insertion, child, element) {
     var index = this.childNodes.indexOf(child);
     if (index == -1) return;
-    this.removeChild(child);
+    this.childNodes.splice(index, 1);
+    child.unsetParent(this, index);
+    if (element !== false && child && child.parentNode) child.parentNode.removeChild(child)
     this.childNodes.splice(index, 0, insertion);
     insertion.setParent(this, index);
   },
@@ -277,7 +279,9 @@ var set = function(widget, index) {
 var unset = function(widget, index) {
   var parent = this.parentNode, siblings = widget.childNodes;
   if (index == null) index = siblings.indexOf(this);
-  var previous = siblings[index - 1], next = siblings[index + 1];
+  var previous = siblings[index - 1];
+  var current = siblings[index];
+  var next = current == this ? siblings[index + 1] : current;
   if (previous) {
     previous.properties.write('next', next);
     this.properties.unset('previous', previous);
