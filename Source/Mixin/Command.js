@@ -97,7 +97,7 @@ LSD.Mixin.Command = new Class({
 
 Object.append(LSD.Mixin.Command, {
   getCommandType: function() {
-    return this.commandType || (this.pseudos.checkbox && 'checkbox') || (this.pseudos.radio && 'radio') || 'command';
+    return this.attributes.commandtype || this.commandType || (this.pseudos.checkbox && 'checkbox') || (this.pseudos.radio && 'radio') || 'command';
   },
   
   getCommandState: function() {
