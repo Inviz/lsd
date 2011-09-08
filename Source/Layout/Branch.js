@@ -95,7 +95,7 @@ LSD.Layout.Branch.prototype = Object.append({
       if (interpolation && interpolation.attach) {
         var value = interpolation.attach().value;
       } else var value = interpolation;
-      if ((value == null) ^ this.options.invert) return;
+      if ((value == null || value === false) ^ this.options.invert) return;
     }
     this.check();
   },
@@ -105,7 +105,7 @@ LSD.Layout.Branch.prototype = Object.append({
       if (interpolation && interpolation.detach) {
         var value = interpolation.detach().value;
       } else var value = interpolation;
-      if ((value == null) ^ this.options.invert) return;
+      if ((value == null || value === false) ^ this.options.invert) return;
     }
     this.uncheck(lazy);
   },
@@ -147,7 +147,8 @@ LSD.Layout.Branch.prototype = Object.append({
   hide: function() {
     var layout = this.layout;
     if (!layout) return;
-    this.options.widget.removeLayout(this.id, layout, this.options.widget, this.options.options);
+    var removed = this.options.widget.removeLayout(this.id, layout, this.options.widget, this.options.options);
+    if (!removed) this.options.widget.document.layout.remove(layout, this.options.widget);
   },
   splice: function(branch, layout, baseline) {
     var offset = 0;

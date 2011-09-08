@@ -119,4 +119,4 @@ LSD.Mixin.Request = new Class({
   }
 });
 
-LSD.Behavior.define(':form[action], [src], [href]', 'request');
+LSD.Behavior.define(':form[action], [src], [href], :request', 'request');

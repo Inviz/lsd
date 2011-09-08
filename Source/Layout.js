@@ -554,49 +554,50 @@ LSD.Layout.prototype = Object.append({
       selectors on the stack with no regard to tag name (as `*`),
       and the other time it takes tag name into account
     */
-    for (var i = stack.length, item, result, ary = ['*', tagName]; item = stack[--i];)
-      for (var j = 0, value = item[1] || item, tag; tag = ary[j++];)
-        if ((group = value[tag]))
-          for (var k = 0, possibility, exp; possibility = group[k++];) {
-            var exp = possibility[0], result = possibility[1];
-            if ((!exp.classes && !exp.attributes && !exp.pseudos) 
-              // Quickly match tag and id, if other things dont matter
-              ? ((j == 0 || tagName == exp.tag) && (!exp.id || element.id == exp.id))
-              // Or do a full match
-              : (Slick.matchSelector(element, exp.tag, exp.id, exp.classes, exp.attributes, exp.pseudos)))
-              /* 
-                If selector matches, proceed and execute callback
-                A callback may be a:
+    for (var i = stack.length, item, result, ary = ['*', tagName]; (item = stack[--i]) || (item === null);)
+      if (item != null)
+        for (var j = 0, value = item[1] || item, tag; tag = ary[j++];)
+          if ((group = value[tag]))
+            for (var k = 0, possibility, exp; possibility = group[k++];) {
+              var exp = possibility[0], result = possibility[1];
+              if ((!exp.classes && !exp.attributes && !exp.pseudos) 
+                // Quickly match tag and id, if other things dont matter
+                ? ((j == 0 || tagName == exp.tag) && (!exp.id || element.id == exp.id))
+                // Or do a full match
+                : (Slick.matchSelector(element, exp.tag, exp.id, exp.classes, exp.attributes, exp.pseudos)))
+                /* 
+                  If selector matches, proceed and execute callback
+                  A callback may be a:
                 
-                * **string**, to be evaluated as a mutation selector
-                  and parsed into options
-                * **object**, with options for widget
-                * **a function**, that may return a group of mutations
-                  that should be applied to the following elements
-                * **true**, to initialize widget on that element with 
-                  no specific options.
+                  * **string**, to be evaluated as a mutation selector
+                    and parsed into options
+                  * **object**, with options for widget
+                  * **a function**, that may return a group of mutations
+                    that should be applied to the following elements
+                  * **true**, to initialize widget on that element with 
+                    no specific options.
                   
-                An element may match more than one mutation. In 
-                that case options extracted from parsing selectors
-                will be merged together. 
+                  An element may match more than one mutation. In 
+                  that case options extracted from parsing selectors
+                  will be merged together. 
                 
-                If callbacks produced options, the widget will 
-                be initialized on that element with those options.
+                  If callbacks produced options, the widget will 
+                  be initialized on that element with those options.
                 
-                `soft` parameter tells matcher to skip mutations
-                and only advance selectors instead.
-              */
-              if (!result || !result.call || (result = result(element))) {
-                if (!result) result = true;
-                if (result.push) {
-                  (advanced || (advanced = [])).push(result);
-                } else if (!soft) {  
-                  if (!options) options = this.getOptions(memo);
-                  if (result !== true) 
-                    options = LSD.reverseMerge(options, result.match ? LSD.Layout.parse(result) : result);
+                  `soft` parameter tells matcher to skip mutations
+                  and only advance selectors instead.
+                */
+                if (!result || !result.call || (result = result(element))) {
+                  if (!result) result = true;
+                  if (result.push) {
+                    (advanced || (advanced = [])).push(result);
+                  } else if (!soft) {  
+                    if (!options) options = this.getOptions(memo);
+                    if (result !== true) 
+                      options = LSD.reverseMerge(options, result.match ? LSD.Layout.parse(result) : result);
+                  }
                 }
               }
-            }
     if (advanced) memo.advanced = advanced;      
     if (options) memo.options = options;
   },
@@ -664,14 +665,14 @@ LSD.Layout.prototype = Object.append({
     var group, widget = parent[0] || parent, stack = memo.stack;
     if (stack) {
       if ((group = widget.mutations[' '])) 
-        for (var j = stack.length; --j > -1;)
-          if (stack[j][1] == group) {
+        for (var j = stack.length, item; item = stack[--j];)
+          if (item && item[1] == group) {
             stack.splice(j, 1)
             break;
           }
       if ((group = widget.mutations['>'])) 
-        for (var j = stack.length; --j > -1;)
-          if (stack[j][1] == group) {
+        for (var j = stack.length, item; item = stack[--j];)
+          if (item && item[1] == group) {
             stack.splice(j, 1)
             break;
           }
@@ -703,21 +704,23 @@ LSD.Layout.prototype = Object.append({
       Put away selectors in the stack that should not be matched against element's child nodes
     */
     var group, direct, following;
-    reduce: for (var i = stack.length; group = stack[--i];) {
+    for (var i = stack.length; group = stack[--i];) {
       switch (group[0]) {
         case '+':
-          stack.pop();
+          stack.splice(i, 1);
           break;
         case '~':
-          (following || (following = [])).push(stack.pop());
+          (following || (following = [])).push(stack.splice(i, 1)[0]);
           break;
         case '>':
-          (direct || (direct = [])).push(stack.pop());
+          (direct || (direct = [])).push(stack.splice(i, 1)[0]);
           break;
-        default:
-          break reduce;
       }
     }
+    /*
+      Add a NULL boundary to make loops not walk stack too high
+    */
+    var boundary = stack.push(null) - 1;
     /*
       Collect mutations that advanced with this element AND are looking for children
     */
@@ -781,6 +784,7 @@ LSD.Layout.prototype = Object.append({
     /*
       Notify widget that children are processed
     */
+    stack.splice(boundary, 1);
     if (widget) widget.fireEvent('DOMChildNodesRendered');
     return ret;
   },

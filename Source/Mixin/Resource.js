@@ -30,7 +30,7 @@ LSD.Mixin.Resource = new Class({
     actions: {
       resource: {
         enable: function() {
-          this.getResource();
+          this.getModel();
         }
       }
     }
@@ -61,7 +61,6 @@ LSD.Mixin.Resource = new Class({
       if (prefix) options.prefix = prefix;
       options.getRequest = this.bind('getRequest');
       this.resource = new Resource(name, options);
-      if (!this.getRequest) this.setAttribute('href', this.resource.getFormattedURL('plural'));
     }
     return this.resource;
   },
@@ -71,7 +70,11 @@ LSD.Mixin.Resource = new Class({
   },
   
   getModel: function() {
-    return this.getResource().init(this.getResourceID() || this.element);
+    if (this.model) return this.model
+    this.model = this.getResource().init(this.getResourceID() || this.element);
+    var url = this.resource.getFormattedURL(this.model.id ? 'show' : 'index', this.model);
+    this.setAttribute('href', url);
+    return this.model;
   },
   
   submit: function() {

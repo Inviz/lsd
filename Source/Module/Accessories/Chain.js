@@ -83,8 +83,8 @@ LSD.Module.Chain = new Class({
         if (filtered == null) return phases;
         else if (filtered === false) continue;
       };
-      executed++;
       if (action) {
+        executed++;
         if (revert) {
           var last = phases[phases.length - 1];
           if (last && last.asynchronous && last.index < this.chainPhase) break;

@@ -85,7 +85,9 @@ LSD.Script.Selector = function(input, source, output) {
 
 LSD.Script.Selector.prototype = Object.append({}, LSD.Script.Variable.prototype, {
   request: function(input, callback, state) {
-    return (this.element || this.source)[state ? 'watch' : 'unwatch'](input, callback);
+    var request = (this.element || this.source)[state ? 'watch' : 'unwatch'](input, callback);
+    if (typeof this.value == 'undefined') this.reset()
+    return request;
   },
   
   set: function(node, state) {
@@ -96,7 +98,11 @@ LSD.Script.Selector.prototype = Object.append({}, LSD.Script.Variable.prototype,
       var index = this.collection.indexOf(node);
       if (index > -1) this.collection.splice(index, 1);
     }
-    this.value = this.collection.length ? this.collection : 0;
+    this.reset();
+  },
+  
+  reset: function() {
+    this.value = this.collection.length ? this.collection : false;
     this.onSet(this.value);
   }
 });
