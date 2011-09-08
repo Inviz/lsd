@@ -33,6 +33,8 @@ LSD.Action.Update = LSD.Action.build({
       var children = LSD.slice(fragment.childNodes);
     } else {
       var children = content.hasOwnProperty('length') ? content : [content];
+      var fragment = document.createFragment('');
+      for (var i = 0, child; child = children[i++];) fragment.appendChild(child);
     }
     if (target.lsd) {
       var element = target.toElement(), parent = target.parentNode;
@@ -47,7 +49,7 @@ LSD.Action.Update = LSD.Action.build({
   
   update: function(target, parent, fragment, children) {
     document.id(target).empty().appendChild(fragment);
-    parent.fireEvent('DOMNodeInserted', [children]);
+    parent.fireEvent('DOMNodeInserted', [children, target]);
   }
 });
 
@@ -56,7 +58,7 @@ LSD.Action.Append = LSD.Action.build({
   
   update: function(target, parent, fragment, children) {
     target.appendChild(fragment);
-    parent.fireEvent('DOMNodeInserted', [children]);
+    parent.fireEvent('DOMNodeInserted', [children, target]);
   }
 });
 
@@ -75,7 +77,7 @@ LSD.Action.Before = LSD.Action.build({
 
   update: function(target, parent, fragment, children) {
     target.parentNode.insertBefore(fragment, target);
-    parent.fireEvent('DOMNodeInsertedBefore', [children, target]);
+    parent.fireEvent('DOMNodeInsertedBefore', [children, target, target.parentNode]);
   }
 });
 
@@ -84,6 +86,6 @@ LSD.Action.After = LSD.Action.build({
 
   update: function(target, widget, fragment, children) {
     target.parentNode.insertBefore(fragment, target.nextSibling);
-    parent.fireEvent('DOMNodeInsertedBefore', [children, target.nextSibling]);
+    parent.fireEvent('DOMNodeInsertedBefore', [children, target.nextSibling, target.parentNode]);
   }
 });

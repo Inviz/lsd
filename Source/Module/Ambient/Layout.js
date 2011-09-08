@@ -106,11 +106,11 @@ LSD.Module.Layout.events = {
   /*
     Augments all inserted nodes that come from partial html updates
   */
-  DOMNodeInserted: function(node) {
-    this.buildLayout(node, null);
+  DOMNodeInserted: function(node, parent) {
+    this.buildLayout(node, [this, parent]);
   },
-  DOMNodeInsertedBefore: function(node, target) {
-    this.buildLayout(node, null, null, {before: target});
+  DOMNodeInsertedBefore: function(node, target, parent) {
+    this.buildLayout(node, [this, parent], null, {before: target});
   }
 };
 
