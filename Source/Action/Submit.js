@@ -31,7 +31,7 @@ LSD.Action.Submit = LSD.Action.build({
     }
     var method = (target.submit || target.send || target.click);
     var submission = method.apply(target, args);
-    if (submission && submission != target) {
+    if (submission && submission.callChain && submission != target) {
       this.store(target, submission);
       var self = this, callback = function() {
         this.removeEvents(events);
