@@ -21,6 +21,7 @@ LSD.Mixin.Value = new Class({
     actions: {
       value: {
         enable: function() {
+          if (this.attributes.multiple && this.values == null) this.values = [];
           if (!this.attributes.multiple) {
             if (LSD.Mixin.Command.getCommandType.call(this) == 'command') {
               if (typeof this.value == 'undefined') this.setValue();
@@ -44,7 +45,7 @@ LSD.Mixin.Value = new Class({
   
   constructors: {
     value: function() {
-      if (this.attributes.multiple) this.values = [];
+      if (this.attributes.multiple && this.values == null) this.values = [];
     }
   },
   
