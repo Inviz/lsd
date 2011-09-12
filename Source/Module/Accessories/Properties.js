@@ -79,8 +79,10 @@ LSD.Module.Events.addEvents.call(LSD.Module.Properties.prototype, {
       this.properties.set('source', LSD.Module.Properties.getSource(this));
   },
   finalize: function() {
-    if (this.source || this.attributes.type || this.attributes.kind) 
-      this.properties.set('role', LSD.Module.Properties.getRole(this))
+    if (this.source || this.attributes.type || this.attributes.kind) {
+      var role = LSD.Module.Properties.getRole(this);
+      if (this.role !== role) this.properties.set('role', role)
+    }
   }
 });
 Object.append(LSD.Options, {
@@ -170,6 +172,7 @@ Object.append(LSD.Module.Properties, {
   
   getRole: function(widget, tagName) {
     var source = LSD.Module.Properties.getSource(widget, tagName);
+    if (!source) return;
     if (widget.attributes.type) source += '-' + widget.attributes.type;
     if (widget.attributes.kind) source += '-' + widget.attributes.kind;
     return widget.factory && widget.factory.find(source);

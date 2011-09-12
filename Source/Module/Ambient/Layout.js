@@ -76,11 +76,16 @@ LSD.Module.Layout.events = {
     Builds children after element is built
   */
   build: function() {
-    if (this.properties.layout) {
+    var role = LSD.Module.Properties.getRole(this);
+    if (this.role !== role) 
+      this.properties.set('role', role)
+  
+    if (this.properties.layout)
       this.addLayout('options', this.properties.layout, null, {lazy: true});
-    }
+      
     if (this.origin && !this.options.clone && this.origin.parentNode && this.origin != this.element) 
       this.element.replaces(this.origin);
+      
     if ((!this.options.lazy && this.options.traverse !== false) || (this.origin && this.origin != this.element)) {
       var nodes = LSD.slice((this.origin || this.element).childNodes);
       var opts = {};
