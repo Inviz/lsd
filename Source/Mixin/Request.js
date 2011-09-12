@@ -69,26 +69,28 @@ LSD.Mixin.Request = new Class({
   },
   
   stop: function() {
-    if (this.request) this.request.cancel();
+    if (this.request) {
+      this.request.cancel();
+      this.properties.unset('request', this.request);
+    }
     this.fireEvent('stop');
     return this;
   },
   
   getRequest: function(options, fresh) {
     var type = (options && options.type) || this.getRequestType();
-    if (fresh || !this.request || this.request.type != type) {
-      var request = this.request = this[type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options);
-      if (!this.request.type) {
-        this.request.type = type;
-        this.properties.set('request', this.request);
-      }
-      request.addEvent('complete', function() {
-        if (request.isSuccess && request.isSuccess() && this.getCommandAction && this.getCommandAction() == 'submit')
-          if (this.chainPhase == -1 || (this.chainPhase == this.getActionChain().length - 1))  
-            this.eachLink('optional', arguments, true);
-      }.bind(this));
+    var request = this[type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options);
+    if (!request.type) {
+      request.type = type;
+      this.properties.set('request', request);
     }
-    return this.request;
+    request.addEvent('complete', function() {
+      this.properties.unset('request', this.request);
+      if (request.isSuccess && request.isSuccess() && this.getCommandAction && this.getCommandAction() == 'submit')
+        if (this.chainPhase == -1 || (this.chainPhase == this.getActionChain().length - 1))  
+          this.eachLink('optional', arguments, true);
+    }.bind(this));
+    return request;
   },
   
   getXHRRequest: function(options) {
