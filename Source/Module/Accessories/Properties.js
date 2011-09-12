@@ -74,16 +74,15 @@ LSD.Module.Properties = new Class({
 });
 
 LSD.Module.Events.addEvents.call(LSD.Module.Properties.prototype, {
-  initialize: function() {
-    if (!this.options.source || this.attributes.type || this.attributes.kind)
-      this.properties.set('source', LSD.Module.Properties.getSource(this));
-  },
   beforeBuild: function() {
     if (this.source == null) 
       this.properties.set('source', LSD.Module.Properties.getSource(this));
+  },
+  finalize: function() {
+    if (this.source || this.attributes.type || this.attributes.kind) 
+      this.properties.set('role', LSD.Module.Properties.getRole(this))
   }
 });
-
 Object.append(LSD.Options, {
   tag: {
     add: function(value) {
@@ -123,15 +122,7 @@ Object.append(LSD.Options, {
 });
 
 LSD.Module.Properties.Methods = {
-  tag: function(value, state, old) {
-    if (!this.role || !this.factory || LSD.Module.Properties.getRole(this, value) !== this.role) {
-      if (!state || old) {
-        if (this.source) this.properties.unset('source', this.source);
-      }
-      this.properties.set('source', this.options.source || this.tagName);
-    }
-  },
-  
+
   context: function(value, state, old) {
     var source = this.source;
     if (source) this.properties.unset('source', source);
@@ -142,46 +133,67 @@ LSD.Module.Properties.Methods = {
     }
     if (source) this.properties.set('source', source);
   },
+
+  tag: function(value, state, old) {
+    if (!this.options.source && this.prepared) {
+      if (state && value) this.properties.set('source', value)
+      else if (old) this.properties.unset('source', old);
+    }
+  },
   
   source: function(value, state, old) {
     if (state && value) {
       var role = LSD.Module.Properties.getRole(this);
       if (role && this.role === role) return;
     }
-    if (!state || old) {
-      var previous = this.role;
-      if (previous) {
-        delete this.role;
-        this.unmix(previous);
-      }
-      var options = this.sourced;
-      if (options) {
-        delete this.sourced;
-        this.unsetOptions(this.sourced);
+    if (this.prepared) {
+      if (state) {
+        this.properties.set('role', role);
+      } else {
+        if (this.properties.role) 
+          this.properties.unset('role', this.role);
       }
     }
-    if (state) {
-      if (role) {
-        this.role = role;
-        this.mixin(role);
-        if ((this.sourced = this.captureEvent('setRole', role)))
-          this.setOptions(this.sourced);
-      }
-    }
+  },
+  
+  role: function(value, state, old) {
+    if (state) return LSD.Module.Properties.setRole(this, value)
+    else if (old) LSD.Module.Properties.unsetRole(this, old)
   }
 };
 
-LSD.Module.Properties.getSource = function(widget, tagName) {
-  var source = LSD.Layout.getSource(widget.attributes, tagName === false ? null : tagName || widget.options.source || widget.tagName);
-  return source && source.join ? source.join('-') : source;
-};
-
-LSD.Module.Properties.getRole = function(widget, tagName) {
-  var source = LSD.Module.Properties.getSource(widget, tagName);
-  if (widget.attributes.type) source += '-' + widget.attributes.type;
-  if (widget.attributes.kind) source += '-' + widget.attributes.kind;
-  return widget.factory && widget.factory.find(source);
-};
+Object.append(LSD.Module.Properties, {
+  getSource: function(widget, tagName) {
+    var source = LSD.Layout.getSource(widget.attributes, tagName === false ? null : tagName || widget.options.source || widget.tagName);
+    return source && source.join ? source.join('-') : source;
+  },
+  
+  getRole: function(widget, tagName) {
+    var source = LSD.Module.Properties.getSource(widget, tagName);
+    if (widget.attributes.type) source += '-' + widget.attributes.type;
+    if (widget.attributes.kind) source += '-' + widget.attributes.kind;
+    return widget.factory && widget.factory.find(source);
+  },
+  
+  setRole: function(widget, role) {
+    if (role == null) role = LSD.Module.Properties.getRole(widget)
+    if (role) {
+      widget.mixin(role);
+      if ((widget.sourced = widget.captureEvent('setRole', role)))
+        widget.setOptions(widget.sourced);
+    }
+    return role;
+  },
+  
+  unsetRole: function(widget, role) {
+    widget.unmix(role);
+    var options = widget.sourced;
+    if (options) {
+      delete widget.sourced;
+      widget.unsetOptions(options);
+    }
+  }
+});
 
 LSD.Module.Properties.Exported = {
   parent: 'parentNode',
