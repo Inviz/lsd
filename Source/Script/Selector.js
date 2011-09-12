@@ -85,9 +85,12 @@ LSD.Script.Selector = function(input, source, output) {
 
 LSD.Script.Selector.prototype = Object.append({}, LSD.Script.Variable.prototype, {
   request: function(input, callback, state) {
-    var request = (this.element || this.source)[state ? 'watch' : 'unwatch'](input, callback);
+    if (this.element) {
+      Slick.search(this.element, input).each(callback);
+    } else {
+      this.source[state ? 'watch' : 'unwatch'](input, callback);
+    }
     if (typeof this.value == 'undefined') this.reset()
-    return request;
   },
   
   set: function(node, state) {
