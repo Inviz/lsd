@@ -71,27 +71,31 @@ LSD.Mixin.Submittable = new Class({
   },
   
   submit: function(event) {
-    if (event && event.type == 'submit' && event.target == this.element) event.preventDefault();
-    if (this.submitting) return true;
-    this.submitting = true;
     this.fireEvent('beforeSubmit', arguments);
+    if (event) {
+      switch (event.type) {
+        case "submit":
+          if (event.target == this.element) event.preventDefault();
+          break;
+        case "click":
+          if (LSD.toLowerCase(event.target.tagName) == 'input' && event.target.type == 'submit')
+            event.preventDefault();
+      }
+    }
     var submission = this.captureEvent('submit', arguments);
-    if (submission) return submission;
-    else if (submission !== false) this.callChain();
+    if (!submission && submission !== false) this.callChain();
     this.fireEvent('afterSubmit', arguments);
-    delete this.submitting;
-    return this;
+    return submission;
   },
   
   cancel: function() {
     var submission = this.captureEvent('cancel', arguments);
-    if (submission) return submission;
-    else if (submission !== false) {
+    if (!submission && submission !== false) {
       var target = this.getSubmissionTarget();
       if (target) target.uncallChain();
       this.uncallChain();
     };
-    return this;
+    return submission;
   }
 });
 
