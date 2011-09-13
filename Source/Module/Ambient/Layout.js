@@ -41,14 +41,15 @@ LSD.Module.Layout = new Class({
   
   addLayout: function(name, layout, parent, memo) {
     if (parent == null) parent = [this, (this.wrapper = this.getWrapper())];
+    else if (parent && parent.nodeType && !parent.lsd) parent = [this, parent];
     if (!memo) memo = {};
     var old = this.layouts[name];
     if (old) {
       this.document.layout.add(old, parent, memo)
     } else {
-      var first = layout.push && layout.length && layout[0];
-      var method = (first && first.nodeType && ((first.nodeType != 1) || (!first.lsd))) ? 'children' : 'render';
-      old = this.layouts[name] = this.document.layout[method](layout, parent, memo);
+      if (memo.elements == null) memo.elements = !layout.item;
+      old = this.document.layout.render(layout, parent, memo);
+      if (name != null) this.layouts[name] = old;
     }
     if (memo.promised) {
       memo.promised = false;
@@ -56,18 +57,14 @@ LSD.Module.Layout = new Class({
         this.document.layout.realize(old)
       });
     }
-    return this.layouts[name];
+    return old;
   },
   
   removeLayout: function(name, layout, parent, memo) {
     if (parent == null) parent = [this, this.wrapper];
-    if (this.layouts[name])
-      return this.document.layout.remove(this.layouts[name], parent, memo);
-  },
-  
-  buildLayout: function(layout, parent, memo) {
-    if (parent == null) parent = [this, this.getWrapper()];
-    return this.document.layout[layout.charAt ? 'selector' : 'render'](layout, parent, memo)
+    else if (parent && parent.nodeType && !parent.lsd) parent = [this, parent];
+    if (name != null) var old = this.layouts[name];
+    return this.document.layout.remove(old || layout, parent, memo);
   }
 });
 
@@ -106,16 +103,7 @@ LSD.Module.Layout.events = {
     Augments all parsed HTML that goes through standart .write() interface
   */
   write: function(node) {
-    this.addLayout('written', node, null);
-  },
-  /*
-    Augments all inserted nodes that come from partial html updates
-  */
-  DOMNodeInserted: function(node, parent) {
-    this.buildLayout(node, [this, parent]);
-  },
-  DOMNodeInsertedBefore: function(node, target, parent) {
-    this.buildLayout(node, [this, parent], null, {before: target});
+    this.addLayout('written', node);
   }
 };
 

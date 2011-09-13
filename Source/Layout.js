@@ -46,8 +46,10 @@ LSD.Layout.prototype = Object.append({
   
   render: function(layout, parent, memo) {
     if (layout.getLayout) layout = layout.getLayout();
-    var type = (layout.push) ? 'array' : (layout.item && ('length' in layout)) ? 'children' : 
-      layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : layout.indexOf ? 'string' : 'object';
+    var elements = (layout.push && layout[0]) ? (!!layout[0].nodeType) : memo && memo.elements;
+    var type = layout.charAt ? (elements ? 'string' : 'selector') : 
+               layout.hasOwnProperty('length') ? ((layout.push && !elements) ? 'array' : 'children') :
+               layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : 'object';
     var result = this[type](layout, parent, memo);
     if (!this.result) this.result = result;
     return result;
@@ -56,8 +58,10 @@ LSD.Layout.prototype = Object.append({
   // type handlers
   
   array: function(array, parent, memo) {
-    for (var i = 0, result = [], length = array.length; i < length; i++) 
+    for (var i = 0, result = [], length = array.length; i < length; i++) {
+      if (!memo) memo = {};
       result[i] = this.render(array[i], parent, memo)
+    }
     return result;
   },
   
@@ -128,6 +132,7 @@ LSD.Layout.prototype = Object.append({
   
   children: function(children, parent, memo) {
     if (!memo) memo = {};
+    if (children.item) children = LSD.slice(children);
     if (!memo.type) memo.type = this.getType(memo, parent);
     var widget = (!parent[1] || parent[1] == parent[0].element);
     if (widget) this.push(parent, memo);
@@ -247,7 +252,7 @@ LSD.Layout.prototype = Object.append({
           rendered.children = layout;
           result[selector] = [rendered, layout, combinator];
         } else {
-          result[selector] = [rendered, !layout || this.render(layout, rendered.lsd ? rendered : [parent[0] || parent, rendered], null, memo), combinator];
+          result[selector] = [rendered, !layout || this.render(layout, rendered.lsd ? rendered : [parent[0] || parent, rendered], memo), combinator];
         }
       }
     }
@@ -418,6 +423,7 @@ LSD.Layout.prototype = Object.append({
     if (layout.nodeType) {
       return this.manipulate(state, parent, layout);
     } else if (layout.hasOwnProperty('length')){
+      if (layout[0] && !layout[0].lsd) layout = LSD.slice(layout)
       for (var i = 0, j = layout.length, value; i < j; i++)
         if ((value = layout[i])) this.manipulate(state, parent, value, memo);
     } else {
@@ -504,7 +510,7 @@ LSD.Layout.prototype = Object.append({
     return true;
   },
   
-  removeChild: function(parents, child) {
+  removeChild: function(parents, child, memo) {
     if (parents.push) var widget = parents[0], element = parents[1];
     else if (parents.lsd) var widget = parents, element = widget.element || widget.toElement();
     else var element = parents;

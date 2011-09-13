@@ -141,14 +141,13 @@ LSD.Layout.Branch.prototype = Object.append({
       }
     }
     var before = this.options.origin && this.options.origin.nextSibling;
-    var rendered = this.options.widget.addLayout(this.id, layout, [this.options.widget, this.options.element], this.options.options, {before: before});
+    var rendered = this.options.widget.addLayout(this.id, layout, [this.options.widget, this.options.element], {before: before, options: this.options.options, text: true});
     if (result) this.validate(rendered)
   },
   hide: function() {
     var layout = this.layout;
     if (!layout) return;
-    var removed = this.options.widget.removeLayout(this.id, layout, this.options.widget, this.options.options);
-    if (!removed) this.options.widget.document.layout.remove(layout, this.options.widget);
+    this.options.widget.removeLayout(this.id, layout);
   },
   splice: function(branch, layout, baseline) {
     var offset = 0;
