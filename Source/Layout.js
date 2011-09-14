@@ -96,12 +96,13 @@ LSD.Layout.prototype = Object.append({
   element: function(element, parent, memo) {
     // Prepare options and run walker (once per element tree)
     if (!memo || !memo.walking) return this.walk(element, parent, memo);
-    this.match(element, memo);
+    this.match(element, parent, memo);
     var group, converted = element.uid && Element.retrieve(element, 'widget');
     var ascendant = parent[0] || parent, container = parent[1] || parent.toElement();
     // Create, clone or reuse a widget.
+    if (!memo.defaults) memo.defaults = this.getOptions(memo, parent);
+    if (memo.options) LSD.reverseMerge(memo.options, memo.defaults)
     if (!converted) {
-      if (!memo.defaults) memo.defaults = this.getOptions(memo, parent);
       // Retrieve the widget type object that finds the appropriate classes for widgets
       if (!memo.type) memo.type = this.getType(memo, parent);
       if (memo.options) {
@@ -112,7 +113,6 @@ LSD.Layout.prototype = Object.append({
         var widget = memo.type.convert(element, memo.defaults);
       }
     } else {
-      if (!memo.defaults) memo.defaults = this.getOptions(memo, parent);
       var widget = memo.clone ? converted.cloneNode(false, memo.defaults) : converted;
     }
     if (!widget && memo.clone) var clone = element.cloneNode(false);
@@ -134,8 +134,12 @@ LSD.Layout.prototype = Object.append({
     if (!memo) memo = {};
     if (children.item) children = LSD.slice(children);
     if (!memo.type) memo.type = this.getType(memo, parent);
-    var widget = (!parent[1] || parent[1] == parent[0].element);
-    if (widget) this.push(parent, memo);
+    var ascendant = parent[0] || parent;
+    if (memo.parent != ascendant) {
+      memo.parent = ascendant;
+      var pushed = true;
+      this.push(parent, memo);
+    }
     for (var j = children.length - 1, child; j > -1 && (child = children[j]) && child.nodeType != 1; j--);
     var args = [null, parent, memo];
     for (var i = 0, child, previous, result = []; child = children[i]; i++) {
@@ -160,8 +164,11 @@ LSD.Layout.prototype = Object.append({
         previous = null;
       }
     }
-    delete memo.last; delete memo.first;
-    if (widget) this.pop(parent, memo)
+    delete memo.last; delete memo.first; 
+    if (pushed) {
+      this.pop(parent, memo);
+      delete memo.parent;
+    }
     return children;
   },
   
@@ -552,7 +559,7 @@ LSD.Layout.prototype = Object.append({
   /*
     Match all selectors in the stack and find the right mutation
   */
-  match: function(element, memo, soft) {
+  match: function(element, parent, memo, soft) {
     var stack = memo.stack
     var options, advanced, tagName = LSD.toLowerCase(element.tagName);
     /* 
@@ -598,7 +605,7 @@ LSD.Layout.prototype = Object.append({
                   if (result.push) {
                     (advanced || (advanced = [])).push(result);
                   } else if (!soft) {  
-                    if (!options) options = this.getOptions(memo);
+                    if (!options) options = this.getOptions(memo, parent);
                     if (result !== true) 
                       options = LSD.reverseMerge(options, result.match ? LSD.Layout.parse(result) : result);
                   }
@@ -632,10 +639,15 @@ LSD.Layout.prototype = Object.append({
       for (var parents = [], node = element; node && node.nodeType == 1; node = node.parentNode) 
         parents.push(node);
       for (var i = parents.length, node, widget; node = parents[--i];) {
-        this.match(node, memo, true);
+        this.match(node, parent, memo, true);
         if (direct) {
           for (var j = 0, index; index = direct[j++];) stack.splice(index, 1);
           direct = null;
+        }
+        widget = node.uid && LSD.Module.DOM.find(node, true);
+        if (widget) {
+          if ((group = widget.mutations[' '])) stack.push([' ', group]);
+          if ((group = widget.mutations['>'])) stack.push(['>', group]);
         }
         if (memo.advanced) {
           stack.push.apply(stack, memo.advanced);
@@ -652,11 +664,6 @@ LSD.Layout.prototype = Object.append({
             }
           }
           delete memo.advanced;
-        }
-        widget = node.uid && LSD.Module.DOM.find(node, true);
-        if (widget) {
-          if ((group = widget.mutations[' '])) stack.push([' ', group]);
-          if (i == 0 && (group = widget.mutations['>'])) stack.push(['>', group]);
         }
       }
     }  
