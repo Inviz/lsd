@@ -43,10 +43,6 @@ LSD.Mixin.Request = new Class({
         getTargetAction: function() {
           if (this.getCommandAction() == 'submit') return 'update';
         }
-      },
-      request: {
-        request: 'busy',
-        complete: 'idle'
       }
     }
   },
@@ -62,10 +58,10 @@ LSD.Mixin.Request = new Class({
         else options.data = Object.merge(options.data || {}, arg);
       } else if (arg.call) var callback = arg;
     }
-    var request = this.getRequest(options);
-    if (callback) request.addEvent('complete:once', callback);
+    if (!this.request) this.properties.set('request', this.getRequest(options));
+    if (callback) this.request.addEvent('complete:once', callback);
     this.fireEvent('send', options);
-    return request.send(options);
+    return this.request.send(options);
   },
   
   stop: function() {
@@ -77,21 +73,22 @@ LSD.Mixin.Request = new Class({
     return this;
   },
   
-  getRequest: function(options, fresh) {
+  getRequest: function(options) {
     var type = (options && options.type) || this.getRequestType();
     var request = this[type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options);
-    if (!request.type) {
-      request.type = type;
-      this.properties.set('request', request);
-    }
-    request.addEvent('complete', function() {
-      this.properties.unset('request', this.request);
-      if (request.isSuccess && request.isSuccess() && this.getCommandAction && this.getCommandAction() == 'submit')
-        if (this.chainPhase == -1 
-        || (this.chainPhase == this.getActionChain().length - 1) 
-        || ((this.currentChain[this.chainPhase].action == 'submit') && this.currentChain[this.chainPhase] == null))
-          this.eachLink('optional', arguments, true);
-    }.bind(this));
+    request.addEvents({
+      request: function() {
+        this.busy()
+      }.bind(this),
+      complete: function() {
+        this.idle();
+        if (request.isSuccess && request.isSuccess() && this.getCommandAction && this.getCommandAction() == 'submit')
+          if (this.chainPhase == -1 
+          || (this.chainPhase == this.getActionChain().length - 1) 
+          || ((this.currentChain[this.chainPhase].action == 'submit') && this.currentChain[this.chainPhase] == null))
+            this.eachLink('optional', arguments, true);
+      }.bind(this)
+    });
     return request;
   },
   
