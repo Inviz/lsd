@@ -117,7 +117,7 @@ LSD.Layout.prototype = Object.append({
     }
     if (!widget && memo.clone) var clone = element.cloneNode(false);
     // Append a node to parent
-    if (!converted || (memo && memo.clone))
+    if ((!converted || !widget.parentNode) || (memo && memo.clone))
       this.appendChild([ascendant, container], widget || clone || element, memo);
     return widget || clone || element;
   },
@@ -448,6 +448,8 @@ LSD.Layout.prototype = Object.append({
   },
   
   manipulate: function(state, parent, child, memo) {
+    if (child.nodeType == 1 && !child.lsd && child.uid) 
+      child = Element.retrieve(child, 'widget') || child;
     if (state) {
       this.appendChild(parent, child, memo);
     } else {
@@ -457,10 +459,6 @@ LSD.Layout.prototype = Object.append({
         parents[+!child.lsd] = node;
       }
       this.removeChild(parents || parent, child, memo)
-    }
-    if (child.nodeType == 8) {
-      var keyword = Element.retrieve(child, 'keyword');
-      if (keyword && keyword !== true) keyword[state ? 'attach' : 'detach']();
     }
     return child;
   },
@@ -514,6 +512,10 @@ LSD.Layout.prototype = Object.append({
     } else {
       widget.appendChild(child, element, bypass);
     }
+    if (child.nodeType == 8 && (!memo || memo.plain !== true)) {
+      var keyword = Element.retrieve(child, 'keyword');
+      if (keyword && keyword !== true) keyword.attach();
+    }
     return true;
   },
   
@@ -524,6 +526,10 @@ LSD.Layout.prototype = Object.append({
     var parent = child.lsd ? widget : element;
     if (child.parentNode != parent) return;
     widget.removeChild(child, element);
+    if (child.nodeType == 8 && (!memo || memo.plain !== true)) {
+      var keyword = Element.retrieve(child, 'keyword');
+      if (keyword && keyword !== true) keyword.detach();
+    }
     return true;
   },
   

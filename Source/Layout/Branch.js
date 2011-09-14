@@ -126,9 +126,10 @@ LSD.Layout.Branch.prototype = Object.append({
   set: function(value) {
     this[((value != false && value != null) ^ this.options.invert) ? 'check' : 'uncheck']();
   },
-  show: function() {
+  show: function(plain) {
     var layout = this.layout;
     if (!layout) return;
+    if (layout.push) this.layout = this.collapse(this.layout) || layout;
     if (layout.length) for (var i = 0, child, keyword, depth = 0; child = layout[i]; i++) {
       if (child.call) {
         if (layout === this.layout) layout = layout.slice(0);
@@ -141,8 +142,9 @@ LSD.Layout.Branch.prototype = Object.append({
       }
     }
     var before = this.options.origin && this.options.origin.nextSibling;
-    var rendered = this.options.widget.addLayout(this.id, layout, [this.options.widget, this.options.element], {before: before, options: this.options.options, text: true});
-    if (result) this.validate(rendered)
+    var memo = {before: before, options: this.options.options, plain: (plain === true)};
+    var rendered = this.options.widget.addLayout(this.id, layout, [this.options.widget, this.options.element], memo);
+    if (result) this.collapse(rendered)
   },
   hide: function() {
     var layout = this.layout;
@@ -172,7 +174,7 @@ LSD.Layout.Branch.prototype = Object.append({
     surrounded by whitespace. If it's true, the comment node
     then removed and its contents is used as a HTML layout.
   */
-  validate: function(layout) {
+  collapse: function(layout) {
     var validate = true;
     for (var index, child, i = 0; child = layout[i]; i++) {
       switch ((child = layout[i]).nodeType) {
@@ -192,17 +194,24 @@ LSD.Layout.Branch.prototype = Object.append({
     if (index != null) {  
       var comment = layout[index];
       layout[index] = function() {
-        return LSD.slice(document.createFragment(this.expand(comment.nodeValue)).childNodes);
+        var html = this.expand(comment.nodeValue);
+        var args = LSD.slice(document.createFragment(html).childNodes);
+        args.splice(0, 0, index, 1);
+        layout.splice.apply(layout, args)
+        args.splice(0, 2)
+        return args;
       };
-      comment.parentNode.removeChild(comment);
+      if (comment.parentNode) comment.parentNode.removeChild(comment);
       if (this.options.clean) layout = layout[index];
+    } else {
+      return false;
     }
     return layout;
   },
   setLayout: function(layout, soft) {
-    this.layout = layout.push ? this.validate(layout) : layout;
+    this.layout = layout;
     if (this.checked) {
-      this.show();
+      this.show(true);
     } else if (!soft) this.hide();
   },
   getLayout: function(layout) {

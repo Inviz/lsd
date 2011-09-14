@@ -47,7 +47,7 @@ LSD.Module.Layout = new Class({
     if (old) {
       this.document.layout.add(old, parent, memo)
     } else {
-      if (memo.elements == null) memo.elements = !layout.item;
+      if (memo.elements == null) memo.elements = true
       old = this.document.layout.render(layout, parent, memo);
       if (name != null) this.layouts[name] = old;
     }
