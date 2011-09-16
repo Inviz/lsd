@@ -134,7 +134,8 @@ LSD.Mixin.Value = new Class({
   },
   
   getRawValue: function() {
-    return this.attributes.value || LSD.Module.DOM.getID(this) || (this.pseudos.textual && this.element && this.element.get('text'));
+    if (this.attributes.value != null) return this.attributes.value;
+    return LSD.Module.DOM.getID(this) || (this.pseudos.textual && this.element && this.element.get('text').trim());
   },
   
   getPreviousValue: function() {
