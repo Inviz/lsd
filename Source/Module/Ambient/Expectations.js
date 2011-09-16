@@ -411,7 +411,7 @@ LSD.Options.expects = {
   add: function(selector, callback) {
     this.expect(selector, callback, true);
   },
-  remove: function(callback) {
+  remove: function(selector, callback) {
     this.unexpect(selector, callback, true);
   },
   iterate: true,
