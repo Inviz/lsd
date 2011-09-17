@@ -28,7 +28,7 @@ LSD.Module.States = new Class({
       this.states = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, quiet) {
         var known = LSD.States[name];
         var method = value && state ? 'include' : 'erase';
-        if (known && state && (old == null || value != null)) this.addState(name);
+        if (known && state && this.states._stack[name].length == 1) this.addState(name, null, true);
         if (!(old == null && value == null)) {
           if (LSD.Attributes[name] != 'boolean') {
             if (quiet != 'classes') this.classes[method](LSD.States[name] ? name : 'is-' + name, true);
@@ -39,7 +39,7 @@ LSD.Module.States = new Class({
         }
         if (known) {
           this.setStateTo(name, value && state, null, false);
-          if (!state) this.removeState(name);
+          if (!this.states._stack[name].length) this.removeState(name, null, true);
         }
       }.bind(this))
     }
