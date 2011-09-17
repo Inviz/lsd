@@ -25,7 +25,6 @@ LSD.Action.Display = LSD.Action.build({
     var widget = LSD.Module.DOM.find(target, true);
     if (widget) widget.show();
     else if (target.localName) {
-      target.style.display = Element.retrieve(target, 'style:display') || 'inherit';
       target.removeAttribute('hidden');
     }
   },
@@ -34,8 +33,6 @@ LSD.Action.Display = LSD.Action.build({
     var widget = LSD.Module.DOM.find(target, true);
     if (widget) widget.hide();
     else if (target.localName) {
-      Element.store(target, 'style:display', target.getStyle('display'));
-      target.style.display = 'none';
       target.setAttribute('hidden', 'hidden');
     }
   },
