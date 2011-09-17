@@ -386,8 +386,8 @@ LSD.Layout.prototype = Object.append({
       }
       if (element && options.superbranch.options.clean) {
         element.parentNode.removeChild(element);
-        element = options.superbranch.options.element;
-        if (element) element.parentNode.removeChild(element);
+        var origin = options.superbranch.options.origin;
+        if (origin && origin.parentNode) origin.parentNode.removeChild(origin);
       }
       if (options.ends) return true;
     }

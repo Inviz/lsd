@@ -130,7 +130,7 @@ LSD.Layout.Branch.prototype = Object.append({
     var layout = this.layout;
     if (!layout) return;
     if (layout.push) this.layout = this.collapse(this.layout) || layout;
-    if (layout.length) for (var i = 0, child, keyword, depth = 0; child = layout[i]; i++) {
+    if (Type.isEnumerable(layout)) for (var i = 0, child, keyword, depth = 0; child = layout[i]; i++) {
       if (child.call) {
         if (layout === this.layout) layout = layout.slice(0);
         var result = child.call(this);
@@ -145,6 +145,19 @@ LSD.Layout.Branch.prototype = Object.append({
     var memo = {before: before, options: this.options.options, plain: (plain === true)};
     var rendered = this.options.widget.addLayout(this.id, layout, [this.options.widget, this.options.element], memo);
     if (result) this.collapse(rendered)
+  },
+  clone: function(widget) {
+    var layout = this.layout;
+    if (!layout) return;
+    if (layout.push) layout = this.collapse(layout) || layout;
+    var branch = new LSD.Layout.Branch(this.options);
+    if (widget) {
+      branch.options.widget = widget;
+      branch.options.element = (widget.getWrapper && widget.getWrapper()) || widget.toElement();
+      delete branch.options.origin;
+    }
+    branch.setLayout(layout, true);
+    return branch;
   },
   hide: function() {
     var layout = this.layout;
@@ -196,13 +209,14 @@ LSD.Layout.Branch.prototype = Object.append({
       layout[index] = function() {
         var html = this.expand(comment.nodeValue);
         var args = LSD.slice(document.createFragment(html).childNodes);
+        if (this.options.clean) return args;
         args.splice(0, 0, index, 1);
         layout.splice.apply(layout, args)
         args.splice(0, 2)
         return args;
       };
       if (comment.parentNode) comment.parentNode.removeChild(comment);
-      if (this.options.clean) layout = layout[index];
+      //if (this.options.clean) layout = layout[index];
     } else {
       return false;
     }
