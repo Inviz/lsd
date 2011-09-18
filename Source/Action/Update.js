@@ -49,6 +49,8 @@ LSD.Action.Update = LSD.Action.build({
   
   update: function(target, parent, fragment, children) {
     document.id(target).empty().appendChild(fragment);
+    var widget = LSD.Module.DOM.find(target, true);
+    if (widget) widget.fireEvent('DOMInserted');
     parent.fireEvent('DOMNodeInserted', [children, target]);
   }
 });
