@@ -48,8 +48,9 @@ LSD.Mixin.Command = new Class({
           if (LSD.Mixin.Command.getCommandType.call(this) == 'command') {
             var arg = this.getValue ? this.getValue() : true;
           } else {
-            var arg = this.checked;
+            var arg = this.checked ? null : false;
           };
+          console.info(1);
           if (arg != null) this.eachLink('quickstart', arg, true, !this.getCommandState());
         }
       }
