@@ -19,7 +19,7 @@ provides:
 
 LSD.Trait.Input = new Class({
   options: {
-    input: {},
+    input: {}
   },
   
   constructors: {
@@ -42,7 +42,7 @@ LSD.Trait.Input = new Class({
           input: {
             focus: 'onFocus',
             blur: 'onBlur'
-          },
+          }
         }
       }
     }

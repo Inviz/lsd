@@ -69,7 +69,7 @@ LSD.Microdata.extract = function(element, widget, parent) {
   var itemprop = element.getAttribute('itemprop');
   if (itemprop) {
     var itemscope = element.getAttribute('itemscope');
-    if (itemscope) {
+    if (itemscope != null) {
       var scope = Element.retrieve(element, 'microdata:scope');
       if (!scope)
         Element.store(element, 'microdata:scope', (scope = new LSD.Microdata(element, itemprop)));

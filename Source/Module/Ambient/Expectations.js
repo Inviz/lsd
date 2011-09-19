@@ -129,7 +129,7 @@ var Expectations = LSD.Module.Expectations = new Class({
         self = true;
         break;
       case '&&':
-        return Expectations.setRootExpectation.call(this, selector, callback, false);
+        return Expectations.setRootExpectation.call(this, selector, callback, false, iterator);
     }
     if (combinator && !self) {
       var id = selector.id;
@@ -205,7 +205,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   }
 });
 
-Expectations.setRootExpectation = function(exp, callback, state) {
+Expectations.setRootExpectation = function(exp, callback, state, iterator) {
   if (state) {
     var finder = function(widget, state) {
       Expectations.advanceRootExpectation(exp, widget, callback, state);
@@ -214,12 +214,12 @@ Expectations.setRootExpectation = function(exp, callback, state) {
     return this.expect('::root', finder);
   } else {
     return this.unexpect('::root', callback, null, function(widget) {
-      Expectations.advanceRootExpectation(exp, widget, callback, false);
+      Expectations.advanceRootExpectation(exp, widget, callback, false, iterator);
     });
   }
 };
 
-Expectations.advanceRootExpectation = function(exp, widget, callback, state) {
+Expectations.advanceRootExpectation = function(exp, widget, callback, state, iterator) {
   if (exp.tag == '*' && !exp.classes && !exp.attributes && !exp.id) {
     if (state) widget.expect({combinator: ' ', pseudos: exp.pseudos}, callback, true);
     else widget.unexpect({combinator: ' ', pseudos: exp.pseudos}, callback, true, function(widget) {
@@ -227,7 +227,7 @@ Expectations.advanceRootExpectation = function(exp, widget, callback, state) {
     })
   } else {  
     var expression = {combinator: ' ', tag: exp.tag, classes: exp.classes, pseudos: exp.pseudos, attributes: exp.attributes, id: exp.id};
-    widget[state ? 'expect' : 'unexpect'](expression, callback, null, callback);
+    widget[state ? 'expect' : 'unexpect'](expression, callback, null, iterator);
   }
 };
 
@@ -411,7 +411,7 @@ LSD.Options.expects = {
   add: function(selector, callback) {
     this.expect(selector, callback, true);
   },
-  remove: function(callback) {
+  remove: function(selector, callback) {
     this.unexpect(selector, callback, true);
   },
   iterate: true,

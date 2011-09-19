@@ -396,9 +396,9 @@ Object.append(LSD.Module.DOM, {
   findNext: function(node, limit) {
     var widget = node;
     if (widget && !widget.lsd)
-      if (!node.uid || !(widget = node.retrieve('widget')))
+      if (!node.uid || !(widget = Element.retrieve(node, 'widget')))
         for (var item = node, stack = [item.nextSibling], sibling; item = stack.pop();)
-          if (item.uid && (widget = item.retrieve('widget'))) {
+          if (item.uid && (widget = Element.retrieve(item, 'widget'))) {
             break;
           } else {
             if (!(sibling = item.nextSibling)) {

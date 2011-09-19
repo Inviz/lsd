@@ -126,6 +126,9 @@ LSD.Module.Options.initialize = function(element, options) {
   
   // Attach to a given element
   this.fireEvent('prepare', [options, element]);
+  this.prepared = true;
+  
+  this.fireEvent('finalize', [options, this.element]);
   
   // And we're all set!
   this.fireEvent('initialize', [options, this.element]);

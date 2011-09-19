@@ -26,7 +26,8 @@ LSD.Action.Submit = LSD.Action.build({
     var widget = LSD.Module.DOM.find(target, true);
     if (widget) target = widget;
     if (target.lsd && !target.submit && this.invoker != target && (!event || event.type != 'click')) {
-      if (target.chainPhase == -1 || (target.getCommandAction && target.getCommandAction() == 'submit')) 
+      var commandAction = target.getCommandAction ? target.getCommandAction() : false;
+      if (target.chainPhase == -1 || (commandAction == null || commandAction == 'submit')) 
         return target.callChain.apply(target, args);
     }
     var method = (target.submit || target.send || target.click);

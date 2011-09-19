@@ -215,11 +215,7 @@ Object.append(LSD.Module.Element, {
     Extract options off from widget and makes it rebuild element if it doesnt fit.
   */
   validate: function(widget, query) {
-    if (widget.options.extract !== false || widget.options.clone) {
-      widget.extracted = LSD.Module.Element.extract(query.element, widget);
-      widget.setOptions(widget.extracted);
-      Object.merge(query, widget.extracted);
-    }
+    if (widget.extracted) Object.merge(query, widget.extracted);
     var tag = widget.getElementTag(true);
     if (widget.options.clone || (tag && LSD.toLowerCase(query.element.tagName) != tag)) {
       widget.properties.set('origin', query.element);
@@ -236,9 +232,13 @@ Object.append(LSD.Module.Element, {
   */
   events: {
     prepare: function(options, element) {
-      if (options.lazy) {
-        if (element) this.properties.set('origin', element);
-      } else if (element) this.build(element);
+      if (!element) return;
+      if (this.options.extract !== false || this.options.clone) {
+        this.extracted = LSD.Module.Element.extract(element, this);
+        this.setOptions(this.extracted);
+      }
+      if (options.lazy) this.properties.set('origin', element);
+      else this.build(element);
     }
   }
 });

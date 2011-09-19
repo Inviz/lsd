@@ -69,7 +69,7 @@ LSD.Module.Attributes = new Class({
   
   removeAttribute: function(name) {
     if (name.substr(0, 5) == 'data-') {
-      delete this.dataset.unset(name.substring(5));
+      this.dataset.unset(name.substring(5));
     } else this.attributes.unset(name, this.attributes[name]);
     return this;
   },

@@ -23,70 +23,76 @@ provides:
 */
 
 LSD.Action.Update = LSD.Action.build({
-  container: true,
-  
   enable: function(target, content) {
     if (!content) return LSD.warn('Update action did not recieve content');
-    var widget = LSD.Module.DOM.find(target);
-    if (typeof content == 'string') {
+    if (content.charAt) {
       var fragment = document.createFragment(content);
       var children = LSD.slice(fragment.childNodes);
     } else {
-      var children = content.hasOwnProperty('length') ? content : [content];
       var fragment = document.createFragment('');
-      for (var i = 0, child; child = children[i++];) fragment.appendChild(child);
+      if (!content.hasOwnProperty('length')) {
+        var children = [content];
+        fragment.appendChild(content);
+      } else for (var i = 0, child; child = children[i++];) fragment.appendChild(child);
     }
     if (target.lsd) {
-      var element = target.toElement(), parent = target.parentNode;
+      var widget = target;
+      var element = widget.toElement();
+      var parent = target.parentNode;
     } else {
-      var element = target, parent = widget;
-      if (parent.element == element) parent = parent.parentNode;
+      var widget = LSD.Module.DOM.find(target);
+      if (widget.element == target) {
+        parent = widget.parentNode;
+        var element = target;
+      } else {
+        var element = target, parent = widget;
+        widget = null;
+      }
     }
-    var container = (target.lsd || (widget.element == target && widget)) ? widget[this.options.container ? 'getWrapper' : 'toElement']() : element;
-    var args = [container, parent, fragment, children, content];
-    this.options.update.apply(this, args);
+    this.options.update.apply(this, [element, widget, parent, fragment, children]);
   },
   
-  update: function(target, parent, fragment, children) {
-    document.id(target).empty().appendChild(fragment);
-    parent.fireEvent('DOMNodeInserted', [children, target]);
+  update: function(element, widget, parent, fragment, children) {
+    (widget || parent).removeLayout(null, element.childNodes, element);
+    element.appendChild(fragment);
+    (widget || parent).addLayout(null, children, element);
   }
 });
 
 LSD.Action.Append = LSD.Action.build({
   enable: LSD.Action.Update.prototype.options.enable,
   
-  update: function(target, parent, fragment, children) {
-    target.appendChild(fragment);
-    parent.fireEvent('DOMNodeInserted', [children, target]);
+  update: function(element, widget, parent, fragment, children) {
+    element.appendChild(fragment);
+    (widget || parent).addLayout(null, children, element)
   }
 });
 
 LSD.Action.Replace = LSD.Action.build({
   enable: LSD.Action.Update.prototype.options.enable,
 
-  update: function(target, parent, fragment, children) {
-    var parentNode = target.parentNode
-    parentNode.replaceChild(fragment, target);
-    LSD.Module.DOM.destroy(target, true);
-    parent.fireEvent('DOMNodeInserted', [children, parentNode]);
+  update: function(element, widget, parent, fragment, children) {
+    var parentNode = element.parentNode
+    parentNode.replaceChild(fragment, element);
+    parent.removeLayout(null, widget || element);
+    parent.addLayout(null, children, parentNode);
   }
 });
 
 LSD.Action.Before = LSD.Action.build({
   enable: LSD.Action.Update.prototype.options.enable,
 
-  update: function(target, parent, fragment, children) {
-    target.parentNode.insertBefore(fragment, target);
-    parent.fireEvent('DOMNodeInsertedBefore', [children, target, target.parentNode]);
+  update: function(element, widget, parent, fragment, children) {
+    element.parentNode.insertBefore(fragment, element);
+    parent.addLayout(null, children, element.parentNode, {before: element});
   }
 });
 
 LSD.Action.After = LSD.Action.build({
   enable: LSD.Action.Update.prototype.options.enable,
 
-  update: function(target, widget, fragment, children) {
-    target.parentNode.insertBefore(fragment, target.nextSibling);
-    parent.fireEvent('DOMNodeInsertedBefore', [children, target.nextSibling, target.parentNode]);
+  update: function(element, widget, parent, fragment, children) {
+    element.parentNode.insertBefore(fragment, element.nextSibling);
+    parent.addLayout(null, children, element.parentNode, {before: element.nextSibling});
   }
 });

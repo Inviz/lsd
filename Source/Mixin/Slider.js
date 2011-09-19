@@ -42,7 +42,7 @@ LSD.Trait.Slider = new Class({
     },
     slider: {},
     value: 0,
-    mode: 'horizontal',
+    mode: 'horizontal'
   },
   
   onParentResize: function(current, old) {

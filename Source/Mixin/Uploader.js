@@ -66,7 +66,9 @@ LSD.Mixin.Uploader = new Class({
       instantStart: true,
       timeLimit: 36000,
       queued: false,
-      multiple: false
+      multiple: false,
+      verbose: false,
+      allowDuplicates: true
     }
   },
   

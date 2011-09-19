@@ -183,7 +183,7 @@ LSD.Position.prototype = {
     for (var name in styles) {
       var prop = name == 'x' ? 'left' : 'top';
       if (this.object.lsd)
-        this.object.setStyle(name, styles[name]);
+        this.object.setStyle(prop, styles[name]);
       else
         this.object.style[prop] = styles[name] + 'px';
     }

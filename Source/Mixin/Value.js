@@ -21,31 +21,23 @@ LSD.Mixin.Value = new Class({
     actions: {
       value: {
         enable: function() {
-          if (this.attributes.multiple && this.values == null) this.values = [];
-          if (!this.attributes.multiple) {
-            if (LSD.Mixin.Command.getCommandType.call(this) == 'command') {
-              if (typeof this.value == 'undefined') this.setValue();
-            } else {
-              this.states.watch('checked', this.bind(LSD.Mixin.Value.setValueOnCheck))
-            }
+          if (LSD.Mixin.Command.getCommandType.call(this) == 'command') {
+            this.setDefaultValue()
+          } else {
+            this.states.watch('checked', this.bind(LSD.Mixin.Value.setValueOnCheck))
           }
         },
         disable: function() {
-          if (!this.attributes.multiple) {
-            if (LSD.Mixin.Command.getCommandType.call(this) == 'command') {
-              if (typeof this.value == 'undefined') this.unsetValue();
-            } else {
-              this.states.unwatch('checked', this.bind(LSD.Mixin.Value.setValueOnCheck))
-            }
+          if (!this.attributes.multiple && LSD.Mixin.Command.getCommandType.call(this) != 'command') {
+            this.states.unwatch('checked', this.bind(LSD.Mixin.Value.setValueOnCheck))
           }
         }
       }
-    }
-  },
-  
-  constructors: {
-    value: function() {
-      if (this.attributes.multiple && this.values == null) this.values = [];
+    },
+    expects: {
+      '[multiple]': function(widget, state) {
+        if (state && typeof widget.values == 'undefined') widget.values = []
+      }
     }
   },
   
@@ -60,6 +52,7 @@ LSD.Mixin.Value = new Class({
       result = this.writeValue(value, unset);
       var previous = this.getPreviousValue();
       this.fireEvent('change', [value, previous]);
+      this.fireEvent(unset ? 'unsetValue' : 'setValue', value);
       if (!this.pseudos.clickable && previous != null) this.callChain(value, previous);
     }
     return result
@@ -129,8 +122,20 @@ LSD.Mixin.Value = new Class({
     if (value != null) return this.processValue(value);
   },
   
+  setDefaultValue: function() {
+    if (this.attributes.multiple) {
+      if (typeof this.values == 'undefined' || !this.values.length) {
+        var values = (this.getDefaultValue() || []);
+        for (var i = 0, j = values.length; i < j; i++) this.setValue(values[i]);
+      };
+    } else {  
+      if (typeof this.value == 'undefined') this.setValue();
+    }
+  },
+  
   getRawValue: function() {
-    return this.attributes.value || LSD.Module.DOM.getID(this) || (this.pseudos.textual && this.element && this.element.get('text'));
+    if (this.attributes.value != null) return this.attributes.value;
+    return LSD.Module.DOM.getID(this) || (this.pseudos.textual && this.element && this.element.get('text').trim());
   },
   
   getPreviousValue: function() {

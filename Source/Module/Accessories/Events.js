@@ -13,8 +13,8 @@ requires:
   - LSD.Module
   - Core/Events
   - Core/Element.Event
-  - More/Element.Delegation
-  - More/Events.Pseudos
+  - Core/Element.Delegation
+  - More/Element.Event.Pseudos
   - Ext/Element.Properties.widget
 
 provides:
@@ -287,7 +287,7 @@ Events.States = {
   element.addEvent('mouseover:on(button)', callback)
 */
 
-Event.definePseudo('on', function(split, fn, args){
+DOMEvent.definePseudo('on', function(split, fn, args){
   var event = args[0];
   var widget = Element.get(event.target, 'widget');
   if (widget && widget.match(split.value)) {
