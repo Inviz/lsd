@@ -50,7 +50,6 @@ LSD.Mixin.Command = new Class({
           } else {
             var arg = this.checked ? null : false;
           };
-          console.info(1);
           if (arg != null) this.eachLink('quickstart', arg, true, !this.getCommandState());
         }
       }
