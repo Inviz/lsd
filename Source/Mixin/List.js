@@ -30,6 +30,12 @@ LSD.Mixin.List = new Class({
     has: {
       many: {
         items: {
+          states: {
+            link: {
+              checked: 'selected',
+              selected: 'checked'
+            }
+          },
           traits: Array.object('selectable'),
           selector: ':item',
           as: 'list',
@@ -39,12 +45,6 @@ LSD.Mixin.List = new Class({
               return {pseudos: Array.object('checkbox')};
             } else {
               return {pseudos: Array.object('radio'), radiogroup: this.lsd};
-            }
-          },
-          states: {
-            link: {
-              checked: 'selected',
-              selected: 'checked'
             }
           },
           callbacks: {
