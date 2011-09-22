@@ -50,13 +50,13 @@ LSD.Action.Update = LSD.Action.build({
       }
     }
     this.options.update.apply(this, [element, widget, parent, fragment, children]);
+    if (widget) widget.fireEvent('DOMInserted', children);
   },
   
   update: function(element, widget, parent, fragment, children) {
     (widget || parent).removeLayout(null, element.childNodes, element);
     element.appendChild(fragment);
     (widget || parent).addLayout(null, children, element);
-    widget.fireEvent('DOMInserted');
   }
 });
 
