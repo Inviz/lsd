@@ -98,7 +98,10 @@ LSD.Document = new Class({
     and only instantiate class when the link was actually clicked.
   */
   onClick: function(event) {
-    if (event.target.ownerDocument == document)
+    if (event.target.ownerDocument == document && // click is in the same frame
+       !event.rightClick &&                       // and click is not right click
+       !(event.control || event.meta) &&          // and ctrl/command is not held
+       !(event.event.which == 3))                 // and it's not the middle button
     for (var target = event.target, link, widget; target && target.tagName; target = target.parentNode) {
       widget = target.uid && Element.retrieve(target, 'widget');
       var a = (LSD.toLowerCase(target.tagName) == 'a');
