@@ -49,7 +49,7 @@ LSD.Layout.prototype = Object.append({
     var elements = (layout.push && layout[0]) ? (!!layout[0].nodeType) : memo && memo.elements;
     if (layout.call && layout.apply) layout = layout.call(this, parent, memo);
     var type = layout.charAt ? (elements ? 'string' : 'selector') : 
-               layout.hasOwnProperty('length') ? ((layout.push && !elements) ? 'array' : 'children') :
+               Type.isEnumerable(layout) ? ((layout.push && !elements) ? 'array' : 'children') :
                layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : 'object';
     var result = this[type](layout, parent, memo);
     if (!this.result) this.result = result;
@@ -445,7 +445,7 @@ LSD.Layout.prototype = Object.append({
     if (!memo) memo = {};
     if (layout.nodeType) {
       return this.manipulate(state, parent, layout);
-    } else if (layout.hasOwnProperty('length')){
+    } else if (Type.isEnumerable(layout)){
       if (layout[0] && !layout[0].lsd) layout = LSD.slice(layout)
       for (var i = 0, j = layout.length, value; i < j; i++)
         if ((value = layout[i])) this.manipulate(state, parent, value, memo);
@@ -556,7 +556,7 @@ LSD.Layout.prototype = Object.append({
   realize: function(layout) {
     if ((layout.indexOf && layout.match) || layout.nodeType) {
       return layout;
-    } else if (layout.hasOwnProperty('length')) {
+    } else if (Type.isEnumerable(layout)) {
       for (var i = 0, j = layout.length, value; i < j; i++)
         if ((value = layout[i])) layout[i] = this.realize(value);
     } else if (!layout.promise) {

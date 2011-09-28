@@ -24,7 +24,7 @@ LSD.Array = function(arg) {
   this.length = 0;
   var j = arguments.length;
   if (j == 1) {
-    if (arg != null && !arg.match && arg.hasOwnProperty('length')) {
+    if (arg != null && !arg.match && Type.isEnumerable(arg)) {
       for (var i = 0, k = arg.length; i < k; i++)
         this.push(arg[i]);
     } else {

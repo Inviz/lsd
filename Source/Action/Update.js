@@ -30,7 +30,7 @@ LSD.Action.Update = LSD.Action.build({
       var children = LSD.slice(fragment.childNodes);
     } else {
       var fragment = document.createFragment('');
-      if (!content.hasOwnProperty('length')) {
+      if (!Type.isEnumerable(content)) {
         var children = [content];
         fragment.appendChild(content);
       } else for (var i = 0, child; child = children[i++];) fragment.appendChild(child);
