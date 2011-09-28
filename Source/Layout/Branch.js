@@ -83,7 +83,7 @@ LSD.Layout.Branch = function(options) {
   } else if (options.expression || options.show) {
     this.match();
   } else if (options.name) {
-    LSD.Template[name] = this;
+    LSD.Template[options.name] = this;
   }
 };
 LSD.Layout.Branch.UID = 0;
@@ -265,7 +265,7 @@ LSD.Layout.Branch.prototype = Object.append({
         layout.splice.apply(layout, args)
         args.splice(0, 2)
         return args;
-      };
+      }.bind(this);
       if (comment.parentNode) comment.parentNode.removeChild(comment);
       if (this.options.clean) layout = layout[index];
     } else {
