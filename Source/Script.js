@@ -186,6 +186,9 @@ Object.append(LSD.Script, {
           if (object.lsd) object.write(value)
           else object.innerHTML = value;
           break;
+        case 2:
+          object.value = value;
+          break;
         case 3:
           object.nodeValue = value;
           break;

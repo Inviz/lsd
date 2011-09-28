@@ -69,8 +69,8 @@ Object.append(LSD.Script.Helpers, {
 for (var name in String.prototype)
   if (!LSD.Script.Helpers[name] && String.prototype[name].call && name.charAt(0) != '$') 
     LSD.Script.Helpers[name] = (function(name) {
-      return function(a, b) {
-        return String(a)[name](b);
+      return function() {
+        return String.prototype[name].apply(String(arguments[0]), Array.prototype.slice.call(arguments, 1));
       }
     })(name);
     
@@ -78,8 +78,8 @@ for (var name in String.prototype)
 for (var name in Number.prototype) 
   if (!LSD.Script.Helpers[name] && Number.prototype[name].call && name.charAt(0) != '$')
     LSD.Script.Helpers[name] = (function(name) {
-      return function(a, b) {
-        return Number(a)[name](b);
+      return function(a) {
+        return Number.prototype[name].apply(Number(arguments[0]), Array.prototype.slice.call(arguments, 1));
       }
     })(name);
     

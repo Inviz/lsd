@@ -117,6 +117,7 @@ LSD.Layout.prototype = Object.append({
       var widget = memo.clone ? converted.cloneNode(false, memo.defaults) : converted;
     }
     if (!widget && memo.clone) var clone = element.cloneNode(false);
+    LSD.Layout.interpolateAttributes(clone || element, widget || parent[0]);
     // Append a node to parent
     if ((!converted || !widget.parentNode) || (memo && memo.clone))
       this.appendChild([ascendant, container], widget || clone || element, memo);
@@ -899,8 +900,6 @@ LSD.Layout.rComment = /(\<\!-)|(-\>)/g
 LSD.Layout.rSource = /^[a-z-_0-9]+$/;
 // Check if a string is an expression prepended with keyword, e.g. `if true`
 LSD.Layout.rKeywordExpression = /^\s*([a-z]+)(?:\s(.*?))?\s*$/;
-// Find {interpolated} expressions in a string
-LSD.Layout.rInterpolation = /\\?\{([^{}]+)\}/g;
 
 LSD.Layout.NodeTypes = {1: 'element', 3: 'textnode', 8: 'comment', 11: 'fragment'};
 LSD.Layout.NodeNames = Array.object('!doctype', 'a', 'abbr', 'acronym', 'address', 'applet', 'area', 
@@ -1025,7 +1024,32 @@ Object.append(LSD.Layout, {
     return source;
   },
   
-  interpolate: function(textnode, widget, callback, memo) {
+  interpolateAttributes: function(element, widget, callback) {
+    var value, open
+    for (var i = 0, j = element.attributes.length, attribute; attribute = element.attributes[i++];) {
+      value = attribute.value;
+      var count = 0, last = 0, index, args;
+      for (var match, compiled; match = LSD.Layout.rInterpolationOpener.exec(value);) {
+        index = match.index;
+        if (!args) args = [];
+        if (index > last) args.push(value.substring(last, index));
+        if (!callback || callback === true) callback = widget;
+        if (match[2] == "}") {
+          args.push(LSD.Script({
+            input: match[1],
+            source: callback,
+            placeholder: match[0]
+          }));
+        }
+        last = index + match[0].length;
+      }
+      if (args && last < value.length) args.push(value.substring(last, value.length));
+      if (args) var interpolation = new LSD.Script.Function(args, callback, attribute, 'concat')
+      if (interpolation) interpolation.attach();
+    }
+  },
+  
+  interpolate: function(textnode, widget, callback) {
     var node = textnode, content = node.textContent, finder, length = content.length;
     for (var match, index, last, next, compiled; match = LSD.Layout.rInterpolation.exec(content);) {
       last = index || 0
@@ -1061,3 +1085,8 @@ Object.append(LSD.Layout, {
     }
   }
 });
+
+
+// Find {interpolated} expressions in a string
+LSD.Layout.rInterpolation = /\\?\{([^{}]+)\}/g;
+LSD.Layout.rInterpolationOpener = /\\?\{([^{}]+)(\}|$)/g;

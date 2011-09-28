@@ -24,11 +24,11 @@ provides:
   like strings and numbers in expressions. So a function, when all of its
   arguments are resolved is executed once. A function has its arguments as
   child nodes in AST, so when a variable argument is changed, it propagates
-  the change up in the tree, and makes the parent function to be executed 
-  with updated argument values. 
+  the change up in the tree, and execute the parent function with updated 
+  values.
   
-  Return value of a function is memoized. The value is calculated once and 
-  saved and will only call function again when arguments are changed.
+  A value is calculated once and will be recalculated when any of its variable
+  arguments is changed.
 */
 
 LSD.Script.Function = function(input, source, output, name) {
@@ -43,13 +43,9 @@ LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype,
   fetch: function(state) {
     for (var i = 0, j = this.args.length, arg; i < j; i++) {
       if ((arg = this.args[i]) == null) continue;
-      if (!arg.interpolation) {
-        arg = LSD.Script.compile(this.args[i], this.source);
-        if (!arg.parent && arg.interpolation) {
-          arg.parent = this;
-          if (arg.value == null) var stop = true;
-        }
-      }
+      if (!arg.interpolation) arg = LSD.Script.compile(this.args[i], this.source);
+      if (arg.interpolation && !arg.parent) arg.parent = this;
+      if (arg.value == null) var stop = true;
       this.args[i] = arg;
       if (arg.interpolation) arg.fetch(state);
     }
@@ -61,7 +57,7 @@ LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype,
     for (var i = 0, args = [], j = this.args.length, arg; i < j; i++)
       if ((arg = this.args[i]) && arg.interpolation && arg.value == null) return null;
       else args[i] = (arg && typeof arg.value != 'undefined') ? arg.value : arg;
-      if (this.name) {
+    if (this.name) {  
       return LSD.Script.Helpers[this.name].apply(LSD.Script.Helpers, args)
     } else {
       return args[0];
