@@ -80,6 +80,7 @@ LSD.Script.Selector = function(input, source, output) {
     }
   }.bind(this));
   this.collection = [];
+  if (source && source.branch) source = this.source = source.parentNode;
   if (!source || !source.lsd) throw "Selector should be applied on widgets";
 };
 

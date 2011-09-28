@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Layout
+  - LSD.Module.Interpolations
 
 provides: 
   - LSD.Layout.Branch
@@ -67,6 +68,12 @@ LSD.Layout.Branch = function(options) {
   this.options = options;
   this.id = ++LSD.Layout.Branch.UID;
   this.$events = Object.clone(this.$events);
+  this.element = options.element;
+  this.widget = options.widget;
+  this.expression = options.expression;
+  this.parentNode = options.parent || options.widget;
+  if (options.layout) this.setLayout(options.layout, true);
+  if (options.collection) this.values = [];
   if (options.superbranch) {
     options.superbranch.addEvents({
       check: this.unmatch.bind(this),
@@ -75,8 +82,8 @@ LSD.Layout.Branch = function(options) {
     if (!options.superbranch.checked ^ this.options.invert) this.match();
   } else if (options.expression || options.show) {
     this.match();
-  } else if (options.template) {
-    LSD.Template[options.template] = this;
+  } else if (options.name) {
+    LSD.Template[name] = this;
   }
 };
 LSD.Layout.Branch.UID = 0;
@@ -85,28 +92,23 @@ LSD.Template = {};
 LSD.Layout.Branch.prototype = Object.append({
   branch: true,
   getInterpolation: function() {
-    if (this.interpolation) return this.interpolation;
-    this.interpolation = LSD.Script.compile(this.options.expression, this.options.widget, this, true);
+    if (typeof this.interpolation == 'undefined') {
+      if (this.options.collection) {
+        this.expression = this.expression.replace(LSD.Layout.Branch.rLoopAlias, function(m, name) {
+          this.arguments = [name];
+          return '';
+        }.bind(this));
+      }
+      this.interpolation = LSD.Script.compile(this.expression, this, this, true);
+    }
     return this.interpolation;
   },
   match: function() {
-    if (this.options.expression) {
-      var interpolation = this.getInterpolation();
-      if (interpolation && interpolation.attach) {
-        var value = interpolation.attach().value;
-      } else var value = interpolation;
-      if ((value == null || value === false) ^ this.options.invert) return;
-    }
+    if (this.options.expression && !this.evaluate(true)) return;
     this.check();
   },
   unmatch: function(lazy) {
-    if (this.options.expression) {
-      var interpolation = this.interpolation;
-      if (interpolation && interpolation.detach) {
-        var value = interpolation.detach().value;
-      } else var value = interpolation;
-      if ((value == null || value === false) ^ this.options.invert) return;
-    }
+    if (this.options.expression && !this.evaluate(false)) return;
     this.uncheck(lazy);
   },
   check: function(lazy) {
@@ -123,46 +125,95 @@ LSD.Layout.Branch.prototype = Object.append({
       if (!lazy) this.fireEvent('uncheck', arguments);
     }  
   },
-  set: function(value) {
-    this[((value != false && value != null) ^ this.options.invert) ? 'check' : 'uncheck']();
+  evaluate: function(state) {
+    var interpolation = this.getInterpolation();
+    var value = interpolation.attach ? interpolation[state ? 'attach' : 'detach']().value : interpolation;
+    if (this.value !== value) this.set(value);
+    return this.validate(true);
   },
-  show: function(plain) {
+  validate: function(strict) {
+    return ((strict ? this.value !== false : this.value != false) && this.value != null) ^ this.options.invert;
+  },
+  add: function(value) {
+    return this.render.apply(this, arguments);
+  },
+  remove: function(value) {
+    
+  },
+  set: function(value) {
+    this.value = value;
+    if (!this.next) this.next = this.options.origin && this.options.origin.nextSibling;
+    if (this.options.collection) {
+      if (Type.isEnumerable(value)) {
+        for (var i = 0, j = value.length; i < j; i++) {
+          var context = this.add(value[i], {before: this.next});
+        }
+      } else {
+        
+      }
+    } else {
+      this[this.validate() ? 'check' : 'uncheck']();
+    }
+  },
+  show: function(lazy) {
     var layout = this.layout;
     if (!layout) return;
-    if (layout.push) this.layout = this.collapse(this.layout) || layout;
     if (Type.isEnumerable(layout)) for (var i = 0, child, keyword, depth = 0; child = layout[i]; i++) {
       if (child.call) {
         if (layout === this.layout) layout = layout.slice(0);
         var result = child.call(this);
-        if (result) {
-          for (var branch = this; branch; branch = branch.options.parent) branch.dirty = true;
+        if (result) { 
           if (result.length) layout.splice.apply(layout, [i, 1].concat(result))
           else layout[i] = result;
         }
       }
     }
-    var before = this.options.origin && this.options.origin.nextSibling;
-    var memo = {before: before, options: this.options.options, plain: (plain === true)};
-    var rendered = this.options.widget.addLayout(this.id, layout, [this.options.widget, this.options.element], memo);
-    if (result) this.collapse(rendered)
+    var before = this.options.before || this.options.origin && this.options.origin.nextSibling;
+    if (before && before.parentNode != this.element) before = null;
+    var memo = { 
+      before: before, 
+      options: this.options.options, 
+      plain: (lazy === true), 
+      clone: !!this.options.original && !this.options.original.checked,
+      interpolations: this,
+      branches: [this]
+    };
+    this.rendered = this.widget.addLayout(this.id, layout, [this.widget, this.element], memo);
+    if (result) this.collapse(this.rendered)
   },
-  clone: function(widget) {
-    var layout = this.layout;
-    if (!layout) return;
-    if (layout.push) layout = this.collapse(layout) || layout;
-    var branch = new LSD.Layout.Branch(this.options);
-    if (widget) {
-      branch.options.widget = widget;
-      branch.options.element = (widget.getWrapper && widget.getWrapper()) || widget.toElement();
-      delete branch.options.origin;
+  render: function(args, options, widget) {
+    if (args != null && !args.push) args = [args]; 
+    if (!this.options.original) {
+      var branch = this.clone(widget, options, true);
+    } else var branch = this;
+    for (var i = 0, argument; argument = this.arguments[i]; i++) {
+      if (branch.args && branch.args[i] != null) branch.removeInterpolator(argument, branch.args[i]);
+      if (args[i] != null) branch.addInterpolator(argument, args[i]);
     }
-    branch.setLayout(layout, true);
+    branch.args = args;
+    branch.show();
     return branch;
   },
-  hide: function() {
+  clone: function(parent, opts, shallow) {
     var layout = this.layout;
     if (!layout) return;
-    this.options.widget.removeLayout(this.id, layout);
+    var options = Object.append({layout: layout, original: this}, this.options, opts);
+    if (options.walking && this.checked) {
+      delete options.layout;
+    }
+    if (parent) {
+      options.widget = parent[0] || parent;
+      options.element = parent[1] || (parent.getWrapper && parent.getWrapper()) || parent.toElement();
+    }
+    var before = options.before;
+    options.before = before ? (before.lsd ? before.toElement() : before) : this.options.origin && this.options.origin.nextSibling;
+    if (shallow) delete options.expression;
+    return new LSD.Layout.Branch(options);
+  },
+  hide: function() {
+    var layout = this.rendered || this.layout;
+    if (!layout) return;
+    this.widget.removeLayout(this.id, layout);
   },
   splice: function(branch, layout, baseline) {
     var offset = 0;
@@ -216,14 +267,14 @@ LSD.Layout.Branch.prototype = Object.append({
         return args;
       };
       if (comment.parentNode) comment.parentNode.removeChild(comment);
-      //if (this.options.clean) layout = layout[index];
+      if (this.options.clean) layout = layout[index];
     } else {
       return false;
     }
     return layout;
   },
   setLayout: function(layout, soft) {
-    this.layout = layout;
+    this.layout = layout.push && this.collapse(layout) || layout;
     if (this.checked) {
       this.show(true);
     } else if (!soft) this.hide();
@@ -248,6 +299,7 @@ LSD.Layout.Branch.prototype = Object.append({
     if (depth) throw "The lazy branch is unbalanced"
     return text;
   }
-}, Events.prototype);
+}, LSD.Module.Interpolations.prototype, Events.prototype);
 
 LSD.Layout.Branch.rWhitespace = /^\s*$/;
+LSD.Layout.Branch.rLoopAlias = /^\s*([^\s]*?)\s+(?:in|of|from)\s+/;

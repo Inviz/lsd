@@ -47,6 +47,7 @@ LSD.Layout.prototype = Object.append({
   render: function(layout, parent, memo) {
     if (layout.getLayout) layout = layout.getLayout();
     var elements = (layout.push && layout[0]) ? (!!layout[0].nodeType) : memo && memo.elements;
+    if (layout.call && layout.apply) layout = layout.call(this, parent, memo);
     var type = layout.charAt ? (elements ? 'string' : 'selector') : 
                layout.hasOwnProperty('length') ? ((layout.push && !elements) ? 'array' : 'children') :
                layout.nodeType ? LSD.Layout.NodeTypes[layout.nodeType] : 'object';
@@ -132,7 +133,7 @@ LSD.Layout.prototype = Object.append({
   
   children: function(children, parent, memo) {
     if (!memo) memo = {};
-    if (children.item) children = LSD.slice(children);
+    children = LSD.slice(children);
     if (!memo.type) memo.type = this.getType(memo, parent);
     var ascendant = parent[0] || parent;
     if (memo.parent != ascendant) {
@@ -160,7 +161,9 @@ LSD.Layout.prototype = Object.append({
         previous = this.walk.apply(this, args);
         if (!previous.lsd) previous = null;
       } else {
-        this[LSD.Layout.NodeTypes[child.nodeType]].apply(this, args);
+        var result = this[LSD.Layout.NodeTypes[child.nodeType]].apply(this, args);
+        if (result != child && result !== true && result && !result.branch) 
+          children[i] = result.lsd ? result.element : result;
         previous = null;
       }
     }
@@ -182,7 +185,7 @@ LSD.Layout.prototype = Object.append({
   textnode: function(element, parent, memo) {
     if (memo && memo.clone) var clone = element.cloneNode(false);
     this.appendChild(parent, clone || element, memo);
-    LSD.Layout.interpolate(clone || element, parent[0] || parent);
+    LSD.Layout.interpolate(clone || element, memo && memo.interpolations || parent[0] || parent);
     return clone || element;
   },
   
@@ -195,14 +198,18 @@ LSD.Layout.prototype = Object.append({
   
   comment: function(comment, parent, memo) {
     var keyword = Element.retrieve(comment, 'keyword');
-    this.appendChild(parent, comment, memo);
-    if (keyword) return keyword === true ? comment : keyword;
-    else keyword = this.keyword(comment.nodeValue, parent, memo, comment);
+    if (memo && memo.clone)
+      var clone = comment.ownerDocument.createComment(comment.nodeValue);
+    this.appendChild(parent, clone || comment, memo);
+    keyword = this.keyword(comment.nodeValue, parent, memo, clone || comment, keyword);
     if (keyword) {
-      Element.store(comment, 'keyword', keyword);
-      if (keyword !== true) (memo.branches || (memo.branches = [])).push(keyword);
+      if (keyword !== true) {
+        (memo.branches || (memo.branches = [])).push(keyword);  
+      } 
+      Element.store(clone || comment, 'keyword', keyword);
       return keyword;
-    } else return comment;
+    };
+    return clone || comment;
   },
   
   /*
@@ -215,7 +222,7 @@ LSD.Layout.prototype = Object.append({
   */
   
   fragment: function(element, parent, memo) {
-    return this.children(LSD.slice(element.childNodes), parent, memo);
+    return this.children(element.childNodes, parent, memo);
   },
   
   /*
@@ -230,7 +237,7 @@ LSD.Layout.prototype = Object.append({
     var element = parent[1] || parent.toElement();
     var textnode = element.ownerDocument.createTextNode(string);
     this.appendChild([parent[0] || parent, element], textnode, memo);
-    LSD.Layout.interpolate(textnode, parent[0] || parent);
+    LSD.Layout.interpolate(textnode, memo && memo.interpolations || parent[0] || parent);
     return textnode;
   },
   
@@ -369,7 +376,7 @@ LSD.Layout.prototype = Object.append({
     return widget || element;
   },
   
-  keyword: function(text, parent, memo, element) {
+  keyword: function(text, parent, memo, element, origin) {
     var parsed = LSD.Layout.extractKeyword(text);
     if (!parsed) return;
     var keyword = LSD.Layout.Keyword[parsed.keyword];
@@ -382,21 +389,30 @@ LSD.Layout.prototype = Object.append({
       var node = options.superbranch.options.origin;
       if (node) {
         for (var layout = []; (node = node.nextSibling) != element;) layout.push(node);
-        options.superbranch.setLayout(layout);
+        options.superbranch.options.before = element;
+        if (layout.length > 0) options.superbranch.setLayout(layout);
       }
-      if (element && options.superbranch.options.clean) {
-        element.parentNode.removeChild(element);
-        var origin = options.superbranch.options.origin;
-        if (origin && origin.parentNode) origin.parentNode.removeChild(origin);
-      }
+      //if (element && options.superbranch.options.clean) {
+      //  element.parentNode.removeChild(element);
+      //  var origin = options.superbranch.options.origin;
+      //  if (origin && origin.parentNode) origin.parentNode.removeChild(origin);
+      //}
       if (options.ends) return true;
     }
-    if (options.branch) {
+    if (origin && origin.branch || options.branch) {
       options.keyword = parsed.keyword;
       options.parent = parentbranch;
       options.widget = parent[0] || parent;
       options.element = parent[1] || parent.toElement();
       options.origin = element;
+    }
+    if (origin) {
+      options.walking = true;
+      if (memo && memo.clone)
+        return origin.clone(parent, options);
+      else
+        return origin;
+    } else if (options.branch) {
       return new LSD.Layout.Branch(options);
     } else {
       if (options.layout) {
@@ -508,7 +524,7 @@ LSD.Layout.prototype = Object.append({
         if (before.lsd) before = before.toElement();
         parent = before.parentNode;
       };
-      parent.insertBefore(child, before, element, bypass);
+      widget.insertBefore(child, before, element, bypass);
     } else {
       widget.appendChild(child, element, bypass);
     }
@@ -917,10 +933,16 @@ LSD.Layout.Keyword = {
     return options;
   },
   'template': function(expression) {
-    return {branch: true, template: expression, clean: true}
+    return {branch: true, name: expression, clean: true}
   },
   'end': function(expression) {
     return {ends: true}
+  },
+  'for': function(expression) {
+    return {branch: true, collection: true, expression: expression}
+  },
+  'each': function(expression) {
+    return {branch: true, collection: true, expression: expression}
   }
 };
 
@@ -1003,7 +1025,7 @@ Object.append(LSD.Layout, {
     return source;
   },
   
-  interpolate: function(textnode, widget, callback) {
+  interpolate: function(textnode, widget, callback, memo) {
     var node = textnode, content = node.textContent, finder, length = content.length;
     for (var match, index, last, next, compiled; match = LSD.Layout.rInterpolation.exec(content);) {
       last = index || 0

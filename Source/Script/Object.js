@@ -20,7 +20,8 @@ provides:
 
 LSD.Object = function(object) {
   if (object) for (var key in object) this.set(key, object[key]);
-}
+};
+
 LSD.Object.prototype = {
   set: function(key, value, memo) {
     var old = this[key];

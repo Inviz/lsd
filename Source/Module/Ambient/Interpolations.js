@@ -42,9 +42,13 @@ Object.append(LSD.Module.Interpolations, {
         if (value == null) {
           saved.unwatch(key, callback);
           delete saved;
-        } else if (typeof value == 'object' && value.watch) {  
-          saved = value;
-          value.watch(key, callback);
+        } else if (typeof value == 'object' && !value.push) {
+          if (value.watch) {
+            saved = value;
+            value.watch(key, callback);
+          } else {
+            if (value[key] != null) callback(value[key]);
+          }
         } else {
           callback(value);
         }
@@ -71,7 +75,7 @@ Object.append(LSD.Module.Interpolations, {
   removeInterpolation: function(token, callback) {
     var index = token.indexOf('.');
     if (index > -1) {
-      var string = index.substr(shift || 0, index);
+      var string = token.substr(0, index);
       LSD.Module.Interpolations.removeInterpolation.call(this, string, callback);
     } else {
       for (var node = this; node; node = node.parentNode) {
@@ -102,7 +106,7 @@ Object.append(LSD.Module.Interpolations, {
         LSD.Module.Interpolations.addInterpolator.call(this, property, name[property]);
     } else if (name.call) {
 
-    } else if (!name.indexOf) {
+    } else if (!name.match) {
       for (var property in name)
         LSD.Module.Interpolations.addInterpolator.call(this, property, name[property]);
     } else {
