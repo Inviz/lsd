@@ -77,8 +77,64 @@ LSD.Module.Selectors = new Class({
     return true;
   }
 });
-var pseudos = {};
 
+/* 
+  Parses selector and generates options for widget 
+*/
+LSD.Module.Selectors.parse = function(selector, parent) {
+  var options = {};
+  var expressions = (selector.Slick ? selector : Slick.parse(selector)).expressions[0];
+  loop: for (var j = expressions.length, expression; expression = expressions[--j];) {
+    switch (expression.combinator) {
+      case ' ':
+        break;
+      case '::':
+        if (LSD.Allocations[expression.tag]) {
+          var allocation = options.allocation = LSD.Module.Allocations.compile(expression.tag, expression.classes, expression.attributes, expression.pseudos);
+          if (allocation.options && allocation.options.source) {
+            var source = allocation.options.source;
+            delete allocation.options.source
+          }
+        } else {
+          var relation = (parent[0] || parent).relations[expression.tag];
+          if (!relation) throw "Unknown pseudo element ::" + expression.tag;
+          options.source = relation.getSource();
+        }
+        break;
+      default:
+        if (expression.tag == '*' && !expression.classes && !expression.attributes && !expression.pseudos) {
+          options.order = expression.combinator;
+        } else {
+          options.combinator = expression.combinator;
+        }
+    }
+    if (expression.id) (options.attributes || (options.attributes = {})).id = expression.id
+    if (expression.attributes) 
+      for (var all = expression.attributes, attribute, i = 0; attribute = all[i++];) {
+        var value = attribute.value || LSD.Attributes[attribute.key] == 'number' || "";
+        (options.attributes || (options.attributes = {}))[attribute.key] = value;
+      }
+    if (expression.tag != '*' && expression.combinator != '::')
+      if (expression.tag.indexOf('-') > -1) {
+        options.source = expression.tag;
+      } else {
+        options.tag = expression.tag;
+        var source = LSD.Layout.getSource(options, options.tag);
+        if (source.push) options.source = source;
+      }
+    if (expression.classes) 
+      for (var all = expression.classes, pseudo, i = 0; klass = all[i++];) 
+        (options.classes || (options.classes = {}))[klass.value] = true;
+    if (expression.pseudos) 
+      for (var all = expression.pseudos, pseudo, i = 0; pseudo = all[i++];) 
+        (options.pseudos || (options.pseudos = {}))[pseudo.key] = true;
+  }
+  return options;
+};
+
+
+
+var pseudos = {};
 var Combinators = LSD.Module.Selectors.Combinators = {
   '$': function(node, tag, id, classes, attributes, pseudos, classList) { //this element
     if ((tag == '*') && !id && !classes && !attributes) return this.push(node, null, null, null, null, pseudos);

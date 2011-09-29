@@ -46,15 +46,24 @@ LSD.Module.Attributes = new Class({
       }).addEvent('beforechange', function(name, value, state) { 
         self.fireEvent('selectorChange', ['attributes', name, state]);
       });
-      this.dataset = new LSD.Object;
+      this.dataset = new LSD.Object
+      this.variables.merge(this.dataset);
     }
   },
   
-  getAttribute: function(attribute) {
-    switch (attribute) {
+  getAttribute: function(name) {
+    switch (name) {
       case "class":           return this.classes.join(' ');
       case "slick-uniqueid":  return this.lsd;
-      default:                return this.attributes[attribute];
+      default:                return this.attributes[name];
+    }
+  },
+  
+  getAttributeNode: function(name) {
+    return {
+      name: name,
+      value: this.getAttribute(name),
+      ownerElement: this
     }
   },
 

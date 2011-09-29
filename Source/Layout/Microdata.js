@@ -76,9 +76,9 @@ LSD.Microdata.extract = function(element, widget, parent) {
       if (widget) {
         if (widget.element == element) widget.itemscope = scope;
         for (var node = widget; node; node = (!parent && node.parentNode)) {
-          LSD.Module.Interpolations.addInterpolator.call(node, itemprop, scope);
+          node.variables.set(itemprop, scope);
         if (!widget.itemPropertyExportCallback) widget.itemPropertyExportCallback = function(name, value, state) {
-          if (!value.watch || !value.set) widget[state ? 'addInterpolator' : 'removeInterpolator'](name, value);
+          if (!value.watch || !value.set) widget.variables[state ? 'set' : 'unset'](name, value);
         }
         if (scope && widget.itemscope && widget.itemscope == scope)
           scope.addEvent('change', widget.itemPropertyExportCallback).addEvent('beforechange', widget.itemPropertyExportCallback);

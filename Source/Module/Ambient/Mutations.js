@@ -58,7 +58,7 @@ LSD.Module.Mutations = new Class({
     if (selector.indexOf) selector = Slick.parse(selector);
     if (this.document && !this.document.building) Slick.search(this.element, selector).each(function(node) {
       var parent = LSD.Module.DOM.find(node);
-      var options = Object.append({context: this.options.context}, callback.indexOf ? LSD.Layout.parse(callback) : callback);
+      var options = Object.append({context: this.options.context}, callback.indexOf ? LSD.Module.Selectors.parse(callback) : callback);
       var mutated = this.document.create(node, options);
       if (parent) parent.appendChild(mutated, false);
     }, this);

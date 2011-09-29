@@ -85,7 +85,7 @@ LSD.Script.Variable.prototype = {
   },
   
   request: function(input, callback, source, state) {
-    return this.source[state ? 'addInterpolation' : 'removeInterpolation'](input, callback);
+    return this.source.variables[state ? 'watch' : 'unwatch'](input, callback);
   },
   
   update: function(value) {

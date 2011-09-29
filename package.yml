@@ -75,7 +75,6 @@ sources:
   - Source/Module/Ambient/Layout.js
   - Source/Module/Ambient/Relations.js
   - Source/Module/Ambient/Proxies.js
-  - Source/Module/Ambient/Interpolations.js
   - Source/Module/Ambient.js
   - Source/Module/Accessories/Chain.js
   - Source/Module/Accessories/Actions.js
@@ -119,8 +118,10 @@ sources:
   - Source/Script/Helpers.js
   - Source/Script/Object.js
   - Source/Script/Array.js
+  - Source/Script/Scope.js
+  - Source/Script/Interpolation.js
   - Source/Layout.js
-  - Source/Layout/Branch.js
+  - Source/Layout/Block.js
   - Source/Layout/Microdata.js
   - Source/Layout/Promise.js
   - Source/Sheet.js

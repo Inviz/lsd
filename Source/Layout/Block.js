@@ -1,7 +1,7 @@
 /*
 ---
  
-script: Branch.js
+script: Block.js
  
 description: A conditional piece of layout
  
@@ -11,10 +11,10 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Layout
-  - LSD.Module.Interpolations
+  - LSD.Script.Scope
 
 provides: 
-  - LSD.Layout.Branch
+  - LSD.Layout.Block
  
 ...
 */
@@ -52,7 +52,7 @@ provides:
       <!-- if person.name == 'Bob Marley' -->
         <p> Hey there bob, long time no see! </P>
       <!-- else -->
-        <p> Oh, you... #{person.name}</p>
+        <p> Oh, you... {person.name}</p>
       <!-- end -->
     </article>
     
@@ -64,14 +64,15 @@ provides:
 */
 
 
-LSD.Layout.Branch = function(options) {
+LSD.Layout.Block = function(options) {
   this.options = options;
-  this.id = ++LSD.Layout.Branch.UID;
+  this.id = ++LSD.Layout.Block.UID;
   this.$events = Object.clone(this.$events);
   this.element = options.element;
   this.widget = options.widget;
   this.expression = options.expression;
   this.parentNode = options.parent || options.widget;
+  LSD.Script.Scope(this, this.parentNode);
   if (options.layout) this.setLayout(options.layout, true);
   if (options.collection) this.values = [];
   if (options.superbranch) {
@@ -86,15 +87,15 @@ LSD.Layout.Branch = function(options) {
     LSD.Template[options.name] = this;
   }
 };
-LSD.Layout.Branch.UID = 0;
+LSD.Layout.Block.UID = 0;
 LSD.Template = {};
 
-LSD.Layout.Branch.prototype = Object.append({
+LSD.Layout.Block.prototype = Object.append({
   branch: true,
   getInterpolation: function() {
     if (typeof this.interpolation == 'undefined') {
       if (this.options.collection) {
-        this.expression = this.expression.replace(LSD.Layout.Branch.rLoopAlias, function(m, name) {
+        this.expression = this.expression.replace(LSD.Layout.Block.rLoopAlias, function(m, name) {
           this.arguments = [name];
           return '';
         }.bind(this));
@@ -187,8 +188,8 @@ LSD.Layout.Branch.prototype = Object.append({
       var branch = this.clone(widget, options, true);
     } else var branch = this;
     for (var i = 0, argument; argument = this.arguments[i]; i++) {
-      if (branch.args && branch.args[i] != null) branch.removeInterpolator(argument, branch.args[i]);
-      if (args[i] != null) branch.addInterpolator(argument, args[i]);
+      if (branch.args && branch.args[i] != null) branch.variables.unset(argument, branch.args[i]);
+      if (args[i] != null) branch.variables.set(argument, args[i]);
     }
     branch.args = args;
     branch.show();
@@ -208,7 +209,7 @@ LSD.Layout.Branch.prototype = Object.append({
     var before = options.before;
     options.before = before ? (before.lsd ? before.toElement() : before) : this.options.origin && this.options.origin.nextSibling;
     if (shallow) delete options.expression;
-    return new LSD.Layout.Branch(options);
+    return new LSD.Layout.Block(options);
   },
   hide: function() {
     var layout = this.rendered || this.layout;
@@ -250,7 +251,7 @@ LSD.Layout.Branch.prototype = Object.append({
           if (keyword && keyword !== true) i += this.splice(keyword, layout, i)
           break;
         case 3:
-          if (validate && child.textContent.match(LSD.Layout.Branch.rWhitespace)) break;
+          if (validate && child.textContent.match(LSD.Layout.Block.rWhitespace)) break;
         default:  
           index = validate = null;
       }
@@ -291,7 +292,7 @@ LSD.Layout.Branch.prototype = Object.append({
   },
   expand: function(text) {
     var depth = 0;
-    text = text.replace(LSD.Layout.rComment, function(whole, start, end) {
+    text = text.replace(LSD.Layout.Block.rComment, function(whole, start, end) {
       depth += (start ? 1 : -1);
       if (depth == !!start) return start ? '<!--' : '-->'
       return whole;
@@ -299,7 +300,11 @@ LSD.Layout.Branch.prototype = Object.append({
     if (depth) throw "The lazy branch is unbalanced"
     return text;
   }
-}, LSD.Module.Interpolations.prototype, Events.prototype);
+}, Events.prototype);
 
-LSD.Layout.Branch.rWhitespace = /^\s*$/;
-LSD.Layout.Branch.rLoopAlias = /^\s*([^\s]*?)\s+(?:in|of|from)\s+/;
+// Match whitespace string
+LSD.Layout.Block.rWhitespace = /^\s*$/;
+// Match for-in (or each-from) expression in loop body
+LSD.Layout.Block.rLoopAlias = /^\s*([^\s]*?)\s+(?:in|of|from)\s+/;
+// Match boundaries of comments that use short notation, e.g. `<!- ->` 
+LSD.Layout.Block.rComment = /(\<\!-)|(-\>)/g

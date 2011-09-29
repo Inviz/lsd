@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD
   - LSD.Helpers
+  - LSD.Script.Interpolation
   - More/Object.Extras
 
 provides: 
@@ -117,7 +118,7 @@ LSD.Layout.prototype = Object.append({
       var widget = memo.clone ? converted.cloneNode(false, memo.defaults) : converted;
     }
     if (!widget && memo.clone) var clone = element.cloneNode(false);
-    LSD.Layout.interpolateAttributes(clone || element, widget || parent[0]);
+    LSD.Script.Interpolation((clone || element).attributes, widget || parent[0]);
     // Append a node to parent
     if ((!converted || !widget.parentNode) || (memo && memo.clone))
       this.appendChild([ascendant, container], widget || clone || element, memo);
@@ -186,7 +187,7 @@ LSD.Layout.prototype = Object.append({
   textnode: function(element, parent, memo) {
     if (memo && memo.clone) var clone = element.cloneNode(false);
     this.appendChild(parent, clone || element, memo);
-    LSD.Layout.interpolate(clone || element, memo && memo.interpolations || parent[0] || parent);
+    LSD.Script.Interpolation(clone || element, memo && memo.interpolations || parent[0] || parent);
     return clone || element;
   },
   
@@ -237,8 +238,8 @@ LSD.Layout.prototype = Object.append({
     }
     var element = parent[1] || parent.toElement();
     var textnode = element.ownerDocument.createTextNode(string);
-    this.appendChild([parent[0] || parent, element], textnode, memo);
-    LSD.Layout.interpolate(textnode, memo && memo.interpolations || parent[0] || parent);
+    this.appendChild(parent, textnode, memo);
+    LSD.Script.Interpolation(textnode, memo && memo.interpolations || parent[0] || parent);
     return textnode;
   },
   
@@ -309,14 +310,14 @@ LSD.Layout.prototype = Object.append({
   */
   
   selector: function(string, parent, memo) {
-    if (string.match) var options = LSD.Layout.parse(string, parent);
+    if (string.match) var options = LSD.Module.Selectors.parse(string, parent);
     else var options = string;
     if (!memo) memo = {};
     if (!memo.type) memo.type = this.getType(memo, parent);
     var source = options.source;
     if (source && source.match && !source.match(LSD.Layout.rSource)) {
       delete options.source;
-      Object.merge(options, LSD.Layout.parse(source, parent));
+      Object.merge(options, LSD.Module.Selectors.parse(source, parent));
     }
     if (options.allocation || options.source || (options.tag && (memo.type.find(options.tag) || !LSD.Layout.NodeNames[options.tag]))) {
       var allocation = options.allocation;
@@ -414,7 +415,7 @@ LSD.Layout.prototype = Object.append({
       else
         return origin;
     } else if (options.branch) {
-      return new LSD.Layout.Branch(options);
+      return new LSD.Layout.Block(options);
     } else {
       if (options.layout) {
         return this.render(options.layout);
@@ -435,8 +436,8 @@ LSD.Layout.prototype = Object.append({
   },
 
   /*
-    Re-add once rendered content that was removed. When a `render`ed chunk of layout
-    was removed, `add` is the function that will gracefully add it back. 
+    Add piece of layout into DOM. It also ensures that both parent and layout
+    nodes are notified about insertion. 
   */
   add: function(layout, parent, memo) {
     return this.set(layout, parent, memo, true)
@@ -630,7 +631,7 @@ LSD.Layout.prototype = Object.append({
                   } else if (!soft) {  
                     if (!options) options = this.getOptions(memo, parent);
                     if (result !== true) 
-                      options = LSD.reverseMerge(options, result.match ? LSD.Layout.parse(result) : result);
+                      options = LSD.reverseMerge(options, result.match ? LSD.Module.Selectors.parse(result) : result);
                   }
                 }
               }
@@ -828,13 +829,17 @@ LSD.Layout.prototype = Object.append({
   getOptions: function(memo, parent) {
     return {
       lazy: true,
-      context: memo.context || (parent && (parent[0] || parent).options.context) || (this.document && this.document.options.context)
+      context: this.getContext(memo, parent)
     };
   },
   
   getType: function(memo, parent) {
-    var context = memo.context || (parent && (parent[0] || parent).options.context) || (this.document && this.document.options.context)
+    var context = this.getContext(memo, parent);
     return LSD[LSD.toClassName(context)];
+  },
+  
+  getContext: function(memo, parent) {
+    return memo.context || (parent && (parent[0] || parent).options.context) || (this.document && this.document.options.context)
   }
 });
 /*
@@ -894,12 +899,8 @@ LSD.Layout.Combinators = {
 LSD.Layout.Combinators['++'] = LSD.Layout.Combinators['+'];
 LSD.Layout.Combinators['~~'] = LSD.Layout.Combinators['~'];
 
-// Match boundaries of comments that use short notation, e.g. `<!- ->` 
-LSD.Layout.rComment = /(\<\!-)|(-\>)/g
 // Check if a string is a simple source declaration, e.g. `grid-list-item`
 LSD.Layout.rSource = /^[a-z-_0-9]+$/;
-// Check if a string is an expression prepended with keyword, e.g. `if true`
-LSD.Layout.rKeywordExpression = /^\s*([a-z]+)(?:\s(.*?))?\s*$/;
 
 LSD.Layout.NodeTypes = {1: 'element', 3: 'textnode', 8: 'comment', 11: 'fragment'};
 LSD.Layout.NodeNames = Array.object('!doctype', 'a', 'abbr', 'acronym', 'address', 'applet', 'area', 
@@ -913,6 +914,52 @@ LSD.Layout.NodeNames = Array.object('!doctype', 'a', 'abbr', 'acronym', 'address
 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'textarea', 'tfoot', 'th', 'thead', 
 'time', 'title', 'tr', 'ul', 'var', 'video', 'wbr');
 
+Object.append(LSD.Layout, {
+  extractKeyword: function(input) {
+    var match = input.match(LSD.Layout.rKeywordExpression);
+    if (match && LSD.Layout.Keyword[match[1]])
+      return {keyword: match[1], expression: match[2]};
+  },
+  
+  getSource: function(options, tagName) {
+    if (options && options.localName) {
+      var source = LSD.toLowerCase(options.tagName);
+      var type = options.getAttribute('type');
+      if (type) (source.push ? source : [source]).push(type);
+    } else {
+      var source;
+      if (tagName) (source ? (source.push ? source : (source = [source])).push(tagName) : (source = tagName));
+      if (options) {
+        var type = options.type;
+        if (type) (source ? (source.push ? source : (source = [source])).push(type) : (source = type));
+        var kind = options.kind;
+        if (kind) (source ? (source.push ? source : (source = [source])).push(kind) : (source = kind));
+      }
+    }
+    return source;
+  },
+  
+  regexpify: function(string) {
+    var names;
+    var source = string.replace(LSD.Script.Interpolation.rBoundaries, function(m, name) {
+      if (!names) names = [];
+      names.push(name);
+      return '\\s*(.*?)\\s*'
+    });
+      console.log(string, source);
+    if (names) {
+      var regexp = new RegExp("^" + source + "$", 'mi');
+      regexp.string = string;
+      regexp._names = names;
+      return regexp;
+    }
+  }
+});
+
+// Check if a string is an expression prepended with keyword, e.g. `if true`
+LSD.Layout.rKeywordExpression = /^\s*([a-z]+)(?:\s(.*?))?\s*$/;
+
+// List of special keywords in expressions to create a layout block
 LSD.Layout.Keyword = {
   'if': function(expression) {
     return {branch: true, expression: expression};
@@ -944,149 +991,3 @@ LSD.Layout.Keyword = {
     return {branch: true, collection: true, expression: expression}
   }
 };
-
-Object.append(LSD.Layout, {
-  extractKeyword: function(input) {
-    var match = input.match(LSD.Layout.rKeywordExpression);
-    if (match && LSD.Layout.Keyword[match[1]])
-      return {keyword: match[1], expression: match[2]};
-  },
-  
-  /* 
-    Parsers selector and generates options for layout 
-  */
-  parse: function(selector, parent) {
-    var options = {};
-    var expressions = (selector.Slick ? selector : Slick.parse(selector)).expressions[0];
-    loop: for (var j = expressions.length, expression; expression = expressions[--j];) {
-      switch (expression.combinator) {
-        case ' ':
-          break;
-        case '::':
-          if (LSD.Allocations[expression.tag]) {
-            var allocation = options.allocation = LSD.Module.Allocations.compile(expression.tag, expression.classes, expression.attributes, expression.pseudos);
-            if (allocation.options && allocation.options.source) {
-              var source = allocation.options.source;
-              delete allocation.options.source
-            }
-          } else {
-            var relation = (parent[0] || parent).relations[expression.tag];
-            if (!relation) throw "Unknown pseudo element ::" + expression.tag;
-            options.source = relation.getSource();
-          }
-          break;
-        default:
-          if (expression.tag == '*' && !expression.classes && !expression.attributes && !expression.pseudos) {
-            options.order = expression.combinator;
-          } else {
-            options.combinator = expression.combinator;
-          }
-      }
-      if (expression.id) (options.attributes || (options.attributes = {})).id = expression.id
-      if (expression.attributes) 
-        for (var all = expression.attributes, attribute, i = 0; attribute = all[i++];) {
-          var value = attribute.value || LSD.Attributes[attribute.key] == 'number' || "";
-          (options.attributes || (options.attributes = {}))[attribute.key] = value;
-        }
-      if (expression.tag != '*' && expression.combinator != '::')
-        if (expression.tag.indexOf('-') > -1) {
-          options.source = expression.tag;
-        } else {
-          options.tag = expression.tag;
-          var source = LSD.Layout.getSource(options, options.tag);
-          if (source.push) options.source = source;
-        }
-      if (expression.classes) 
-        for (var all = expression.classes, pseudo, i = 0; klass = all[i++];) 
-          (options.classes || (options.classes = {}))[klass.value] = true;
-      if (expression.pseudos) 
-        for (var all = expression.pseudos, pseudo, i = 0; pseudo = all[i++];) 
-          (options.pseudos || (options.pseudos = {}))[pseudo.key] = true;
-    }
-    return options;
-  },
-  
-  getSource: function(options, tagName) {
-    if (options && options.localName) {
-      var source = LSD.toLowerCase(options.tagName);
-      var type = options.getAttribute('type');
-      if (type) (source.push ? source : [source]).push(type);
-    } else {
-      var source;
-      if (tagName) (source ? (source.push ? source : (source = [source])).push(tagName) : (source = tagName));
-      if (options) {
-        var type = options.type;
-        if (type) (source ? (source.push ? source : (source = [source])).push(type) : (source = type));
-        var kind = options.kind;
-        if (kind) (source ? (source.push ? source : (source = [source])).push(kind) : (source = kind));
-      }
-    }
-    return source;
-  },
-  
-  interpolateAttributes: function(element, widget, callback) {
-    var value, open
-    for (var i = 0, j = element.attributes.length, attribute; attribute = element.attributes[i++];) {
-      value = attribute.value;
-      var count = 0, last = 0, index, args;
-      for (var match, compiled; match = LSD.Layout.rInterpolationOpener.exec(value);) {
-        index = match.index;
-        if (!args) args = [];
-        if (index > last) args.push(value.substring(last, index));
-        if (!callback || callback === true) callback = widget;
-        if (match[2] == "}") {
-          args.push(LSD.Script({
-            input: match[1],
-            source: callback,
-            placeholder: match[0]
-          }));
-        }
-        last = index + match[0].length;
-      }
-      if (args && last < value.length) args.push(value.substring(last, value.length));
-      if (args) var interpolation = new LSD.Script.Function(args, callback, attribute, 'concat')
-      if (interpolation) interpolation.attach();
-    }
-  },
-  
-  interpolate: function(textnode, widget, callback) {
-    var node = textnode, content = node.textContent, finder, length = content.length;
-    for (var match, index, last, next, compiled; match = LSD.Layout.rInterpolation.exec(content);) {
-      last = index || 0
-      var index = match.index + match[0].length;
-      expression = node;
-      var cut = index - last;
-      if (cut < node.textContent.length) node = node.splitText(index - last);
-      if ((cut = (match.index - last))) expression = expression.splitText(cut);
-      if (!callback || callback === true) callback = widget;
-      compiled = LSD.Script({
-        input: match[1],
-        source: callback,
-        output: expression,
-        placeholder: match[0]
-      });
-      Element.store(expression, 'interpolation', compiled);
-      last = index;
-    }
-  },
-  
-  regexpify: function(string) {
-    var names;
-    var source = string.replace(LSD.Layout.rInterpolation, function(m, name) {
-      if (!names) names = [];
-      names.push(name);
-      return '\\s*(.*?)\\s*'
-    });
-    if (names) {
-      var regexp = new RegExp("^" + source + "$", 'mi');
-      regexp.string = string;
-      regexp._names = names;
-      return regexp;
-    }
-  }
-});
-
-
-// Find {interpolated} expressions in a string
-LSD.Layout.rInterpolation = /\\?\{([^{}]+)\}/g;
-LSD.Layout.rInterpolationOpener = /\\?\{([^{}]+)(\}|$)/g;

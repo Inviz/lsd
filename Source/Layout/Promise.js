@@ -163,7 +163,7 @@ LSD.Layout.Promise.Textnode.prototype = Object.append({}, LSD.Layout.Promise.pro
         object[this.regexp._names[i]] = bit;
       if (i) {
         Element.store(result, 'interpolator', object);
-        this.widget.addInterpolator(object)
+        this.widget.variables.merge(object)
       }
     } else {
       result = this.layout.string(this.string, this.parent);

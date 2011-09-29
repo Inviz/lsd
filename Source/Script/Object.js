@@ -48,6 +48,34 @@ LSD.Object.prototype = {
     delete this[key];
     return true;
   },
+  merge: function(object, reverse) {
+    if (object.watch) {
+      var self = this;
+      var watcher = function(name, value, state, old) {
+        if (state) self.set(name, value, null, reverse);
+        if (!state || old != null) self.unset(name, state ? old : value, null, reverse);
+      }
+      watcher.callback = object;
+      object.addEvent('change', watcher);
+      for (var name in object) 
+        if (object.has(name)) 
+          this.set(name, object[name], null, reverse)
+    } else {
+      for (var name in object) 
+        this.set(name, object[name], null, reverse);
+    }
+  },
+  unmerge: function(object, reverse) {
+    if (object.unwatch) {
+      object.removeEvent('change', this);
+      for (var name in object) 
+        if (object.has(name)) 
+          this.unset(name, object[name], null, reverse)
+    } else {
+      for (var name in object) 
+        this.set(name, object[name], null, reverse);
+    }
+  },
   include: function(key, memo) {
     return this.set(key, true, memo)
   },
@@ -76,10 +104,14 @@ LSD.Object.prototype = {
     return this;
   },
   removeEvent: function(key, callback) {
-    var storage = this._events;
-    var key = key;
-    var index = storage[key].indexOf(callback);
-    if (index > -1) storage[key].splice(0, 1);
+    var group = this._events[key]
+    for (var j = group.length; --j > -1;) {
+      var listener = group[j];
+      if (listener === callback || listener.callback === callback) {
+        group.splice(j, 1);
+        break;
+      }
+    }
     return this;
   },
   watch: function(key, callback, lazy) {
@@ -156,25 +188,33 @@ LSD.Object.Stack = function(object) {
 };
 
 LSD.Object.Stack.prototype = Object.append(new LSD.Object, {
-  set: function(key, value, memo) {
+  set: function(key, value, memo, prepend) {
     var stack = this._stack;
     if (!stack) stack = this._stack = {};
     var group = stack[key];
     if (!group) group = stack[key] = []
-    var length = (value == null) ? group.unshift(value) : group.push(value);
+    var length = (prepend || value == null) ? group.unshift(value) : group.push(value);
     return LSD.Object.prototype.set.call(this, key, group[length - 1], memo);
   },
-  unset: function(key, value, memo) {
+  unset: function(key, value, memo, prepend) {
     var group = this._stack[key], length = group.length;
-    for (var j = length; --j > -1; ) {
-      if (group[j] === value) {
-        group.splice(j, 1);
-        break;
-      }
+    if (prepend) {
+      for (var i = 0, j = length; i < j; i++)
+        if (group[i] === value) {
+          group.splice(i, 1);
+          break;
+        }
+      if (j == i) return
+    } else {
+      for (var j = length; --j > -1; ) 
+        if (group[j] === value) {
+          group.splice(j, 1);
+          break;
+        }
+      if (j == -1) return
     }
     value = group[length - 2];
     var method = length == 1 ? 'unset' : 'set';
-    if (j == -1) return //throw "The value can not be unset, because it was not set before"
     return LSD.Object.prototype[method].call(this, key, value, memo);
   },
   write: function(key, value, memo) {
@@ -200,4 +240,3 @@ LSD.Object.callback = function(object, callback, key, value, old, memo) {
   if (value != null || typeof old == 'undefined') subject.set(property, value, memo);
   if (value == null || typeof old != 'undefined') subject.unset(property, old, memo);
 };
-

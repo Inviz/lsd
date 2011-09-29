@@ -18,7 +18,6 @@ requires:
   - LSD.Module.Allocations
   - LSD.Module.Relations
   - LSD.Module.Proxies
-  - LSD.Module.Interpolations
 
 provides: 
   - LSD.Module.Ambient
@@ -35,7 +34,6 @@ LSD.Module.Ambient = new Class({
     LSD.Module.Mutations,
     LSD.Module.Allocations,
     LSD.Module.Relations,
-    LSD.Module.Proxies,
-    LSD.Module.Interpolations
+    LSD.Module.Proxies
   ]
 });

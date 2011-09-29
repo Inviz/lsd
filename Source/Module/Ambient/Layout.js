@@ -13,7 +13,7 @@ requires:
   - LSD.Module
   - LSD.Module.Events
   - LSD.Layout
-  - LSD.Layout.Branch
+  - LSD.Layout.Block
   - LSD.Layout.Microdata
   - LSD.Layout.Promise
 

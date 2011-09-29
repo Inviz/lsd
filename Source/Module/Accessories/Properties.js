@@ -14,6 +14,8 @@ requires:
   - LSD.Object
   - LSD.Module.Options
   - LSD.Module.Events
+  - LSD.Module.Attributes
+  - LSD.Script.Scope
   
 provides:
   - LSD.Module.Properties
@@ -51,8 +53,9 @@ LSD.Module.Properties = new Class({
           if (events) LSD.Module.Events.setStoredEvents.call(value, events, true, self);
           if (method) method.call(self, value, true, old, memo);
         }
-      })
-    }
+      });
+      LSD.Script.Scope(this);
+    },
   },
 
   store: function(name, value) {
@@ -85,42 +88,16 @@ LSD.Module.Events.addEvents.call(LSD.Module.Properties.prototype, {
     }
   }
 });
-Object.append(LSD.Options, {
-  tag: {
+
+['tag', 'context', 'source', 'scope'].each(function(name) {
+  LSD.Options[name] = {
     add: function(value) {
-      this.properties.set('tag', value);
+      this.properties.set(name, value);
     },
     remove: function(value) {
-      this.properties.unset('tag', value);
-    }
-  },
-  
-  context: {
-    add: function(value) {
-      this.properties.set('context', value)
-    },
-    remove: function(value) {
-      this.properties.unset('context', value)
-    }
-  },
-  
-  source: {
-    add: function(value) {
-      this.properties.set('source', value)
-    },
-    remove: function(value) {
-      this.properties.unset('source', value)
+      this.properties.unset(name, value);
     }
   }
-  //
-  //namespace: {
-  //  add: function(value) {
-  //    this.properties.set('source', value)
-  //  },
-  //  remove: function(value) {
-  //    this.properties.unset('source', value)
-  //  }
-  //}
 });
 
 LSD.Module.Properties.Methods = {
@@ -161,6 +138,11 @@ LSD.Module.Properties.Methods = {
   role: function(value, state, old) {
     if (state) return LSD.Module.Properties.setRole(this, value)
     else if (old) LSD.Module.Properties.unsetRole(this, old)
+  },
+  
+  scope: function(value, state, old) {
+    if (state) return LSD.Script.Scope.setScope(this, value)
+    else if (old) LSD.Script.Scope.unsetScope(this, old)
   }
 };
 
