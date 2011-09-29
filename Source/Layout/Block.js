@@ -20,10 +20,10 @@ provides:
 */
 
 /*
-  A branch is a part of layout that is rendered on condition.
+  A block is a part of layout that is rendered on condition.
   
   When layout is defined with selector object, a key in that 
-  may contain an expression with a keyword that makes a branch.
+  may contain an expression with a keyword that makes a block.
   
     {
       '.div.wrapper': {
@@ -40,7 +40,7 @@ provides:
   and updates layout as the values change in real time.
   
   If a condition was truthy and layout was rendered, the expression
-  later may update value and make branch no longer meet the condition.
+  later may update value and make block no longer meet the condition.
   A rendered layout then gets removed from DOM, and later may be 
   inserted back without re-rendering.
   
@@ -57,7 +57,7 @@ provides:
     </article>
     
   A block gets removed from DOM if a condition doesnt match initially.
-  A branch may have its HTML block wrapped into its own comment making
+  A block may have its HTML block wrapped into its own comment making
   the layout rendering lazy. The comment element containing the lazy
   HTML will then be replaced with its rendered contents.
   
@@ -75,12 +75,12 @@ LSD.Layout.Block = function(options) {
   LSD.Script.Scope(this, this.parentNode);
   if (options.layout) this.setLayout(options.layout, true);
   if (options.collection) this.values = [];
-  if (options.superbranch) {
-    options.superbranch.addEvents({
+  if (options.superblock) {
+    options.superblock.addEvents({
       check: this.unmatch.bind(this),
       uncheck: this.match.bind(this)
     });
-    if (!options.superbranch.checked ^ this.options.invert) this.match();
+    if (!options.superblock.checked ^ this.options.invert) this.match();
   } else if (options.expression || options.show) {
     this.match();
   } else if (options.name) {
@@ -91,18 +91,18 @@ LSD.Layout.Block.UID = 0;
 LSD.Template = {};
 
 LSD.Layout.Block.prototype = Object.append({
-  branch: true,
-  getInterpolation: function() {
-    if (typeof this.interpolation == 'undefined') {
+  block: true,
+  getVariable: function() {
+    if (typeof this.variable == 'undefined') {
       if (this.options.collection) {
         this.expression = this.expression.replace(LSD.Layout.Block.rLoopAlias, function(m, name) {
           this.arguments = [name];
           return '';
         }.bind(this));
       }
-      this.interpolation = LSD.Script.compile(this.expression, this, this, true);
+      this.variable = LSD.Script.compile(this.expression, this, this, true);
     }
-    return this.interpolation;
+    return this.variable;
   },
   match: function() {
     if (this.options.expression && !this.evaluate(true)) return;
@@ -127,8 +127,8 @@ LSD.Layout.Block.prototype = Object.append({
     }  
   },
   evaluate: function(state) {
-    var interpolation = this.getInterpolation();
-    var value = interpolation.attach ? interpolation[state ? 'attach' : 'detach']().value : interpolation;
+    var variable = this.getVariable();
+    var value = variable.attach ? variable[state ? 'attach' : 'detach']().value : variable;
     if (this.value !== value) this.set(value);
     return this.validate(true);
   },
@@ -176,8 +176,8 @@ LSD.Layout.Block.prototype = Object.append({
       options: this.options.options, 
       plain: (lazy === true), 
       clone: !!this.options.original && !this.options.original.checked,
-      interpolations: this,
-      branches: [this]
+      scope: this,
+      blocks: [this]
     };
     this.rendered = this.widget.addLayout(this.id, layout, [this.widget, this.element], memo);
     if (result) this.collapse(this.rendered)
@@ -185,15 +185,15 @@ LSD.Layout.Block.prototype = Object.append({
   render: function(args, options, widget) {
     if (args != null && !args.push) args = [args]; 
     if (!this.options.original) {
-      var branch = this.clone(widget, options, true);
-    } else var branch = this;
+      var block = this.clone(widget, options, true);
+    } else var block = this;
     for (var i = 0, argument; argument = this.arguments[i]; i++) {
-      if (branch.args && branch.args[i] != null) branch.variables.unset(argument, branch.args[i]);
-      if (args[i] != null) branch.variables.set(argument, args[i]);
+      if (block.args && block.args[i] != null) block.variables.unset(argument, block.args[i]);
+      if (args[i] != null) block.variables.set(argument, args[i]);
     }
-    branch.args = args;
-    branch.show();
-    return branch;
+    block.args = args;
+    block.show();
+    return block;
   },
   clone: function(parent, opts, shallow) {
     var layout = this.layout;
@@ -216,11 +216,11 @@ LSD.Layout.Block.prototype = Object.append({
     if (!layout) return;
     this.widget.removeLayout(this.id, layout);
   },
-  splice: function(branch, layout, baseline) {
+  splice: function(block, layout, baseline) {
     var offset = 0;
-    if (branch.layout) {
+    if (block.layout) {
       if (!layout) layout = this.layout;
-      for (var i = 0, child, keyword; child = branch.layout[i]; i++) {
+      for (var i = 0, child, keyword; child = block.layout[i]; i++) {
         var index = layout.indexOf(child);
         if (index > -1) {
           var keyword = Element.retrieve(child, 'keyword');
@@ -284,7 +284,7 @@ LSD.Layout.Block.prototype = Object.append({
     return this.layout;
   },
   attach: function() {
-    if ((this.options.expression && !this.options.link) || !this.options.superbranch.checked) this.match(true);
+    if ((this.options.expression && !this.options.link) || !this.options.superblock.checked) this.match(true);
   },
   detach: function() {
     if (this.options.expression && !this.options.link) this.unmatch(true);
@@ -297,7 +297,7 @@ LSD.Layout.Block.prototype = Object.append({
       if (depth == !!start) return start ? '<!--' : '-->'
       return whole;
     });
-    if (depth) throw "The lazy branch is unbalanced"
+    if (depth) throw "The lazy block is unbalanced"
     return text;
   }
 }, Events.prototype);

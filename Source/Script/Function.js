@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Script
   - LSD.Script.Variable
+  - LSD.Script.Helpers
   
 provides:
   - LSD.Script.Function
@@ -43,11 +44,11 @@ LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype,
   fetch: function(state) {
     for (var i = 0, j = this.args.length, arg; i < j; i++) {
       if ((arg = this.args[i]) == null) continue;
-      if (!arg.interpolation) arg = LSD.Script.compile(this.args[i], this.source);
-      if (arg.interpolation && !arg.parent) arg.parent = this;
+      if (!arg.variable) arg = LSD.Script.compile(this.args[i], this.source);
+      if (arg.variable && !arg.parent) arg.parent = this;
       if (arg.value == null) var stop = true;
       this.args[i] = arg;
-      if (arg.interpolation) arg.fetch(state);
+      if (arg.variable) arg.fetch(state);
     }
     if (!stop) this.set();
     return this;
@@ -55,7 +56,7 @@ LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype,
   
   execute: function() {
     for (var i = 0, args = [], j = this.args.length, arg; i < j; i++)
-      if ((arg = this.args[i]) && arg.interpolation && arg.value == null) return null;
+      if ((arg = this.args[i]) && arg.variable && arg.value == null) return null;
       else args[i] = (arg && typeof arg.value != 'undefined') ? arg.value : arg;
     if (this.name) {  
       return LSD.Script.Helpers[this.name].apply(LSD.Script.Helpers, args)

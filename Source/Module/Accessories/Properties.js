@@ -142,7 +142,7 @@ LSD.Module.Properties.Methods = {
   
   scope: function(value, state, old) {
     if (state) return LSD.Script.Scope.setScope(this, value)
-    else if (old) LSD.Script.Scope.unsetScope(this, old)
+    else if (old) LSD.Script.Scope.unsetScope(this, old);
   }
 };
 

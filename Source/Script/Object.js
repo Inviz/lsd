@@ -118,7 +118,13 @@ LSD.Object.prototype = {
     var index = key.indexOf('.');
     if (index > -1) {
       var finder = function(value, old) {
-        (value || old)[value ? 'watch' : 'unwatch'](key.substring(index + 1), callback);
+        var object = value || old;
+        if (object.watch) {
+          object[value ? 'watch' : 'unwatch'](key.substring(index + 1), callback);
+        } else {
+          var result = Object.getFromPath(object, key.substring(index + 1));
+          if (result != null) callback(result);
+        }
       };
       finder.callback = callback;
       this.watch(key.substr(0, index), finder)

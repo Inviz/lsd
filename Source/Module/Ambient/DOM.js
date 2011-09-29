@@ -58,6 +58,7 @@ LSD.Module.DOM = new Class({
         } else return
       }
     this.properties.set('parent', widget);
+    this.properties.set('scope', widget, null, true);
     set.call(this, widget, index);
     var previous = this.previousSibling;
     var start = previous ? (previous.sourceLastIndex || previous.sourceIndex) : widget.sourceIndex || (widget.sourceIndex = 1);
@@ -84,6 +85,7 @@ LSD.Module.DOM = new Class({
     this.removed = true;
     unset.call(this, widget, index); 
     this.properties.unset('parent', widget);
+    this.properties.unset('scope', widget, null, true);
     delete this.removed;
   },
   
@@ -412,7 +414,6 @@ Object.append(LSD.Module.DOM, {
 });
 
 }();
-
 
 LSD.Options.document = {
   add: function(document) {

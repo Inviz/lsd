@@ -55,7 +55,7 @@ LSD.Script = function(input, source, output, placeholder) {
     placeholder = options.placeholder;
   }
   var result = LSD.Script.compile(input, source, output, true);
-  if (result.interpolation) {
+  if (result.variable) {
     if (placeholder) result.placeholder = placeholder;
     if (source) result.attach();
   } else {
@@ -175,7 +175,7 @@ Object.append(LSD.Script, {
   },
   
   output: function(object, value) {
-    if (object.branch) {
+    if (object.block) {
       object.set(value);
     } else if (object.call) {
       object(value !== null);

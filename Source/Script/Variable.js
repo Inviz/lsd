@@ -57,7 +57,7 @@ LSD.Script.Variable = function(input, source, output) {
 };
 
 LSD.Script.Variable.prototype = {
-  interpolation: true,
+  variable: true,
   
   set: function(value) {
     this.value = this.process ? this.process(value) : value;

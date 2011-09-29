@@ -13,6 +13,7 @@ requires:
   - LSD
   - LSD.Helpers
   - LSD.Script.Interpolation
+  - LSD.Script.Selector
   - More/Object.Extras
 
 provides: 
@@ -164,7 +165,7 @@ LSD.Layout.prototype = Object.append({
         if (!previous.lsd) previous = null;
       } else {
         var result = this[LSD.Layout.NodeTypes[child.nodeType]].apply(this, args);
-        if (result != child && result !== true && result && !result.branch) 
+        if (result != child && result !== true && result && !result.block) 
           children[i] = result.lsd ? result.element : result;
         previous = null;
       }
@@ -187,7 +188,7 @@ LSD.Layout.prototype = Object.append({
   textnode: function(element, parent, memo) {
     if (memo && memo.clone) var clone = element.cloneNode(false);
     this.appendChild(parent, clone || element, memo);
-    LSD.Script.Interpolation(clone || element, memo && memo.interpolations || parent[0] || parent);
+    LSD.Script.Interpolation(clone || element, memo && memo.scope || parent[0] || parent);
     return clone || element;
   },
   
@@ -206,7 +207,7 @@ LSD.Layout.prototype = Object.append({
     keyword = this.keyword(comment.nodeValue, parent, memo, clone || comment, keyword);
     if (keyword) {
       if (keyword !== true) {
-        (memo.branches || (memo.branches = [])).push(keyword);  
+        (memo.blocks || (memo.blocks = [])).push(keyword);  
       } 
       Element.store(clone || comment, 'keyword', keyword);
       return keyword;
@@ -239,7 +240,7 @@ LSD.Layout.prototype = Object.append({
     var element = parent[1] || parent.toElement();
     var textnode = element.ownerDocument.createTextNode(string);
     this.appendChild(parent, textnode, memo);
-    LSD.Script.Interpolation(textnode, memo && memo.interpolations || parent[0] || parent);
+    LSD.Script.Interpolation(textnode, memo && memo.scope || parent[0] || parent);
     return textnode;
   },
   
@@ -248,18 +249,18 @@ LSD.Layout.prototype = Object.append({
   */
   
   object: function(object, parent, memo) {
-    var result = {}, layout, branch;
+    var result = {}, layout, block;
     for (var selector in object) {
       layout = object[selector] === true || !object[selector] ? null : object[selector];
       if (!memo) memo = {};
-      if ((branch = this.keyword(selector, parent, memo))) {
-        (memo.branches || (memo.branches = [])).push(branch);
-        branch.setLayout(layout, true);
-        result[selector] = [branch, layout];
+      if ((block = this.keyword(selector, parent, memo))) {
+        (memo.blocks || (memo.blocks = [])).push(block);
+        block.setLayout(layout, true);
+        result[selector] = [block, layout];
       } else {
-        if (branch && memo && memo.branches && memo.branches[memo.branches.length - 1] == branch) {
-          memo.branches.pop();
-          branch = null;
+        if (block && memo && memo.blocks && memo.blocks[memo.blocks.length - 1] == block) {
+          memo.blocks.pop();
+          block = null;
         }
         var rendered = this.selector(selector, parent, memo);
         var combinator = memo.combinator;
@@ -384,26 +385,26 @@ LSD.Layout.prototype = Object.append({
     var keyword = LSD.Layout.Keyword[parsed.keyword];
     if (!keyword) return;
     var options = keyword(parsed.expression);
-    var parentbranch = memo.branches && memo.branches[memo.branches.length - 1];
+    var parentblock = memo.blocks && memo.blocks[memo.blocks.length - 1];
     if (options.ends || options.link) {
-      if (!(options.superbranch = (memo.branches && memo.branches.pop()))) 
-        throw "Alternative branch is missing its original branch";
-      var node = options.superbranch.options.origin;
+      if (!(options.superblock = (memo.blocks && memo.blocks.pop()))) 
+        throw "Alternative block is missing its original block";
+      var node = options.superblock.options.origin;
       if (node) {
         for (var layout = []; (node = node.nextSibling) != element;) layout.push(node);
-        options.superbranch.options.before = element;
-        if (layout.length > 0) options.superbranch.setLayout(layout);
+        options.superblock.options.before = element;
+        if (layout.length > 0) options.superblock.setLayout(layout);
       }
-      //if (element && options.superbranch.options.clean) {
+      //if (element && options.superblock.options.clean) {
       //  element.parentNode.removeChild(element);
-      //  var origin = options.superbranch.options.origin;
+      //  var origin = options.superblock.options.origin;
       //  if (origin && origin.parentNode) origin.parentNode.removeChild(origin);
       //}
       if (options.ends) return true;
     }
-    if (origin && origin.branch || options.branch) {
+    if (origin && origin.block || options.block) {
       options.keyword = parsed.keyword;
-      options.parent = parentbranch;
+      options.parent = parentblock;
       options.widget = parent[0] || parent;
       options.element = parent[1] || parent.toElement();
       options.origin = element;
@@ -414,7 +415,7 @@ LSD.Layout.prototype = Object.append({
         return origin.clone(parent, options);
       else
         return origin;
-    } else if (options.branch) {
+    } else if (options.block) {
       return new LSD.Layout.Block(options);
     } else {
       if (options.layout) {
@@ -734,8 +735,8 @@ LSD.Layout.prototype = Object.append({
     var children = LSD.slice(element.childNodes);
     var ret = this.element(element, parent, memo);
     if (ret.lsd) var widget = ret;
-    else if (ret.branch) {
-      (memo.branches || (memo.branches = [])).push(ret);
+    else if (ret.block) {
+      (memo.blocks || (memo.blocks = [])).push(ret);
     } else if (memo.clone) var clone = ret;
     /* 
       Put away selectors in the stack that should not be matched against element's child nodes
@@ -946,7 +947,6 @@ Object.append(LSD.Layout, {
       names.push(name);
       return '\\s*(.*?)\\s*'
     });
-      console.log(string, source);
     if (names) {
       var regexp = new RegExp("^" + source + "$", 'mi');
       regexp.string = string;
@@ -962,16 +962,16 @@ LSD.Layout.rKeywordExpression = /^\s*([a-z]+)(?:\s(.*?))?\s*$/;
 // List of special keywords in expressions to create a layout block
 LSD.Layout.Keyword = {
   'if': function(expression) {
-    return {branch: true, expression: expression};
+    return {block: true, expression: expression};
   },
   'unless': function(expression) {
-    return {branch: true, expression: expression, invert: true};
+    return {block: true, expression: expression, invert: true};
   },
   'elsif': function(expression) {
-    return {branch: true, expression: expression, link: true};
+    return {block: true, expression: expression, link: true};
   },
   'else': function() {
-    return {branch: true, link: true};
+    return {block: true, link: true};
   },
   'build': function(expression) {
     var options = {layout: {}};
@@ -979,15 +979,15 @@ LSD.Layout.Keyword = {
     return options;
   },
   'template': function(expression) {
-    return {branch: true, name: expression, clean: true}
+    return {block: true, name: expression, clean: true}
   },
   'end': function(expression) {
     return {ends: true}
   },
   'for': function(expression) {
-    return {branch: true, collection: true, expression: expression}
+    return {block: true, collection: true, expression: expression}
   },
   'each': function(expression) {
-    return {branch: true, collection: true, expression: expression}
+    return {block: true, collection: true, expression: expression}
   }
 };

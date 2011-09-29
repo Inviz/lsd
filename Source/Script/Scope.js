@@ -30,7 +30,7 @@ Object.append(LSD.Script.Scope, {
     object.variables.merge(scope.variables, true);
   },
   
-  unsetSource: function(object, scope) {
+  unsetScope: function(object, scope) {
     object.variables.unmerge(scope.variables, true);
   }
 });
