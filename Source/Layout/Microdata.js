@@ -49,10 +49,12 @@ LSD.Microdata.prototype = Object.append(new LSD.Object, {
     else if (group.push) group.push(name);
     if (value == null) value = Element.get(element, 'itemvalue');
     this.set(property, value);
-    var callback = Element.retrieve(element, 'microdata:setter');
-    if (!callback) Element.store(element, 'microdata:setter', (callback = function(value) {
-      Element.set(element, 'itemvalue', value);      
-    }))
+    if (element.getAttribute('itemscope') == null) {
+      var callback = Element.retrieve(element, 'microdata:setter');
+      if (!callback) Element.store(element, 'microdata:setter', (callback = function(value) {
+        Element.set(element, 'itemvalue', value);      
+      }))
+    }
     this.watch(property, callback, true)
   },
   remove: function(element, property, value) {
@@ -61,7 +63,8 @@ LSD.Microdata.prototype = Object.append(new LSD.Object, {
     else delete this._elements[property];
     if (value == null) value = Element.get(element, 'itemvalue');
     if (this.property && this.property == value) this.unset(property);
-    this.unwatch(property, Element.retrieve(element, 'microdata:setter'));
+    var setter = Element.retrieve(element, 'microdata:setter');
+    if (setter) this.unwatch(property, setter);
   }
 });
 
