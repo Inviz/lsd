@@ -41,7 +41,7 @@ LSD.Script.Interpolation.Attribute = function(name, value, source, attribute, fo
     index = match.index;
     if (!args) args = [];
     if (index > last) args.push(value.substring(last, index));
-    if (match[2] == "}") {
+    if (match[2] == "}" || match[2] == null) {
       args.push(LSD.Script({
         input: match[1],
         source: source,
@@ -53,7 +53,7 @@ LSD.Script.Interpolation.Attribute = function(name, value, source, attribute, fo
   if (args && last < value.length) args.push(value.substring(last, value.length));
   if (args) {
     if (!attribute) attribute = source.getAttributeNode(name);
-    return new LSD.Script.Function(args, source, attribute, 'concat')
+    return new LSD.Script.Function(args, source, attribute, 'concat').attach();
   }
 };
 
