@@ -36,6 +36,12 @@ LSD.Mixin.Resource = new Class({
     }
   },
   
+  constructors: {
+    resource: function(options, state) {
+      this.pseudos[state ? 'include' : 'erase']('request')
+    }
+  },
+  
   getResource: function(options) {
     if (!options) options = this.options.resource
     if (!this.resource) {
@@ -73,7 +79,7 @@ LSD.Mixin.Resource = new Class({
     if (this.model) return this.model
     this.model = this.getResource().init(this.getResourceID() || this.element);
     var url = this.resource.getFormattedURL(this.model.id ? 'show' : 'index', this.model);
-    this.setAttribute('href', url);
+    //this.setAttribute('href', url);
     return this.model;
   },
   
