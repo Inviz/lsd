@@ -33,6 +33,13 @@ LSD.Mixin.Resource = new Class({
           this.getModel();
         }
       }
+    },
+    events: {
+      self: {
+        getCommandAction: function() {
+          return 'submit';
+        }
+      }
     }
   },
   
