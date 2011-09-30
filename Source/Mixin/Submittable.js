@@ -43,7 +43,7 @@ LSD.Mixin.Submittable = new Class({
               submission: function() {
                 var args;
                 if (this.attributes.formmethod) (args || (args = {})).method = this.attributes.formmethod;
-                if (this.attributes.formaction) (args || (args = {})).action = this.attributes.formaction;
+                if (this.attributes.formaction) (args || (args = {})).url = this.attributes.formaction;
                 var action = {action: 'submit', target: this.submittable};
                 if (args) action.arguments = args;
                 return action;
