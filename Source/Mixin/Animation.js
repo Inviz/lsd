@@ -10,6 +10,7 @@ license: Public domain (http://unlicense.org).
 requires:
   - LSD.Mixin
   - Core/Fx.Tween
+  - Core/Fx.Transitions
  
 provides: 
   - LSD.Mixin.Animation
@@ -31,33 +32,16 @@ LSD.Mixin.Animation = new Class({
     return this.animation;
   },
   
-  fade: function(how){
+  fade: function(how) {
     return this.getAnimation().start('opacity', how == 'in' ? 1 : 0);
   },
   
-  slide: function(how){
-    this.getAnimatedElement().store('style:overflow', this.getAnimatedElement().getStyle('overflow'));
-    this.getAnimatedElement().setStyle('overflow', 'hidden');
-    return this.getAnimation().start('height', how == 'in' ? this.getAnimatedElement().scrollHeight - this.getAnimatedElement().offsetHeight : 0);
+  height: function(how) {
+    return this.getAnimation().start('height', how == 'in' ? (this.getAnimatedElement().scrollHeight - this.getAnimatedElement().offsetHeight) : 0);
   },
   
-  show: function() {
-    var parent = this.parent;
-    this.getAnimatedElement().setStyle('display', this.getAnimatedElement().retrieve('style:display') || 'inherit');
-    this[this.attributes.animation]('in').chain(function(){
-      this.getAnimatedElement().setStyle('overflow', this.getAnimatedElement().retrieve('style:overflow') || 'inherit');
-      LSD.Widget.prototype.show.apply(this, arguments);
-    }.bind(this));
-  },
-  
-  hide: function(how) {
-    var parent = this;
-    this[this.attributes.animation]('out').chain(function(){
-      this.getAnimatedElement().setStyle('overflow', this.getAnimatedElement().retrieve('style:overflow') || 'inherit');
-      this.getAnimatedElement().store('style:display', this.getAnimatedElement().getStyle('display'));
-      this.getAnimatedElement().setStyle('display', 'none');
-      LSD.Widget.prototype.hide.apply(this, arguments);
-    }.bind(this));
+  animate: function(how) {
+    return this[this.attributes.animation](how);
   },
   
   remove: function() {

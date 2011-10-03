@@ -23,16 +23,26 @@ provides:
 LSD.Action.Display = LSD.Action.build({
   enable: function(target) {
     var widget = LSD.Module.DOM.find(target, true);
-    if (widget) widget.show();
-    else if (target.localName) {
+    if (widget) {
+      if (widget.animate){
+        widget.animate('in').chain(function() {
+          widget.show();
+        });
+      } else widget.show();
+    } else if (target.localName) {
       target.removeAttribute('hidden');
     }
   },
   
   disable: function(target) {
     var widget = LSD.Module.DOM.find(target, true);
-    if (widget) widget.hide();
-    else if (target.localName) {
+    if (widget) {
+      if (widget.animate) {
+        widget.animate('out').chain(function(){
+          widget.hide();
+        });
+      } else widget.hide();
+    } else if (target.localName) {
       target.setAttribute('hidden', 'hidden');
     }
   },
