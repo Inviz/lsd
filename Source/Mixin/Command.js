@@ -53,6 +53,12 @@ LSD.Mixin.Command = new Class({
           if (arg != null) this.eachLink('quickstart', arg, true, !this.getCommandState());
         }
       }
+    },
+    helpers: {
+      click: {
+        click: 'click',
+        unclick: 'unclick'
+      }
     }
   },
   

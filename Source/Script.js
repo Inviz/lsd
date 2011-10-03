@@ -75,7 +75,7 @@ Object.append(LSD.Script, {
     var names = regexp.names;
     while (found = regexp.exec(value)) matched.push(found);
     for (var i = 0, last = matched.length - 1; found = matched[i]; i++) {
-      if ((text = found[names._arguments])) {
+      if ((text = found[names._arguments]) != null) {
         var args = LSD.Script.parse(text);
         for (var j = 0, bit; bit = args[j]; j++) if (bit && bit.length == 1) args[j] = bit[0];
         if ((text = found[names['function']])) {
@@ -148,7 +148,13 @@ Object.append(LSD.Script, {
   },
   
   compile: function(object, source, output, parse) {
-    if (parse) object = LSD.Script.parse(object);
+    if (parse) {
+      object = LSD.Script.parse(object);
+      if (object.push) {
+        var name = ','
+        var value = object;
+      }
+    }
     switch (object.type) {
       case 'variable':
         var Klass = LSD.Script.Variable;
@@ -156,8 +162,8 @@ Object.append(LSD.Script, {
         break;
       case 'function':
         var Klass = LSD.Script.Function;
-        var name = object.name;
-        var value = object.value;
+        if (!name) var name = object.name;
+        if (!value) var value = object.value;
         break;
       case 'selector':
         var Klass = LSD.Script.Selector;
@@ -178,7 +184,7 @@ Object.append(LSD.Script, {
     if (object.block) {
       object.set(value);
     } else if (object.call) {
-      object(value !== null);
+      object(value);
     } else {
       if (value == null) value = '';
       switch (object.nodeType) {

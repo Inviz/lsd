@@ -62,8 +62,28 @@ Object.append(LSD.Script.Helpers, {
     } else {
       return count + ' ' + value;
     }
+  },
+  
+  ',': function() {
+    return arguments[arguments.length - 1];
   }
+
 });
+
+LSD.Script.Evaluators = {
+  ',': function(expression) {
+    if (!expression) 
+      return null;
+  },
+  '||': function(expression) {
+    if (expression) 
+      return expression;
+  },
+  '&&': function(expression) {
+    if (!expression) 
+      return expression;
+  }
+};
 
 // Import all string prototype methods as helpers (first argument translates to string)
 for (var name in String.prototype)
@@ -91,7 +111,8 @@ LSD.Script.Operators = {
   '==': 4, '===': 4, 
   '!=': 4, '!==': 4,
   '>=': 4, '<=': 4, 
-  '&&': 5, '||': 5
+  '&&': 5, '||': 5,
+  '=': 10
 };  
 
 for (var operator in LSD.Script.Operators)

@@ -42,27 +42,70 @@ LSD.Script.Function = function(input, source, output, name) {
 
 LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype, {
   fetch: function(state) {
-    for (var i = 0, j = this.args.length, arg; i < j; i++) {
-      if ((arg = this.args[i]) == null) continue;
-      if (!arg.variable) arg = LSD.Script.compile(this.args[i], this.source);
-      if (arg.variable && !arg.parent) arg.parent = this;
-      if (arg.value == null) var stop = true;
-      this.args[i] = arg;
-      if (arg.variable) arg.fetch(state);
-    }
-    if (!stop) this.set();
+    var args = this.evaluate(state);
+    if (args) this.set(args);
+    //if (this.children)
+    //  for (var i = 0, child; child = this.children[i++];)
+    //    child.fetch(state);
     return this;
   },
   
-  execute: function() {
-    for (var i = 0, args = [], j = this.args.length, arg; i < j; i++)
-      if ((arg = this.args[i]) && arg.variable && arg.value == null) return null;
-      else args[i] = (arg && typeof arg.value != 'undefined') ? arg.value : arg;
-    if (this.name) {  
-      return LSD.Script.Helpers[this.name].apply(LSD.Script.Helpers, args)
+  execute: function(args) {
+    if (!args) args = this.evaluate(true);
+    if (args === null) return null;
+    if (!args.push) return args;
+    if (this.name) {
+      var method = LSD.Script.Scope.lookup(this.source, this.name)
+      if (method) return method.apply(this, args)
     } else {
       return args[0];
     }
+  },
+  
+  evaluate: function(state) {
+    var args = [], value;
+    if (typeof this.evaluator == 'undefined') 
+      this.evaluator = LSD.Script.Evaluators[this.name] || null;
+    for (var i = 0, j = this.args.length, arg; i < j; i++) {
+      if ((arg = this.args[i]) == null) continue;
+      arg = this.translate(arg, state, i);
+      value = arg.variable ? arg.value : arg;
+      args.push(value);
+      if (this.evaluator) {
+        var result = this.evaluator.call(this, value, i == j - 1);
+        if (result != null) return result;
+        else if (result === null) return null;
+      } else {
+        if (arg.variable && value == null) return null;
+      }
+    }
+    return args;
+  },
+  
+  translate: function(arg, state, i) {
+    if (!arg.variable && state) arg = this.compile(arg);
+    if (arg.variable) {
+      if (i !== null) this.args[i] = arg;
+      if (state) {
+        if (arg.parent != this) {
+          arg.parent = this;
+          (this.children || (this.children = [])).push(arg);
+          arg.attach();
+        }
+      } else {
+        if (arg.parent == this) {
+          var index = this.children.indexOf(arg);
+          if (index > -1) this.children.splice(index, 1);
+          arg.detach();
+          delete arg.parent;
+        }
+      }
+    }
+    return arg;
+  },
+  
+  compile: function(arg) {
+    return LSD.Script.compile(arg, this.source);
   },
   
   process: function() {

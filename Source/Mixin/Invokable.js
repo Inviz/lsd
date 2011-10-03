@@ -43,6 +43,12 @@ LSD.Mixin.Invokable = new Class({
         },
         unsetParent: 'revoke'
       }
+    },
+    methods: {
+      invoke: {
+        invoke: 'invoke',
+        revoke: 'revoke'
+      }
     }
   },
   
@@ -58,6 +64,7 @@ LSD.Mixin.Invokable = new Class({
   invoke: function(invoker) {
     this.invoker = invoker;
     this.properties.set('invoker', invoker);
+    return invoker;
   },
   
   revoke: function(soft) {
