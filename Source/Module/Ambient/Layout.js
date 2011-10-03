@@ -82,12 +82,12 @@ LSD.Module.Layout.events = {
       
     if (this.origin && !this.options.clone && this.origin.parentNode && this.origin != this.element) 
       this.element.replaces(this.origin);
-      
-    if ((!this.options.lazy && this.options.traverse !== false) || (this.origin && this.origin != this.element)) {
+    
+    if (this.options.traverse !== false && !this.options.lazy) {
       var nodes = LSD.slice((this.origin || this.element).childNodes);
       var opts = {};
       if (this.options.context) opts.context = this.options.context;
-      if (this.options.clone) opts.clone = this.options.clone;
+      if (this.options.clone) opts.clone = this.options.clone
       if (nodes.length) this.addLayout('children', nodes, null, opts);
       this.fireEvent('DOMChildNodesRendered');
     }

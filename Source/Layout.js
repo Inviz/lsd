@@ -88,7 +88,7 @@ LSD.Layout.prototype = Object.append({
       `li > a` selector on the stack, the match creates a new mutation `> a` to be used for 
       childnodes of the `<li>` element.
       
-    If there was a succesful mutation a widget is created. Otherwise, function attempts to convert
+    If there is a succesful mutation match, a widget is created. Otherwise, function attempts to convert
     the node into widget (if the node is `<input type=text>` it will try to find `Input.Text` and 
     `Input` widgets). If there was no widget, but the layout is set to clone with `memo.clone`, 
     it clones the node.
@@ -115,6 +115,7 @@ LSD.Layout.prototype = Object.append({
         // Otherwise, try converting the element (will turn <input type=date> into Input.Date)
         var widget = memo.type.convert(element, memo.defaults);
       }
+      if (memo.clone && widget) widget.options.clone = memo.clone;
     } else {
       var widget = memo.clone ? converted.cloneNode(false, memo.defaults) : converted;
     }
@@ -161,7 +162,7 @@ LSD.Layout.prototype = Object.append({
         If the child is element, walk it again and render it there, otherwise render it right away
       */
       if (child.nodeType == 1) {
-        previous = this.walk.apply(this, args);
+        children[i] = previous = this.walk.apply(this, args);
         if (!previous.lsd) previous = null;
       } else {
         var result = this[LSD.Layout.NodeTypes[child.nodeType]].apply(this, args);
