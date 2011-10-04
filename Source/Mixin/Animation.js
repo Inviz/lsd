@@ -33,11 +33,13 @@ LSD.Mixin.Animation = new Class({
   },
   
   fade: function(how) {
-    return this.getAnimation().start('opacity', how ? 1 : 0);
+    var opacity = this.getAnimatedElement().getStyle('opacity');
+    return this.getAnimation().start('opacity', how ? [opacity, 1] : [opacity, 0]);
   },
   
   height: function(how) {
-    return this.getAnimation().start('height', how ? this.getAnimatedElement().scrollHeight : [this.getAnimatedElement().offsetHeight, 0]);
+    var height = this.getAnimatedElement().offsetHeight;
+    return this.getAnimation().start('height', how ? [height, this.getAnimatedElement().scrollHeight] : [height, 0]);
   },
   
   animate: function(how) {
