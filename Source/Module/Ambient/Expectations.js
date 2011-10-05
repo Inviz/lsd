@@ -280,7 +280,7 @@ var check = function(type, value, state, target) {
 
 var notify = function(type, tag, state, widget, single) {
   check.call(this, type, tag, state, widget);
-  if (!single) check.call(this, type, '*', state, widget);
+  if (!single && type != '::') check.call(this, type, '*', state, widget);
 };
 
 var update = function(widget, tag, state, single) {
