@@ -62,6 +62,10 @@ Object.append(LSD.Script.Helpers, {
     } else {
       return count + ' ' + value;
     }
+  },
+  
+  pluralize_word: function(count, singular, plural) {
+    return (count == 1) ? singular : (plural || (singular.pluralize()));
   }
 });
 
