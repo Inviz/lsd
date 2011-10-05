@@ -532,10 +532,7 @@ LSD.Layout.prototype = Object.append({
     } else {
       widget.appendChild(child, element, bypass);
     }
-    if (child.nodeType == 8 && (!memo || memo.plain !== true)) {
-      var keyword = Element.retrieve(child, 'keyword');
-      if (keyword && keyword !== true) keyword.attach();
-    }
+    if (child.nodeType == 8 || (child.nodeType == 1 && !child.lsd)) this.notify(child, widget, true, memo);
     return true;
   },
   
@@ -545,12 +542,56 @@ LSD.Layout.prototype = Object.append({
     else var element = parents;
     var parent = child.lsd ? widget : element;
     if (child.parentNode != parent) return;
+    var element = child.lsd ? child.toElement() : child;
     widget.removeChild(child, element);
-    if (child.nodeType == 8 && (!memo || memo.plain !== true)) {
-      var keyword = Element.retrieve(child, 'keyword');
-      if (keyword && keyword !== true) keyword.detach();
-    }
+    if (child.nodeType == 8 || (child.nodeType == 1 && !child.lsd)) this.notify(child, widget, false, memo);
     return true;
+  },
+  
+  notify: function(element, widget, state, memo) {
+    var lsd = widget.element == element;
+    for (var stack, node = element; node; node = stack && stack.pop()) {
+      if (node != element) {
+        var next = node.nextSibling;
+        if (next) (stack || (stack = [])).push(next);
+      }
+      switch (node.nodeType) {
+        case 8:
+          if (!memo || memo.plain !== true) {
+            var keyword = Element.retrieve(node, 'keyword');
+            if (!superblock) var superblock = memo && memo.blocks && memo.blocks[memo.blocks.length - 1];
+            if (keyword && keyword !== true && (keyword.parentNode == widget || keyword.parentNode == superblock || node == element)) {
+              if (state) {
+                if (!keyword.parentScope) {
+                  keyword.attach();
+                }
+              } else {  
+                if (keyword.parentScope) {
+                  keyword.detach();
+                }
+              }
+            }
+          }
+          break;
+        /*
+          When removed child is an element, it needs to be scanned
+          for widgets to detach them from DOM cleanly
+        */
+        case 1:
+          if (node != element) {
+            var instance = node.uid && Element.retrieve(node, 'widget');
+            if (instance) {
+              if (state) {
+                if (!instance.parentNode) widget.appendChild(instance, false);
+              } else {
+                if (instance.parentNode == widget) widget.removeChild(instance, false);
+              }
+            }
+          };
+          var first = node.firstChild;
+          if (first) (stack || (stack = [])).push(first);
+      }
+    }
   },
   
   /* 
@@ -735,10 +776,13 @@ LSD.Layout.prototype = Object.append({
     */
     var children = LSD.slice(element.childNodes);
     var ret = this.element(element, parent, memo);
-    if (ret.lsd) var widget = ret;
-    else if (ret.block) {
+    if (ret.lsd) {
+      var widget = ret;
+    } else if (ret.block) {
       (memo.blocks || (memo.blocks = [])).push(ret);
-    } else if (memo.clone) var clone = ret;
+    } else if (memo.clone) {
+      var clone = ret;
+    }
     /* 
       Put away selectors in the stack that should not be matched against element's child nodes
     */

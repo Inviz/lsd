@@ -72,20 +72,17 @@ LSD.Layout.Block = function(options) {
   this.widget = options.widget;
   this.expression = options.expression;
   this.parentNode = options.parent || options.widget;
-  LSD.Script.Scope(this, this.parentNode);
-  if (options.layout) this.setLayout(options.layout, true);
-  if (options.collection) this.values = [];
+  LSD.Script.Scope(this);
   if (options.superblock) {
     options.superblock.addEvents({
       check: this.unmatch.bind(this),
       uncheck: this.match.bind(this)
     });
-    if (!options.superblock.checked ^ this.options.invert) this.match();
-  } else if (options.expression || options.show) {
-    this.match();
-  } else if (options.name) {
-    LSD.Template[options.name] = this;
-  }
+  };
+  if (options.layout) this.setLayout(options.layout, true);
+  if (options.collection) this.values = [];
+  if (options.name) LSD.Template[options.name] = this;
+  else this.attach();
 };
 LSD.Layout.Block.UID = 0;
 LSD.Template = {};
@@ -159,6 +156,7 @@ LSD.Layout.Block.prototype = Object.append({
   show: function(lazy) {
     var layout = this.layout;
     if (!layout) return;
+    this.hidden = false;
     if (Type.isEnumerable(layout)) for (var i = 0, child, keyword, depth = 0; child = layout[i]; i++) {
       if (child.call) {
         if (layout === this.layout) layout = layout.slice(0);
@@ -214,7 +212,8 @@ LSD.Layout.Block.prototype = Object.append({
   hide: function() {
     var layout = this.rendered || this.layout;
     if (!layout) return;
-    this.widget.removeLayout(this.id, layout);
+    this.widget.removeLayout(this.id, layout, null, {blocks: [this]});
+    this.hidden = true;
   },
   splice: function(block, layout, baseline) {
     var offset = 0;
@@ -284,11 +283,21 @@ LSD.Layout.Block.prototype = Object.append({
     return this.layout;
   },
   attach: function() {
-    if ((this.options.expression && !this.options.link) || !this.options.superblock.checked) this.match(true);
+    if (!this.parentScope) {
+      this.parentScope = this.parentNode;
+      LSD.Script.Scope.setScope(this, this.parentScope);
+    }  
+    if ((this.options.expression && !this.options.link) 
+    || (this.options.superblock && !this.options.superblock.checked)) 
+      this.match(true);
   },
   detach: function() {
+    if (this.parentScope) {
+      LSD.Script.Scope.unsetScope(this, this.parentScope);
+      delete this.parentScope;
+    }  
     if (this.options.expression && !this.options.link) this.unmatch(true);
-    this.hide()
+    this.hide();
   },
   expand: function(text) {
     var depth = 0;
