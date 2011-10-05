@@ -48,13 +48,17 @@ LSD.Mixin.Fieldset = new Class({
   constructors: {
     fieldset: function(options, state) {
       if (state) {
-        this.names = {};
-        this.params = {};
+        this.names = new LSD.Object.Stack;
+        this.fields = new LSD.Object.Stack;
+        this.params = new LSD.Object.Stack;
       } else {
         delete this.names;
         delete this.params;
+        delete this.field;
       }
       this[state ? 'addEvents' : 'removeEvents'](LSD.Mixin.Fieldset.events);
+      this.variables[state ? 'set' : 'unset']('params', this.params);
+      this.variables[state ? 'set' : 'unset']('fields', this.fields);
     }
   },
   
@@ -123,25 +127,33 @@ LSD.Mixin.Fieldset = new Class({
   },
   
   addField: function(widget) {
-    var name = widget.attributes.name, radio = (widget.commandType == 'radio');
+    var name = widget.attributes.name;
     if (!name || !widget.toData) return;
-    if (radio) {
-      if (!this.names[name]) this.names[name] = [];
-      this.names[name].push(widget);
-    } else this.names[name] = widget;
-    for (var regex = Fieldset.rNameParser, object = this.params, match, bit;;) {
+    this.names.set(name, widget);
+    var params = this.params, fields = this.fields;
+    for (var regex = Fieldset.rNameParser, match, bit;;) {
       match = regex.exec(name)
       if (bit != null) {
         if (!match) {
-          if (!object[bit] && radio) object[bit] = [];
-          if (object[bit] && object[bit].push) object[bit].push(widget);
-          else object[bit] = widget;
-        } else object = object[bit] || (object[bit] = (bit ? {} : []));
+          fields.set(bit, widget);
+          params.set(bit, widget.getValue());
+          var key = widget.lsd + ':value:callback'
+          var callback = this.retrieve(key);
+          if (!callback) {
+            callback = function(value) {
+              params.set(bit, value)
+            }
+            this.store(key, callback)
+          }
+          widget.addEvent('change', callback);
+        } else {
+          params = params[bit] || (params[bit] = new LSD.Object.Stack);
+          fields = fields[bit] || (fields[bit] = new LSD.Object.Stack);
+        }
       }
       if (!match) break;
       else bit = match[1] ||match[2];
     }
-    return object
   },
   
   getParams: function(object) {
@@ -156,22 +168,27 @@ LSD.Mixin.Fieldset = new Class({
   },
   
   removeField: function(widget) {
-    var name = widget.attributes.name, radio = (widget.commandType == 'radio');
+    var name = widget.attributes.name;
     if (!name) return;
-    if (radio) this.names[name].erase(widget);
-    else delete this.names[name];
-    for (var regex = Fieldset.rNameParser, object = this.params, match, bit;;) {
+    this.names.unset(name, widget);
+    var params = this.params, fields = this.fields;
+    for (var regex = Fieldset.rNameParser, match, bit;;) {
       match = regex.exec(name)
       if (bit != null) {
         if (!match) {
-          if (radio) object[bit].erase(widget)
-          else delete object[bit];
-        } else object = object[bit];
+          fields.unset(bit, widget);
+          params.unset(bit, widget.getValue());
+          var key = widget.lsd + ':value:callback'
+          var callback = this.retrieve(key);
+          if (callback) widget.removeEvent('change', callback);
+        } else {
+          params = params[bit];
+          fields = fields[bit];
+        }
       }
       if (!match) break;
       else bit = match[1] ||match[2];
     }
-    return object
   },
   
   getFieldsByName: function(fields, callback, root) {
