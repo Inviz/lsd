@@ -126,8 +126,11 @@ LSD.Document = new Class({
   onMousedown: function(event) {
     if (event.target.ownerDocument == document)
     for (var target = event.target, widget; target && target.tagName; target = target.parentNode) {
-      widget = target.uid && Element.retrieve(target, 'widget');
-      if (widget && widget.pseudos.activatable) widget.fireEvent('mousedown', event);
+      widget = target.localName ? target.uid && Element.retrieve(target, 'widget') : target;
+      if (widget && widget.pseudos.activatable) {
+        widget.fireEvent('mousedown', event);
+        target = widget;
+      }
     };
   },
   

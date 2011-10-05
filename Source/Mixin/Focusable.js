@@ -36,8 +36,8 @@ LSD.Mixin.Focusable = new Class({
           if (target.focused) target.blur();
           if (target.focuser) target.focuser.destroy();
           if (target.attributes.tabindex == -1) return;
-          target.removeEvents(LSD.Mixin.Focusable.events);
-          target.setAttribute('tabindex', target.tabindex);
+          //target.removeEvents(LSD.Mixin.Focusable.events);
+          //target.setAttribute('tabindex', target.tabindex);
         }
       }
     },
@@ -55,7 +55,7 @@ LSD.Mixin.Focusable = new Class({
   
   focus: function(element) {
     if (element !== false) {
-      if (this.focuser) this.focuser.focus(element.localName ? element : this.element);
+      if (this.focuser) this.focuser.focus(element && element.localName ? element : this.element);
       else this.element.focus();
       this.document.activeElement = this;
     }
@@ -68,8 +68,18 @@ LSD.Mixin.Focusable = new Class({
   },
   
   onFocus: function() {
-    this.focus(false);
+    if (!this.focused) this.focus(false);
     this.document.activeElement = this;
+  },
+  
+  onMousedownFocus: function(event) {
+    if (event && event.event) {
+      if (event.event.focused) return;
+      event.event.focused = true;
+    }
+    this.focus();
+    this.document.activeElement = this;
+    return false;
   },
   
   onBlur: function() {
@@ -90,16 +100,16 @@ LSD.Mixin.Focusable = new Class({
   
   isNativelyFocusable: function() {
     switch (this.getElementTag()) {
-      case 'input': case 'textarea':
-        return true; break;
+      case 'input': case 'textarea': case 'select':
+        return true;
       default:
-        return false; break;
+        return false;
     }
   }
 });
 
 LSD.Mixin.Focusable.events = {
-  mousedown: 'focus'
+  mousedown: 'onMousedownFocus'
 };
 
 LSD.Mixin.Focusable.Propagation = {
