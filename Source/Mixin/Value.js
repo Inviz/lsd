@@ -79,19 +79,13 @@ LSD.Mixin.Value = new Class({
     if (this.attributes.multiple) {
       if (unset) {
         var index = this.values.indexOf(value);
-        if (index > -1) {
-          this.values.splice(index, 1);
-          this.valueInputs.splice(index, 1)[0].dispose();
-        }
+        if (index > -1) this.values.splice(index, 1);
       } else {  
-        this.previousValue = this.values.clone();
         this.values.push(value);
-        (this.valueInputs || (this.valueInputs = [])).push(this.getValueInput().set('value', value));
-        this.applyValue(this.values);
-      }
+      }  
+      this.applyValue(this.values);
       if (this.values.length == +!unset) this[unset ? 'removePseudo' : 'addPseudo']('valued');
     } else {
-      var input = this.valueInput || (this.valueInput = this.getValueInput());
       this.previousValue = this.value;
       if (unset) {
         if (this.value) this.removePseudo('valued');
@@ -100,7 +94,8 @@ LSD.Mixin.Value = new Class({
         if (!this.value) this.addPseudo('valued');
         this.value = value;
       }
-      input.set('value', unset ? '' : value);
+      var input = (this.canElementHoldValue() || typeof(this.element.value != 'undefined')) && this.element
+      if (input) input.set('value', unset ? '' : value);
       this.applyValue(this.value);
     }
   },
