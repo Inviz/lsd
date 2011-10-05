@@ -288,7 +288,8 @@ LSD.Layout.Block.prototype = Object.append({
       LSD.Script.Scope.setScope(this, this.parentScope);
     }  
     if ((this.options.expression && !this.options.link) 
-    || (this.options.superblock && !this.options.superblock.checked)) 
+    || (this.options.superblock && !this.options.superblock.checked)
+    || (this.options.name)) 
       this.match(true);
   },
   detach: function() {
