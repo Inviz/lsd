@@ -106,6 +106,15 @@ for (var name in Number.prototype)
         return Number.prototype[name].apply(Number(arguments[0]), Array.prototype.slice.call(arguments, 1));
       }
     })(name);
+
+// Import all Date prototype methods as helpers (first argument is parsed as date)
+for (var name in Date.prototype) 
+  if (!LSD.Script.Helpers[name] && Date.prototype[name].call && name.charAt(0) != '$')
+    LSD.Script.Helpers[name] = (function(name) {
+      return function(a) {
+        return Date.prototype[name].apply(Date.parse(arguments[0]), Array.prototype.slice.call(arguments, 1));
+      }
+    })(name);
     
 LSD.Script.Operators = {
   '*': 1, '/': 1,

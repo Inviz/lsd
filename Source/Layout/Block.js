@@ -127,7 +127,7 @@ LSD.Layout.Block.prototype = Object.append({
     var variable = this.getVariable();
     var value = variable.attach ? variable[state ? 'attach' : 'detach']().value : variable;
     if (this.value !== value) this.set(value);
-    return this.validate(true);
+    return this.validate();
   },
   validate: function(strict) {
     return ((strict ? this.value !== false : this.value != false) && this.value != null) ^ this.options.invert;

@@ -120,7 +120,7 @@ LSD.Layout.prototype = Object.append({
       var widget = memo.clone ? converted.cloneNode(false, memo.defaults) : converted;
     }
     if (!widget && memo.clone) var clone = element.cloneNode(false);
-    LSD.Script.Interpolation((clone || element).attributes, widget || parent[0]);
+    LSD.Script.Interpolation((clone || element).attributes, widget || parent[0], clone || element);
     // Append a node to parent
     if ((!converted || !widget.parentNode) || (memo && memo.clone))
       this.appendChild([ascendant, container], widget || clone || element, memo);

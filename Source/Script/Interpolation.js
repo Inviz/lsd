@@ -19,13 +19,16 @@ provides:
 ...
 */
 
-LSD.Script.Interpolation = function(object, source) {
+LSD.Script.Interpolation = function(object, source, element) {
   if (object.nodeType) {
     if (object.nodeType == 3)
       return LSD.Script.Interpolation.Textnode(object, source)
   } else if (Type.isEnumerable(object)) {
-    for (var i = 0, attribute; attribute = object[i++];)
-      LSD.Script.Interpolation.Attribute(attribute.name, attribute.value, source, attribute)
+    for (var i = 0, attribute; attribute = object[i++];) {
+      var copy = {name: attribute.name, value: attribute.value, ownerElement: element, nodeType: 2};
+      var interpolated = LSD.Script.Interpolation.Attribute(copy.name, copy.value, source, copy);
+      if (interpolated && interpolated.value == attribute.value) element.removeAttribute(copy.name);
+    }
   } else if (type.toObject) {
     for (var name in type) {
       if (type.hasProperty(type))

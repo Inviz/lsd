@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD
+  - LSD.Object
   
 provides:
   - LSD.Position
@@ -141,7 +141,7 @@ LSD.Position.prototype = {
     
   },
   
-  resolve: function(object, position) {
+  resolve: function(object, position, scroll) {
     if (object.call) object = object.call(this);
     if (object.lsd) {
       if (object.size.width) {
@@ -155,7 +155,7 @@ LSD.Position.prototype = {
       } else object = object.toElement();
     } 
     if (object.localName) {
-      var result = Element.getSize(object);
+      var result = Element[scroll ? 'getScrollSize' : 'getSize'](object);
       if (position) {
         position = Element.getPosition(object);
         result.left = position.x;
@@ -169,10 +169,19 @@ LSD.Position.prototype = {
     var coordinates = this.coordinates;
     var object, boundaries, anchor, fallback;
     var object = this.resolve(this.object);
-    if ((boundaries = this.boundaries)) boundaries = this.resolve(boundaries);
+    if ((boundaries = this.boundaries)) boundaries = this.resolve(boundaries, null, true);
     if ((anchor = this.anchor)) anchor = this.resolve(anchor, true);
     if ((fallback = this.fallback) && fallback.call) fallback = fallback.call(this);
-    this.coordinates = LSD.Position.calculate(object, boundaries, attachment, anchor, fallback);
+    var coordinates = LSD.Position.calculate(object, boundaries, attachment || this.attachment, anchor);
+    if (!coordinates) {
+      if (fallback) {
+        coordinates = LSD.Position.calculate(object, boundaries, attachment || this.attachment, anchor, fallback);
+        if (coordinates) var fallbacked = true;
+      }
+    }
+    this.fireEvent('update', coordinates, fallbacked)
+    this.fallbacked = !!fallbacked;
+    this.coordinates = coordinates;
     if (!this.coordinates) {
       this.unset(coordinates);
       delete this.coordinates;
@@ -199,7 +208,7 @@ LSD.Position.prototype = {
     }
   },
   
-  unsetStyle: function() {
-    
-  }
+  addEvent: LSD.Object.prototype.addEvent,
+  fireEvent: LSD.Object.prototype.fireEvent,
+  removeEvent: LSD.Object.prototype.removeEvent
 };

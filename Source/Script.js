@@ -193,7 +193,15 @@ Object.append(LSD.Script, {
           else object.innerHTML = value;
           break;
         case 2:
-          object.value = value;
+          var widget = object.ownerElement.lsd ? object.ownerElement : Element.retrieve(object.ownerElement, 'widget');
+          if (widget) {
+            if (object.name == "value")
+              widget.setValue(value);
+            else
+              object.attributes.set(object.name, value);
+          } else {
+            object.ownerElement[object.name] = value;
+          }
           break;
         case 3:
           object.nodeValue = value;

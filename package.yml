@@ -94,7 +94,6 @@ sources:
   - Source/Module/Graphics/Shape.js
   - Source/Module/Graphics.js
   - Source/Trait/Input.js
-  - Source/Action/Create.js
   - Source/Action/Update.js
   - Source/Action/Delete.js
   - Source/Action/Submit.js
