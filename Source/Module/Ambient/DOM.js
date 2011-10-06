@@ -31,6 +31,13 @@ LSD.Module.DOM = new Class({
     }
   },
   
+  options: {
+    methods: {
+      'dispose': 'dispose',
+      'delete': 'dispose'
+    }
+  },
+  
   contains: function(element) {
     while (element = element.parentNode) if (element == this) return true;
     return false;
@@ -306,7 +313,7 @@ var unset = function(widget, index) {
   `appendChild`.
 */
 
-var inserters = {
+var inserters = LSD.Module.DOM.inserters = {
   before: function(context, element){
     var parent = element.parentNode;
     if (parent) return parent.insertBefore(context, element);

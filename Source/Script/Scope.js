@@ -21,16 +21,25 @@ provides:
 
 LSD.Script.Scope = function(object, scope) {
   if (this !== LSD.Script) object = this; 
-  object.variables = (new LSD.Object.Stack);
+  object.variables = new LSD.Object.Stack;
+  object.methods = new LSD.Object.Stack;
   if (scope) LSD.Script.Scope.setScope(object, scope);
 };
 
 Object.append(LSD.Script.Scope, {
   setScope: function(object, scope) {
+    object.parentScope = scope;
     object.variables.merge(scope.variables, true);
   },
   
   unsetScope: function(object, scope) {
+    delete object.parentScope;
     object.variables.unmerge(scope.variables, true);
+  },
+  
+  lookup: function(object, name) {
+    for (var scope = object; scope; scope = scope.parentScope)
+      if (scope.methods[name]) return scope.methods[name]
+    return LSD.Script.Helpers[name];
   }
 });
