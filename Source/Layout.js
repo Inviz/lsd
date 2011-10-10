@@ -388,17 +388,18 @@ LSD.Layout.prototype = Object.append({
     var options = keyword(parsed.expression);
     var parentblock = memo.blocks && memo.blocks[memo.blocks.length - 1];
     if (options.ends || options.link) {
-      if (!(options.superblock = (memo.blocks && memo.blocks.pop()))) 
+      if (!(options.superBlock = (memo.blocks && memo.blocks.pop()))) 
         throw "Alternative block is missing its original block";
-      var node = options.superblock.options.origin;
+      var node = options.superBlock.options.origin;
       if (node) {
         for (var layout = []; (node = node.nextSibling) != element;) layout.push(node);
-        options.superblock.options.before = element;
-        if (layout.length > 0) options.superblock.setLayout(layout);
+        options.superBlock.options.before = element;
+        if (layout.length > 0 && !options.superBlock.layout) 
+          options.superBlock.setLayout(layout, !!options.superBlock.layout);
       }
-      //if (element && options.superblock.options.clean) {
+      //if (element && options.superBlock.options.clean) {
       //  element.parentNode.removeChild(element);
-      //  var origin = options.superblock.options.origin;
+      //  var origin = options.superBlock.options.origin;
       //  if (origin && origin.parentNode) origin.parentNode.removeChild(origin);
       //}
       if (options.ends) return true;
@@ -559,8 +560,8 @@ LSD.Layout.prototype = Object.append({
         case 8:
           if (!memo || memo.plain !== true) {
             var keyword = Element.retrieve(node, 'keyword');
-            if (!superblock) var superblock = memo && memo.blocks && memo.blocks[memo.blocks.length - 1];
-            if (keyword && keyword !== true && (keyword.parentNode == widget || keyword.parentNode == superblock || node == element)) {
+            if (!superBlock) var superBlock = memo && memo.blocks && memo.blocks[memo.blocks.length - 1];
+            if (keyword && keyword !== true && (keyword.parentNode == widget || keyword.parentNode == superBlock || node == element)) {
               if (state) {
                 if (!keyword.parentScope) {
                   keyword.attach();
