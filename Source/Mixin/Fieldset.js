@@ -201,7 +201,9 @@ LSD.Mixin.Fieldset = new Class({
   },
   
   getModelName: function() {
-    for (var name in this.params) if (!this.params[name].nodeType) return name;
+    for (var name in this.fields) 
+      if (this.fields.has(name))
+        if (!this.fields[name].nodeType) return name;
   }
 });
 
