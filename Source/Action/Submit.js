@@ -30,18 +30,20 @@ LSD.Action.Submit = LSD.Action.build({
       if (target.chainPhase == -1 || (commandAction == null || commandAction == 'submit')) 
         return target.callChain.apply(target, args);
     }
-    var method = (target.submit || target.send || target.click);
-    var submission = method.apply(target, args);
-    if (submission && submission.callChain && submission != target) {
-      this.store(target, submission);
-      var self = this, callback = function() {
-        this.removeEvents(events);
-        self.eliminate(target);
-      };
-      var events = { complete: callback, cancel: callback };
-      if (submission.callChain) submission.addEvents(events);
+    var method = target.lsd ? (target.submit || target.send || target.click) : target.click;
+    if (method) {
+      var submission = method.apply(target, args);
+      if (submission && submission.callChain && submission != target) {
+        this.store(target, submission);
+        var self = this, callback = function() {
+          this.removeEvents(events);
+          self.eliminate(target);
+        };
+        var events = { complete: callback, cancel: callback };
+        if (submission.callChain) submission.addEvents(events);
+      }
+      return submission
     }
-    return submission
   },
   
   disable: function(target) {

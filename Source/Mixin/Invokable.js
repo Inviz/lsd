@@ -34,9 +34,6 @@ LSD.Mixin.Invokable = new Class({
     states: Array.object('invoked'),
     events: {
       _invokable: {
-        afterSubmit: function() {
-          this.revoke(true);
-        },
         cancel: 'revoke',
         setParent: function(widget) {
           if (!this.pseudos.uninvoked) this.invoke(widget)
@@ -64,7 +61,6 @@ LSD.Mixin.Invokable = new Class({
   invoke: function(invoker) {
     this.invoker = invoker;
     this.properties.set('invoker', invoker);
-    return invoker;
   },
   
   revoke: function(soft) {
@@ -79,10 +75,6 @@ LSD.Mixin.Invokable = new Class({
   
   getSubmissionTarget: function() {
     return this.getInvoker();
-  },
-  
-  getSubmissionData: function() {
-    return this.getData ? this.getData() : null;
   }
 });
 

@@ -270,7 +270,7 @@ LSD.Allocations = {
     }
   },
   
-  editor: {
+  editableField: {
     options: function(options, type, name) {
       return Object.merge(
         {source: type == 'area' ? 'textarea' : ('input' + (type ? '[type=' + type : ']'))}, 
