@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD
-  - Sheet/SheetParser.Value
+  - Sheet/Sheet.Value
   
 provides:
   - LSD.Script
@@ -212,6 +212,6 @@ Object.append(LSD.Script, {
   }
 });
 
-LSD.Script.rExpression = SheetParser.Value.tokenize;
+LSD.Script.rExpression = Sheet.Value.tokenize;
 LSD.Script.rVariable = /^[a-z0-9][a-z_\-0-9.\[\]]*$/ig;
 LSD.Script.Combinators = Array.object('+', '>', '!+', '++', '!~', '~~', '&', '&&', '$', '$$');

@@ -12,7 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - ART/ART.Shape
   - LSD.Module.Styles
-  - Sheet/SheetParser.Styles
+  - Sheet/Sheet.Styles
  
 provides: 
   - LSD.Layer
@@ -134,13 +134,10 @@ var Accumulate = LSD.Layer.accumulated = new Object.Array('translate', 'radius')
 var Inherit = LSD.Layer.inherited = new Object.Array('inside', 'outside')
 var Merge = LSD.Layer.merged = new Object.Array('size')
 
-var Property = SheetParser.Property;
 var Styles = LSD.Styles;
 var Map = LSD.Layer.Map = {};
 var Cache = LSD.Layer.Cache = {};
 
-//LSD.Layer.getProperty = function(property, properties)
- 
 LSD.Layer.generate = function(name, layers) {
   if (arguments.length > 2) layers = Array.prototype.splice.call(arguments, 1);
   var painters = [];
@@ -169,7 +166,7 @@ LSD.Layer.prepare = function(name, layers, callback) {
         if (simple) var style = prefix
         else return;
       } else var style = prefix + property.capitalize()
-      definition.styles[style] = styles[style] = Property.compile(value, properties);
+      definition.styles[style] = styles[style] = Sheet.Property.compile(value, properties);
       definition.keys.push(style);
     });
     var shorthand = properties[layer];
@@ -190,7 +187,7 @@ LSD.Layer.prepare = function(name, layers, callback) {
           }
         }
       }
-      definition.styles[style] = styles[style] = Property.compile(((l > 0 && (k > 0 || j == 1)) ) ? [shorthand] : shorthand, styles);
+      definition.styles[style] = styles[style] = Sheet.Property.compile(((l > 0 && (k > 0 || j == 1)) ) ? [shorthand] : shorthand, styles);
       definition.shorthand = style;
     }
     if (definition.onCompile) definition.onCompile(name);

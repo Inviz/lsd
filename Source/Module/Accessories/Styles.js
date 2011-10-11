@@ -14,7 +14,7 @@ requires:
   - LSD.Module.Events
   - Core/Element.Style
   - Ext/Object.Array
-  - Sheet/SheetParser.Styles
+  - Sheet/Sheet.Styles
 
 provides: 
   - LSD.Module.Styles
@@ -24,7 +24,6 @@ provides:
 
 !function() {
   
-var CSS = SheetParser.Styles, Paint = LSD.Styles;
 var setStyle = function(element, property, value, type) {
   delete this.style.expressed[property];
   delete this.style.calculated[property];
@@ -62,7 +61,7 @@ LSD.Module.Styles = new Class({
 
   setStyle: function(property, value) {
     var paint, css;
-    if (!(paint = Paint[property]) && !(css = CSS[property])) return false;
+    if (!(paint = LSD.Styles[property]) && !(css = Sheet.Styles[property])) return false;
     var length = arguments.length;
     if (length > 2) {
       var last = arguments[length - 1];
@@ -93,7 +92,7 @@ LSD.Module.Styles = new Class({
   getStyle: function(property) {
     if (this.style.computed[property]) return this.style.computed[property];
     var value;
-    var definition = Paint[property] || CSS[property];
+    var definition = LSD.Styles[property] || Sheet.Styles[property];
     if (!definition) return;
     if (definition.properties) return definition.properties.map(this.getStyle.bind(this));
     var expression = this.style.expressed[property];    

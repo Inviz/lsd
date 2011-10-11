@@ -41,7 +41,7 @@ LSD.Layer.Shape = {
   }
 }
 
-Object.append(SheetParser.Property.Type, {
+Object.append(Sheet.Type, {
   shape: function(value) {
     if (value.indexOf) var name = value
     else for (var key in value) { var name = key; break};
@@ -53,4 +53,4 @@ Object.append(SheetParser.Property.Type, {
   }
 });
 
-LSD.Styles.shape = SheetParser.Property.compile(LSD.Layer.Shape.properties.shape)
+LSD.Styles.shape = Sheet.Property.compile(LSD.Layer.Shape.properties.shape)

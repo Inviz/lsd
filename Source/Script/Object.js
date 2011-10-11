@@ -24,29 +24,56 @@ LSD.Object = function(object) {
 
 LSD.Object.prototype = {
   set: function(key, value, memo) {
-    var old = this[key];
-    if (old === value && typeof old != 'undefined') return false;
-    if (old) this.fireEvent('beforechange', key, old, false);
-    this[key] = value;
-    this[key] = value = this.fireEvent('change', key, value, true, old, memo);
-    var watched = this._watched;
-    if (watched && (watched = watched[key])) 
-      for (var i = 0, fn; fn = watched[i++];) 
-        if (fn.call) fn(value, old);
-        else LSD.Object.callback(this, fn, key, value, old, memo);
-    return true;
+    var index = key.indexOf('.');
+    if (index > -1) {
+      for (var bit, end, obj = this, i = 0;;) {
+        bit = key.substring(i, index)
+        i = index + 1;
+        if (!end) {
+          if (!obj[bit]) {
+            var o = new LSD.Object;
+            obj.set(bit, o);
+            obj = o;
+          } else {
+            obj = obj[bit];
+          }
+        } else obj.set(bit, value);
+        index = key.indexOf('.', i);
+        if (index == -1) {
+          if (!end && (end = true)) {
+            index = key.length;
+          } else break
+        } 
+      }
+    } else {
+      var old = this[key];
+      if (old === value && typeof old != 'undefined') return false;
+      if (old) this.fireEvent('beforechange', key, old, false);
+      this[key] = value;
+      this[key] = value = this.fireEvent('change', key, value, true, old, memo);
+      var watched = this._watched;
+      if (watched && (watched = watched[key])) 
+        for (var i = 0, fn; fn = watched[i++];) 
+          if (fn.call) fn(value, old);
+          else LSD.Object.callback(this, fn, key, value, old, memo);
+      return true;
+    }
   },
   unset: function(key, value, memo) {
-    var old = this[key];
-    if (old == null && value != null) return false;
-    this.fireEvent('change', key, old, false, null, memo);
-    var watched = this._watched;
-    if (watched && (watched = watched[key])) 
-      for (var i = 0, fn; fn = watched[i++];) 
-        if (fn.call) fn(null, old);
-        else LSD.Object.callback(this, fn, key, null, old, memo);
-    delete this[key];
-    return true;
+    var index = key.indexOf('.');
+    if (index > -1) {
+    } else {
+      var old = this[key];
+      if (old == null && value != null) return false;
+      this.fireEvent('change', key, old, false, null, memo);
+      var watched = this._watched;
+      if (watched && (watched = watched[key])) 
+        for (var i = 0, fn; fn = watched[i++];) 
+          if (fn.call) fn(null, old);
+          else LSD.Object.callback(this, fn, key, null, old, memo);
+      delete this[key];
+      return true;
+    }
   },
   merge: function(object, reverse) {
     if (object.watch) {

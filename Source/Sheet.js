@@ -13,9 +13,9 @@ requires:
   - Core/Element
   - Core/Request
   - Sheet/Sheet
-  - Sheet/SheetParser.Value
-  - Sheet/SheetParser.Property
-  - Sheet/SheetParser.Styles
+  - Sheet/Sheet.Value
+  - Sheet/Sheet.Property
+  - Sheet/Sheet.Styles
   - LSD.Module.Element
   - LSD.Module.Options
   
@@ -72,7 +72,6 @@ LSD.Sheet = new Class({
   parse: function(text) {
     var sheet = new Sheet(text);
     var rules = sheet.cssRules;
-    var CSS = SheetParser.Styles, Paint = LSD.Styles;
     var parsed = {};
     for (var i = 0, rule; rule = rules[i++];) {      
       var selector = LSD.Sheet.convertSelector(rule.selectorText)
@@ -82,7 +81,7 @@ LSD.Sheet = new Class({
       for (var style = rule.style, j = 0, name; name = style[j++];) {
         var property = name.replace('-lsd-', '').camelCase();
         var value = SheetParser.Value.translate(style[name]);
-        var definition = Paint[property] || CSS[property];
+        var definition = LSD.Styles[property] || Sheet.Styles[property];
         if (!definition) continue;
         if (definition.type != 'simple') {
           var result = definition[value.push ? 'apply' : 'call'](this, value);
@@ -155,7 +154,7 @@ Object.append(LSD.Sheet, {
                     replace(/\.lsd\./g, '').replace(/html\sbody\s/g, '');
   },
   isElementStyle: function(cc) {
-    return SheetParser.Styles[cc] && !LSD.Styles[cc] && (cc != 'height' && cc != 'width')
+    return Sheet.Styles[cc] && !LSD.Styles[cc] && (cc != 'height' && cc != 'width')
   },
   isRawValue: function(value) {
     return (value.indexOf('hsb') > -1) || (value.indexOf('ART') > -1) || (value.indexOf('LSD') > -1) || 
