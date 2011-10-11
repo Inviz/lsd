@@ -117,7 +117,7 @@ LSD.Layout.Block.prototype = Object.append({
       return this.check();
   },
   rematch: function() {
-    return this.match() || this.fireEvent('miss');
+    return this.attach() || this.fireEvent('miss');
   },
   unmatch: function(lazy) {
     if (!this.options.expression || this.evaluate(false))
@@ -144,7 +144,7 @@ LSD.Layout.Block.prototype = Object.append({
       this.parentScope = this.parentNode;
       LSD.Script.Scope.setScope(this, this.parentScope);
     }
-    this.match();
+    return this.match();
   },
   detach: function() {
     if (this.parentScope) {
@@ -187,15 +187,13 @@ LSD.Layout.Block.prototype = Object.append({
     var layout = this.layout;
     if (!layout) return;
     this.hidden = false;
-    if (Type.isEnumerable(layout)) for (var i = 0, child, keyword, depth = 0; child = layout[i]; i++) {
-      if (child.call) {
-        if (layout === this.layout) layout = layout.slice(0);
-        var result = child.call(this);
-        if (result) { 
-          if (result.length) layout.splice.apply(layout, [i, 1].concat(result))
-          else layout[i] = result;
+    var collapsed = this.collapse(layout, true);
+    if (Type.isEnumerable(layout)) {
+      for (var i = 0, child; child = layout[i++];) {
+        if (child.parentNode && child.parentNode.nodeType == 11) {
+          lazy = false;
+          break;
         }
-        this.layout = layout;
       }
     }
     if (!lazy) {
@@ -216,8 +214,10 @@ LSD.Layout.Block.prototype = Object.append({
       scope: this,
       blocks: [this]
     };
-    this.rendered = this.widget.addLayout(this.id, layout, [this.widget, this.element], memo);
-    if (result) this.collapse(this.rendered)
+    this.rendered = this.widget.addLayout(this.id, collapsed || layout, [this.widget, this.element], memo);
+    if (collapsed) {
+      this.rendered = this.collapse(this.rendered) || this.rendered;
+    }
   },
   hide: function() {
     var layout = this.rendered || this.layout;
@@ -278,7 +278,7 @@ LSD.Layout.Block.prototype = Object.append({
     surrounded by whitespace. If it's true, the comment node
     then removed and its contents is used as a HTML layout.
   */
-  collapse: function(layout) {
+  collapse: function(layout, execute) {
     var validate = true;
     for (var index, child, i = 0; child = layout[i]; i++) {
       switch ((child = layout[i]).nodeType) {
@@ -306,6 +306,7 @@ LSD.Layout.Block.prototype = Object.append({
         args.splice(0, 2)
         return args;
       }.bind(this);
+      if (execute) layout[index]();
       if (comment.parentNode) comment.parentNode.removeChild(comment);
       if (this.options.clean) layout = layout[index];
     } else {
@@ -314,7 +315,7 @@ LSD.Layout.Block.prototype = Object.append({
     return layout;
   },
   setLayout: function(layout, soft) {
-    this.layout = layout.push && this.collapse(layout) || layout;
+    this.layout = layout;
     if (this.checked) {
       this.show(true);
     } else if (!soft) this.hide();

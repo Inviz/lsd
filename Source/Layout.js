@@ -395,13 +395,8 @@ LSD.Layout.prototype = Object.append({
         for (var layout = []; (node = node.nextSibling) != element;) layout.push(node);
         options.superBlock.options.before = element;
         if (layout.length > 0 && !options.superBlock.layout) 
-          options.superBlock.setLayout(layout, !!options.superBlock.layout);
+          options.superBlock.setLayout(layout, options.superBlock.checked || options.superBlock.layout);
       }
-      //if (element && options.superBlock.options.clean) {
-      //  element.parentNode.removeChild(element);
-      //  var origin = options.superBlock.options.origin;
-      //  if (origin && origin.parentNode) origin.parentNode.removeChild(origin);
-      //}
       if (options.ends) return true;
     }
     if (origin && origin.block || options.block) {
@@ -450,8 +445,8 @@ LSD.Layout.prototype = Object.append({
     if (!memo) memo = {};
     if (layout.nodeType) {
       return this.manipulate(state, parent, layout);
-    } else if (Type.isEnumerable(layout)){
-      if (layout[0] && !layout[0].lsd) layout = LSD.slice(layout)
+    } else if (Type.isEnumerable(layout)) {
+      if (layout[0] && !layout[0].lsd) layout = LSD.slice(layout);
       for (var i = 0, j = layout.length, value; i < j; i++)
         if ((value = layout[i])) this.manipulate(state, parent, value, memo);
     } else {
@@ -525,11 +520,13 @@ LSD.Layout.prototype = Object.append({
       if (!before && memo.before) before = memo.before;
     }
     if (before) {
-      if (!parent.lsd) {
-        if (before.lsd) before = before.toElement();
-        parent = before.parentNode;
-      };
-      widget.insertBefore(child, before, element, bypass);
+      if (before !== true) {
+        if (!parent.lsd) {
+          if (before.lsd) before = before.toElement();
+          parent = before.parentNode;
+        };
+        widget.insertBefore(child, before, element, bypass);
+      }
     } else {
       widget.appendChild(child, element, bypass);
     }
