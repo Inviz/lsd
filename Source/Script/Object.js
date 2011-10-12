@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: Object.js
- 
-description: An observable object 
- 
+
+description: An observable object
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD
-  
+
 provides:
   - LSD.Object
-  
+
 ...
 */
 
@@ -43,7 +43,7 @@ LSD.Object.prototype = {
           if (!end && (end = true)) {
             index = key.length;
           } else break
-        } 
+        }
       }
     } else {
       var old = this[key];
@@ -52,8 +52,8 @@ LSD.Object.prototype = {
       this[key] = value;
       this[key] = value = this.fireEvent('change', key, value, true, old, memo);
       var watched = this._watched;
-      if (watched && (watched = watched[key])) 
-        for (var i = 0, fn; fn = watched[i++];) 
+      if (watched && (watched = watched[key]))
+        for (var i = 0, fn; fn = watched[i++];)
           if (fn.call) fn(value, old);
           else LSD.Object.callback(this, fn, key, value, old, memo);
       return true;
@@ -67,8 +67,8 @@ LSD.Object.prototype = {
       if (old == null && value != null) return false;
       this.fireEvent('change', key, old, false, null, memo);
       var watched = this._watched;
-      if (watched && (watched = watched[key])) 
-        for (var i = 0, fn; fn = watched[i++];) 
+      if (watched && (watched = watched[key]))
+        for (var i = 0, fn; fn = watched[i++];)
           if (fn.call) fn(null, old);
           else LSD.Object.callback(this, fn, key, null, old, memo);
       delete this[key];
@@ -76,7 +76,7 @@ LSD.Object.prototype = {
     }
   },
   mix: function(object, state, reverse) {
-    for (var name in object) 
+    for (var name in object)
       if (object.has(name))
         this[state !== false ? 'set' : 'unset'](name, object[name], null, reverse);
   },
@@ -186,15 +186,15 @@ LSD.Object.prototype = {
   },
   join: function(separator) {
     var ary = [];
-    for (var key in this) 
-      if (this.has ? this.has(key) : this.hasOwnProperty(key)) 
+    for (var key in this)
+      if (this.has ? this.has(key) : this.hasOwnProperty(key))
         ary.push(key);
     return ary.join(separator)
   }
 };
 
 LSD.toObject = LSD.Object.toObject = LSD.Object.prototype.toObject = function() {
-  if (this === LSD.Object || this === LSD) var obj = arguments[0];
+  if (this === LSD.Object || this === LSD) var obj = arguments[0] || new LSD.Object();
   else var obj = this;
   if (obj._toObject) {
     if (obj._toObject.call) {
@@ -205,7 +205,7 @@ LSD.toObject = LSD.Object.toObject = LSD.Object.prototype.toObject = function() 
         if (obj[prop]) object[prop] = obj[prop];
     } else {
       var object = {};
-      for (var prop in obj) 
+      for (var prop in obj)
         if (prop in obj._toObject) object[prop] = obj[prop]
     }
   } else if (obj.push) {
@@ -214,7 +214,7 @@ LSD.toObject = LSD.Object.toObject = LSD.Object.prototype.toObject = function() 
       object[i] = LSD.toObject(obj[i]);
   } else if (!obj.indexOf && !obj.format && typeof obj == 'object') {
     var object = {};
-    for (var key in obj) 
+    for (var key in obj)
       if (obj.has ? obj.has(key) : obj.hasOwnProperty(key)) {
         var val = obj[key];
         object[key] = !val || val.push || val.exec || val.call || val.indexOf ? val : LSD.toObject(val);
@@ -225,14 +225,14 @@ LSD.toObject = LSD.Object.toObject = LSD.Object.prototype.toObject = function() 
 
 /*
   Stack object is an object that may have its values set from multiple sources.
-  All of `set` and `unset` calls are logged, so when the value gets unset, 
+  All of `set` and `unset` calls are logged, so when the value gets unset,
   it returns to previous value (that was set before by a different external object).
 
   It was designed to be symetric, so every .set is paired with .unset. Originally,
   unset raised exception when it could not find its value set before.
-  
-  That perhaps is too idealistic and doenst work in real world, so value that was 
-  set by some `set`/`unset` pair, can be unset by an outside `unset` call. 
+
+  That perhaps is too idealistic and doenst work in real world, so value that was
+  set by some `set`/`unset` pair, can be unset by an outside `unset` call.
   A paired `unset` having nothing to unset will silently do nothing.
 */
 
@@ -259,7 +259,7 @@ LSD.Object.Stack.prototype = Object.append(new LSD.Object, {
         }
       if (j == i) return
     } else {
-      for (var j = length; --j > -1; ) 
+      for (var j = length; --j > -1; )
         if (group[j] === value) {
           group.splice(j, 1);
           break;
