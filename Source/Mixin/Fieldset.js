@@ -71,7 +71,7 @@ LSD.Mixin.Fieldset = new Class({
   getData: function() {
     var data = {}
     this.submittableElements.each(function(element) {
-      data[element.attributes.name] = element.toData();
+      data[element.attributes.name] = LSD.toObject(element.toData());
     });
     return data;
   },

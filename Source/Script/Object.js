@@ -75,6 +75,11 @@ LSD.Object.prototype = {
       return true;
     }
   },
+  mix: function(object, state, reverse) {
+    for (var name in object) 
+      if (object.has(name))
+        this[state !== false ? 'set' : 'unset'](name, object[name], null, reverse);
+  },
   merge: function(object, reverse) {
     if (object.watch) {
       var self = this;
@@ -84,24 +89,14 @@ LSD.Object.prototype = {
       }
       watcher.callback = object;
       object.addEvent('change', watcher);
-      for (var name in object) 
-        if (object.has(name)) 
-          this.set(name, object[name], null, reverse)
-    } else {
-      for (var name in object) 
-        this.set(name, object[name], null, reverse);
     }
+    this.mix(object, true, reverse);
   },
   unmerge: function(object, reverse) {
     if (object.unwatch) {
       object.removeEvent('change', this);
-      for (var name in object) 
-        if (object.has(name)) 
-          this.unset(name, object[name], null, reverse)
-    } else {
-      for (var name in object) 
-        this.set(name, object[name], null, reverse);
     }
+    this.mix(object, false, reverse);
   },
   include: function(key, memo) {
     return this.set(key, true, memo)
@@ -186,11 +181,6 @@ LSD.Object.prototype = {
       }
     }
   },
-  toObject: function() {
-    var object = {};
-    for (var key in this) if (this.has(key)) object[key] = this[key];
-    return object;
-  }, 
   has: function(key) {
     return this.hasOwnProperty(key) && (key.charAt(0) != '_')
   },
@@ -202,6 +192,36 @@ LSD.Object.prototype = {
     return ary.join(separator)
   }
 };
+
+LSD.toObject = LSD.Object.toObject = LSD.Object.prototype.toObject = function() {
+  if (this === LSD.Object || this === LSD) var obj = arguments[0];
+  else var obj = this;
+  if (obj._toObject) {
+    if (obj._toObject.call) {
+      return obj._toObject.apply(obj, arguments);
+    } else if (obj._toObject.push) {
+      var object = {};
+      for (var i = 0, prop; prop = obj._toObject[i++];)
+        if (obj[prop]) object[prop] = obj[prop];
+    } else {
+      var object = {};
+      for (var prop in obj) 
+        if (prop in obj._toObject) object[prop] = obj[prop]
+    }
+  } else if (obj.push) {
+    var object = [];
+    for (var i = 0, j = obj.length; i < j; i++)
+      object[i] = LSD.toObject(obj[i]);
+  } else if (!obj.indexOf && !obj.format && typeof obj == 'object') {
+    var object = {};
+    for (var key in obj) 
+      if (obj.has ? obj.has(key) : obj.hasOwnProperty(key)) {
+        var val = obj[key];
+        object[key] = !val || val.push || val.exec || val.call || val.indexOf ? val : LSD.toObject(val);
+      }
+  }
+  return object || obj;
+}
 
 /*
   Stack object is an object that may have its values set from multiple sources.
@@ -273,3 +293,26 @@ LSD.Object.callback = function(object, callback, key, value, old, memo) {
   if (value != null || typeof old == 'undefined') subject.set(property, value, memo);
   if (value == null || typeof old != 'undefined') subject.unset(property, old, memo);
 };
+
+/*
+
+*/
+
+LSD.Struct = function(properties) {
+  if (this === LSD) {
+    return function() {
+      var object = new LSD.Struct(properties)
+      if (arguments.length) LSD.Object.apply(object, arguments);
+      return object;
+    }
+  }
+  if (properties) {
+    this._properties = properties, self = this;
+    this.addEvent('change', function(name, value, old) {
+      var prop = properties[name];
+      if (prop) return prop.call(self, value, old);
+    });
+    this._toObject = properties
+  };
+};
+LSD.Struct.prototype = new LSD.Object;
