@@ -194,7 +194,7 @@ LSD.Object.prototype = {
 };
 
 LSD.toObject = LSD.Object.toObject = LSD.Object.prototype.toObject = function() {
-  if (this === LSD.Object || this === LSD) var obj = arguments[0] || new LSD.Object();
+  if (this === LSD.Object || this === LSD) var obj = arguments[0];
   else var obj = this;
   if (obj == null) return null;
   if (obj._toObject) {
