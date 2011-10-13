@@ -318,8 +318,4 @@ LSD.Struct = function(properties) {
     this._toObject = properties
   };
 };
-<<<<<<< HEAD
-LSD.Struct.prototype = new LSD.Object;
-=======
 LSD.Struct.prototype = LSD.Object.prototype;
->>>>>>> Make toObject handle nulls and format dates
