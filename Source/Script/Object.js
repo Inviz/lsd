@@ -196,23 +196,26 @@ LSD.Object.prototype = {
 LSD.toObject = LSD.Object.toObject = LSD.Object.prototype.toObject = function() {
   if (this === LSD.Object || this === LSD) var obj = arguments[0] || new LSD.Object();
   else var obj = this;
+  if (obj == null) return null;
   if (obj._toObject) {
     if (obj._toObject.call) {
       return obj._toObject.apply(obj, arguments);
     } else if (obj._toObject.push) {
       var object = {};
       for (var i = 0, prop; prop = obj._toObject[i++];)
-        if (obj[prop]) object[prop] = obj[prop];
+        if (obj[prop]) object[prop] = LSD.toObject(obj[prop]);
     } else {
       var object = {};
-      for (var prop in obj)
-        if (prop in obj._toObject) object[prop] = obj[prop]
+      for (var prop in obj) 
+        if (prop in obj._toObject) object[prop] = LSD.toObject(obj[prop])
     }
   } else if (obj.push) {
     var object = [];
     for (var i = 0, j = obj.length; i < j; i++)
       object[i] = LSD.toObject(obj[i]);
-  } else if (!obj.indexOf && !obj.format && typeof obj == 'object') {
+  } else if (obj.setDate) {
+    var object = obj.format('compact');
+  } else if (!obj.indexOf && typeof obj == 'object') {
     var object = {};
     for (var key in obj)
       if (obj.has ? obj.has(key) : obj.hasOwnProperty(key)) {
@@ -307,12 +310,16 @@ LSD.Struct = function(properties) {
     }
   }
   if (properties) {
-    this._properties = properties, self = this;
+    this._properties = properties;
     this.addEvent('change', function(name, value, old) {
       var prop = properties[name];
-      if (prop) return prop.call(self, value, old);
-    });
+      if (prop) return prop.call(this, value, old);
+    }.bind(this));
     this._toObject = properties
   };
 };
+<<<<<<< HEAD
 LSD.Struct.prototype = new LSD.Object;
+=======
+LSD.Struct.prototype = LSD.Object.prototype;
+>>>>>>> Make toObject handle nulls and format dates
