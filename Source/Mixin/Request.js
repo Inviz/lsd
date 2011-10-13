@@ -48,8 +48,8 @@ LSD.Mixin.Request = new Class({
   },
 
   send: function() {
-    var data = this.getRequestData && this.getRequestData() || {};
-    var options = Object.merge({}, this.options.request, {data: LSD.Object.toObject(data), url: this.getRequestURL(), method: this.getRequestMethod()});
+    var data = this.getRequestData && this.getRequestData() || null;
+    var options = Object.merge({}, this.options.request, {data: data, url: this.getRequestURL(), method: this.getRequestMethod()});
     for (var i = 0, j = arguments.length, arg, opts; i < j; i++) {
       var arg = arguments[i];
       if (!arg) continue;
@@ -58,6 +58,7 @@ LSD.Mixin.Request = new Class({
         else options.data = Object.merge(options.data || {}, arg);
       } else if (arg.call) var callback = arg;
     }
+    if (options.data) options.data = LSD.Object.toObject(options.data);
     if (!this.request) this.properties.set('request', this.getRequest(options));
     if (callback) this.request.addEvent('complete:once', callback);
     this.fireEvent('send', options);
