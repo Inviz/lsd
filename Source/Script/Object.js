@@ -77,7 +77,7 @@ LSD.Object.prototype = {
   },
   mix: function(object, state, reverse) {
     for (var name in object)
-      if (object.has(name))
+      if (object.has ? object.has(name) : object.hasOwnProperty(name))
         this[state !== false ? 'set' : 'unset'](name, object[name], null, reverse);
   },
   merge: function(object, reverse) {
