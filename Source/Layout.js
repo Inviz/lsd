@@ -165,7 +165,7 @@ LSD.Layout.prototype = Object.append({
         children[i] = previous = this.walk.apply(this, args);
         if (!previous.lsd) previous = null;
       } else {
-        var result = this[LSD.Layout.NodeTypes[child.nodeType]].apply(this, args);
+        var result = this[child.nodeType ? LSD.Layout.NodeTypes[child.nodeType] : 'render'].apply(this, args);
         if (result != child && result !== true && result && !result.block) 
           children[i] = result.lsd ? result.element : result;
         previous = null;
