@@ -402,6 +402,7 @@ LSD.Layout.prototype = Object.append({
     if (origin && origin.block || options.block) {
       options.keyword = parsed.keyword;
       options.parent = parentblock;
+      options.scope = memo.scope;
       options.widget = parent[0] || parent;
       options.element = parent[1] || parent.toElement();
       options.origin = element;
@@ -826,11 +827,18 @@ LSD.Layout.prototype = Object.append({
     var before = memo.before;
     if (before) delete memo.before;
     /*
+      Redefine current scope
+    */
+    if (widget) {
+      var scope = memo.scope;
+      if (scope) delete memo.scope;
+    };
+    /*
       Scan element for microdata
     */
     var itempath = memo.itempath;
-    var scope = LSD.Microdata.extract(element, widget || ascendant, itempath && itempath[itempath.length - 1]);
-    if (scope) (itempath || (itempath = memo.itempath = [])).push(scope);
+    var itemscope = LSD.Microdata.extract(element, widget || ascendant, itempath && itempath[itempath.length - 1]);
+    if (itemscope) (itempath || (itempath = memo.itempath = [])).push(itemscope);
     if (widget && itempath) widget.itempath = itempath;
     /*
       Prepare parent array - first item is a nearest parent widget and second is a direct parent element
@@ -861,12 +869,16 @@ LSD.Layout.prototype = Object.append({
     /*
       Reduce the microdata path
     */
-    if (scope) itempath.pop();
+    if (itemscope) itempath.pop();
     /*
       Notify widget that children are processed
     */
     stack.splice(boundary, 1);
     if (widget) widget.fireEvent('DOMChildNodesRendered');
+    /*
+      Restore scope
+    */
+    if (scope) memo.scope = scope;
     return ret;
   },
   

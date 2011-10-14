@@ -51,7 +51,7 @@ LSD.Mixin.Value = new Class({
     if (this.isValueDifferent(value) ^ unset) {
       result = this.writeValue(value, unset);
       var previous = this.getPreviousValue();
-      this.fireEvent('change', [value, previous]);
+      this.fireEvent('change', [result, previous]);
       this.fireEvent(unset ? 'unsetValue' : 'setValue', value);
       if (!this.pseudos.clickable && previous != null) this.callChain(value, previous);
     }
@@ -85,6 +85,7 @@ LSD.Mixin.Value = new Class({
       }  
       this.applyValue(this.values);
       if (this.values.length == +!unset) this[unset ? 'removePseudo' : 'addPseudo']('valued');
+      return this.values;
     } else {
       this.previousValue = this.value;
       if (unset) {
@@ -97,6 +98,7 @@ LSD.Mixin.Value = new Class({
       var input = (this.canElementHoldValue() || typeof(this.element.value != 'undefined')) && this.element
       if (input) input.set('value', unset ? '' : value);
       this.applyValue(this.value);
+      return this.value;
     }
   },
   

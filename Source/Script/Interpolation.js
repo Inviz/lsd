@@ -81,6 +81,6 @@ LSD.Script.Interpolation.Textnode = function(node, source, forgiving) {
   }
 }
 // Find {interpolated} expressions in a string
-LSD.Script.Interpolation.rBoundaries = /\\?\{([^{}]+)\}/g;
+LSD.Script.Interpolation.rBoundaries = /\\?\$\{([^{}]+)\}/g;
 // Find {interpolated} expressions and tolerate {unclosed expressions
-LSD.Script.Interpolation.rForgivingBoundaries = /\\?\{([^{}]+)(\}|$)/g;
+LSD.Script.Interpolation.rForgivingBoundaries = /\\?\$\{([^{}]+)(\}|$)/g;

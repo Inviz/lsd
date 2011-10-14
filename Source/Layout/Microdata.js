@@ -78,14 +78,15 @@ LSD.Microdata.extract = function(element, widget, parent) {
         Element.store(element, 'microdata:scope', (scope = new LSD.Microdata(element, itemprop)));
       if (widget) {
         if (widget.element == element) widget.itemscope = scope;
-        for (var node = widget; node; node = (!parent && node.parentNode)) {
-          node.variables.set(itemprop, scope);
+        var obj = {};
+        obj[itemprop] = scope;
+        for (var node = widget; node; node = (!parent && node.parentNode))
+          node.variables.merge(obj);
         if (!widget.itemPropertyExportCallback) widget.itemPropertyExportCallback = function(name, value, state) {
           if (!value.watch || !value.set) widget.variables[state ? 'set' : 'unset'](name, value);
         }
         if (scope && widget.itemscope && widget.itemscope == scope)
           scope.addEvent('change', widget.itemPropertyExportCallback).addEvent('beforechange', widget.itemPropertyExportCallback);
-        }
       }
     }
     if (parent) parent.add(element, itemprop, scope);
