@@ -37,7 +37,7 @@ LSD.Action.Toggle = LSD.Action.build({
   },
   
   getState: function(target, name, state) {
-    return (state !== true && state !== false) ? this.invoker.checked : !state;
+    return (state !== true && state !== false) ? !target.checked : !state;
   },
 
   enabler: 'check',
