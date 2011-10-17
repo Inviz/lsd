@@ -39,7 +39,7 @@ Object.append(LSD.Script.Scope, {
   
   lookup: function(object, name) {
     for (var scope = object; scope; scope = scope.parentScope)
-      if (scope.methods[name]) return scope.methods[name]
+      if (scope.methods[name]) return scope.methods[name];
     return LSD.Script.Helpers[name];
   }
 });
