@@ -72,12 +72,6 @@ LSD.Mixin.Submittable = new Class({
           if (LSD.toLowerCase(element.tagName) == 'form') element.removeEvent('submit', this.bind('submit'));
         }
       }
-    },
-    methods: {
-      submit: {
-        submit: 'submit',
-        cancel: 'cancel'
-      }
     }
   },
   

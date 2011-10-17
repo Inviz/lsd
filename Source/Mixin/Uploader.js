@@ -262,7 +262,7 @@ LSD.Widget.Filelist.File = new Class({
     tag: 'file',
     inline: 'li',
     layout: {
-      'span::container': '{name}',
+      'span::container': '${name}',
       '::progress': true,
       '::canceller': 'Cancel'
     },

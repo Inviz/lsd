@@ -40,12 +40,6 @@ LSD.Mixin.Invokable = new Class({
         },
         unsetParent: 'revoke'
       }
-    },
-    methods: {
-      invoke: {
-        invoke: 'invoke',
-        revoke: 'revoke'
-      }
     }
   },
   
