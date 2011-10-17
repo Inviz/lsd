@@ -110,7 +110,7 @@ LSD.Object.prototype = {
         if (state) self.mix(name, value, true, reverse, true);
         if (!state || old != null) self.mix(name, state ? old : value, false, reverse, true);
       }
-      watcher.callback = object;
+      watcher.callback = this;
       object.addEvent('change', watcher);
     }
     this.mix(object, null, true, reverse, true);
