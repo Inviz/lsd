@@ -341,7 +341,7 @@ LSD.Struct = function(properties) {
   }
   if (properties) {
     this._properties = properties;
-    this.addEvent('change', function(name, value, old) {
+    this.addEvent('change', function(name, value, state, old) {
       var prop = properties[name];
       if (prop) return prop.call(this, value, old);
     }.bind(this));
