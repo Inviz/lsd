@@ -31,13 +31,6 @@ LSD.Module.DOM = new Class({
     }
   },
   
-  options: {
-    methods: {
-      'dispose': 'dispose',
-      'delete': 'dispose'
-    }
-  },
-  
   contains: function(element) {
     while (element = element.parentNode) if (element == this) return true;
     return false;
