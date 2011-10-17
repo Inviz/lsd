@@ -95,8 +95,7 @@ LSD.Mixin.Value = new Class({
         if (!this.value) this.addPseudo('valued');
         this.value = value;
       }
-      var input = (this.canElementHoldValue() || typeof(this.element.value != 'undefined')) && this.element
-      if (input) input.set('value', unset ? '' : value);
+      if (this.element) this.element[(this.element.get('tag') != 'select') ? 'setAttribute' : 'set']('value', unset ? '' : value);
       this.applyValue(this.value);
       return this.value;
     }
@@ -159,19 +158,6 @@ LSD.Mixin.Value = new Class({
     var data = {};
     if (this.attributes.name) data[this.attributes.name] = this.toData();
     return data;
-  },
-  
-  canElementHoldValue: function() {
-    var tag = LSD.toLowerCase(this.element.tagName)
-    return (!this.attributes.multiple && this.attributes.type != 'file' 
-      && (tag == 'input' || tag == 'textarea')) 
-  },
-  
-  getValueInput: function() {
-    if (this.canElementHoldValue()) return this.element;
-    var name = this.attributes.name;
-    if (this.attributes.miltiple) name += '[]';
-    return new Element('input[type=hidden]', {name: name}).inject(this.element, 'top');
   }
 });
 
