@@ -95,7 +95,7 @@ var Expectations = LSD.Module.Expectations = new Class({
       var state = selector.state;
       if (this.document && this.document.documentElement) this.getElements(selector.structure).each(function(widget) {
         if (state) widget.expect(state, callback);
-        else callback(widget, true);
+        else callback.call(widget, widget, true);
       });
     } else {
       /*
@@ -113,7 +113,7 @@ var Expectations = LSD.Module.Expectations = new Class({
           group.push([selector, callback]);
         }
       }
-      if (this.tagName && this.match(selector)) callback(this, true);
+      if (this.tagName && this.match(selector)) callback.call(this, this, true);
     }
   },
   
@@ -271,7 +271,7 @@ var check = function(type, value, state, target) {
             }
           } else subject.expect(selector.state, expectation[1])
         }
-      } else if (subject.match(selector)) expectation[1](subject, !!state)
+      } else if (subject.match(selector)) expectation[1].call(this, subject, !!state)
     }
     if (expectations == this.expectations) expectations = Expectations.Default;
     else break;
