@@ -62,13 +62,17 @@ LSD.Mixin.Date = new Class({
   },
   
   increment: function(number, interval) {
-    number = number.toInt ? number.toInt() : 1;
-    this.setDate(this.getDate().clone().increment(interval || this.options.date.interval, number))
+    number = number != null && number.toInt ? number.toInt() : 1;
+    this.setDate(this.getDate().clone().increment(interval || this.getDateInterval(), number))
   },
 
   decrement: function(number, interval) {
-    number = number.toInt ? number.toInt() : 1;
-    this.setDate(this.getDate().clone().decrement(interval || this.options.date.interval, number))
+    number = number != null && number.toInt ? number.toInt() : 1;
+    this.setDate(this.getDate().clone().decrement(interval || this.getDateInterval(), number))
+  },
+  
+  getDateInterval: function() {
+    return this.options.date.interval;
   }
   
 });

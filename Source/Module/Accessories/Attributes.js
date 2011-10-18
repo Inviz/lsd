@@ -163,8 +163,10 @@ LSD.Module.Attributes.resolve = function(name, value, bind) {
     case "number":
       return parseFloat(name);
     default:
-      if (attribute && attribute.call) 
-        return attribute.call(bind || this, value)
+      if (attribute && attribute.call) {
+        var resolved = attribute.call(bind || this, value)
+        return resolved == null ? value : resolved;
+      }
   }
   return value;
 };
