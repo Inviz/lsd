@@ -198,7 +198,7 @@ Object.append(LSD.Script, {
             if (object.name == "value")
               widget.setValue(value);
             else
-              object.attributes.set(object.name, value);
+              widget.attributes.set(object.name, value);
           } else {
             object.ownerElement[object.name] = value;
           }
