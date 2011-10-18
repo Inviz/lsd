@@ -104,7 +104,7 @@ LSD.Object.prototype = {
     }
   },
   merge: function(object, reverse) {
-    if (object.watch) {
+    if (object.watch && object.addEvent) {
       var self = this;
       var watcher = function(name, value, state, old) {
         if (state) self.mix(name, value, true, reverse, true);
@@ -116,7 +116,7 @@ LSD.Object.prototype = {
     this.mix(object, null, true, reverse, true);
   },
   unmerge: function(object, reverse) {
-    if (object.unwatch) {
+    if (object.unwatch && object.removeEvent) {
       object.removeEvent('change', this);
     }
     this.mix(object, null, false, reverse, true);
