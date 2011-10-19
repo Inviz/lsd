@@ -70,19 +70,32 @@ Object.append(LSD.Script, {
       var cached = LSD.Script.parsed[name];
       if (cached) return cached;
     } else LSD.Script.parsed = {};
-    var found, result = [], matched = [], scope = result, text, stack = [], operator, selector;
+    var found, result = [], matched = [], scope = result, text, stack = [], operator, selector, block;
     var regexp = LSD.Script.rExpression;
     var names = regexp.names;
     while (found = regexp.exec(value)) matched.push(found);
     for (var i = 0, last = matched.length - 1; found = matched[i]; i++) {
-      if ((text = found[names._arguments]) != null) {
+      if ((text = found[names.fn_arguments]) != null) {
         var args = LSD.Script.parse(text);
-        for (var j = 0, bit; bit = args[j]; j++) if (bit && bit.length == 1) args[j] = bit[0];
-        if ((text = found[names['function']])) {
-          scope.push({type: 'function', name: text, value: args.push ? args : [args]});
+        if (args.push)
+          for (var j = 0, bit; bit = args[j]; j++) if (bit && bit.length == 1) args[j] = bit[0];
+        if ((text = found[names.fn])) {
+          if (!args.push) args = [args];
+          scope.push({type: 'function', name: text, value: args});
         } else {
           scope.push(args);
         }
+        var fn = true;
+      } else if ((text = found[names.block])) {  
+        var body = LSD.Script.parse(text);
+        if (body.push)
+          for (var j = 0, bit; bit = body[j]; j++) if (bit && bit.length == 1) body[j] = bit[0];
+        var block = {type: 'block', value: body.push ? body : [body]}
+        if ((text = found[names.block_arguments])) {
+          block.locals = LSD.Script.parse(text);
+          if (!block.locals.push) block.locals = [block.locals];
+        }
+        (args || scope).push(block);
       } else if ((text = (found[names.dstring] || found[names.sstring]))) {
         scope.push(text);
       } else if ((text = (found[names.number]))) {
@@ -138,6 +151,10 @@ Object.append(LSD.Script, {
           }
         }
       }
+      if (args) {
+        if (fn) fn = null;
+        else args = null;
+      }
       if (!operator && text && stack.length) {
         var pop = stack[stack.length - 1]
         if (pop && pop.scope) scope = pop.scope;
@@ -148,36 +165,22 @@ Object.append(LSD.Script, {
   },
   
   compile: function(object, source, output, parse) {
-    if (parse) {
-      object = LSD.Script.parse(object);
-      if (object.push) {
-        var name = ','
-        var value = object;
-      }
-    }
+    if (parse) object = LSD.Script.parse(object)
     switch (object.type) {
       case 'variable':
-        var Klass = LSD.Script.Variable;
-        var value = object.name;
-        break;
+        return new LSD.Script.Variable(object.name, source, output);
       case 'function':
-        var Klass = LSD.Script.Function;
-        if (!name) var name = object.name;
-        if (!value) var value = object.value;
-        break;
+        return new LSD.Script.Function(object.value, source, output, object.name);
+      case 'block':
+        return new LSD.Script.Block(object.value, source, output, object.locals);
       case 'selector':
-        var Klass = LSD.Script.Selector;
-        var value = object.value;
-        break;
+        return new LSD.Script.Selector(object.value, source, output);
       default:
-        if (object.push) {
-          var Klass = LSD.Script.Function
-          var value = object;
-        } else {
+        if (object.push)
+          return new LSD.Script.Function(object, source, output, ',')
+        else
           return object;
-        }
     }
-    return new Klass(value, source, output, name);
   },
   
   output: function(object, value) {
