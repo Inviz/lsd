@@ -298,8 +298,10 @@ LSD.Object.Stack.prototype = Object.append(new LSD.Object, {
           }
         if (j == -1) return
       }
-      value = group[length - 2];
-      var method = length == 1 ? 'unset' : 'set';
+      if (length > 1) {
+        var method = 'set';
+        value = group[length - 2];
+      } else var method = 'unset';
     }
     return LSD.Object.prototype[method || 'unset'].call(this, key, value, memo, index);
   },
