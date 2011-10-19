@@ -57,7 +57,6 @@ LSD.Position.fallback = ['flip', 'hug', 'invert'];
       if (boundaries.top) result.y += boundaries.top;
     } else {
       // positioning against anchor means different boundaries and another position
-      var pos = position[0], otherpos = position[1];
       var index = +!!vertical[position[0]];
       var query = {};
       switch (position[0]) {
@@ -104,6 +103,10 @@ LSD.Position.fallback = ['flip', 'hug', 'invert'];
             case "invert":
               // tries "bottom right", same corner on the other side
               attempt = [flip[position[0]], position[1]];
+              break;
+            case "revert":
+              // tries "right bottom", same corner on the other side
+              attempt = [position[0], flip[position[1]]];
           }
           var result = LSD.Position.calculate(object, boundaries, attempt, anchor);
           if (result) break;
