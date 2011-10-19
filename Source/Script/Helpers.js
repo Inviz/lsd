@@ -126,7 +126,7 @@ LSD.Script.Operators = {
   '>=': 4, '<=': 4, 
   '&&': 5, '||': 5,
   '=': 10
-};  
+};
 
 for (var operator in LSD.Script.Operators)
   LSD.Script.Helpers[operator] = new Function('left', 'right', 'return left ' + operator + ' right');

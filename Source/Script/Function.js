@@ -68,7 +68,7 @@ LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype,
       this.evaluator = LSD.Script.Evaluators[this.name] || null;
     for (var i = 0, j = this.args.length, arg; i < j; i++) {
       if ((arg = this.args[i]) == null) continue;
-      arg = this.translate(arg, state, i);
+      this.args[i] = arg = this.translate(arg, state, i);
       value = arg.variable ? arg.value : arg;
       args.push(value);
       if (this.evaluator) {
@@ -83,7 +83,7 @@ LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype,
   },
   
   translate: function(arg, state, i) {
-    if (!arg.variable && state) arg = this.compile(arg);
+    if (!arg.variable && state) arg = LSD.Script.compile(arg, this.source);
     if (arg.variable) {
       if (i !== null) this.args[i] = arg;
       if (state) {
@@ -104,11 +104,7 @@ LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype,
     return arg;
   },
   
-  compile: function(arg) {
-    return LSD.Script.compile(arg, this.source);
-  },
-  
-  process: function() {
-    return this.execute();
+  process: function(argument) {
+    return this.execute(); 
   }
 });

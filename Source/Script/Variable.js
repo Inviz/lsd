@@ -51,7 +51,7 @@ provides:
 */
 
 LSD.Script.Variable = function(input, source, output) {
-  this.input = input;
+  this.name = this.input = input;
   this.output = output;
   this.source = source;
 };
