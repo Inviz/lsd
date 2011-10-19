@@ -48,7 +48,6 @@ LSD.Script.Block.prototype = Object.append({}, LSD.Script.Function.prototype, {
         this.variables.set(local.name, arguments[i]);
     }
     var result = this.execute();
-    console.log(123, result, [].concat(this.args))
     if (this.locals)
       for (var local, i = 0; local = this.locals[i]; i++)
         this.variables.unset(local.name, arguments[i]);
