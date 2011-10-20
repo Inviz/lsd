@@ -166,7 +166,7 @@ LSD.Object.prototype = {
         var object = value || old;
         if (object.watch) {
           object[value ? 'watch' : 'unwatch'](key.substring(index + 1), callback);
-        } else {
+        } else if (value != null) {
           var result = Object.getFromPath(object, key.substring(index + 1));
           if (result != null) callback(result);
         }
