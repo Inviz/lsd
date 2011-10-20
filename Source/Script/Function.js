@@ -33,17 +33,16 @@ provides:
 */
 
 LSD.Script.Function = function(input, source, output, name) {
-  this.input = input;
-  this.output = output;
-  this.source = source;
+  LSD.Script.Variable.apply(this, arguments)
   this.name = name;
   this.args = Array.prototype.slice.call(input, 0);
 };
 
 LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype, {
   fetch: function(state) {
+    this.attached = state;
     var args = this.evaluate(state);
-    if (args) this.set(args);
+    if (args) this.set(args, !state);
     //if (this.children)
     //  for (var i = 0, child; child = this.children[i++];)
     //    child.fetch(state);

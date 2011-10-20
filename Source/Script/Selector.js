@@ -66,9 +66,7 @@ provides:
 
 
 LSD.Script.Selector = function(input, source, output) {
-  this.input = input;
-  this.output = output;
-  this.source = source;
+  LSD.Script.Variable.apply(this, arguments)
   this.input = input.replace(LSD.Script.Selector.rElementContext, function(whole, match) {
     switch (match) {
       case "$": 

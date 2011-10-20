@@ -30,7 +30,8 @@ provides:
 LSD.Script.Block = function(input, source, output, locals) {
   LSD.Script.Function.apply(this, arguments);
   delete this.name;
-  this.callback = this.invoke.bind(this);
+  this.callback = this.yield.bind(this);
+  this.callback.block = this;
   this.value = this.callback;
   this.block = true;
   this.locals = locals;
