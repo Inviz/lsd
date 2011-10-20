@@ -40,11 +40,20 @@ LSD.Array.prototype = {
     for (var i = 0, j = arguments.length, length, arg; i < j; i++) {
       arg = arguments[i];
       length = this.values.push(arg);
-      this[length - 1] = arg;
-      this.length = length;
-      this.fireEvent('change', arg, length - 1, true);
-      this.fireEvent('add', arg, length - 1);
+      this.set(arg, length - 1);
     }
+  },
+  set: function(value, index, state, old) {
+    if (state !== false) {
+      this[index] = value;
+      if (index + 1 > this.length) this.length = index + 1;
+    } else {  
+      delete this[index];
+      if (index + 1 == this.length) this.length = index;
+    }
+    this.fireEvent('change', value, index, !(state === false), old);
+    if (state === false || old != null)
+      this.fireEvent(state === false ? 'remove' : 'add', value, index, old);
   },
   indexOf: function(object, from) {
     var id = typeof object == 'object' ? LSD.getID(object) : object;
@@ -55,21 +64,58 @@ LSD.Array.prototype = {
     }
     return -1;
   },
-  slice: function() {
-    return this.values.slice(0);
+  slice: function(index, offset) {
+    return this.values.slice(index, offset);
   },
-  splice: function() {
-    return this.values.splice(0);
+  splice: function(index, offset) {
+    var values =  this.values.splice(index, offset);
+    if (index < 0) index = this.length - index;
+    if (offset == null) offset = this.length - index;
+    var args = Array.prototype.slice.call(arguments, 2);
+    var length = args.length;
+    var shift = length - offset;
+    if (shift && index < this.length) {
+      // we have to shift the tail of array either left or right, 
+      // each needs its own loop direction to avoid overwriting values 
+      if (shift > 0)
+        for (var i = this.length; --i >= index;)
+          this.set(this[i], i + shift, true, i)
+      else 
+        for (var i = index - shift; i < this.length; i++) {
+          if (i + shift <= index - shift) this.set(this[i + shift], i + shift, false)
+          this.set(this[i], i + shift, true, i);
+        }
+    }
+    this.length += shift - length;
+    // insert new values
+    for (var i = 0; i < length; i++) {
+      if (i < offset) this.set(args[i], i + index, false);
+      this.set(args[i], i + index, true);
+    }
+    return values;
   },
-  watch: function() {
-    this.addEvent
+  watch: function(callback) {
+    for (var i = 0, j = this.length >>> 0; i < j; i++)
+      callback.call(this, this[i], i, true);
+    this.addEvent('change', callback);
   },
   unwatch: function() {
-    
+    for (var i = 0, j = this.length >>> 0; i < j; i++)
+      callback.call(this, this[i], i, false);
+    this.removeEvent('change', callback);
   },
   fireEvent: LSD.Object.prototype.fireEvent,
   removeEvent: LSD.Object.prototype.removeEvent,
-  addEvent: LSD.Object.prototype.addEvent
+  addEvent: LSD.Object.prototype.addEvent,
+  iterate: function(block, callback, state) {
+    if (state !== false) {
+      block.watcher = function(value, index, substate, old) {
+        block.call(block, substate ? 'yield' : 'unyield', arguments, callback, index, old);
+      };
+      block.callback = block;
+    }
+    this[state !== false ? 'watch' : 'unwatch'](block.watcher);
+  }
 };
 
 for (var method in Array.prototype) 
