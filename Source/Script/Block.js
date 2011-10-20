@@ -51,8 +51,10 @@ LSD.Script.Block.prototype = Object.append({}, LSD.Script.Function.prototype, {
         if (!block) block = this.yields[index] = new LSD.Script.Block(this.input, this.source, null, this.locals);
         var invoked = block.invoked;
         block.yielder = callback;
-        block.invoke(args, true);
-        if (invoked) block.invoke(invoked, false);
+        block.invoke(args, true, !!invoked);
+        if (invoked)
+          for (var local, i = 0; local = block.locals[i]; i++)
+            block.variables.unset(local.name, invoked[i]);
         callback.block = block;
         return block;
       case 'unyield':
@@ -68,7 +70,7 @@ LSD.Script.Block.prototype = Object.append({}, LSD.Script.Function.prototype, {
         return this.invoke(arguments)
     }
   },
-  invoke: function(args, state) {
+  invoke: function(args, state, reset) {
     if (state !== false) {
       this.invoked = args;
       this.frozen = true;
@@ -76,7 +78,7 @@ LSD.Script.Block.prototype = Object.append({}, LSD.Script.Function.prototype, {
         for (var local, i = 0; local = this.locals[i]; i++)
           this.variables.set(local.name, args[i]);
       delete this.frozen;
-      if (state != null) this.fetch(true);
+      if (state != null) this.fetch(true, reset);
       else var result = this.execute()
     }
     if (state !== true) {

@@ -39,10 +39,10 @@ LSD.Script.Function = function(input, source, output, name) {
 };
 
 LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype, {
-  fetch: function(state) {
+  fetch: function(state, reset) {
     this.attached = state;
     var args = this.evaluate(state);
-    if (args) this.set(args, !state);
+    if (args) this.set(args, !state || reset);
     //if (this.children)
     //  for (var i = 0, child; child = this.children[i++];)
     //    child.fetch(state);
