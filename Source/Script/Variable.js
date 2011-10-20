@@ -28,10 +28,10 @@ provides:
   right way provides values for variables. Microdata and dataset objects, 
   just like other other store objects used are LSD.Object-compatible. 
   These objects provide `.watch()` interface that allows to observe changes
-  in object values. See LSD.Module.Interpolations for ways to add other
-  sources of data.
+  in object values. Any object may be used as the source for data to populate
+  variables with values.
   
-  Each variable has `token` or name, which is used as the key to fetch values.
+  Each variable has a name, which is used as the key to fetch values.
   LSD.Object provides support for nested keys as in `post.author.name` that
   sets up a chain of observers and whenever any of the parts are changed,
   the variable is set a new value.
@@ -51,23 +51,28 @@ provides:
 */
 
 LSD.Script.Variable = function(input, source, output) {
-  this.name = this.input = input;
+  this.uid = (++LSD.Script.Variable.uid);
+  this.input = input;
   this.output = output;
   this.source = source;
 };
 
+LSD.Script.Variable.uid = 0;
+
 LSD.Script.Variable.prototype = {
   variable: true,
   
-  set: function(value) {
+  set: function(value, reset) {
+    if (this.frozen) return;
+    var old = this.value;
     this.value = this.process ? this.process(value) : value;
-    this.onSet(this.value);
+    if (reset || typeof this.value == 'function' || old !== this.value) this.onSet(this.value);
   },
   
   onSet: function(value) {
     if (value == null && this.placeholder) value = this.placeholder;
     if (this.output) this.update(value);
-    if (this.parent) this.parent.set();
+    if (this.parent && this.attached) this.parent.set();
   },
   
   attach: function() {
@@ -79,6 +84,7 @@ LSD.Script.Variable.prototype = {
   },
   
   fetch: function(state) {
+    this.attached = state;
     if (!this.setter) this.setter = this.set.bind(this);
     (this.source.call ? this.source : this.request).call(this, this.input, this.setter, this.source, state);
     return this;
