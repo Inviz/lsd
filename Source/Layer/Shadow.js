@@ -1,29 +1,29 @@
 /*
 ---
- 
+
 script: Shadow.js
- 
+
 description: Drops outer shadow with offsets. Like a box shadow!
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
 - LSD.Layer
 - Ext/Element.Properties.boxShadow
 - Ext/Element.Properties.borderRadius
- 
+
 provides: [LSD.Layer.Shadow, LSD.Layer.Shadow.Layer]
- 
+
 ...
 */
 
                               //only gecko & webkit nightlies                                       AppleWebKit/534.1+ (KHTML, ... plus means nightly
-Browser.Features.SVGFilters = Browser.firefox || (Browser.webkit && navigator.userAgent.indexOf("+ (KHTML") > -1) 
+Browser.Features.SVGFilters = Browser.firefox || (Browser.webkit && navigator.userAgent.indexOf("+ (KHTML") > -1)
 
 LSD.Layer.Shadow = {
-  
+
   properties: {
     shadow:    ['blur', ['offsetX', 'offsetY'], 'color'],
     blur:      ['length', 'number'],
@@ -31,7 +31,7 @@ LSD.Layer.Shadow = {
     offsetY:   ['length', 'number'],
     color:     ['color']
   },
-  
+
   paint: function(color, blur, x, y, stroke, method) {
     //if (!method) {
     //  if (this.method) method = method

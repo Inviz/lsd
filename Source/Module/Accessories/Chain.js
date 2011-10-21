@@ -1,10 +1,10 @@
 /*
 ---
- 
+
 script: Chain.js
- 
+
 description: A dynamic state machine with a trigger
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
@@ -12,9 +12,9 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Module.Actions
 
-provides: 
+provides:
   - LSD.Module.Chain
- 
+
 ...
 */
 
@@ -28,16 +28,16 @@ LSD.Module.Chain = new Class({
       this.chainPhasing = [];
     }
   },
-  
+
   addChain: function(name, chain) {
     if (!chain.name) chains = name;
     this.chains[name] = chain;
   },
-  
+
   removeChain: function(name, chain) {
     if (this.chains[name] == chain) delete this.chains[name];
   },
-  
+
   getActionChain: function() {
     var actions = [];
     for (var name in this.chains) {
@@ -49,19 +49,19 @@ LSD.Module.Chain = new Class({
       return (b.priority || 0) - (a.priority || 0);
     });
   },
-  
+
   callChain: function() {
     return this.eachLink('regular', arguments, true)
   },
-  
+
   uncallChain: function() {
     return this.eachLink('regular', arguments, false, true);
   },
-  
+
   eachLink: function(filter, args, ahead, revert, target) {
     if (filter && filter.indexOf) filter = Iterators[filter];
     if (args != null && (args.push || args.hasOwnProperty('callee'))) args = LSD.slice(args);
-    else args = [args];  
+    else args = [args];
     var chain = this.currentChain || (this.currentChain = this.getActionChain.apply(this, args));
     if (!chain.length) {
       if (this.chainPhase > -1) this.clearChain();
@@ -107,14 +107,14 @@ LSD.Module.Chain = new Class({
     } else this.clearChain();
     return phases;
   },
-  
+
   clearChain: function() {
     this.chainPhase = -1;
     this.chainPhasing = [];
     delete this.currentChain;
     return this;
   },
-    
+
   execute: function(command, args, state, revert, ahead) {
     if (command.call && (!(command = command.apply(this, args))));
     else if (command.indexOf) command = {action: command}
@@ -139,7 +139,7 @@ LSD.Module.Chain = new Class({
         var callback = function(args, state) {
           (state ? succeed : failed).push([target, args]);
           result.removeEvents(events);
-          // Try to fork off execution if action lets so 
+          // Try to fork off execution if action lets so
           if (state && (this != target) && (command.fork || action.options.fork)) {
             //if (target.chainPhase == -1) target.callChain.apply(target, args);
             target.eachLink('optional', args, true);
@@ -172,7 +172,7 @@ LSD.Module.Chain = new Class({
       } else if (result === false) return;
       return value;
     }.bind(this);
-    
+
     var targets = command.target;
     if (targets && targets.call) {
       targets = targets.call(this, perform, state, revert);
@@ -193,28 +193,28 @@ var Iterators = LSD.Module.Chain.Iterators = {
       default: return true;
     }
   },
-  
+
   optional: function(link) {
     return link.priority == null || link.priority < 0;
   },
-  
+
   success: function(link, chain, index) {
     if (!link.action) return false;
     if (index < chain.length - 1 && link.keyword == 'and') return true;
   },
-  
+
   failure: function(link, chain, index) {
     if (!link.action) return false;
     switch (link.keyword) {
       case 'or': return true;
       case 'and':
-        for (var i = index, other; other = chain[--i];) 
+        for (var i = index, other; other = chain[--i];)
           switch (other.keyword) {
             case "or": return true;
             case "and": continue;
             default: break;
           }
-        for (var i = index, other; other = chain[++i];) 
+        for (var i = index, other; other = chain[++i];)
           switch (other.keyword) {
             case "or": return false;
             case "and": continue;
@@ -222,7 +222,7 @@ var Iterators = LSD.Module.Chain.Iterators = {
           }
     }
   },
-  
+
   alternative: function(link, chain, index) {
     if (!link.action) return false;
     switch (link.keyword) {
@@ -236,7 +236,7 @@ var Iterators = LSD.Module.Chain.Iterators = {
           }
     }
   },
-  
+
   quickstart: function(link) {
     return link.action && (link.keyword == 'do');
   }

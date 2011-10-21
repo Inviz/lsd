@@ -1,22 +1,22 @@
 /*
 ---
- 
+
 script: Fieldset.js
- 
+
 description: Wrapper around set of form fields
- 
+
 license: Public domain (http://unlicense.org).
- 
+
 requires:
   - LSD.Mixin
- 
-provides: 
+
+provides:
   - LSD.Mixin.Fieldset
- 
+
 ...
 */
 !function() {
-  
+
 LSD.Mixin.Fieldset = new Class({
   options: {
     has: {
@@ -44,7 +44,7 @@ LSD.Mixin.Fieldset = new Class({
       }
     }
   },
-  
+
   constructors: {
     fieldset: function(options, state) {
       if (state) {
@@ -57,13 +57,13 @@ LSD.Mixin.Fieldset = new Class({
       this[state ? 'addEvents' : 'removeEvents'](LSD.Mixin.Fieldset.events);
     }
   },
-  
+
   checkValidity: function() {
-    return this.elements.every(function(element) { 
+    return this.elements.every(function(element) {
       return element.checkValidity();
     });
   },
-  
+
   getData: function() {
     var data = {}
     this.submittableElements.each(function(element) {
@@ -75,11 +75,11 @@ LSD.Mixin.Fieldset = new Class({
   getRequestData: function() {
     return this.getData();
   },
-  
+
   reset: function() {
-    
+
   },
-  
+
   addFieldErrors: function(errors) {
     for (var name in errors) {
       var field = this.names[name];
@@ -89,7 +89,7 @@ LSD.Mixin.Fieldset = new Class({
     this.errors = errors;
     this.addEvent('beforeSubmit:once', this.removeFieldErrors);
   },
-  
+
   removeFieldErrors: function() {
     var errors = this.errors;
     for (var name in errors) {
@@ -113,7 +113,7 @@ LSD.Mixin.Fieldset = new Class({
     } else { //rooted response (publication: {errors: {}}), new rails
       var regex = Fieldset.rPrefixAppender;
       for (var model in response) {
-        var value = response[model]; 
+        var value = response[model];
         if (!(errors = value.errors)) continue;
         for (var i = 0, error; error = errors[i++];)
           result[Fieldset.getName(model, error[0])] = error[1];
@@ -121,7 +121,7 @@ LSD.Mixin.Fieldset = new Class({
     }
     if (Object.getLength(result) > 0) this.addFieldErrors(result);
   },
-  
+
   addField: function(widget) {
     var name = widget.attributes.name, radio = (widget.commandType == 'radio');
     if (!name || !widget.toData) return;
@@ -143,7 +143,7 @@ LSD.Mixin.Fieldset = new Class({
     }
     return object
   },
-  
+
   getParams: function(object) {
     if (!object) object = this.params;
     var result = {};
@@ -154,7 +154,7 @@ LSD.Mixin.Fieldset = new Class({
     }
     return result;
   },
-  
+
   removeField: function(widget) {
     var name = widget.attributes.name, radio = (widget.commandType == 'radio');
     if (!name) return;
@@ -173,7 +173,7 @@ LSD.Mixin.Fieldset = new Class({
     }
     return object
   },
-  
+
   getFieldsByName: function(fields, callback, root) {
     if (fields.call && (callback = fields)) fields = null;
     if (!fields) fields = this.elements;
@@ -182,7 +182,7 @@ LSD.Mixin.Fieldset = new Class({
       return this.getFieldsByName(field, callback, root)
     }.bind(this));
   },
-  
+
   getModelName: function() {
     for (var name in this.params) if (!this.params[name].nodeType) return name;
   }
@@ -198,12 +198,12 @@ var Fieldset = Object.append(LSD.Mixin.Fieldset, {
     return model + name.replace(Fieldset.rPrefixAppender, function(match) {return '[' + match + ']'});
   },
   bumpName: function(string) {
-    return string.replace(Fieldset.rNameIndexBumper, function(m, a, index, b) { 
+    return string.replace(Fieldset.rNameIndexBumper, function(m, a, index, b) {
       return a + (parseInt(index) + 1) + b;
     })
   },
   bumpId: function(string) {
-    return string.replace(Fieldset.rIdIndexBumper, function(m, a, index, b) { 
+    return string.replace(Fieldset.rIdIndexBumper, function(m, a, index, b) {
       return a + (parseInt(index) + 1) + b;
     })
   },

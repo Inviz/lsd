@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: Promise.js
- 
+
 description: A logic to render (and nest) widgets out of the key-value hash or dom tree
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Layout
 
-provides: 
+provides:
   - LSD.Layout.Promise
- 
+
 ...
 */
 
@@ -27,7 +27,7 @@ provides:
   are not lazy. When other chunks are rendered, they are matched against current
   proxies on a widget. And when there's a match, proxy (which is really a promise object)
   uses the matched node to and does not build a new one.
-  
+
   Then, a `layout.realize()` call sets all promised objects to render if they didnt
   match any nodes built in other chunks of layout.
 */
@@ -80,26 +80,26 @@ LSD.Layout.Promise.prototype = {
     // `callback` method is called like if it was a proxy setting
     this.widget.addProxy('promise', this);
   },
-  
+
   detach: function() {
     if (this.order) {
       var predecessors = this.memo && this.memo.predecessors;
-      if (predecessors) 
+      if (predecessors)
         for (var i = predecessors.length, predecessor; predecessor = predecessors[--i];)
           if (predecessor == this) predecessors.splice(i, 1);
     }
     this.widget.removeProxy('promise', this)
   },
-  
+
   advance: function() {
     this.memo.bypass = 'promise';
     this.advanced = this.layout.render(this.children, this.result.lsd ? this.result : [this.widget, this.result], this.memo)
   },
-  
+
   callback: function(child, proxy) {
     proxy.realize(child)
   },
-  
+
   realize: function(result) {
     var memo = {};
     this.detach();

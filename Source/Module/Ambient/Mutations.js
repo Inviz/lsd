@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: Mutations.js
- 
+
 description: Mutate elements into structures in one pass
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module.Expectations
 
-provides: 
+provides:
   - LSD.Module.Mutations
- 
+
 ...
 */
 
@@ -24,7 +24,7 @@ LSD.Module.Mutations = new Class({
       this.mutations = {};
     }
   },
-  
+
   mutate: function(selector, callback, object) {
     if (selector.indexOf) selector = Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
@@ -36,7 +36,7 @@ LSD.Module.Mutations = new Class({
     if (!group) group = mutations[selector.tag] = [];
     group.push([selector, callback]);
   },
-  
+
   unmutate: function(selector, callback, iterator) {
     if (selector.indexOf) selector = Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
@@ -45,7 +45,7 @@ LSD.Module.Mutations = new Class({
     };
     var group = this.mutations[selector.combinator][selector.tag];
     for (var i = group.length; i--;) {
-      var fn = group[i][1]; 
+      var fn = group[i][1];
       if (fn == callback || fn.callback == callback) {
         group.splice(i, 1);
         break;
@@ -53,7 +53,7 @@ LSD.Module.Mutations = new Class({
     };
     group.push([selector, callback]);
   },
-  
+
   addMutation: function(selector, callback) {
     if (selector.indexOf) selector = Slick.parse(selector);
     if (this.document && !this.document.building) Slick.search(this.element, selector).each(function(node) {
@@ -81,7 +81,7 @@ LSD.Module.Mutations = new Class({
       this.mutate(expressions[0], watcher || callback);
     }, this);
   },
-  
+
   removeMutation: function(selector, callback, depth) {
     if (selector.indexOf) selector = Slick.parse(selector);
     if (!depth) depth = 0;

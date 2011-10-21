@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: States.js
- 
+
 description: Define class states and methods metaprogrammatically
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
-requires: 
+
+requires:
   - LSD.Module
   - LSD.Object
   - Ext/States
-  
-provides: 
+
+provides:
   - LSD.Module.States
 
 ...
@@ -22,7 +22,7 @@ provides:
 
 LSD.Module.States = new Class({
   Implements: States,
-  
+
   constructors: {
     states: function() {
       this.states = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, quiet) {

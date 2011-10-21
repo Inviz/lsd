@@ -1,25 +1,25 @@
 /*
 ---
- 
+
 script: Require.js
- 
+
 description: A require implementation that uses jsus-raptor middleware
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
-  
+
 provides:
   - require
- 
+
 ...
 */
 
 !function(document) {
   if (!this.requireURL) this.requireURL = '/javascripts/require/'
-  
+
   var head = document.getElementsByTagName('head')[0];
-  
+
   var retrieve = function(expression, hard) {
     // remove package name
     var bits = expression.split(':');
@@ -27,7 +27,7 @@ provides:
     // split by parts
     bits = bits.split('.');
     for (var i = 0, bit, obj = window; obj && (bit = bits[i++]);)
-      if ((obj = obj[bit]) == null) 
+      if ((obj = obj[bit]) == null)
         if (hard) throw "Can't find " + expression + ". Stopped at " + bit + ".";
     return obj;
   };
@@ -50,7 +50,7 @@ provides:
       callback.apply(window, queue)
     });
   }
-  
+
   var load = function(source, callback) {
     var script = document.createElement('script');
     script.onload = callback,
@@ -67,7 +67,7 @@ provides:
     head.appendChild(script);
     return script;
   }
-  
+
   this.use = function() {
     var args = Array.prototype.slice.call(arguments, 0);
     if (args[args.length - 1].call) var callback = args.pop();

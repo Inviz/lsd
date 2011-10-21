@@ -106,7 +106,7 @@ sources:
   - Source/Action/Display.js
   - Source/Action/Toggle.js
   - Source/Action/Clone.js
-  - Source/Action/Edit.js 
+  - Source/Action/Edit.js
   - Source/Action/History.js
   - Source/Action/Focus.js
   - Source/Action/Counter.js

@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: Position.js
- 
-description: An observable object 
- 
+
+description: An observable object
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD
-  
+
 provides:
   - LSD.Position
-  
+
 ...
 */
 
@@ -53,7 +53,7 @@ LSD.Position.fallback = ['flip', 'hug', 'invert'];
           var index = +vertical[pos];
           result[index ? 'y' : 'x'] = (oprops[pos] ? 0 : ((boundaries[dimensions[index]] || 0) - object[dimensions[index]]))
         }
-      if (boundaries.left) result.x += boundaries.left;  
+      if (boundaries.left) result.x += boundaries.left;
       if (boundaries.top) result.y += boundaries.top;
     } else {
       // positioning against anchor means different boundaries and another position
@@ -62,7 +62,7 @@ LSD.Position.fallback = ['flip', 'hug', 'invert'];
       var query = {};
       switch (position[0]) {
         case "center":
-        
+
           break;
         case props[index]:
           query[props[index]] = 0;
@@ -83,7 +83,7 @@ LSD.Position.fallback = ['flip', 'hug', 'invert'];
           query[dimensions[+!index]] = anchor[props[+!index]] + anchor[dimensions[+!index]];
       }
       // positioning an object at top right relative to anchor,
-      // means positioning at bottom right of rectangle space above the anchor. 
+      // means positioning at bottom right of rectangle space above the anchor.
       var result = LSD.Position.calculate(object, query, [flip[position[0]], position[1]]);
       if (result) {
         //result[dimensions[+!index]] -= anchor[props[+!index]];
@@ -130,17 +130,17 @@ LSD.Position.prototype = {
         }
         this[name] = value;
       }
-    } else this.attachment = options; 
+    } else this.attachment = options;
     this.attach(this.attachment)
   },
   attach: function(attachment) {
     this.update(attachment)
   },
-  
+
   detach: function() {
-    
+
   },
-  
+
   resolve: function(object, position) {
     if (object.call) object = object.call(this);
     if (object.lsd) {
@@ -153,7 +153,7 @@ LSD.Position.prototype = {
           result.top = object.style.top || 0
         }
       } else object = object.toElement();
-    } 
+    }
     if (object.localName) {
       var result = Element.getSize(object);
       if (position) {
@@ -164,7 +164,7 @@ LSD.Position.prototype = {
     }
     return result || object;
   },
-  
+
   update: function(attachment) {
     var coordinates = this.coordinates;
     var object, boundaries, anchor, fallback;
@@ -176,9 +176,9 @@ LSD.Position.prototype = {
     if (!this.coordinates) {
       this.unset(coordinates);
       delete this.coordinates;
-    } else this.set(this.coordinates); 
+    } else this.set(this.coordinates);
   },
-  
+
   set: function(styles) {
     for (var name in styles) {
       var prop = name == 'x' ? 'left' : 'top';
@@ -188,7 +188,7 @@ LSD.Position.prototype = {
         this.object.style[prop] = styles[name] + 'px';
     }
   },
-  
+
   unset: function(styles) {
     for (var name in styles){
       var prop = name == 'x' ? 'left' : 'top';
@@ -198,8 +198,8 @@ LSD.Position.prototype = {
         delete this.object.style[prop];
     }
   },
-  
+
   unsetStyle: function() {
-    
+
   }
 };

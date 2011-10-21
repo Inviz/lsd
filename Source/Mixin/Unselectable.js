@@ -1,19 +1,19 @@
 /*
 ---
- 
+
 script: Unselectable.js
- 
+
 description: DisableS in browser native selection for element
- 
+
 license: Public domain (http://unlicense.org).
- 
+
 requires:
   - LSD.Mixin
   - Ext/Element.disableSelection
- 
-provides: 
+
+provides:
   - LSD.Mixin.Unselectable
- 
+
 ...
 */
 

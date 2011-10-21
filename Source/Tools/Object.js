@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: Object.js
- 
-description: An observable object 
- 
+
+description: An observable object
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD
-  
+
 provides:
   - LSD.Object
-  
+
 ...
 */
 
@@ -29,8 +29,8 @@ LSD.Object.prototype = {
     this[key] = value;
     this[key] = value = this.fireEvent('change', key, value, true, old, memo);
     var watched = this._watched;
-    if (watched && (watched = watched[key])) 
-      for (var i = 0, fn; fn = watched[i++];) 
+    if (watched && (watched = watched[key]))
+      for (var i = 0, fn; fn = watched[i++];)
         if (fn.call) fn(value, old);
         else LSD.Object.callback(this, fn, key, value, old, memo);
     return true;
@@ -40,8 +40,8 @@ LSD.Object.prototype = {
     if (old == null && value != null) return false;
     this.fireEvent('change', key, old, false, null, memo);
     var watched = this._watched;
-    if (watched && (watched = watched[key])) 
-      for (var i = 0, fn; fn = watched[i++];) 
+    if (watched && (watched = watched[key]))
+      for (var i = 0, fn; fn = watched[i++];)
         if (fn.call) fn(null, old);
         else LSD.Object.callback(this, fn, key, null, old, memo);
     delete this[key];
@@ -124,14 +124,14 @@ LSD.Object.prototype = {
     var object = {};
     for (var key in this) if (this.has(key)) object[key] = this[key];
     return object;
-  }, 
+  },
   has: function(key) {
     return this.hasOwnProperty(key) && (key.charAt(0) != '_')
   },
   join: function(separator) {
     var ary = [];
-    for (var key in this) 
-      if (this.has ? this.has(key) : this.hasOwnProperty(key)) 
+    for (var key in this)
+      if (this.has ? this.has(key) : this.hasOwnProperty(key))
         ary.push(key);
     return ary.join(separator)
   }
@@ -139,14 +139,14 @@ LSD.Object.prototype = {
 
 /*
   Stack object is an object that may have its values set from multiple sources.
-  All of `set` and `unset` calls are logged, so when the value gets unset, 
+  All of `set` and `unset` calls are logged, so when the value gets unset,
   it returns to previous value (that was set before by a different external object).
 
   It was designed to be symetric, so every .set is paired with .unset. Originally,
   unset raised exception when it could not find its value set before.
-  
-  That perhaps is too idealistic and doenst work in real world, so value that was 
-  set by some `set`/`unset` pair, can be unset by an outside `unset` call. 
+
+  That perhaps is too idealistic and doenst work in real world, so value that was
+  set by some `set`/`unset` pair, can be unset by an outside `unset` call.
   A paired `unset` having nothing to unset will silently do nothing.
 */
 

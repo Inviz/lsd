@@ -1,28 +1,28 @@
 /*
 ---
- 
+
 script: Layer.js
- 
+
 description: Adds a piece of SVG that can be drawn with widget styles
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - ART/ART.Shape
   - LSD.Module.Styles
   - Sheet/SheetParser.Styles
- 
-provides: 
+
+provides:
   - LSD.Layer
   - LSD.Layer.Shaped
- 
+
 ...
 */
 
 !function() {
-  
+
 LSD.Layer = function(name, styles, painters) {
   this.name = name;
   this.styles = styles;
@@ -38,13 +38,13 @@ LSD.Layer.prototype = {
     var layer = widget.shapes[this.name];
     if (shape.glyph) {
       var glyph = ART.Glyphs[shape.glyph];
-      if (!glyph) return;    
+      if (!glyph) return;
       var path = new ART.Path(glyph);
       var box = path.measure();
       if (!layer) layer = new ART.Shape(path, box.width, box.height);
       if (commands.size && !Object.equals(previous ? previous.size : box, commands.size))
         layer.resizeTo(commands.size.width, commands.size.height)
-        
+
     } else if (!shape.indexOf){
       for (var name in shape) {
         var values = shape[name];
@@ -84,7 +84,7 @@ LSD.Layer.prototype = {
     }
     if (!previous || !Object.equals(previous.translate, translate)) layer.moveTo(translate.x, translate.y)
   },
-  
+
   draw: function(widget, context, previous) {
     context = Object.append({size: widget.size, style: widget.style.current}, context || {});
     if (context.style.cornerRadiusTopLeft !== null) {
@@ -103,7 +103,7 @@ LSD.Layer.prototype = {
         }
       }
       //for (var command in value) this[command](command[value]);
-    }    
+    }
     this.render(widget, context);
     return Object.append(context, overwritten, inherited);;
   }
@@ -126,7 +126,7 @@ var merge = function(value, old) {
       }
       return old;
     }
-  }  
+  }
   return value;
 }
 
@@ -140,7 +140,7 @@ var Map = LSD.Layer.Map = {};
 var Cache = LSD.Layer.Cache = {};
 
 //LSD.Layer.getProperty = function(property, properties)
- 
+
 LSD.Layer.generate = function(name, layers) {
   if (arguments.length > 2) layers = Array.prototype.splice.call(arguments, 1);
   var painters = [];
@@ -177,7 +177,7 @@ LSD.Layer.prepare = function(name, layers, callback) {
       var style = (layer == name) ? name : name + layer.capitalize();
       if (length) {
         for (var j = 0, k = 0, l = 0, prop; prop = shorthand[j]; j++) {
-          if (!prop.push) { 
+          if (!prop.push) {
             if (properties[prop]) {
               shorthand[j] = prefix + prop.capitalize();
               k++

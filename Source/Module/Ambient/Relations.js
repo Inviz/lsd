@@ -1,19 +1,19 @@
 /*
 ---
- 
+
 script: Relations.js
- 
+
 description: Define a widget associations
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module
   - LSD.Relation
 
-provides: 
+provides:
   - LSD.Module.Relations
 
 ...
@@ -26,17 +26,17 @@ LSD.Module.Relations = new Class({
       this.related = {};
     }
   },
-  
+
   addRelation: function(name, options) {
     if (!this.relations[name]) new LSD.Relation(name, this);
     return this.relations[name].setOptions(options);
   },
-  
+
   removeRelation: function(name, options) {
     this.relations[name].setOptions(options, true);
     /*
-      A deleted scope can remove its parent relation before relation gets to the 
-      deletion of itself. No need to clean then, it's already clean 
+      A deleted scope can remove its parent relation before relation gets to the
+      deletion of itself. No need to clean then, it's already clean
     */
     if (this.relations[name] && !this.relations[name].$options.length) delete this.relations[name];
   }
@@ -79,7 +79,7 @@ LSD.Relation.Traits = {
       add: Array.object('selected')
     }
   },
-  
+
   contextmenu: {
     as: 'initiator',
     tag: 'menu',

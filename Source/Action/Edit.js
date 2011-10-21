@@ -1,14 +1,14 @@
 /*
 ---
- 
+
 script: Edit.js
- 
+
 description: Turn element into editable mode
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Action
   - Widgets/LSD.Widget.Body
@@ -32,7 +32,7 @@ LSD.Action.Edit = LSD.Action.build({
     }
     session.edit(content);
   },
-  
+
   disable: function(target) {
     var session = this.retrieve(target);
     if (session) session.hide();
@@ -70,13 +70,13 @@ LSD.Widget.Form.Edit = new Class({
       }
     }
   },
-  
+
   constructors: {
     session: function() {
       this.objects = [];
     }
   },
-  
+
   edit: function(values) {
     Element.Item.walk.call(this, this.element, function(node, prop, scope, prefix) {
       var editable = node.getProperty('editable');
@@ -99,20 +99,20 @@ LSD.Widget.Form.Edit = new Class({
     this.submitter.dispose();
     this.canceller.dispose();
   },
-  
+
   convert: function(element, name, type) {
     this.properties.push(element)
     return this.getReplacement(element, name, type).replaces(element);
   },
-  
+
   revert: function(element) {
     element.replaces(Element.retrieve(element, 'widget:edit'));
   },
-  
+
   cancel: function() {
     this.fireEvent('cancel', arguments)
   },
-  
+
   submit: function() {
     if (this.getResource) {
       var Resource = this.getResource();
@@ -121,13 +121,13 @@ LSD.Widget.Form.Edit = new Class({
       }.bind(this));
     }
   },
-  
+
   getReplacement: function(element, name, type) {
     var widget = Element.retrieve(element, 'widget:edit');
     if (!widget) {
       var options = {attributes: {name: name, type: type}};
       widget = this.document.layout.selector('input', this, options);
-      
+
       Element.store(element, 'widget:edit', widget);
     }
     //widget.setValue(Element.get(element, 'itemvalue'));

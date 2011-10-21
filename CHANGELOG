@@ -27,10 +27,10 @@ LSD
 
 * Cleanups
 
-0.2.2, 7.10.2010 
+0.2.2, 7.10.2010
 =======
 
-LSD-BASE 
+LSD-BASE
 --------
 
 * Fully remanaged fast arrays of various styles and properties. All things ART.ComplexStyles, ART.Styles.Element, ART.Styles.More, Widget.Ignore.Events and other guys become Widget.[Styles|Events|Attributes|States].[Ignore|Paint|Complex].
@@ -74,7 +74,7 @@ You can make your own state-specific event groups by extending LSD.States.Evevnt
 
 new Class({
   Extends: ART.Widget,
-  
+
   options: {
     actions: {
       explode: {
@@ -89,10 +89,10 @@ new Class({
           if (this.drag) this.drag.detach() //not this.getDrag().detach()
         },
         //optional below
-        uses: ['#handle'], //wait for widget (any selectors in array) before enable 
+        uses: ['#handle'], //wait for widget (any selectors in array) before enable
         lazy: false, //an option to not enable/disable from the start,
-                     //when true, means you have to manually 
-  									 // this.addAction(this.options.actions.explode) 
+                     //when true, means you have to manually
+  									 // this.addAction(this.options.actions.explode)
         run: false, //when true doesnt wait for widget to be injected into dom. enables right away.
         events: 'explode' //will [add|remove]Events(this.events.explode)
       }
@@ -102,7 +102,7 @@ new Class({
 
 * Removed outerclick from the codebase for good. Goodbye, buggy friend.
 
-* Removed retain event definition from all the widgets and put into a focus trait. Because almost everything needs it. For the cases when you dont need it, just put a "delete this.events.focus.element.mousedown" on top of the initialize function. 
+* Removed retain event definition from all the widgets and put into a focus trait. Because almost everything needs it. For the cases when you dont need it, just put a "delete this.events.focus.element.mousedown" on top of the initialize function.
 
 The above code is actually used in Menu trait.
 

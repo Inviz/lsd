@@ -1,21 +1,21 @@
 /*
 ---
- 
+
 script: Behavior.js
- 
+
 description: Defines global selectors that mix the mixins in
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD
   - Slick/Slick.Parser
-  
+
 provides:
   - LSD.Behavior
-  
+
 ...
 */
 
@@ -35,7 +35,7 @@ LSD.Behavior.prototype = {
       }, this);
     }, this);
   },
-  
+
   expect: function(object, selector, behavior) {
     var proto = object.prototype, type = typeOf(behavior);
     var watcher = function(widget, state) {
@@ -48,10 +48,10 @@ LSD.Behavior.prototype = {
       proto.expect(parsed, watcher);
     }
   },
-  
+
   attach: function(object) {
     this.attached.push(object);
-    for (var expectation in this.expectations) 
+    for (var expectation in this.expectations)
       for (var exps = this.expectations[expectation], i = 0, exp; exp = exps[i++];)
         this.expect(object, expectation, exp);
   }

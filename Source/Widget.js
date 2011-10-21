@@ -1,14 +1,14 @@
 /*
 ---
- 
+
 script: Widget.js
- 
+
 description: Base widget with all modules included
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Type
   - LSD.Module.Accessories
@@ -16,9 +16,9 @@ requires:
   - LSD.Module.Graphics
   - LSD.Mixin.Value
 
-provides: 
+provides:
   - LSD.Widget
- 
+
 ...
 */
 
@@ -42,7 +42,7 @@ LSD.Behavior.attach(LSD.Widget);
 
 (function(Widget) {
   var properties = {
-    '$events': 'slice', 
+    '$events': 'slice',
     'options': 'merge',
     '$states': 'append',
     'constructors': 'append',

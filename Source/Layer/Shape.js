@@ -1,21 +1,21 @@
 /*
 ---
- 
+
 script: Shape.js
- 
+
 description: Base layer that provides shape
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Layer
   - ART/ART.Shape
- 
-provides: 
+
+provides:
   - LSD.Layer.Shape
- 
+
 ...
 */
 
@@ -24,13 +24,13 @@ LSD.Layer.Shape = {
   properties: {
     shape:      ['url', 'shape', 'glyph']
   },
-  
+
   paint: function(shape) {
     return {
       shape: shape
     }
   },
-  
+
   onCompile: function(name) {
     for (var shape in ART.Shape) {
       var klass = ART.Shape[shape];
@@ -47,7 +47,7 @@ Object.append(SheetParser.Property.Type, {
     else for (var key in value) { var name = key; break};
     return !!ART.Shape[name.capitalize()]
   },
-  
+
   glyph: function(value) {
     return value.glyph
   }

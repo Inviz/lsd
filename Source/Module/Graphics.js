@@ -8,13 +8,13 @@ description: All visual rendering aspects under one umbrella
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module.Layers
   - LSD.Module.Render
   - LSD.Module.Shape
 
-provides: 
+provides:
   - LSD.Module.Graphics
 
 ...
@@ -23,8 +23,8 @@ provides:
 
 LSD.Module.Graphics = new Class({
   Implements: [
-    LSD.Module.Layers, 
-    LSD.Module.Render, 
+    LSD.Module.Layers,
+    LSD.Module.Render,
     LSD.Module.Shape
   ]
 });

@@ -1,19 +1,19 @@
 /*
 ---
- 
+
 script: Type.js
- 
+
 description: A base class for all class pools
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Behavior
   - LSD.Helpers
   - More/Object.Extras
-  
+
 provides:
   - LSD.Type
   - LSD.Module
@@ -21,7 +21,7 @@ provides:
   - LSD.Mixin
   - LSD.Element
   - LSD.Native
-  
+
 ...
 */
 
@@ -47,7 +47,7 @@ LSD.Type.prototype = {
       if (value && value.$family && value.$family() == 'class') callback.call(bind || this, value, name)
     }
   },
-  
+
   find: function(name, strict) {
     if (!strict) {
       if (!name.push && name.indexOf('-') > -1) name = name.split('-');
@@ -68,18 +68,18 @@ LSD.Type.prototype = {
     }
     return (this.queries[name] = false);
   },
-  
+
   create: function(element, options) {
     return new LSD.Widget(element, options)
   },
-  
+
   convert: function(element, options) {
     if (!this.find(LSD.Layout.getSource(element))) return;
     var klass = this.klass || LSD.Widget;
     return new LSD.Widget(element, options);
   }
 }
-// must-have stuff for all widgets 
+// must-have stuff for all widgets
 new LSD.Type('Module');
 // some widgets may use those
 new LSD.Type('Trait');

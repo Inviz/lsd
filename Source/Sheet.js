@@ -1,14 +1,14 @@
 /*
 ---
- 
+
 script: Sheet.js
- 
+
 description: Code to extract style rule definitions from the stylesheet
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - Core/Element
   - Core/Request
@@ -18,23 +18,23 @@ requires:
   - Sheet/SheetParser.Styles
   - LSD.Module.Element
   - LSD.Module.Options
-  
+
 provides:
   - LSD.Sheet
- 
+
 ...
 */
 
 !function() {
-  
+
 LSD.Sheet = new Class({
   Implements: [LSD.Module.Element, LSD.Module.Options],
-  
+
   options: {
     compile: false,
     combine: true //combine rules
   },
-  
+
   initialize: function(element, callback) {
     LSD.Module.Options.initialize.call(this, element);
     this.rules = [];
@@ -44,15 +44,15 @@ LSD.Sheet = new Class({
     if (!LSD.Sheet.stylesheets) LSD.Sheet.stylesheets = [];
     LSD.Sheet.stylesheets.push(this);
   },
-  
+
   define: function(selectors, style) {
     LSD.Sheet.Rule.fromSelectors(selectors, style).each(this.addRule.bind(this))
   },
-  
+
   addRule: function(rule) {
     this.rules.push(rule)
   },
-  
+
   fetch: function(href) {
     if (!href && this.element) href = this.element.get('href');
     if (!href) return;
@@ -61,20 +61,20 @@ LSD.Sheet = new Class({
       onSuccess: this.apply.bind(this)
     }).get();
   },
-  
+
   apply: function(sheet) {
     if (typeof sheet == 'string') sheet = this.parse(sheet);
     if (this.options.compile) this.compile(sheet);
     for (var selector in sheet) this.define(selector, sheet[selector]);
     if (this.callback) this.callback(this)
   },
-  
+
   parse: function(text) {
     var sheet = new Sheet(text);
     var rules = sheet.cssRules;
     var CSS = SheetParser.Styles, Paint = LSD.Styles;
     var parsed = {};
-    for (var i = 0, rule; rule = rules[i++];) {      
+    for (var i = 0, rule; rule = rules[i++];) {
       var selector = LSD.Sheet.convertSelector(rule.selectorText)
       if (!selector.length || LSD.Sheet.isElementSelector(selector)) continue;
       if (!parsed[selector]) parsed[selector] = {};
@@ -97,33 +97,33 @@ LSD.Sheet = new Class({
     };
     return parsed;
   },
-  
+
   attach: function(node) {
     this.rules.each(function(rule) {
       rule.attach(node)
     });
     LSD.start();
   },
-  
+
   detach: function(node) {
     this.rules.each(function(rule) {
       rule.detach(node)
     });
   },
-  
-  /* Compile LSD stylesheet to CSS when possible 
+
+  /* Compile LSD stylesheet to CSS when possible
      to speed up setting of regular properties
-     
+
      Will create stylesheet node and apply the css
-     unless *lightly* parameter was given. 
-     
+     unless *lightly* parameter was given.
+
      Unused now, because we decompile css instead */
   compile: function(lightly) {
     var bits = [];
     this.rules.each(function(rule) {
       if (!rule.implied) return;
       bits.push(rule.getCSSSelector() + " {")
-      for (var property in rule.implied) {  
+      for (var property in rule.implied) {
         var value = rule.implied[property];
         if (typeof value == 'number') {
           if (property != 'zIndex') value += 'px';
@@ -136,7 +136,7 @@ LSD.Sheet = new Class({
     })
     var text = bits.join("\n");
     if (lightly) return text;
-    
+
     if (window.createStyleSheet) {
       var style = window.createStyleSheet("");
       style.cssText = text;
@@ -158,7 +158,7 @@ Object.append(LSD.Sheet, {
     return SheetParser.Styles[cc] && !LSD.Styles[cc] && (cc != 'height' && cc != 'width')
   },
   isRawValue: function(value) {
-    return (value.indexOf('hsb') > -1) || (value.indexOf('ART') > -1) || (value.indexOf('LSD') > -1) || 
+    return (value.indexOf('hsb') > -1) || (value.indexOf('ART') > -1) || (value.indexOf('LSD') > -1) ||
            (value.charAt(0) == '"') || (value == 'false') || (value == parseInt(value)) || (value == parseFloat(value))
   }
 });
@@ -171,7 +171,7 @@ LSD.Sheet.Rule = function(selector, style) {
   for (var property in style) {
     var cc = property.camelCase();
     var type = (LSD.Sheet.Rule.separate && LSD.Sheet.isElementStyle(cc)) ? 'implied' : 'style';
-    if (!this[type]) this[type] = {}; 
+    if (!this[type]) this[type] = {};
     this[type][cc] = style[property];
   }
 }
@@ -179,20 +179,20 @@ LSD.Sheet.Rule.index = 0;
 
 LSD.Sheet.Rule.separate = true;
 
-Object.append(LSD.Sheet.Rule.prototype, {  
+Object.append(LSD.Sheet.Rule.prototype, {
   attach: function(node) {
     if (!this.watcher) this.watcher = this.watch.bind(this);
     node.watch(this.selector, this.watcher)
   },
-  
+
   detach: function(node) {
     node.unwatch(this.selector, this.watcher);
   },
-  
+
   watch: function(node, state) {
     node[state ? 'addRule' : 'removeRule'](this)
   },
-  
+
   getCSSSelector: function() {
     return this.expressions.map(function(parsed){
       var classes = ['', 'lsd'];
@@ -206,7 +206,7 @@ Object.append(LSD.Sheet.Rule.prototype, {
       return classes.join('.');
     }).join(' ');
   },
-  
+
   getSpecificity: function(selector) {
     specificity = 0;
     this.expressions.each(function(chunk){

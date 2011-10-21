@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: Submittable.js
- 
+
 description: Makes widget result in either submission or cancellation
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Mixin
- 
+
 provides:
   - LSD.Mixin.Submittable
- 
+
 ...
 */
 
@@ -69,7 +69,7 @@ LSD.Mixin.Submittable = new Class({
       }
     }
   },
-  
+
   submit: function(event) {
     this.fireEvent('beforeSubmit', arguments);
     if (event && event.type == 'submit' && event.target == this.element)
@@ -80,7 +80,7 @@ LSD.Mixin.Submittable = new Class({
     this.fireEvent('afterSubmit', arguments);
     return this;
   },
-  
+
   cancel: function() {
     var submission = this.captureEvent('cancel', arguments);
     if (submission) return submission;
@@ -94,10 +94,10 @@ LSD.Mixin.Submittable = new Class({
 });
 
 /*
-  Injects native submit button at top of the form that gets activated 
-  when `enter` button is pressed in the form field. It stops the 
-  native submission, and submits the widget form instead. 
-  
+  Injects native submit button at top of the form that gets activated
+  when `enter` button is pressed in the form field. It stops the
+  native submission, and submits the widget form instead.
+
   The first submitter widget in the form is considered activated and
   its value is used for submission data.
 */
@@ -107,9 +107,9 @@ LSD.Mixin.Submittable.watchNativeSubmission = function(state) {
   } else {
     this.release('submit').dispose().removeEvent('click', this.bind('submit'));
   }
-  /* 
-    novalidate html attribute disables internal form validation 
-    on form submission. Chrome and Safari will block form 
+  /*
+    novalidate html attribute disables internal form validation
+    on form submission. Chrome and Safari will block form
     submission without any visual clues otherwise.
   */
   this.element[state ? 'setAttribute' : 'removeAttribute']('novalidate', '');

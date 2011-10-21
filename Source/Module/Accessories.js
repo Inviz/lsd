@@ -8,7 +8,7 @@ description: Things that change the widget in one module
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module.Options
   - LSD.Module.Properties
@@ -22,8 +22,8 @@ requires:
   - LSD.Module.Mixins
   - LSD.Module.Chain
   - LSD.Module.Actions
-  
-provides: 
+
+provides:
   - LSD.Module.Accessories
 
 ...

@@ -1,10 +1,10 @@
 /*
 ---
- 
+
 script: ART.Element.js
- 
+
 description: Smarter injection methods
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
@@ -12,12 +12,12 @@ authors: Yaroslaff Fedin
 extends: ART/ART.Element
 
 provides: ART.Element.inserters
- 
+
 ...
 */
 
 !function() {
-  
+
 var inserters = {
 
   before: function(context, element){

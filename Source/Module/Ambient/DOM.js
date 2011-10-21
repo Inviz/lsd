@@ -1,10 +1,10 @@
 /*
 ---
- 
+
 script: DOM.js
- 
+
 description: Provides DOM-compliant interface to play around with other widgets
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
@@ -30,16 +30,16 @@ LSD.Module.DOM = new Class({
       this.childNodes = [];
     }
   },
-  
+
   contains: function(element) {
     while (element = element.parentNode) if (element == this) return true;
     return false;
   },
-  
+
   getChildren: function() {
     return this.childNodes;
   },
-  
+
   setParent: function(widget, index){
     if (!widget.lsd) widget = LSD.Module.DOM.find(widget);
     if (!widget) return;
@@ -75,18 +75,18 @@ LSD.Module.DOM = new Class({
       }
     }, this);
   },
-  
+
   unsetParent: function(widget, index) {
     if (!widget) widget = this.parentNode;
     LSD.Module.DOM.each(this, function(node) {
       widget.dispatchEvent('nodeRemoved', node);
     });
     this.removed = true;
-    unset.call(this, widget, index); 
+    unset.call(this, widget, index);
     this.properties.unset('parent', widget);
     delete this.removed;
   },
-  
+
   appendChild: function(child, element, bypass) {
     if (child.lsd && !child.parentNode) child.parentNode = this;
     if (bypass !== true) {
@@ -99,7 +99,7 @@ LSD.Module.DOM = new Class({
           else
             return proxy.widget.appendChild(child, element, true);
         }
-        if (proxy.before) 
+        if (proxy.before)
           return this.insertBefore(child, proxy.before, element, true)
       } else if (proxy === false) {
         if (child.parentNode) child.parentNode.removeChild(child);
@@ -115,13 +115,13 @@ LSD.Module.DOM = new Class({
     if (child.lsd) {
       // set parent 'for real' and do callbacks
       child.setParent(this, this.childNodes.push(child) - 1);
-      if (this.document && child.properties.document != this.document) 
+      if (this.document && child.properties.document != this.document)
         child.properties.set('document', this.document);
       if (this.document.rendered && !child.rendered) child.render()
     }
     return true;
   },
-  
+
   removeChild: function(child, element) {
     var widget = child.lsd ? child : LSD.Module.DOM.find(child, true);
     if (widget) {
@@ -134,7 +134,7 @@ LSD.Module.DOM = new Class({
     }
     if (element !== false && child && child.parentNode) child.parentNode.removeChild(child)
   },
-  
+
   replaceChild: function(insertion, child, element) {
     var index = this.childNodes.indexOf(child);
     if (index == -1) return;
@@ -144,7 +144,7 @@ LSD.Module.DOM = new Class({
     this.childNodes.splice(index, 0, insertion);
     insertion.setParent(this, index);
   },
-  
+
   insertBefore: function(child, node, element, bypass) {
     if (child.lsd && !child.parentNode) child.parentNode = this;
     if (!bypass) {
@@ -192,7 +192,7 @@ LSD.Module.DOM = new Class({
     }, options));
     return clone;
   },
-  
+
   inject: function(node, where) {
     if (!node.lsd) {
       var instance = LSD.Module.DOM.find(node, true);
@@ -215,18 +215,18 @@ LSD.Module.DOM = new Class({
     } else if (!inserters[where || 'bottom'](widget || node, widget ? this : this.toElement())) return false;
     return this;
   },
-  
+
   /*
-    Wrapper is where content nodes get appended. 
+    Wrapper is where content nodes get appended.
     Defaults to this.element, but can be redefined
     in other Modules or Traits (as seen in Container
     module)
   */
-  
+
   getWrapper: function() {
     return this.toElement();
   },
-  
+
   write: function(content, hard) {
     if (!content || !(content = content.toString())) return;
     var wrapper = this.getWrapper();
@@ -298,7 +298,7 @@ var unset = function(widget, index) {
 /*
   `inject` and `grab` methods accept optional argument that defines
   the position where the element should be placed.
-  
+
   These are the unedited duplicate of mootools element inserters.
   All of the manipilations boil down to either `insertBefore` or
   `appendChild`.
@@ -326,9 +326,9 @@ var inserters = {
 
 Object.append(LSD.Module.DOM, {
   dispose: function(node) {
-    
+
   },
-  
+
   destroy: function(node) {
     if (node.lsd) node = node.toElement()
     LSD.Module.DOM.walk(node, function(element) {
@@ -337,30 +337,30 @@ Object.append(LSD.Module.DOM, {
     });
     Element.destroy(node);
   },
-  
+
   'delete': function(node) {
     var child = LSD.Module.DOM.identify(node);
     if (child.widget && child.widget['delete']) var result = child.widget['delete']();
     LSD.Module.DOM.destroy(node)
     return result;
   },
-  
+
   clone: function(node, parent, before) {
     var child = LSD.Module.DOM.identify(node);
-    parent = (parent === true || parent == null) ? [child.parent, child.element.parentNode] : parent || false;  
+    parent = (parent === true || parent == null) ? [child.parent, child.element.parentNode] : parent || false;
     before = before === true ? child.element : before || child.element.nextSibling;
     return child.parent.document.layout.render(child.element, parent, {clone: true, before: before});
   },
-  
+
   walk: function(node, callback, bind, memo) {
     if (node.lsd) node = node.element || node.toElement();
     var result = callback.call(bind || this, node, memo);
     if (result !== false)
-      for (var children = node.childNodes, child, i = 0; child = children[i]; i++) 
+      for (var children = node.childNodes, child, i = 0; child = children[i]; i++)
         if (child.nodeType == 1) LSD.Module.DOM.walk(child, callback, bind, memo);
     return memo;
   },
-  
+
   each: function(node, callback, bind, memo) {
     var widget = node.lsd ? node : LSD.Module.DOM.find(node, true);
     if (widget) {
@@ -368,20 +368,20 @@ Object.append(LSD.Module.DOM, {
       if (result === false) return memo;
       if (result) (memo || (memo = [])).push(widget);
     }
-    for (var children = node.childNodes, child, i = 0; child = children[i]; i++) 
-      if (child.nodeType == 1) LSD.Module.DOM.each(child, callback, bind, memo); 
+    for (var children = node.childNodes, child, i = 0; child = children[i]; i++)
+      if (child.nodeType == 1) LSD.Module.DOM.each(child, callback, bind, memo);
     return memo;
   },
-  
+
   find: function(node, lazy) {
     return node.lsd ? node : ((!lazy || node.uid) && Element[lazy ? 'retrieve' : 'get'](node, 'widget'));
   },
-  
+
   identify: function(node) {
     var widget = LSD.Module.DOM.find(node);
-    if ((node.lsd ? widget : widget && widget.element) == node) 
+    if ((node.lsd ? widget : widget && widget.element) == node)
       return {element: widget.element, widget: widget, parent: widget.parentNode};
-    else 
+    else
       return {element: node, parent: widget};
   },
 
@@ -392,7 +392,7 @@ Object.append(LSD.Module.DOM, {
       return node.getAttribute('itemid');
     }
   },
-  
+
   findNext: function(node, limit) {
     var widget = node;
     if (widget && !widget.lsd)

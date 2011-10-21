@@ -1,14 +1,14 @@
 /*
 ---
- 
+
 script: Events.js
- 
+
 description: A mixin that adds support for declarative events assignment
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module
   - Core/Events
@@ -24,7 +24,7 @@ provides:
 */
 
 !function() {
-  
+
 LSD.Module.Events = new Class({
   Implements: window.Events
 });
@@ -38,7 +38,7 @@ var Events = Object.append(LSD.Module.Events, {
       for (var i = 0, fn, group = events[event]; fn = group[i++];)
         Events.setEvent.call(this, event, (fn.indexOf && bind ? bind.bind(fn) : fn), !state);
   },
-  
+
   watchEventTarget: function(name, fn) {
     var target = Events.Targets[name];
     if (target.events) Object.each(target.events, function(state, event) {
@@ -50,7 +50,7 @@ var Events = Object.append(LSD.Module.Events, {
     if (target.condition && target.condition.call(this)) fn.call(this, this, true);
     else if (target.getter && this[target.getter]) fn.call(this, this[target.getter], true);
   },
-  
+
   setEvent: function(name, fn, revert) {
     if (fn.indexOf && this.lsd) fn = this.bind(fn);
     if (fn.call || (fn.indexOf && !this.lsd)) {
@@ -82,7 +82,7 @@ var Events = Object.append(LSD.Module.Events, {
         if (target === true) {
           if (this.properties[name]) this.properties[name][revert ? 'removeEvents' : 'addEvents'](bound);
         } else if (target.call) {
-          if ((target = target.call(this))) 
+          if ((target = target.call(this)))
             for (var event in bound) Events.setEvent.call(target, event, bound[event], revert);
         } else {
           if (initial && target.events) {
@@ -95,30 +95,30 @@ var Events = Object.append(LSD.Module.Events, {
       return this;
     }
   },
-  
+
   setEvents: function(events, revert) {
     for (var type in events) Events.setEvent.call(this, type, events[type], revert);
     return this;
 	},
-	
+
   addEvent: function(name, fn) {
     return Events.setEvent.call(this, name, fn);
   },
-  
+
   addEvents: function(events) {
     for (var type in events) Events.setEvent.call(this, type, events[type]);
     return this;
   },
-  
+
   removeEvent: function(name, fn) {
     return Events.setEvent.call(this, name, fn, true);
   },
-  
+
   removeEvents: function(events) {
     for (var type in events) Events.setEvent.call(this, type, events[type], true);
     return this;
   },
-  
+
   setEventsByRegister: function(name, state, events) {
     var register = this.$register;
     if (!register) register = this.$register = {};
@@ -134,7 +134,7 @@ var Events = Object.append(LSD.Module.Events, {
         return false;
     }
   },
-  
+
   fireEvent: function(type, args, delay){
     var events = this.$events[type];
     if (!events) return this;
@@ -148,7 +148,7 @@ var Events = Object.append(LSD.Module.Events, {
     }
     return this;
   },
-  
+
   dispatchEvent: function(type, args){
     for (var node = this; node; node = node.parentNode) {
       var events = node.$events[type];
@@ -159,7 +159,7 @@ var Events = Object.append(LSD.Module.Events, {
     }
     return this;
   },
-  
+
   captureEvent: function(type, args) {
     var events = this.$events[type];
     if (!events) return;
@@ -170,7 +170,7 @@ var Events = Object.append(LSD.Module.Events, {
       if (result != null) return result;
     }
   },
-  
+
   bind: function(method) {
     if (method.call) {
       var name = method.BINDUID || (name = method.BINDUID = ++UID);
@@ -198,17 +198,17 @@ var Events = Object.append(LSD.Module.Events, {
 /*
   Inject generic methods into the module prototype
 */
-['addEvent',  'addEvents', 'removeEvent', 'removeEvents', 
+['addEvent',  'addEvents', 'removeEvent', 'removeEvents',
  'fireEvent', 'captureEvent', 'dispatchEvent',
  'bind'].each(function(method) {
   Events.implement(method, Events[method]);
 });
 
 /*
-  Target system re-routes event groups to various objects.  
-  
+  Target system re-routes event groups to various objects.
+
   Combine them for fun and profit.
-  
+
   | Keyword    |  Object that recieves events       |
   |-------------------------------------------------|
   | *self*     | widget itself (no routing)         |
@@ -216,7 +216,7 @@ var Events = Object.append(LSD.Module.Events, {
   | *parent*   | parent widget                      |
   | *document* | LSD document                       |
   | *window*   | window element                     |
-  
+
   | State      | Condition                          |
   |-------------------------------------------------|
   | *enabled*  | widget is enabled                  |
@@ -224,7 +224,7 @@ var Events = Object.append(LSD.Module.Events, {
   | *focused*  | widget is focused                  |
   | *blured*   | widget is blured                   |
   | *target*   | first focusable parent is focused  |
-  
+
   | Extras     | Description                        |
   |-------------------------------------------------|
   | *expected* | Routes events to widgets, selected |
@@ -232,10 +232,10 @@ var Events = Object.append(LSD.Module.Events, {
   |            | Provided by Expectations module    |
   | _\w        | An event group which name starts   |
   |            | with underscore is auto-applied    |
-  
+
 */
 Events.Targets = {
-  self: function() { 
+  self: function() {
     return this
   },
   window: function() {
@@ -279,11 +279,11 @@ Events.States = {
 
 /*
   Defines special *on* pseudo class for events used for
-  event delegation. The difference between usual event 
+  event delegation. The difference between usual event
   delegation (which is :relay in mootools) and this, is
-  that with :on you can use LSD selectors and it fires 
+  that with :on you can use LSD selectors and it fires
   callbacks in context of widgets.
-  
+
   element.addEvent('mouseover:on(button)', callback)
 */
 
@@ -292,7 +292,7 @@ Event.definePseudo('on', function(split, fn, args){
   var widget = Element.get(event.target, 'widget');
   if (widget && widget.match(split.value)) {
     fn.call(widget, event, widget, event.target);
-    return;        
+    return;
   }
 });
 

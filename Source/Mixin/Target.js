@@ -1,18 +1,18 @@
 /*
 ---
- 
+
 script: Target.js
- 
+
 description: Functions to fetch and parse target into action chains
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Mixin
 
-provides: 
+provides:
   - LSD.Mixin.Target
 
 ...
@@ -50,7 +50,7 @@ provides:
         }
       }
     },
-  
+
     parseTargetSelector: function(selector) {
       return (cache[selector] || (cache[selector] = Parser.exec.apply(Parser, arguments)))
     },
@@ -59,10 +59,10 @@ provides:
       return this.attributes.interaction || this.captureEvent('getTargetAction', arguments);
     }
   });
-  
-  
+
+
   var Parser = LSD.Mixin.Target.Parser = {
-    build: function(expression, start, end, keyword) {      
+    build: function(expression, start, end, keyword) {
       var last = expression[end - start - 1];
       if (!last.classes && !last.attributes && last.tag == '*' && !last.id && last.pseudos[0].type == 'class') {
         var actions = last.pseudos
@@ -80,27 +80,27 @@ provides:
         return object;
       }); else return built;
     },
-    
+
     slice: function(expressions, start, end) {
       return {
         Slick: true,
         expressions: [expressions.slice(start, end)]
       };
     },
-    
+
     exec: function(selector) {
       var parsed = selector.Slick ? selector : Slick.parse(selector), expressions = [];
       for (var i = 0, expression; expression = parsed.expressions[i]; i++) {
         var started = 0;
         var first = expression[0];
-        var keyword = Keywords[first.tag] ? first.tag : null; 
+        var keyword = Keywords[first.tag] ? first.tag : null;
         var exp = Parser.build(expression, started, expression.length, keyword);
         expressions.push[exp.push ? 'apply' : 'call'](expressions, exp);
       }
       return expressions;
     }
   };
-  
+
   var Keywords = Parser.Keywords = Array.object('if', 'then', 'else', 'or', 'and', 'before', 'do', 'watch');
 }();
 

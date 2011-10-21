@@ -1,26 +1,26 @@
 /*
 ---
- 
+
 script: Slider.js
- 
+
 description: Because sometimes slider is the answer
- 
+
 license: Public domain (http://unlicense.org).
- 
+
 requires:
   - LSD.Trait
   - More/Slider
   - Ext/Slider.prototype.update
   - Ext/Class.hasParent
 
-provides: 
+provides:
   - LSD.Trait.Slider
- 
+
 ...
 */
 
 LSD.Trait.Slider = new Class({
-  
+
   options: {
     actions: {
       slider: {
@@ -44,11 +44,11 @@ LSD.Trait.Slider = new Class({
     value: 0,
     mode: 'horizontal',
   },
-  
+
   onParentResize: function(current, old) {
     if (this.slider) this.slider.update();
   },
-  
+
   getSlider: Macro.getter('slider', function (update) {
     var slider = new Slider(document.id(this.getTrack()), document.id(this.getTrackThumb()), Object.merge(this.options.slider, {
       mode: this.options.mode
@@ -57,32 +57,32 @@ LSD.Trait.Slider = new Class({
     this.properties.set('slide', slider);
     return slider;
   }),
-  
+
   onSet: Macro.defaults(function() {
     return true;
   }),
-  
+
   getTrack: Macro.defaults(function() {
     return this
   }),
-  
+
   getTrackThumb: Macro.defaults(function() {
     return this.thumb;
   }),
-  
+
   increment: function() {
     this.slider.set((this.slider.step || 0) + 10)
   },
-  
+
   decrement: function() {
     this.slider.set((this.slider.step || 0) - 10)
   }
-  
+
 });
 
 Slider = new Class({
   Extends: Slider,
-  
+
   initialize: function() {
     (this.Binds.push ? this.Binds : [this.Binds]).each(function(name){
       var original = this[name];

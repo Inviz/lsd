@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: Resource.js
- 
+
 description: Make various requests to back end
- 
+
 license: Public domain (http://unlicense.org).
- 
+
 requires:
   - LSD.Mixin
   - Resource/*
   - More/URI
-  
-provides: 
+
+provides:
   - LSD.Mixin.Resource
- 
+
 ...
 */
 
@@ -35,7 +35,7 @@ LSD.Mixin.Resource = new Class({
       }
     }
   },
-  
+
   getResource: function(options) {
     if (!options) options = this.options.resource
     if (!this.resource) {
@@ -48,7 +48,7 @@ LSD.Mixin.Resource = new Class({
           prefix = uri.get('directory');
           name = uri.get('file');
           /*
-            Parses the last URL bit that can be singularized 
+            Parses the last URL bit that can be singularized
           */
           while (!name || !(name = name.singularize())) {
             var dirs = prefix.split('/');
@@ -64,11 +64,11 @@ LSD.Mixin.Resource = new Class({
     }
     return this.resource;
   },
-  
+
   getResourceID: function() {
     return this.attributes.itemid;
   },
-  
+
   getModel: function() {
     if (this.model) return this.model
     this.model = this.getResource().init(this.getResourceID() || this.element);
@@ -76,12 +76,12 @@ LSD.Mixin.Resource = new Class({
     this.setAttribute('href', url);
     return this.model;
   },
-  
+
   submit: function() {
     var model = this.getModel();
     return model.save.apply(model, arguments);
   },
-  
+
   'delete': function() {
     return this.getModel().destroy(function() {
       this.destroy();

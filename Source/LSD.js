@@ -1,14 +1,14 @@
 /*
 ---
- 
+
 script: LSD.js
- 
+
 description: LSD namespace definition
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - Core/Class
   - Core/Events
@@ -19,10 +19,10 @@ requires:
   - Ext/Macro
   - Ext/Class.mixin
   - Ext/Object.Array
- 
-provides: 
+
+provides:
   - LSD
- 
+
 ...
 */
 
@@ -36,8 +36,8 @@ var LSD = Object.append(new Events, {
     hidden:   {enabler: 'hide',       disabler: 'show'},
     disabled: {enabler: 'disable',    disabler: 'enable'},
     active:   {enabler: 'activate',   disabler: 'deactivate'},
-    focused:  {enabler: 'focus',      disabler: 'blur'},     
-    selected: {enabler: 'select',     disabler: 'unselect'}, 
+    focused:  {enabler: 'focus',      disabler: 'blur'},
+    selected: {enabler: 'select',     disabler: 'unselect'},
     checked:  {enabler: 'check',      disabler: 'uncheck',   toggler: 'toggle'},
     collapsed:{enabler: 'collapse',   disabler: 'expand',  toggler: 'toggle'},
     working:  {enabler: 'busy',       disabler: 'idle'},
@@ -53,6 +53,6 @@ var LSD = Object.append(new Events, {
   useNative: true
 });
 
-States.get = function(name) { 
+States.get = function(name) {
   return LSD.States[name];
 };

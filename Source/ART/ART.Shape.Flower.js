@@ -1,35 +1,35 @@
 /*
 ---
- 
+
 script: Flower.js
- 
+
 description: Ever wanted a flower button? Here you go
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
 - ART/ART.Shape
- 
+
 provides: [ART.Shape.Flower]
- 
+
 ...
 */
 
 ART.Shape.Flower = new ART.Class({
-  
+
   Extends: ART.Shape,
-  
+
   properties: ['width', 'height', 'leaves', 'radius'],
-  
+
   draw: function(width, height, leaves, radius){
      var path = new ART.Path,
          outside = width / 2,
          cx = width / 2,
          cy = cx,
          inside = outside * (radius || 0.5);
-     
+
     leaves = Math.max(leaves || 0, 5);
     path.move(0, inside);
     var points = ["M", cx, cy + rin, "Q"],
@@ -40,8 +40,8 @@ ART.Shape.Flower = new ART.Class({
     }
     points.push("z");
     return this.path(points);
-    
-    
+
+
     return this.parent(path.close());
   },
 
@@ -55,7 +55,7 @@ ART.Shape.Flower = new ART.Class({
     }
   }
 
-});  
+});
 
 //Raphael.fn.flower = function (cx, cy, rout, rin, n) {
 //    rin = rin || rout * .5;

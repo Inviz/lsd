@@ -1,12 +1,12 @@
 /*
 ---
- 
+
 script: Uploader.js
- 
+
 description: Add your widget have a real form value.
- 
+
 license: Public domain (http://unlicense.org).
- 
+
 requires:
   - LSD.Mixin
   - Widgets/LSD.Widget.Button
@@ -14,10 +14,10 @@ requires:
   - Uploader/*
   - LSD.Mixin.List
   - Core/JSON
-  
-provides: 
+
+provides:
   - LSD.Mixin.Uploader
- 
+
 ...
 */
 
@@ -69,14 +69,14 @@ LSD.Mixin.Uploader = new Class({
       multiple: false
     }
   },
-  
+
   constructors: {
     uploader: function(options, state) {
       if (state) this.blobs = {};
       else delete this.blobs;
     }
   },
-  
+
   getUploader: function() {
     if (this.uploader) return this.uploader;
     var options = Object.append({}, this.options.uploader);
@@ -85,11 +85,11 @@ LSD.Mixin.Uploader = new Class({
     this.uploader.widget = this;
     return this.uploader;
   },
-  
+
   onBeforeFileSelect: function() {
     this.lastUploaderTarget =  this.getUploader().target;
   },
-  
+
   getUploaderTarget: function() {
     var target = this.options.uploader.target;
     if (target) {
@@ -106,7 +106,7 @@ LSD.Mixin.Uploader = new Class({
       var Klass = new Class({
         Implements: [adapter.File, this.getUploaderFileClassBase()]
       });
-      if (Klass.prototype.setProperties == adapter.File.prototype.setProperties) 
+      if (Klass.prototype.setProperties == adapter.File.prototype.setProperties)
         delete Klass.prototype.setProperties;
       adapter.File.Widget = function() {
         return new LSD.Widget().mixin(Klass, true);
@@ -114,11 +114,11 @@ LSD.Mixin.Uploader = new Class({
     }
     return adapter.File.Widget;
   },
-  
+
   getUploaderFileClassBase: function() {
     return LSD.Widget.Filelist.File
   },
-  
+
   onFileComplete: function(file) {
     var blob = this.processStoredBlob(file.response.text);
     if (blob && !blob.errors) {
@@ -127,38 +127,38 @@ LSD.Mixin.Uploader = new Class({
       this.onFileFailure(file, blob || response);
     }
   },
-  
+
   processValue: function(blob) {
     return blob.id || blob.uid || blob._id;
   },
-  
+
   onFileSuccess: function(file, blob) {
     this.addBlob(file, blob);
     file.fireEvent('success', blob);
   },
-  
+
   onFileFailure: function(file, blob) {
     file.fireEvent('failure', blob);
   },
-  
+
   onFileRemove: function(file) {
     this.removeBlob(file);
   },
-  
+
   getBlob: function(file) {
     return this.blobs[file.id];
   },
-  
+
   addBlob: function(file, blob) {
     if (this.options.uploader.value !== false) this.setValue(blob);
     this.blobs[file.id] = blob;
   },
-  
+
   removeBlob: function(file) {
     if (this.options.uploader.value !== false) this.setValue(this.blobs[file.id], true);
-    delete this.blobs[file.id];    
+    delete this.blobs[file.id];
   },
-  
+
   retrieveStoredBlobs: function() {
     var attrs = this.attributes;
     return attrs.file || attrs.files || attrs.blobs || attrs.blob;
@@ -169,12 +169,12 @@ LSD.Mixin.Uploader = new Class({
     if (response && Object.getLength(response) == 1) response = response[Object.keys(response)[0]];
     return response;
   },
-  
+
   getStoredBlobs: function() {
     var files = this.retrieveStoredBlobs();
     return files ? Array.from(JSON.decode(files)).map(this.processStoredBlob.bind(this)) : [];
   },
-  
+
   addFile: function(blob) {
     var widget = new (this.getUploaderFileClass());
     widget.widget = this;
@@ -222,15 +222,15 @@ LSD.Mixin.Upload = new Class({
       remove: 'dispose'
     }
   },
-  
+
   getParentWidget: function(widget) {
     return widget;
   },
-  
+
   getWidget: function() {
     return (this.widget || this.base.widget);
   },
-  
+
   setProperties: function(properties) {
     for (var name in properties) {
       this[name] = properties[name];

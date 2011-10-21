@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: Properties.js
- 
+
 description: A watchable proxy object that holds internal widget properties
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module
   - LSD.Object
   - LSD.Module.Options
   - LSD.Module.Events
-  
+
 provides:
   - LSD.Module.Properties
 
@@ -26,7 +26,7 @@ LSD.Module.Properties = new Class({
     context: 'element',
     namespace: 'LSD'
   },
-  
+
   constructors: {
     properties: function() {
       var self = this;
@@ -92,7 +92,7 @@ Object.append(LSD.Options, {
       this.properties.unset('tag', value);
     }
   },
-  
+
   context: {
     add: function(value) {
       this.properties.set('context', value)
@@ -101,7 +101,7 @@ Object.append(LSD.Options, {
       this.properties.unset('context', value)
     }
   },
-  
+
   source: {
     add: function(value) {
       this.properties.set('source', value)
@@ -123,12 +123,12 @@ Object.append(LSD.Options, {
 
 LSD.Module.Properties.Methods = {
   tag: function(value, state, old) {
-    if (!state || old) 
+    if (!state || old)
       if (this.source) this.properties.unset('source', this.source);
     var source = this.options.source;
     this.properties.set('source', source || LSD.Module.Properties.getSource(this, state ? value : false));
   },
-  
+
   context: function(value, state, old) {
     var source = this.source;
     if (source) this.properties.unset('source', source);
@@ -139,7 +139,7 @@ LSD.Module.Properties.Methods = {
     }
     if (source) this.properties.set('source', source);
   },
-  
+
   source: function(value, state, old) {
     if (state && value) {
       var role = this.factory.find(value);

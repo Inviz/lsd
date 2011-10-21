@@ -1,26 +1,26 @@
 /*
 ---
- 
+
 script: Rectangle.js
- 
+
 description: Rectangles with rounded corners
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
 - ART/ART.Shape
- 
+
 provides: [ART.Shape.Rectangle]
- 
+
 ...
 */
 
 ART.Shape.Rectangle = new ART.Class({
 
   Extends: ART.Shape,
-  
+
   draw: function(width, height, radius) {
     var path = new ART.Path;
     if (!radius){
@@ -55,13 +55,13 @@ ART.Shape.Rectangle = new ART.Class({
       if (bl > 0) path.arc(-bl, -bl);
       path.line(0, - Math.abs(height) + (bl + tl));
     }
-    
+
     return this.parent(path);
   },
-  
+
   render: function(context) {
-    var radius = context.radius;     
-    if (radius && radius.length == 4) radius = [radius[0], radius[2], radius[3], radius[1]]       
+    var radius = context.radius;
+    if (radius && radius.length == 4) radius = [radius[0], radius[2], radius[3], radius[1]]
     return this.draw(context.size.width, context.size.height, radius)
   }
 });

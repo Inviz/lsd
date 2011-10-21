@@ -1,29 +1,29 @@
 /*
 ---
- 
+
 script: Star.js
- 
+
 description: A star with variable number of edges
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - ART/ART.Shape
- 
-provides: 
+
+provides:
   - ART/ART.Shape.Star
- 
+
 ...
 */
 
 ART.Shape.Star = new ART.Class({
-  
+
   Extends: ART.Shape,
-  
+
   properties: ['width', 'height', 'starRays', 'starRadius', 'starOffset'],
-  
+
   draw: function(width, height, rays, radius, offset){
     if (rays == null) rays = 5;
     var path = new ART.Path;
@@ -32,8 +32,8 @@ ART.Shape.Star = new ART.Class({
     offset = angle / (offset || 2.1);
     if (radius == null) radius = outer *.582;
     var lx = 0, ly = 0;
-    for (var i = 0; i < rays * 2; i++) { 
-      var r = i % 2 ? outer : radius; 
+    for (var i = 0; i < rays * 2; i++) {
+      var r = i % 2 ? outer : radius;
       var x = r * Math.cos(i * angle + offset);
       var y = r * Math.sin(i * angle + offset);
       if (i == 0) {

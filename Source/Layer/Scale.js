@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: Scale.js
- 
+
 description: Adds a way to set scale level to the layer
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Layer
- 
-provides: 
+
+provides:
   - LSD.Layer.Scale
- 
+
 ...
 */
 
@@ -24,7 +24,7 @@ LSD.Layer.Scale = {
     x:     ['number', 'percentage'],
     y:     ['number', 'percentage']
   },
-  
+
   paint: function(x, y) {
     if (x != null || y != null) return {
       size: {
