@@ -43,9 +43,6 @@ LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype,
     this.attached = state;
     var args = this.evaluate(state);
     if (args) this.set(args, !state || reset);
-    //if (this.children)
-    //  for (var i = 0, child; child = this.children[i++];)
-    //    child.fetch(state);
     return this;
   },
   
@@ -54,8 +51,11 @@ LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype,
     if (args === null) return null;
     if (!args.push) return args;
     if (this.name) {
-      var method = LSD.Script.Scope.lookup(this.source, this.name)
-      if (method) return method.apply(this, args)
+      var method = LSD.Script.Scope.lookup(this.source, this.name, args)
+      if (method) {
+        if (method === true) return args[0][this.name].apply(args[0], Array.prototype.slice.call(args, 1)) 
+        else return method.apply(this, args)
+      }
     } else {
       return args[0];
     }
@@ -88,13 +88,10 @@ LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype,
       if (state) {
         if (arg.parent != this) {
           arg.parent = this;
-          (this.children || (this.children = [])).push(arg);
           arg.attach();
         }
       } else {
         if (arg.parent == this) {
-          var index = this.children.indexOf(arg);
-          if (index > -1) this.children.splice(index, 1);
           arg.detach();
           delete arg.parent;
         }

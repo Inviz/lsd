@@ -37,9 +37,11 @@ Object.append(LSD.Script.Scope, {
     object.variables.unmerge(scope.variables, true);
   },
   
-  lookup: function(object, name) {
+  lookup: function(object, name, args) {
+    var arg = args[0];
     for (var scope = object; scope; scope = scope.parentScope)
       if (scope.methods[name]) return scope.methods[name];
-    return LSD.Script.Helpers[name];
+    if (arg != null) if (arg[name]) return true;
+    return LSD.Script.Helpers[name] || Object[name];
   }
 });
