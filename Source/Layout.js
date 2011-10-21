@@ -13,6 +13,7 @@ requires:
   - LSD
   - LSD.Helpers
   - LSD.Script.Interpolation
+  - LSD.Script.Parser
   - LSD.Script.Selector
   - More/Object.Extras
 

@@ -86,7 +86,8 @@ LSD.Script.Variable.prototype = {
   fetch: function(state) {
     this.attached = state;
     if (!this.setter) this.setter = this.set.bind(this);
-    (this.source.call ? this.source : this.request).call(this, this.input, this.setter, this.source, state);
+    if (this.source != null)
+      (this.source.call ? this.source : this.request).call(this, this.input, this.setter, this.source, state);
     return this;
   },
   

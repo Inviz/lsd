@@ -120,6 +120,7 @@ sources:
   - Source/Script/Array.js
   - Source/Script/Scope.js
   - Source/Script/Interpolation.js
+  - Source/Script/Parser.js
   - Source/Layout.js
   - Source/Layout/Block.js
   - Source/Layout/Microdata.js

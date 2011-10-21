@@ -11,12 +11,9 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD
-  - Sheet/Sheet.Value
   
 provides:
   - LSD.Script
-  - LSD.Script.parse
-  - LSD.Script.compile
   
 ...
 */
@@ -64,157 +61,33 @@ LSD.Script = function(input, source, output, placeholder) {
   return result;
 };
 
-Object.append(LSD.Script, {
-  parse: function(value) {
-    if (LSD.Script.parsed) {
-      var cached = LSD.Script.parsed[name];
-      if (cached) return cached;
-    } else LSD.Script.parsed = {};
-    var found, result = [], matched = [], scope = result, text, stack = [], operator, selector, block;
-    var regexp = LSD.Script.rExpression;
-    var names = regexp.names;
-    while (found = regexp.exec(value)) matched.push(found);
-    for (var i = 0, last = matched.length - 1; found = matched[i]; i++) {
-      if ((text = found[names.fn_arguments]) != null) {
-        var args = LSD.Script.parse(text);
-        if (args.push)
-          for (var j = 0, bit; bit = args[j]; j++) if (bit && bit.length == 1) args[j] = bit[0];
-        if ((text = found[names.fn])) {
-          if (!args.push) args = [args];
-          scope.push({type: 'function', name: text, value: args});
+LSD.Script.output = function(object, value) {
+  if (object.block) {
+    object.set(value);
+  } else if (object.call) {
+    object(value);
+  } else {
+    if (value == null) value = '';
+    switch (object.nodeType) {
+      case 1:
+        if (object.lsd) object.write(value)
+        else object.innerHTML = value;
+        break;
+      case 2:
+        var widget = object.ownerElement.lsd ? object.ownerElement : Element.retrieve(object.ownerElement, 'widget');
+        if (widget) {
+          if (object.name == "value")
+            widget.setValue(value);
+          else
+            widget.attributes.set(object.name, value);
         } else {
-          scope.push(args);
+          object.ownerElement[object.name] = value;
         }
-        var fn = true;
-      } else if ((text = found[names.block])) {  
-        var body = LSD.Script.parse(text);
-        if (body.push)
-          for (var j = 0, bit; bit = body[j]; j++) if (bit && bit.length == 1) body[j] = bit[0];
-        var block = {type: 'block', value: body.push ? body : [body]}
-        if ((text = found[names.block_arguments])) {
-          block.locals = LSD.Script.parse(text);
-          if (!block.locals.push) block.locals = [block.locals];
-        }
-        (args || scope).push(block);
-      } else if ((text = (found[names.dstring] || found[names.sstring]))) {
-        scope.push(text);
-      } else if ((text = (found[names.number]))) {
-        scope.push(parseFloat(text));
-      } else if ((text = found[names.operator])) {
-        if (!selector) {
-          var operators = LSD.Script.Operators;
-          previous = stack[stack.length - 1];
-          if (left) left = null;
-          if (previous) {
-            operator = {type: 'function', name: text, index: i, scope: scope, precedence: operators && operators[text]};
-            stack.push(operator);
-            if (previous.precedence > operator.precedence) {
-              scope = previous.scope;
-              var left = scope[scope.length - 1];
-              if (left.value) {
-                if (left.value[1] != null) {
-                  scope = operator.value = [left.value[1]];
-                  left.value[1] = operator;
-                }
-              } else throw "Right part is missing for " + left.name + " operator";
-            }
-          } 
-          if (!left) {
-            var left = scope.pop();
-            if (left == null) {
-              if (LSD.Script.Combinators[text]) {
-                selector = {type: 'selector', value: text};
-                scope.push(selector);
-              } else throw "Left part is missing for " + text + " operator";
-            } else {
-              var operator = {type: 'function', name: text, index: i, scope: scope, precedence: operators && operators[text]};
-              operator.value = [left];
-              stack.push(operator);
-              scope.push(operator);
-              scope = operator.value;
-            }
-          }
-        } else {
-          selector.value += ' ' + text;
-          text = null;
-        }
-      } else if ((text = found[names.token])) {
-        if (!selector && text.match(LSD.Script.rVariable)) {
-          scope.push({type: 'variable', name: text});
-        } else {
-          if (!selector) {
-            selector = {type: 'selector', value: text};
-            scope.push(selector);
-          } else {
-            selector.value += ' ' + text;
-            text = null;
-          }
-        }
-      }
-      if (args) {
-        if (fn) fn = null;
-        else args = null;
-      }
-      if (!operator && text && stack.length) {
-        var pop = stack[stack.length - 1]
-        if (pop && pop.scope) scope = pop.scope;
-      }
-      operator = null;
-    };
-    return (LSD.Script.parsed[value] = (result.length == 1 ? result[0] : result));
-  },
-  
-  compile: function(object, source, output, parse) {
-    if (parse) object = LSD.Script.parse(object)
-    switch (object.type) {
-      case 'variable':
-        return new LSD.Script.Variable(object.name, source, output);
-      case 'function':
-        return new LSD.Script.Function(object.value, source, output, object.name);
-      case 'block':
-        return new LSD.Script.Block(object.value, source, output, object.locals);
-      case 'selector':
-        return new LSD.Script.Selector(object.value, source, output);
-      default:
-        if (object.push)
-          return new LSD.Script.Function(object, source, output, ',')
-        else
-          return object;
-    }
-  },
-  
-  output: function(object, value) {
-    if (object.block) {
-      object.set(value);
-    } else if (object.call) {
-      object(value);
-    } else {
-      if (value == null) value = '';
-      switch (object.nodeType) {
-        case 1:
-          if (object.lsd) object.write(value)
-          else object.innerHTML = value;
-          break;
-        case 2:
-          var widget = object.ownerElement.lsd ? object.ownerElement : Element.retrieve(object.ownerElement, 'widget');
-          if (widget) {
-            if (object.name == "value")
-              widget.setValue(value);
-            else
-              widget.attributes.set(object.name, value);
-          } else {
-            object.ownerElement[object.name] = value;
-          }
-          break;
-        case 3:
-          object.nodeValue = value;
-          break;
-        case 8:
-      }
+        break;
+      case 3:
+        object.nodeValue = value;
+        break;
+      case 8:
     }
   }
-});
-
-LSD.Script.rExpression = Sheet.Value.tokenize;
-LSD.Script.rVariable = /^[a-z0-9][a-z_\-0-9.\[\]]*$/ig;
-LSD.Script.Combinators = Array.object('+', '>', '!+', '++', '!~', '~~', '&', '&&', '$', '$$');
+};

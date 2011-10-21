@@ -118,6 +118,9 @@ LSD.Array.prototype = {
   }
 };
 
+LSD.Array.prototype['<<'] = LSD.Array.prototype.push;
+LSD.Array.prototype['+'] = LSD.Array.prototype.concat;
+
 for (var method in Array.prototype) 
   if (!LSD.Array.prototype[method]) 
     LSD.Array.prototype[method] = Array.prototype[method];
