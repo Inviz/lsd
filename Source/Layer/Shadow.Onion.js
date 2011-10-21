@@ -1,25 +1,25 @@
 /*
 ---
- 
+
 script: Shadow.Onion.js
- 
+
 description: Draws shadow with layers stack upon each others
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
 - LSD.Layer.Shadow
- 
+
 provides: [LSD.Layer.Shadow.Onion]
- 
+
 ...
 */
 
 LSD.Layer.Shadow.Onion = new Class({
   //Extends: LSD.Layer.Shadow,
-  
+
   paint: function(color, blur, x, y, stroke) {
     var fill = new Color(color);
     fill.base = fill.alpha;
@@ -59,11 +59,11 @@ LSD.Layer.Shadow.Onion = new Class({
     this.parent.apply(this, arguments);
     this.update.apply(this, arguments);
   },
-  
+
   update: function() {
     for (var i = 0, j = this.layers.length; i < j; i++) if (this.layers[i]) this.layers[i].inject.apply(this.layers[i], arguments);
   },
-  
+
   eject: function() {
     for (var i = 0, j = this.layers.length; i < j; i++) {
       var layer = this.layers[i];
@@ -75,15 +75,15 @@ LSD.Layer.Shadow.Onion = new Class({
 
   translate: function(x, y) {
     this.parent.apply(this, arguments);
-    for (var i = 0, j = this.layers.length; i < j; i++) 
+    for (var i = 0, j = this.layers.length; i < j; i++)
       if (this.layers[i]) this.layers[i].translate(x + i + j / 2, y + i + j / 2)
   }
 });
 
 LSD.Layer.Shadow.Layer = new Class({
   Extends: LSD.Layer,
-  
-  
+
+
   inject: function(container){
     this.eject();
     if (container instanceof ART.SVG.Group) container.children.push(this);

@@ -1,21 +1,21 @@
 /*
 ---
- 
+
 script: Checkbox.js
- 
+
 description: A triggerable interaction abstraction
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD
   - Ext/States
- 
-provides: 
+
+provides:
   - LSD.Command
- 
+
 ...
 */
 
@@ -36,11 +36,11 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
     id: null,
     action: null
   },
-  
+
   click: function() {
     this.fireEvent('click', arguments);
   },
-  
+
   attach: function(widget) {
     widget.properties.set('command', this);
     if (this.disabled) widget.states.include('disabled');
@@ -62,7 +62,7 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
     this.widgets.push(widget);
     return this;
   },
-  
+
   detach: function(widget) {
     widget.properties.unset('command', this);
     if (this.disabled) widget.states.erase('disabled');
@@ -77,23 +77,23 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
     this.widgets.erase(widget);
     return this;
   },
-  
+
   check: function() {
     for (var i = 0, widget; widget = this.widgets[i++];) widget.states.include('checked');
   },
-  
+
   uncheck: function() {
     for (var i = 0, widget; widget = this.widgets[i++];) widget.states.erase('checked');
   },
-  
+
   disable: function() {
     for (var i = 0, widget; widget = this.widgets[i++];) widget.states.include('disabled');
   },
-  
+
   enable: function() {
     for (var i = 0, widget; widget = this.widgets[i++];) widget.states.erase('disabled');
   },
-  
+
   setType: function(type, unset) {
     if (this.type == type) return;
     if (this.type) this.unsetType(type);
@@ -102,7 +102,7 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
       case "checkbox":
         /*
           Checkbox commands are useful when you need to track and toggle
-          state of some linked object. 
+          state of some linked object.
 
           Provide your custom logic hooking on *check* and *uncheck*
           state transitions. Use *checked* property to get the current state.
@@ -117,16 +117,16 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
           }
         };
         break;
-        
+
 
       /*
         Radio groupping is a way to links commands together to allow
         only one in the group be active at the moment of time.
 
-        Activation (*check*ing) of the commands deactivates all 
+        Activation (*check*ing) of the commands deactivates all
         other commands in a radiogroup.
 
-        Examples: 
+        Examples:
           - Tabs on top of a content window
           - Select box with a dropdown menu
       */
@@ -169,7 +169,7 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
       }
     }
   },
-  
+
   unsetType: function() {
     if (this.events) {
       if (this.type != 'command') {

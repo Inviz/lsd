@@ -1,14 +1,14 @@
 /*
 ---
- 
+
 script: Update.js
- 
+
 description: Update widget with html or json
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Action
 
@@ -24,7 +24,7 @@ provides:
 
 LSD.Action.Update = LSD.Action.build({
   container: true,
-  
+
   enable: function(target, content) {
     if (!content) return LSD.warn('Update action did not recieve content');
     var widget = LSD.Module.DOM.find(target);
@@ -46,7 +46,7 @@ LSD.Action.Update = LSD.Action.build({
     var args = [container, parent, fragment, children, content];
     this.options.update.apply(this, args);
   },
-  
+
   update: function(target, parent, fragment, children) {
     document.id(target).empty().appendChild(fragment);
     var widget = LSD.Module.DOM.find(target, true);
@@ -57,7 +57,7 @@ LSD.Action.Update = LSD.Action.build({
 
 LSD.Action.Append = LSD.Action.build({
   enable: LSD.Action.Update.prototype.options.enable,
-  
+
   update: function(target, parent, fragment, children) {
     target.appendChild(fragment);
     parent.fireEvent('DOMNodeInserted', [children, target]);

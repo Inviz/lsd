@@ -1,21 +1,21 @@
 /*
 ---
- 
+
 script: Sortable.js
- 
+
 description: Reorder widgets as you please
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - More/Sortables
   - LSD.Mixin
- 
+
 provides:
   - LSD.Mixin.Sortable
- 
+
 ...
 */
 
@@ -34,7 +34,7 @@ LSD.Mixin.Sortable = new Class({
       }
     }
   },
-  
+
   getSortables: function() {
     if (this.sortables) return this.sortables;
     var options = Object.append({}, this.options.sortables);
@@ -76,11 +76,11 @@ LSD.Mixin.Sortable = new Class({
     };
     return this.sortables;
   },
-  
+
   onBeforeSort: function(dragging, element) {
     return true;
   },
-  
+
   onBeforeSortStart: function(event) {
     for (var target = event.target, widget; target && target.tagName; target = target.parentNode) {
       if (target == this.element) break;
@@ -116,19 +116,19 @@ LSD.Mixin.Sortable = new Class({
     widget.addClass('moved');
     widget.fireEvent('moveStart');
   },
-  
+
   onSortComplete: function(element) {
     var widget = element.retrieve('widget');
     widget.removeClass('moved');
     widget.fireEvent('moveComplete');
   },
-  
+
   onSort: function(element) {
     var widget = element.retrieve('widget');
     widget.fireEvent('move');
     this.fireEvent('sort', [widget, element]);
   }
-  
+
 });
 
 LSD.Behavior.define(':sortable', 'sortable');

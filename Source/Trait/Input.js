@@ -1,19 +1,19 @@
 /*
 ---
- 
+
 script: Input.js
- 
+
 description: Make it easy to use regular native input for the widget
- 
+
 license: Public domain (http://unlicense.org).
- 
+
 requires:
   - LSD.Trait
   - LSD.Mixin.Focusable
 
-provides: 
+provides:
   - LSD.Trait.Input
-  
+
 ...
 */
 
@@ -21,7 +21,7 @@ LSD.Trait.Input = new Class({
   options: {
     input: {},
   },
-  
+
   constructors: {
     input: function() {
       return {
@@ -47,12 +47,12 @@ LSD.Trait.Input = new Class({
       }
     }
   },
-  
+
   onFocus: function() {
     this.document.activeElement = this;
     this.focus();
   },
-  
+
   onBlur: function() {
     this.blurring = true;
     !function() {
@@ -64,13 +64,13 @@ LSD.Trait.Input = new Class({
       this.blur();
     }.delay(20, this);
   },
-  
+
   getInput: Macro.getter('input', function() {
     var input = new Element('input', Object.append({'type': 'text'}, this.options.input));
     this.properties.set('input', input)
     return input;
   }),
-  
+
   getValueInput: function() {
     return this.input;
   }

@@ -1,14 +1,14 @@
 /*
 ---
- 
+
 script: Expression.js
- 
+
 description: Adds layout capabilities to widget (parse and render widget trees from objects)
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module
   - LSD.Module.Events
@@ -17,12 +17,12 @@ requires:
   - LSD.Layout.Microdata
   - LSD.Layout.Promise
 
-provides: 
+provides:
   - LSD.Module.Layout
- 
+
 ...
 */
-  
+
 LSD.Module.Layout = new Class({
   /*
   options: {
@@ -30,15 +30,15 @@ LSD.Module.Layout = new Class({
     extract: true
   },
   */
-  
+
   constructors: {
     layout: function(options) {
-      if (!options.document && !this.document && LSD.document) 
+      if (!options.document && !this.document && LSD.document)
         this.properties.set('document', LSD.document);
       this.layouts = {};
     }
   },
-  
+
   addLayout: function(name, layout, parent, memo) {
     if (parent == null) parent = [this, (this.wrapper = this.getWrapper())];
     if (!memo) memo = {};
@@ -58,13 +58,13 @@ LSD.Module.Layout = new Class({
     }
     return this.layouts[name];
   },
-  
+
   removeLayout: function(name, layout, parent, memo) {
     if (parent == null) parent = [this, this.wrapper];
     if (this.layouts[name])
       return this.document.layout.remove(this.layouts[name], parent, memo);
   },
-  
+
   buildLayout: function(layout, parent, memo) {
     if (parent == null) parent = [this, this.getWrapper()];
     return this.document.layout[layout.charAt ? 'selector' : 'render'](layout, parent, memo)
@@ -79,7 +79,7 @@ LSD.Module.Layout.events = {
     if (this.properties.layout) {
       this.addLayout('options', this.properties.layout, null, {lazy: true});
     }
-    if (this.origin && !this.options.clone && this.origin.parentNode && this.origin != this.element) 
+    if (this.origin && !this.options.clone && this.origin.parentNode && this.origin != this.element)
       this.element.replaces(this.origin);
     if ((!this.options.lazy && this.options.traverse !== false) || (this.origin && this.origin != this.element)) {
       var nodes = LSD.slice((this.origin || this.element).childNodes);
@@ -90,13 +90,13 @@ LSD.Module.Layout.events = {
       this.fireEvent('DOMChildNodesRendered');
     }
   },
-  /* 
-    Destroys the built layout with the widget 
+  /*
+    Destroys the built layout with the widget
   */
   destroy: function() {
     if (this.layouts.children) this.removeLayout('children');
     if (this.layouts.options) this.removeLayout('options');
-  },  
+  },
   /*
     Augments all parsed HTML that goes through standart .write() interface
   */

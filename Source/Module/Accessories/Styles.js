@@ -1,14 +1,14 @@
 /*
 ---
- 
+
 script: Styles.js
- 
+
 description: Set, get and render different kind of styles on widget
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module
   - LSD.Module.Events
@@ -16,14 +16,14 @@ requires:
   - Ext/Object.Array
   - Sheet/SheetParser.Styles
 
-provides: 
+provides:
   - LSD.Module.Styles
 
 ...
 */
 
 !function() {
-  
+
 var CSS = SheetParser.Styles, Paint = LSD.Styles;
 var setStyle = function(element, property, value, type) {
   delete this.style.expressed[property];
@@ -96,10 +96,10 @@ LSD.Module.Styles = new Class({
     var definition = Paint[property] || CSS[property];
     if (!definition) return;
     if (definition.properties) return definition.properties.map(this.getStyle.bind(this));
-    var expression = this.style.expressed[property];    
+    var expression = this.style.expressed[property];
     if (expression) {
       value = this.style.current[property] = this.calculateStyle(property, expression);
-    } else {  
+    } else {
       value = this.style.current[property];
       if (property == 'height') {
         if (typeof value !== 'number') value = this.getClientHeight();
@@ -119,12 +119,12 @@ LSD.Module.Styles = new Class({
     for (var i = 0, property, args = arguments; property = args[i++];) result[property] = this.getStyle(property);
     return result;
   },
-  
+
   renderStyles: function(styles) {
-    var style = this.style, 
+    var style = this.style,
         current = style.current,
-        paint = style.paint, 
-        element = style.element,  
+        paint = style.paint,
+        element = style.element,
         found = style.found,
         implied = style.implied,
         calculated = style.calculated,
@@ -146,7 +146,7 @@ LSD.Module.Styles = new Class({
       }
     }
   },
-  
+
   combineRules: function(rule) {
     var rules = this.rules, style = this.style, found = style.found = {}, implied = style.implied = {}, changed = style.changed;
     for (var j = rules.length, other; other = rules[--j];) {
@@ -158,18 +158,18 @@ LSD.Module.Styles = new Class({
       if (implying) for (var property in implying) if (!(property in implied)) implied[property] = implying[property];
     }
   },
-  
+
   addRule: function(rule) {
     var rules = this.rules;
     if (rules.indexOf(rule) > -1) return
     for (var i = 0, other;  other = rules[i++];) {
-      if ((other.specificity > rule.specificity) || (other.specificity == rule.specificity)) 
+      if ((other.specificity > rule.specificity) || (other.specificity == rule.specificity))
         if (other.index > rule.index) break;
     }
     rules.splice(--i, 0, rule);
     this.combineRules(rule);
   },
-  
+
   removeRule: function(rule) {
     var rules = this.rules, index = rules.indexOf(rule)
     if (index == -1) return
@@ -178,14 +178,14 @@ LSD.Module.Styles = new Class({
     var style = this.style, found = style.found, changed = style.changed, setting = rule.style;
     for (var property in setting) if (!Object.equals(found[property], setting[property])) changed[property] = found[property];
  },
-  
+
   inheritStyle: function(property) {
     var node = this;
     var style = node.style.current[property];
     while ((style == 'inherit' || !style) && (node = node.parentNode)) style = node.style.current[property];
     return style;
   },
-  
+
   calculateStyle: function(property, expression) {
     if (this.style.calculated[property]) return this.style.calculated[property];
     var value;
@@ -198,7 +198,7 @@ LSD.Module.Styles = new Class({
         case "width":
           value = this.inheritStyle(property);
           if (value == "auto") value = this.getClientWidth();
-        case "height": case "width":  
+        case "height": case "width":
           //if dimension size is zero, then the widget is not in DOM yet
           //so we wait until the root widget is injected, and then try to repeat
           if (value == 0 && (this.redraws == 0)) this.halt();
@@ -207,7 +207,7 @@ LSD.Module.Styles = new Class({
     this.style.calculated[property] = value;
     return value;
   },
-  
+
   render: function(style) {
     this.renderStyles(style);
     this.parent.apply(this, arguments);

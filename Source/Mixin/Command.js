@@ -1,34 +1,34 @@
 /*
 ---
- 
+
 script: Command.js
- 
+
 description: A command getter that watches attributes to redefine command
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
-requires: 
+
+requires:
   - LSD.Module.Expectations
   - LSD.Command
-  
-provides: 
+
+provides:
   - LSD.Mixin.Command
- 
+
 ...
 */
 
 /*
   Usually a widget that does something interactive defines command
-  automatically. 
-  
-  The default type is 'command', but there are possible values of 
+  automatically.
+
+  The default type is 'command', but there are possible values of
   'radio' and 'checkbox'.
-  
-  Type type can be changed via *options.command.type* 
+
+  Type type can be changed via *options.command.type*
   (equals to 'command-type' attribute).
-  
+
   You can specify a command id in *command* attribute
   to link a widget to already initialized command.
 */
@@ -55,14 +55,14 @@ LSD.Mixin.Command = new Class({
       }
     }
   },
-  
+
   getCommand: function() {
     if (this.command) return this.command;
     var options = Object.append(this.getCommandOptions(), this.options.command || {});
     this.command = new LSD.Command(this.document, options).attach(this);
     return this.command;
   },
-  
+
   click: function() {
     if (this.disabled) return false;
     this.fireEvent('click', arguments);
@@ -70,40 +70,40 @@ LSD.Mixin.Command = new Class({
     var method = this.getCommandState() ? 'callChain' : 'uncallChain';
     return this[method].apply(this, arguments) != false;
   },
-  
+
   unclick: function() {
     return this.uncallChain.apply(this, arguments);
   },
-  
+
   setCommandType: function(type) {
     this.getCommand().setType(type);
     this.commandType = type;
   },
-  
+
   unsetCommandType: function(type) {
     this.getCommand().unsetType(type);
     delete this.commandType
   },
-  
+
   getCommandAction: function() {
     return this.attributes.commandaction || this.options.commandAction || this.captureEvent('getCommandAction', arguments);
   },
-  
+
   getCommandOptions: function() {
     return {id: this.lsd, name: this.attributes.name, radiogroup: this.getCommandRadioGroup(), type: this.getCommandType()};
   },
-  
+
   getCommandRadioGroup: function() {
     return this.attributes.radiogroup || this.attributes.name || this.options.radiogroup || this.captureEvent('getCommandRadioGroup');
   }
-  
+
 });
 
 Object.append(LSD.Mixin.Command, {
   getCommandType: function() {
     return this.attributes.commandtype || this.commandType || (this.pseudos.checkbox && 'checkbox') || (this.pseudos.radio && 'radio') || 'command';
   },
-  
+
   getCommandState: function() {
     return (LSD.Mixin.Command.getCommandType.call(this) == 'command') || this.checked;
   }

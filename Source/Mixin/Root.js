@@ -1,19 +1,19 @@
 /*
 ---
- 
+
 script: Root.js
- 
+
 description: The topmost widget easily accessible.
- 
+
 license: Public domain (http://unlicense.org).
- 
+
 requires:
   - LSD.Mixin
   - LSD.Behavior
- 
-provides: 
+
+provides:
   - LSD.Mixin.Root
- 
+
 ...
 */
 
@@ -30,7 +30,7 @@ LSD.Mixin.Root = new Class({
       }
     }
   },
-  
+
   constructors: {
     root: function(options, state) {
       this.properties[state ? 'set' : 'unset']('root', this);

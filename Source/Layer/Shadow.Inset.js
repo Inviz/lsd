@@ -1,26 +1,26 @@
 /*
 ---
- 
+
 script: InnerShadow.js
- 
-description: Drops inner shadow 
- 
+
+description: Drops inner shadow
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Layer.Shadow
- 
-provides: 
+
+provides:
   - LSD.Layer.Shadow.Inset
- 
+
 ...
 */
 
 LSD.Layer.InnerShadow = new Class({
   //Extends: LSD.Layer.Shadow,
-  
+
   properties: {
     required: ['innerShadowColor'],
     numerical: ['innerShadowBlur', 'innerShadowOffsetX', 'innerShadowOffsetY']
@@ -59,7 +59,7 @@ LSD.Layer.InnerShadow = new Class({
     for (var i = blur; i < length; i++) if (this.layers[i]) LSD.Layer.InnerShadow.Layer.release(this.layers[i]);
     this.layers.splice(blur, length);
   },
-  
+
   translate: function(x, y) {
     this.parent.apply(this, arguments);
     for (var i = 0, j = this.layers.length; i < j; i++) {
@@ -67,7 +67,7 @@ LSD.Layer.InnerShadow = new Class({
       if (layer) layer.translate(x + layer.x, y + layer.y);
     }
   },
-  
+
   eject: function() {
     for (var i = 0, j = this.layers.length; i < j; i++) {
       var layer = this.layers[i];
@@ -81,7 +81,7 @@ LSD.Layer.InnerShadow = new Class({
     this.parent.apply(this, arguments);
     this.update.apply(this, arguments);
   },
-  
+
   update: function() {
     for (var i = 0, j = this.layers.length; i < j; i++) if (this.layers[i]) this.layers[i].inject.apply(this.layers[i], arguments);
   }

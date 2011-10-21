@@ -1,19 +1,19 @@
 /*
 ---
- 
+
 script: Selectors.js
- 
+
 description: Define a widget associations
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module
   - Core/Slick.Finder
 
-provides: 
+provides:
   - LSD.Module.Selectors
 
 ...
@@ -25,16 +25,16 @@ LSD.Module.Selectors = new Class({
   getElements: function(selector, origin) {
     return Slick.search(origin || this.getSelectorOrigin(selector), selector)
   },
-  
+
   getElement: function(selector, origin) {
     return Slick.find(origin || this.getSelectorOrigin(selector), selector)
   },
-  
+
   /*
     We have to figure the document before we do a .search
     to let Slick switch into the right mode and be prepared
   */
-    
+
   getSelectorOrigin: function(selector) {
     if (!selector.Slick) selector = Slick.parse(selector);
     var first = selector.expressions[0][0];
@@ -45,11 +45,11 @@ LSD.Module.Selectors = new Class({
         return this;
     }
   },
-  
+
   getPseudoElementsByName: function(name) {
     return this.captureEvent('getRelated', arguments) || this[name];
   },
-  
+
   match: function(selector) {
     if (typeof selector == 'string') selector = Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
@@ -62,7 +62,7 @@ LSD.Module.Selectors = new Class({
       if (selector.tag && (selector.tag != '*') && (this.tagName != selector.tag)) return false;
     }
     if (selector.id && (this.attributes.id != selector.id)) return false;
-    if (selector.attributes) for (var i = 0, j; j = selector.attributes[i]; i++) 
+    if (selector.attributes) for (var i = 0, j; j = selector.attributes[i]; i++)
       if (j.operator ? !j.test(this.attributes[j.key] && this.attributes[j.key].toString()) : !(j.key in this.attributes)) return false;
     if (selector.classes) for (var i = 0, j; j = selector.classes[i]; i++) if (!this.classes[j.value]) return false;
     if (selector.pseudos) {
@@ -89,7 +89,7 @@ var Combinators = LSD.Module.Selectors.Combinators = {
     if ((tag == '*') && !id && !classes && !attributes) return this.push(this.document.body, null, null, null, null, pseudos);
     else return this['combinator: '](this.document.body, tag, id, classes, attributes, pseudos, classList);
   },
-  
+
   '::': function(node, tag, id, classes, attributes, pseudos) {
     var found = this.found;
     var value = this.getPseudoElementsByName(node, tag, id, classes, attributes, pseudos);
@@ -102,7 +102,7 @@ var Combinators = LSD.Module.Selectors.Combinators = {
 
 Combinators['&'] = Combinators['$'];
 Combinators['&&'] = Combinators['$$'];
-for (var combinator in Combinators) 
+for (var combinator in Combinators)
   if (combinator != '::') Combinators[combinator + '::'] = Combinators['::'];
 
 for (var name in Combinators) Slick.defineCombinator(name, Combinators[name]);

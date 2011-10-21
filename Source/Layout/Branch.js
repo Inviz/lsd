@@ -1,29 +1,29 @@
 /*
 ---
- 
+
 script: Branch.js
- 
+
 description: A conditional piece of layout
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Layout
 
-provides: 
+provides:
   - LSD.Layout.Branch
- 
+
 ...
 */
 
 /*
   A branch is a part of layout that is rendered on condition.
-  
-  When layout is defined with selector object, a key in that 
+
+  When layout is defined with selector object, a key in that
   may contain an expression with a keyword that makes a branch.
-  
+
     {
       '.div.wrapper': {
         'if form::elements:invalid': {
@@ -31,21 +31,21 @@ provides:
         }
       }
     }
-  
-  In example above, `if` keyword is given `form::elements:invalid` 
+
+  In example above, `if` keyword is given `form::elements:invalid`
   expression. Expression is then parsed and executed. If
   it returns truthy, the layout is rendered. LSD uses LSD.Script,
   a simple language that asynchronously evaluates expressions
   and updates layout as the values change in real time.
-  
+
   If a condition was truthy and layout was rendered, the expression
   later may update value and make branch no longer meet the condition.
-  A rendered layout then gets removed from DOM, and later may be 
+  A rendered layout then gets removed from DOM, and later may be
   inserted back without re-rendering.
-  
+
   When layout is defined in HTML, it uses conditional comments to
-  mark blocks of HTML to be displayed on condition. 
-  
+  mark blocks of HTML to be displayed on condition.
+
     <article itemscope itemprop="person">
       <h1 itemprop="name">Bob Marley</h1>
       <!-- if person.name == 'Bob Marley' -->
@@ -54,12 +54,12 @@ provides:
         <p> Oh, you... #{person.name}</p>
       <!-- end -->
     </article>
-    
+
   A block gets removed from DOM if a condition doesnt match initially.
   A branch may have its HTML block wrapped into its own comment making
   the layout rendering lazy. The comment element containing the lazy
   HTML will then be replaced with its rendered contents.
-  
+
 */
 
 
@@ -121,7 +121,7 @@ LSD.Layout.Branch.prototype = Object.append({
       this.checked = false;
       this.hide();
       if (!lazy) this.fireEvent('uncheck', arguments);
-    }  
+    }
   },
   set: function(value) {
     this[((value != false && value != null) ^ this.options.invert) ? 'check' : 'uncheck']();
@@ -186,11 +186,11 @@ LSD.Layout.Branch.prototype = Object.append({
           break;
         case 3:
           if (validate && child.textContent.match(LSD.Layout.Branch.rWhitespace)) break;
-        default:  
+        default:
           index = validate = null;
       }
     }
-    if (index != null) {  
+    if (index != null) {
       var comment = layout[index];
       layout[index] = function() {
         return LSD.slice(document.createFragment(this.expand(comment.nodeValue)).childNodes);

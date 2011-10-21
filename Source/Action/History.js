@@ -1,21 +1,21 @@
 /*
 ---
- 
+
 script: History.js
- 
+
 description: History Action Management.
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Action
   - History/History
- 
+
 provides:
   - LSD.Action.History
- 
+
 ...
 */
 

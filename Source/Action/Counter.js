@@ -1,23 +1,23 @@
 /*
 ---
- 
+
 script: Counter.js
- 
+
 description: Increments the number and the label in html element
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Action
   - String.Inflections/String.camelize
- 
+
 provides:
   - LSD.Action.Counter
   - LSD.Action.Increment
   - LSD.Action.Decrement
- 
+
 ...
 */
 
@@ -30,7 +30,7 @@ LSD.Action.Counter = LSD.Action.build({
     if (!counter) this.store(target, (counter = new Counter(target.innerHTML)));
     target.innerHTML = counter.increment(number).toString();
   },
-  
+
   disable: function(target, number) {
     var counter = this.retrieve(target)
     if (!counter) this.store(target, (counter = new Counter(target.innerHTML)));
@@ -57,17 +57,17 @@ Counter.prototype = {
   parse: function(string) {
     return (this.parsed = string.match(Counter.regexp));
   },
-  
+
   increment: function(arg) {
     this.parsed[3] += (arg || 1)
     return this;
   },
-  
+
   decrement: function(arg) {
     this.parsed[3] -= (arg || 1)
     return this;
   },
-  
+
   toString: function() {
     var clone = this.parsed.slice(0);
     if (this.parsed[3]) {
@@ -79,20 +79,20 @@ Counter.prototype = {
   }
 }
 
-Counter.regexp = new RegExp('^(.*?\\s*)' + 
-                            '((?:just|only)\\s*?)?' + 
-                            '(<[^\\s\>]+?[^>]*?>\\s*)?' + 
-                            '(\\d+|no|one)' + 
+Counter.regexp = new RegExp('^(.*?\\s*)' +
+                            '((?:just|only)\\s*?)?' +
+                            '(<[^\\s\>]+?[^>]*?>\\s*)?' +
+                            '(\\d+|no|one)' +
                             '(\\s*)' +
-                            '(<\\/[^\\s]+?[^>]+?>)?' + 
+                            '(<\\/[^\\s]+?[^>]+?>)?' +
                             '(\\s*)' +
-                            '(<[^\\s]+?[^>]+?>)?' + 
+                            '(<[^\\s]+?[^>]+?>)?' +
                             '(\\s*)' +
                             '(.+?)' +
-                            '(\\s*?)' + 
-                            '(<\\/[^\\s]+?[^>]+?>)?' + 
+                            '(\\s*?)' +
+                            '(<\\/[^\\s]+?[^>]+?>)?' +
                             '(\\s*?)' +
                             '(\\s*yet)?' +
                             '($|(?:\\s(?:now|on|if|under|at|in|for|by|so|and|to)\\s|[\\.\\!\\?\\;\\,]))(.*?)$', 'mi');
-                            
+
 }();

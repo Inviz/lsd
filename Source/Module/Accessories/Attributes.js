@@ -1,22 +1,22 @@
 /*
 ---
- 
+
 script: Attributes.js
- 
+
 description: A mixin that adds support for setting attributes, adding and removing classes and pseudos
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module
   - LSD.Object
   - Core/Slick.Parser
- 
-provides: 
+
+provides:
   - LSD.Module.Attributes
- 
+
 ...
 */
 
@@ -43,13 +43,13 @@ LSD.Module.Attributes = new Class({
         }
         self.fireEvent('selectorChange', ['attributes', name, state]);
         return value;
-      }).addEvent('beforechange', function(name, value, state) { 
+      }).addEvent('beforechange', function(name, value, state) {
         self.fireEvent('selectorChange', ['attributes', name, state]);
       });
       this.dataset = new LSD.Object;
     }
   },
-  
+
   getAttribute: function(attribute) {
     switch (attribute) {
       case "class":           return this.classes.join(' ');
@@ -66,14 +66,14 @@ LSD.Module.Attributes = new Class({
     }
     return this;
   },
-  
+
   removeAttribute: function(name) {
     if (name.substr(0, 5) == 'data-') {
       delete this.dataset.unset(name.substring(5));
     } else this.attributes.unset(name, this.attributes[name]);
     return this;
   },
-  
+
   addPseudo: function(name){
     this.pseudos.include(name);
     return this;
@@ -83,7 +83,7 @@ LSD.Module.Attributes = new Class({
     this.pseudos.erase(name);
     return this;
   },
-  
+
   addClass: function(name) {
     this.classes.include(name);
     return this;
@@ -93,11 +93,11 @@ LSD.Module.Attributes = new Class({
     this.classes.erase(name);
     return this;
   },
-  
+
   hasClass: function(name) {
     return this.classes[name]
   },
-  
+
   getSelector: function() {
     var parent = this.parentNode;
     var selector = (parent && parent.getSelector) ? parent.getSelector() + ' ' : '';
@@ -154,7 +154,7 @@ LSD.Module.Attributes.resolve = function(name, value, bind) {
     case "number":
       return parseFloat(name);
     default:
-      if (attribute && attribute.call) 
+      if (attribute && attribute.call)
         return attribute.call(bind || this, value)
   }
   return value;

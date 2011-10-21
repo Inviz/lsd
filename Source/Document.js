@@ -31,26 +31,26 @@ provides:
 /*
   Document is a big disguise proxy class that contains the tree
   of widgets and a link to document element.
-  
+
   It is DOM-compatible (to some degree), so tools that crawl DOM
   tree (we use Slick) can work with the widget tree like it usually
   does with the real DOM so we get selector engine for free.
-  
+
   The document itself is not in the tree, it's a container.
-  
+
   The class contains a few hacks that allows Slick to initialize.
 */
 
 
 LSD.Document = new Class({
-  
+
   Implements: [Events, Options, LSD.Module.Attributes, LSD.Module.Properties, LSD.Module.Render],
-  
+
   options: {
     context: 'element',
     namespace: 'LSD'
   },
-  
+
   initialize: function(document, options) {
     if (document && !document.documentElement) options = [document, document = options][0];
     if (!document) document = window.document;
@@ -64,9 +64,9 @@ LSD.Document = new Class({
     LSD.uid(this);
     if (this.constructors.properties) this.constructors.properties.apply(this, arguments);
     if (this.constructors.render) this.constructors.render.apply(this, arguments);
-    
+
     /*
-      Trick Slick into thinking that LSD elements tree is an XML node 
+      Trick Slick into thinking that LSD elements tree is an XML node
       tree (so it won't try speeding up the queries with optimizations)
     */
     this.documentElement = this;
@@ -74,7 +74,7 @@ LSD.Document = new Class({
     this.slickFeatures = LSD.Module.Selectors.Features;
     this.nodeType = 9;
     this.attributes = {};
-    
+
     this.params = (location.search.length > 1) ? location.search.substr(1, location.search.length - 1).parseQueryString() : {}
     document.addEvent('domready', function() {
       this.building = true;
@@ -86,15 +86,15 @@ LSD.Document = new Class({
     this.element.addEvent('click', this.onClick.bind(this));
     this.element.addEvent('mousedown', this.onMousedown.bind(this));
   },
-  
-  /* 
+
+  /*
     Single relay click listener is put upon document.
-    It spies for all clicks on elements and finds out if 
+    It spies for all clicks on elements and finds out if
     any links were clicked. If the link is not widget,
     the listener creates a lightweight link class instance and
     calls click on it to trigger commands and interactions.
-    
-    This way there's no need to preinitialize all link handlers, 
+
+    This way there's no need to preinitialize all link handlers,
     and only instantiate class when the link was actually clicked.
   */
   onClick: function(event) {
@@ -119,7 +119,7 @@ LSD.Document = new Class({
       }
     };
   },
-  
+
   onMousedown: function(event) {
     if (event.target.ownerDocument == document)
     for (var target = event.target, widget; target && target.tagName; target = target.parentNode) {
@@ -127,7 +127,7 @@ LSD.Document = new Class({
       if (widget && widget.pseudos.activatable) widget.fireEvent('mousedown', event);
     };
   },
-  
+
   setHead: function(head) {
     for (var i = 0, el, els = head.getElementsByTagName('meta'); el = els[i++];) {
       var type = el.getAttribute('rel');
@@ -141,20 +141,20 @@ LSD.Document = new Class({
     // Attach stylesheets, if there are stylesheets loaded
     if (LSD.Sheet && LSD.Sheet.stylesheets) for (var i = 0, sheet; sheet = LSD.Sheet.stylesheets[i++];) this.addStylesheet(sheet);
   },
-  
+
   getLayout: function() {
     if (this.layout) return this.layout;
     this.layout = new LSD.Layout;
     this.layout.document = this;
     return this.layout;
   },
-  
+
   create: function(element, options) {
     if (!options) options = {};
     options.document = this;
     return this.factory.create(element, options);
   },
-  
+
   build: function(document) {
     this.built = true;
     if (!document) document = this.element || window.document;
@@ -163,12 +163,12 @@ LSD.Document = new Class({
     this.setBody(document.body);
     this.render();
   },
-  
+
   setBody: function(element) {
     if (!element) element = this.getBodyElement();
     this.fireEvent('beforeBody', element);
     var options = {
-      document: this, 
+      document: this,
       events: {
         self: {
           boot: function() {
@@ -189,30 +189,30 @@ LSD.Document = new Class({
   getBodyElement: function() {
     return this.document.body;
   },
-  
+
   redirect: function(url) {
     window.location.href = url;
   },
-  
+
   getElements: function() {
     return this.body.getElements.apply(this.body, arguments);
   },
-  
+
   getElement: function() {
     return this.body.getElement.apply(this.body, arguments);
   },
-  
+
   addStylesheet: function(sheet) {
     if (!this.stylesheets) this.stylesheets = [];
     this.stylesheets.include(sheet);
     sheet.attach(this);
   },
-  
+
   removeStylesheet: function(sheet) {
     if (!this.stylesheets) return;
     this.stylesheets.erase(sheet);
     sheet.detach(this);
   },
-  
+
   $family: Function.from('document')
 });

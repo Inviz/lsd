@@ -1,19 +1,19 @@
 /*
 ---
- 
+
 script: Shadow.Blur.js
- 
+
 description: SVG Filter powered shadow
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
 - LSD.Layer.Shadow
- 
+
 provides: [LSD.Layer.Shadow.Blur]
- 
+
 ...
 */
 
@@ -27,7 +27,7 @@ LSD.Layer.Shadow.Blur = new Class({
     else this.shape.unblur();
     return {
       move: {
-        x: x + blur, 
+        x: x + blur,
         y: y + blur
       },
       outside: {

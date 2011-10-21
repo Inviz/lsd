@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: Size.js
- 
+
 description: Base layer that provides shape
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Layer
- 
-provides: 
+
+provides:
   - LSD.Layer.Size
- 
+
 ...
 */
 
@@ -24,9 +24,9 @@ LSD.Layer.Size = {
     height:     ['length', 'percentage'],
     width:      ['length', 'percentage']
   },
-  
+
   prefix: false,
-  
+
   paint: function(height, width) {
     if (height !== null && width !== null) return {
       size: {

@@ -1,17 +1,17 @@
 /*
 ---
- 
+
 script: Options.js
- 
+
 description: A module that sets and unsets various options stuff
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module
-  
+
 provides:
   - LSD.Module.Options
 
@@ -20,17 +20,17 @@ provides:
 
 LSD.Module.Options = new Class({
   Implements: [Options],
-  
+
   setOptions: function(options) {
     for (var name in options) LSD.Module.Options.setOption.call(this, name, options[name]);
     return this;
   },
-  
+
   unsetOptions: function(options) {
     for (var name in options) LSD.Module.Options.setOption.call(this, name, options[name], true);
     return this;
   },
-  
+
   /*
     Run constructors for a given object. If no object was given,
     constructs this widget. It collects functions defined in
@@ -39,7 +39,7 @@ LSD.Module.Options = new Class({
     function returns options, the function keeps and sets it to
     the widget later.
   */
-  
+
   construct: function(object, set) {
     if (!object) object = this;
     var initialized = (this.$initialized || (this.$initialized = {}));
@@ -57,13 +57,13 @@ LSD.Module.Options = new Class({
       Set options returned from constructors
     */
     for (var name in initialized) this.setOptions(initialized[name]);
-    /* 
+    /*
       Set options from the object
     */
     if (set) this.setOptions(object.options);
     return object.options;
   },
-  
+
   /*
     Undo all things constructor did. Run all constructors callback
     with a `state` argument given as false. If a constructor on
@@ -112,21 +112,21 @@ LSD.Module.Options.implement('setOption', LSD.Module.Options.setOption);
 
 LSD.Module.Options.initialize = function(element, options) {
   // Swap arguments if they are in the wrong order
-  if ((element && !element.localName) || (options && options.localName)) 
+  if ((element && !element.localName) || (options && options.localName))
     options = [element, element = options][0];
-  
+
   // Merge given options object into this.options
   if (options) Object.merge(this.options, options);
-  
+
   // Run constructors and set options
   options = this.construct(this, true);
-  
+
   // Indicate readiness to start
   this.fireEvent('boot', [options, element]);
-  
+
   // Attach to a given element
   this.fireEvent('prepare', [options, element]);
-  
+
   // And we're all set!
   this.fireEvent('initialize', [options, this.element]);
 };

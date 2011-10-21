@@ -1,21 +1,21 @@
 /*
 ---
- 
+
 script: Date.js
- 
+
 description: Work with dates like a boss
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Mixin
   - More/Date
 
 provides:
   - LSD.Mixin.Date
- 
+
 ...
 */
 
@@ -26,7 +26,7 @@ LSD.Mixin.Date = new Class({
       format: '%B %d, %Y'
     }
   },
-  
+
   setDate: function(date) {
     if (date && !date.getDate) {
       var source = date;
@@ -38,11 +38,11 @@ LSD.Mixin.Date = new Class({
     this.date = date;
     this.fireEvent('setDate', [date, source])
   },
-  
+
   formatDate: function(date) {
     return date.format(this.options.date.format)
   },
-  
+
   getDate: function() {
     if (this.date) return this.date;
     if (this.getRawDate) {
@@ -51,16 +51,16 @@ LSD.Mixin.Date = new Class({
     }
     return this.getDefaultDate();
   },
-  
+
   getDefaultDate: function() {
     return new Date;
   },
-  
+
   parseDate: function(input) {
     var date = Date.parse(input);
     if (date.isValid()) return date;
   },
-  
+
   increment: function(number, interval) {
     number = number.toInt ? number.toInt() : 1;
     this.setDate(this.getDate().clone().increment(interval || this.options.date.interval, number))
@@ -70,7 +70,7 @@ LSD.Mixin.Date = new Class({
     number = number.toInt ? number.toInt() : 1;
     this.setDate(this.getDate().clone().decrement(interval || this.options.date.interval, number))
   }
-  
+
 });
 
 LSD.Behavior.define(':date', 'date');

@@ -1,14 +1,14 @@
 /*
 ---
- 
+
 script: Interpolations.js
- 
+
 description: Retrieves meta data from widgets and runs expressions with it
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module
   - LSD.Script
@@ -17,9 +17,9 @@ requires:
   - LSD.Script.Helpers
   - LSD.Script.Selector
 
-provides: 
+provides:
   - LSD.Module.Interpolations
- 
+
 ...
 */
 
@@ -32,7 +32,7 @@ LSD.Module.Interpolations = new Class({
 })
 
 Object.append(LSD.Module.Interpolations, {
-  
+
   addInterpolation: function(token, callback) {
     var index = token.indexOf('.');
     if (index > -1) {
@@ -42,7 +42,7 @@ Object.append(LSD.Module.Interpolations, {
         if (value == null) {
           saved.unwatch(key, callback);
           delete saved;
-        } else if (typeof value == 'object' && value.watch) {  
+        } else if (typeof value == 'object' && value.watch) {
           saved = value;
           value.watch(key, callback);
         } else {
@@ -67,7 +67,7 @@ Object.append(LSD.Module.Interpolations, {
       }
     }
   },
-  
+
   removeInterpolation: function(token, callback) {
     var index = token.indexOf('.');
     if (index > -1) {
@@ -81,24 +81,24 @@ Object.append(LSD.Module.Interpolations, {
       }
     }
   },
-  
+
   getInterpolationCallback: function() {
     return (this.interpolationCallback || (this.interpolationCallback = function(name, value, state) {
       this[state ? 'addInterpolator' : 'removeInterpolator'](name, value);
     }.bind(this)));
   },
-  
+
   findParentInterpolator: function(name) {
     for (var node = this, group; node = node.parentNode;)
       if ((group = node.interpolators) && (group = group[name]) && group.length)
         return group[group.length - 1];
   },
-  
+
   addInterpolator: function(name, value) {
     if (name.toObject) {
       var callback = LSD.Module.Interpolations.getInterpolationCallback.call(this);
       name.addEvent('change', callback).addEvent('beforechange', callback);
-      for (var property in name) if (name.has(property)) 
+      for (var property in name) if (name.has(property))
         LSD.Module.Interpolations.addInterpolator.call(this, property, name[property]);
     } else if (name.call) {
 
@@ -121,7 +121,7 @@ Object.append(LSD.Module.Interpolations, {
       }
     }
   },
-  
+
   removeInterpolator: function(name, value) {
     if (name.toObject) {
       var callback = LSD.Module.Interpolations.getInterpolationCallback.call(this);

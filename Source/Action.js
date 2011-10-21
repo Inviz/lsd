@@ -1,21 +1,21 @@
 /*
 ---
- 
+
 script: Action.js
- 
-description: Action encapsulates a single external node manipulation with the logic to revert it 
- 
+
+description: Action encapsulates a single external node manipulation with the logic to revert it
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
-requires: 
+
+requires:
   - LSD
   - LSD.Helpers
- 
-provides: 
+
+provides:
   - LSD.Action
- 
+
 ...
 */
 
@@ -45,7 +45,7 @@ LSD.Action.initialize = function(options) {
 };
 
 LSD.Action.prototype = {
-  
+
   enable: function() {
     if (this.enabled) return false;
     this.commit(this.target, arguments, this.target);
@@ -63,17 +63,17 @@ LSD.Action.prototype = {
     this.enabled = false;
     return true;
   },
-  
+
   commit: function(target, args, bind) {
     if (this.state) this.target[this.state.enabler]();
     return this.options.enable && this.options.enable.apply(bind || this, [target].concat(args));
   },
-  
+
   revert: function(target, args, bind) {
     if (this.state) this.target[this.state.disabler]();
     return this.options.disable && this.options.disable.apply(bind || this, [target].concat(args));
   },
-  
+
   perform: function(target, args) {
     var method = (!this.options.getState || this.options.getState.apply(this, [target].concat(args))) ? 'commit' : 'revert';
     return this[method].apply(this, arguments);
@@ -87,9 +87,9 @@ LSD.Action.prototype = {
 
   watch: function(widget, state) {
     if (!this[state ? 'enable' : 'disable'](widget)) //try enable the action
-      this.options[state ? 'enable' : 'disable'].call(this.target, widget); //just fire the callback 
+      this.options[state ? 'enable' : 'disable'].call(this.target, widget); //just fire the callback
   },
-  
+
   inject: function() {
     this.enable();
     if (this.state) this[state.enabler]();
@@ -118,7 +118,7 @@ LSD.Action.prototype = {
     this.target.removeEvents(this.events);
     if (this.options.watches) this.target.unwatch(this.options.watches, this.watch);
     else if (this.options.uses) {
-      
+
     } else {
       this.target.properties.unwatch('rendered', this.injection);
     }
@@ -129,29 +129,29 @@ LSD.Action.prototype = {
     }
     this.target = this.state = null;
   },
-  
+
   store: function(key, value) {
     if (!this.storage) this.storage = {};
     if (!key.indexOf && (typeof key !== 'number')) key = LSD.uid(key);
     this.storage[key] = value;
    },
-  
+
   retrieve: function(key) {
     if (!this.storage) return;
     if (!key.indexOf && (typeof key !== 'number')) key = LSD.uid(key);
     return this.storage[key];
   },
-  
+
   eliminate: function(key) {
     if (!this.storage) return;
     if (!key.indexOf && (typeof key !== 'number')) key = LSD.uid(key);
     delete this.storage[key];
   },
-  
+
   getInvoker: function() {
     return this.invoker;
   },
-  
+
   getDocument: function() {
     return this.invoker && this.invoker.document;
   }

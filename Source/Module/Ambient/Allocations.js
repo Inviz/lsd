@@ -1,14 +1,14 @@
 /*
 ---
- 
+
 script: Allocations.js
- 
+
 description: Spares a few temporal widgets or elements
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module
   - LSD.Module.Events
@@ -16,7 +16,7 @@ requires:
 
 provides:
   - LSD.Module.Allocations
- 
+
 ...
 */
 
@@ -26,7 +26,7 @@ LSD.Module.Allocations = new Class({
       this.allocations = {};
     }
   },
-  
+
   allocate: function(type, kind, options, arg) {
     if (type && !type.indexOf) {
       kind = type.kind;
@@ -51,9 +51,9 @@ LSD.Module.Allocations = new Class({
     } else {
       var parent = options.parent;
       delete options.parent;
-      if (!options.source || options.source.indexOf) 
+      if (!options.source || options.source.indexOf)
         var object = this.document.layout.selector(options, parent);
-      else 
+      else
         var object = this.document.layout.render(source, parent, {options: options});
       var stored = options.stored;
       if (stored && object.store) {
@@ -66,7 +66,7 @@ LSD.Module.Allocations = new Class({
     (group || this.allocations)[id] = object;
     return object;
   },
-  
+
   release: function(type, kind, options) {
     if (type && !type.indexOf) {
       kind = type.kind;
@@ -95,7 +95,7 @@ LSD.Module.Allocations = new Class({
       delete group[index || type];
     }
   },
-  
+
   preallocate: function(type, kind, options, arg) {
     if (type && !type.indexOf) {
       kind = type.kind;
@@ -119,8 +119,8 @@ LSD.Module.Allocations = new Class({
       if (allocation.nodeType) return allocation;
     } else {
       if (allocation.options)
-        var generated = allocation.options.call 
-          ? allocation.options.call(this, options, typeof kind == 'number' ? null : kind, arg) 
+        var generated = allocation.options.call
+          ? allocation.options.call(this, options, typeof kind == 'number' ? null : kind, arg)
           : allocation.options;
     }
     options = Object.merge({}, allocation, generated, customized, opts, options);
@@ -154,11 +154,11 @@ LSD.Module.Allocations = new Class({
           delete options[name];
         }
       }
-    }  
+    }
     if (callbacks) options.stored = callbacks;
     return options;
   }
-  
+
 });
 
 LSD.Module.Events.addEvents.call(LSD.Module.Allocations.prototype, {
@@ -178,11 +178,11 @@ LSD.Module.Allocations.Options = {
         callback.position = new LSD.Position(object, position);
       }
       return callback;
-    } else {  
+    } else {
       if (memo.position) memo.position.detach();
     }
   },
-  
+
   proxy: function(proxy, state, memo) {
     if (state) {
       if (proxy === true || !proxy) proxy = {};
@@ -205,10 +205,10 @@ LSD.Module.Allocations.compile = function(type, classes, attributes, pseudos) {
     for (var i = 0, klass; klass = classes[i++];)
       (options.classes || (options.classes = {}))[klass.name] = true;
   if (attributes)
-    for (var i = 0, attribute; attribute = attributes[i++];) 
+    for (var i = 0, attribute; attribute = attributes[i++];)
       (options.attributes || (options.attributes = {}))[attribute.name] = attribute.value;
   if (pseudos)
-    for (var i = 0, pseudo; pseudo = pseudos[i++];) 
+    for (var i = 0, pseudo; pseudo = pseudos[i++];)
       switch (pseudo.key) {
         case "of-kind": case "of-type":
           kind = pseudo.value;
@@ -228,11 +228,11 @@ LSD.Module.Allocations.compile = function(type, classes, attributes, pseudos) {
 }
 
 LSD.Allocations = {
-  
+
   lightbox: {
     source: 'body[type=lightbox]'
   },
-  
+
   dialog: {
     multiple: true,
     source: 'body[type=dialog]',
@@ -240,15 +240,15 @@ LSD.Allocations = {
       if (kind) return {attributes: {kind: kind}}
     }
   },
-  
+
   menu: {
     source: 'menu[type=context]'
   },
-  
+
   scrollbar: {
     source: 'scrollbar'
   },
-  
+
   container: {
     source: '.container',
     proxy: {
@@ -258,7 +258,7 @@ LSD.Allocations = {
       rewrite: false
     }
   },
-  
+
   message: {
     source: 'p.message',
     parent: 'document',
@@ -269,23 +269,23 @@ LSD.Allocations = {
       return opts;
     }
   },
-  
+
   editor: {
     options: function(options, type, name) {
       return Object.merge(
-        {source: type == 'area' ? 'textarea' : ('input' + (type ? '[type=' + type : ']'))}, 
+        {source: type == 'area' ? 'textarea' : ('input' + (type ? '[type=' + type : ']'))},
         name ? {attributes: {name: name}} : null
       )
     }
   },
-  
+
   input: function(options, type, name) {
     return new Element('input', Object.merge({
       type: type || 'text',
       name: name
     }, options));
   },
-  
+
   submit: function(options) {
     var widget = this;
     return new Element('input', Object.merge({

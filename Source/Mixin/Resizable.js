@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: Resizable.js
- 
+
 description: Resize widget with the mouse freely
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Mixin
   - More/Drag
 
-provides: 
-  - LSD.Mixin.Resizable 
+provides:
+  - LSD.Mixin.Resizable
 ...
 */
 
@@ -57,7 +57,7 @@ LSD.Mixin.Resizable = new Class({
       }
     }
   },
-  
+
   constructors: {
     resizable: function(options, state) {
       if (state) {
@@ -72,7 +72,7 @@ LSD.Mixin.Resizable = new Class({
       }
     }
   },
-   
+
   getResizer: function(resized) {
     var element = resized
     if (this.resizer) {
@@ -90,7 +90,7 @@ LSD.Mixin.Resizable = new Class({
     }, true);
     return resizer;
   },
-  
+
   check: function(size) {
     if (!this.resizer) return;
     var width = this.element.offsetWidth - this.offset.inner.left - this.offset.inner.right;
@@ -101,16 +101,16 @@ LSD.Mixin.Resizable = new Class({
       $clear(this.delay);
       this.delay = (function() { //reset limit options in one second
         this.resized.setStyle('minWidth', this.limit);
-      }).delay(1000, this); 
+      }).delay(1000, this);
       size.width = width;
     }
     return size;
   },
-  
+
   onBeforeResize: function() {
     Object.append(this.resized.toElement(), this.resized.size)
   },
-  
+
   onResizeStart: function() {
     this.onStateChange('resized', true);
     var getLiquid = function(child, prop) {
@@ -118,7 +118,7 @@ LSD.Mixin.Resizable = new Class({
       return ((value == 'inherit') || (value == 'auto') || child.style.expressed[prop]) ? value : null
     }
     if (!this.liquid) {
-      this.liquid = LSD.Module.DOM.each(this, function(child) { 
+      this.liquid = LSD.Module.DOM.each(this, function(child) {
         return getLiquid(c, 'width')
       }) || []
       this.liquid.include(this.resized);
@@ -131,13 +131,13 @@ LSD.Mixin.Resizable = new Class({
       }
     }
   },
-  
+
   onResizeComplete: function() {
     if (this.resized.style.liquid) this.resized.setStyles(this.resized.style.liquid);
     this.onStateChange('resized', false);
     delete this.liquid
   },
-  
+
   onResize: function() {
     var now = this.resizer.value.now;
     var resized = this.resized;
@@ -159,7 +159,7 @@ LSD.Mixin.Resizable = new Class({
     }
     this.refresh();
   },
-  
+
   fit: function(content) {
     if (!content) content = this.resized;
     var element = content.getWrapper();
@@ -174,7 +174,7 @@ LSD.Mixin.Resizable = new Class({
       maxWidth: width, maxHeight: height
     });
   },
-  
+
   getScrolled: function() {
     return this.resized.getWrapper();
   }

@@ -1,21 +1,21 @@
 /*
 ---
- 
+
 script: Script/Function.js
- 
-description: Takes arguments and executes a javascript function on them 
- 
+
+description: Takes arguments and executes a javascript function on them
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Script
   - LSD.Script.Variable
-  
+
 provides:
   - LSD.Script.Function
-  
+
 ...
 */
 
@@ -24,10 +24,10 @@ provides:
   like strings and numbers in expressions. So a function, when all of its
   arguments are resolved is executed once. A function has its arguments as
   child nodes in AST, so when a variable argument is changed, it propagates
-  the change up in the tree, and makes the parent function to be executed 
-  with updated argument values. 
-  
-  Return value of a function is memoized. The value is calculated once and 
+  the change up in the tree, and makes the parent function to be executed
+  with updated argument values.
+
+  Return value of a function is memoized. The value is calculated once and
   saved and will only call function again when arguments are changed.
 */
 
@@ -56,7 +56,7 @@ LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype,
     if (!stop) this.set();
     return this;
   },
-  
+
   execute: function() {
     for (var i = 0, args = [], j = this.args.length, arg; i < j; i++)
       if ((arg = this.args[i]) && arg.interpolation && arg.value == null) return null;
@@ -67,7 +67,7 @@ LSD.Script.Function.prototype = Object.append({}, LSD.Script.Variable.prototype,
       return args[0];
     }
   },
-  
+
   process: function() {
     return this.execute();
   }

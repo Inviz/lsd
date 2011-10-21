@@ -1,27 +1,27 @@
 /*
 ---
- 
+
 script: Placeholder.js
- 
+
 description: Placeholder for form fileds.
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Mixin
 
- 
-provides:   
+
+provides:
   - LSD.Mixin.Placeholder
- 
+
 ...
 */
 
 
 LSD.Mixin.Placeholder = new Class({
-  
+
   options: {
     actions: {
       placeholder: {
@@ -45,11 +45,11 @@ LSD.Mixin.Placeholder = new Class({
     },
     states: Array.object('placeheld')
   },
-  
+
   getPlaceholder: function(){
     return this.attributes.placeholder;
   },
-  
+
   onUnplacehold: function(){
     if (this.placeheld){
       this.applyValue('');
@@ -57,7 +57,7 @@ LSD.Mixin.Placeholder = new Class({
       return true;
     };
   },
-  
+
   onPlacehold: function(){
     var value = this.getRawValue();
     if (!value || value.match(/^\s*$/) || value == this.getPlaceholder()){
@@ -66,7 +66,7 @@ LSD.Mixin.Placeholder = new Class({
       return true;
     };
   }
-  
+
 });
 
 LSD.Behavior.define('[placeholder]', 'placeholder');

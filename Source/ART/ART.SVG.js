@@ -1,10 +1,10 @@
 /*
 ---
- 
+
 script: ART.SVG.js
- 
+
 description: Some extensions (filters, dash, shadow blur)
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
@@ -12,7 +12,7 @@ authors: Yaroslaff Fedin
 extends: ART/ART.SVG
 
 provides: [ART.SVG.prototype.dash, ART.SVG.prototype.strokeLinear, ART.SVG.prototype.fillRadial]
- 
+
 ...
 */
 
@@ -20,7 +20,7 @@ provides: [ART.SVG.prototype.dash, ART.SVG.prototype.strokeLinear, ART.SVG.proto
 var NS = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink', UID = 0, createElement = function(tag){
   return document.createElementNS(NS, tag);
 };
-  
+
 var Extensions = {
   dash: function(dash) {
     if (dash) {
@@ -31,8 +31,8 @@ var Extensions = {
       this.element.removeAttribute('stroke-dasharray')
     }
   },
-  
-  
+
+
   inject: function(container){
     this.eject();
     if (container instanceof ART.SVG.Group) container.children.push(this);
@@ -43,7 +43,7 @@ var Extensions = {
     this._injectFilter('blur');
     return this;
   },
-  
+
   strokeLinear: function(stops, angle){
     var gradient = this._createGradient('stroke', 'linear', stops);
 
@@ -61,7 +61,7 @@ var Extensions = {
 
     return this;
   },
-  
+
   _writeTransform: function(){
     if (Object.equals(this.transformed, this.transform)) return;
     this.transformed = $unlink(this.transform);
@@ -74,7 +74,7 @@ var Extensions = {
     if (radius == null) radius = 4;
     if (radius == this.blurred) return;
     this.blurred = radius;
-    
+
     var filter = this._createFilter();
     var blur = createElement('feGaussianBlur');
     blur.setAttribute('stdDeviation', radius * 0.25);
@@ -89,32 +89,32 @@ var Extensions = {
     delete this.blurred;
     this._ejectFilter();
   },
-  
+
   _injectFilter: function(type){
     if (!this.container) return;
     var filter = this.filter;
     if (filter) this.container.defs.appendChild(filter);
   },
-  
+
   _ejectFilter: function(type){
     if (!this.container) return;
     var filter = this.filter;
     delete this.filter;
     if (filter) this.container.defs.removeChild(filter);
   },
-  
+
   _createFilter: function(){
     this._ejectFilter();
-  
+
     var filter = this.filter = createElement('filter');
-  
+
     var id = 'filter-e' + this.uid;
     filter.setAttribute('id', id);
-  
+
     this._injectFilter();
-  
+
     this.element.setAttribute('filter', 'url(#' + id + ')');
-  
+
     return filter;
   }
 };

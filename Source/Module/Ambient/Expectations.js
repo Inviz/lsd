@@ -1,30 +1,30 @@
 /*
 ---
- 
+
 script: Expectations.js
- 
+
 description: A trait that allows to wait for related \s until they are ready
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module
   - LSD.Module.Events
   - LSD.Module.Attributes
   - LSD.Module.Properties
 
-provides: 
+provides:
   - LSD.Module.Expectations
- 
+
 ...
 */
 
 !function() {
-  
+
 var Expectations = LSD.Module.Expectations = new Class({
-  
+
   constructors: {
     expectations: function() {
       if (!this.expectations) this.expectations = {}
@@ -41,26 +41,26 @@ var Expectations = LSD.Module.Expectations = new Class({
       })
     }
   },
-  
+
   getElementsByTagName: function(tag) {
     return (this.expectations.tag && this.expectations.tag[LSD.toLowerCase(tag)]) || [];
   },
-  
+
   /*
     Expect processes a single step in a complex selector.
-    
-    Each of those bits (e.g. strong.important) consists 
+
+    Each of those bits (e.g. strong.important) consists
     pieces that can not be cnahged in runtime (tagname)
     and other dynamic parts (classes, pseudos, attributes).
-    
+
     The idea is to split the selector bit to static and dynamic
     parts. The widget that is *expect*ing the selector, groups
     his expectations by tag name. Every node inserted into
     that element or its children will pick up expectations
     related to it, thus matching static part of a selector
-    - tag name and combinator. 
-    
-    It's only a matter of matching a dynamic part then. 
+    - tag name and combinator.
+
+    It's only a matter of matching a dynamic part then.
     - classes, pseudos and attributes.
   */
   expect: function(selector, callback, self) {
@@ -75,7 +75,7 @@ var Expectations = LSD.Module.Expectations = new Class({
       case '&&':
         return Expectations.setRootExpectation.call(this, selector, callback, true);
     }
-    var index = self ? 'self' : (combinator == ' ' && id) ? 'id' : combinator || 'self'; 
+    var index = self ? 'self' : (combinator == ' ' && id) ? 'id' : combinator || 'self';
     var expectations = this.expectations[index];
     if (!expectations) expectations = this.expectations[index] = {};
     if (selector.combinator && !self) {
@@ -116,7 +116,7 @@ var Expectations = LSD.Module.Expectations = new Class({
       if (this.tagName && this.match(selector)) callback(this, true);
     }
   },
-  
+
   unexpect: function(selector, callback, self, iterator) {
     if (selector.indexOf) selector = Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
@@ -154,7 +154,7 @@ var Expectations = LSD.Module.Expectations = new Class({
       }
     }
   },
-  
+
   watch: function(selector, callback, depth) {
     if (selector.indexOf) selector = Slick.parse(selector);
     if (!depth) depth = 0;
@@ -167,7 +167,7 @@ var Expectations = LSD.Module.Expectations = new Class({
       this.expect(expressions[depth], watcher);
     }, this);
   },
-  
+
   unwatch: function(selector, callback, depth) {
     if (selector.indexOf) selector = Slick.parse(selector);
     if (!depth) depth = 0;
@@ -178,7 +178,7 @@ var Expectations = LSD.Module.Expectations = new Class({
       });
     }, this);
   },
-  
+
   use: function() {
     var selectors = Array.flatten(arguments);
     var widgets = []
@@ -225,7 +225,7 @@ Expectations.advanceRootExpectation = function(exp, widget, callback, state) {
     else widget.unexpect({combinator: ' ', pseudos: exp.pseudos}, callback, true, function(widget) {
       callback(widget, false);
     })
-  } else {  
+  } else {
     var expression = {combinator: ' ', tag: exp.tag, classes: exp.classes, pseudos: exp.pseudos, attributes: exp.attributes, id: exp.id};
     widget[state ? 'expect' : 'unexpect'](expression, callback, null, callback);
   }
@@ -308,7 +308,7 @@ var update = function(widget, tag, state, single) {
 
 var remove = function(array, callback) {
   if (array) for (var i = array.length; i--;) {
-    var fn = array[i][1]; 
+    var fn = array[i][1];
     if (fn == callback || fn.callback == callback) {
       array.splice(i, 1);
       break;

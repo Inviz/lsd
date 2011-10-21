@@ -1,33 +1,33 @@
 /*
 ---
- 
+
 script: Microdata.js
- 
+
 description: Data that comes from specially html5 formatted elements
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Layout
   - LSD.Object
   - Ext/Element.Item
-  
+
 provides:
   - LSD.Microdata
   - LSD.Layout.Microdata
-  
+
 ...
 */
 
 /*
-  Microdata is the new HTML5 concept that provides a way to enrich 
+  Microdata is the new HTML5 concept that provides a way to enrich
   html elements with arbitary data structures and provides various
   search engine friendly schemas.
-  
+
   Microdata object holds properties for a single item scope. So an
-  element or widget that has `itemscope` attribute creates one 
+  element or widget that has `itemscope` attribute creates one
   of these objects. Nodes with `itemprop` attribute are added to
   the object and have the value extracted. When a value in an object
   is changed, it updates the corresponding node.
@@ -51,7 +51,7 @@ LSD.Microdata.prototype = Object.append(new LSD.Object, {
     this.set(property, value);
     var callback = Element.retrieve(element, 'microdata:setter');
     if (!callback) Element.store(element, 'microdata:setter', (callback = function(value) {
-      Element.set(element, 'itemvalue', value);      
+      Element.set(element, 'itemvalue', value);
     }))
     this.watch(property, callback, true)
   },

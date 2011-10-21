@@ -1,20 +1,20 @@
 /*
 ---
- 
+
 script: ContentEditable.js
- 
+
 description: Animated ways to show/hide widget
- 
+
 license: Public domain (http://unlicense.org).
- 
+
 requires:
   - LSD.Mixin
   - require
-  
+
 uses:
   - CKEDITOR
- 
-provides: 
+
+provides:
   - LSD.Mixin.ContentEditable
 ...
 */
@@ -42,7 +42,7 @@ LSD.Mixin.ContentEditable = new Class({
       ]
     }
   },
-  
+
   getEditor: function() {
     if (this.editor) return this.editor;
     use('CKEDITOR', function(CKEDITOR) {
@@ -73,7 +73,7 @@ LSD.Mixin.ContentEditable = new Class({
       }.bind(this));
     }.bind(this))
   },
-  
+
   getValueForEditor: function() {
     var element = this.getEditedElement();
     switch (element.get('tag')) {
@@ -83,17 +83,17 @@ LSD.Mixin.ContentEditable = new Class({
         return element.innerHTML;
     }
   },
-  
+
   showEditor: function() {
     this.element.setStyle('display', 'none');
     this.getEditorContainer().setStyle('display', 'block');
   },
-  
+
   hideEditor: function() {
     this.element.setStyle('display', '');
     this.getEditorContainer().setStyle('display', 'none');
   },
-  
+
   openEditor: function(callback) {
     if (this.editor && this.editor.document) {
       if (callback) callback.call(this.editor);
@@ -103,20 +103,20 @@ LSD.Mixin.ContentEditable = new Class({
       this.getEditor();
     }
   },
-  
+
   closeEditor: function(callback) {
     this.editor.updateElement();
     this.hideEditor();
   },
-  
+
   getEditorContainer: function() {
     return $(this.editor.container.$);
   },
-  
+
   getEditorBody: function() {
     return this.editor.document.$.body;
   },
-  
+
   getEditedElement: function() {
     return this.toElement();
   }

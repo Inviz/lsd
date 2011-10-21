@@ -8,38 +8,38 @@ description: Dont adopt children, pass them to some other widget
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module
 
-provides: 
+provides:
   - LSD.Module.Proxies
 
 ...
 */
-  
+
 LSD.Module.Proxies = new Class({
   constructors: {
     proxies: function() {
       this.proxies = [];
     }
   },
-  
+
   addProxy: function(name, proxy) {
     var selector = proxy.selector || proxy.mutation;
-    if (selector && selector !== true && selector.match(LSD.Module.Proxies.rOrdered)) 
+    if (selector && selector !== true && selector.match(LSD.Module.Proxies.rOrdered))
       var object = this.parentNode;
-    else 
+    else
       var object = this;
     for (var i = 0, other; (other = object.proxies[i]) && ((proxy.priority || 0) < (other.priority || 0)); i++);
     object.proxies.splice(i, 0, proxy);
   },
-  
+
   removeProxy: function(name, proxy) {
     var selector = proxy.selector || proxy.mutation;
-    if (selector && selector !== true && selector.match(LSD.Module.Proxies.rOrdered)) 
+    if (selector && selector !== true && selector.match(LSD.Module.Proxies.rOrdered))
       var object = this.parentNode;
-    else 
+    else
       var object = this;
     var index = object.proxies.indexOf(proxy);
     if (index > -1) object.proxies.splice(index, 1);
@@ -58,7 +58,7 @@ Object.append(LSD.Module.Proxies, {
       if (proxy.text) return node.nodeType == 3 && (!proxy.regexp || node.nodeValue.match(proxy.regexp));
     }
   },
-  
+
   invoke: function(parent, child, proxy) {
     if (proxy.callback) proxy.callback.call(parent, child, proxy);
     var container = proxy.container && proxy.container.call ? proxy.container.call(parent, child, proxy) : proxy.container;
@@ -89,7 +89,7 @@ Object.append(LSD.Module.Proxies, {
     }
     return result;
   },
-  
+
   perform: function(widget, child, bypass) {
     var element = widget.element || widget.toElement();
     for (var node = widget, proxies; node; node = node.parentNode)
@@ -99,7 +99,7 @@ Object.append(LSD.Module.Proxies, {
             if (LSD.Module.Proxies.match(child, proxy, proxy.selector ? widget : proxy.element))
               return LSD.Module.Proxies.invoke(child.lsd ? widget : element, child, proxy);
   },
-  
+
   realize: function(node, origin, proxy) {
     proxy.container = node;
     if (proxy.queued) {

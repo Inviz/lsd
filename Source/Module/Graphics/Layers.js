@@ -1,22 +1,22 @@
 /*
 ---
- 
+
 script: Layers.js
- 
+
 description: Make widget use layers for all the SVG
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Trait
   - LSD.Layer
   - LSD.Module.Styles
 
-provides: 
+provides:
   - LSD.Module.Layers
- 
+
 ...
 */
 
@@ -47,7 +47,7 @@ LSD.Module.Layers = new Class({
       }
     }
   },
-  
+
   removeLayer: function(name, value) {
     var slots = this.style.layers || (this.style.layers = {});
     var layer = this.layers[name] = LSD.Layer.get(name, Array.concat(value));
@@ -57,11 +57,11 @@ LSD.Module.Layers = new Class({
       }
     }
   },
-  
+
   renderLayers: function(dirty) {
     var updated = new Object.Array, style = this.style, layers = style.layers, offset = this.offset;
     for (var property in dirty) if (layers[property]) updated.push.apply(updated, layers[property]);
-    
+
     var result = {};
     for (var name in this.layers) {
       if (!updated[name]) continue;
@@ -72,7 +72,7 @@ LSD.Module.Layers = new Class({
     var inside  = offset.inside  = Object.append({left: 0, right: 0, top: 0, bottom: 0}, result.inside);
     var outside = offset.outside = Object.append({left: 0, right: 0, top: 0, bottom: 0}, result.outside);
     offset.shape = /*this.shape.getOffset ? this.shape.getOffset(style.current) : */{left: 0, right: 0, top: 0, bottom: 0};
-    
+
     for (var name in this.shapes) {
       var layer = this.shapes[name];
       if (!layer) continue;
@@ -88,7 +88,7 @@ LSD.Module.Layers = new Class({
       }
     }
   },
-  
+
   render: function() {
     var style = this.style, last = style.last, old = style.size, paint = style.paint, changed = style.changed;
     this.parent.apply(this, arguments);
@@ -104,7 +104,7 @@ LSD.Module.Layers = new Class({
     style.size = Object.append({}, size);
     this.renderOffsets();
   },
-  
+
   renderStyles: function() {
     this.parent.apply(this, arguments);
     var style = this.style, current = style.current;
@@ -113,10 +113,10 @@ LSD.Module.Layers = new Class({
       margin: {left: current.marginLeft || 0, right: current.marginRight || 0, top: current.marginTop || 0, bottom: current.marginBottom || 0}
     });
   },
-  
+
   renderOffsets: function() {
     var element = this.element,
-        current = this.style.current, 
+        current = this.style.current,
         offset  = this.offset,         // Offset that is provided by:
         inside  = offset.inside,       // layers, inside the widget
         outside = offset.outside,      // layers, outside of the widget
@@ -125,7 +125,7 @@ LSD.Module.Layers = new Class({
         margin  = offset.margin,       // margin style declarations
         inner   = {},                  // all inside offsets above, converted to padding
         outer   = {};                  // all outside offsets above, converted to margin
-        
+
     for (var property in inside) {
       var cc = property.capitalize();
       if (offset.inner) var last = offset.inner[property];
@@ -140,7 +140,7 @@ LSD.Module.Layers = new Class({
 });
 
 /*
-  Default layer set 
+  Default layer set
 */
 
 if (!LSD.Layers) LSD.Layers =  {
@@ -155,7 +155,7 @@ if (!LSD.Layers) LSD.Layers =  {
 
 /*
   Pre-generate CSS grammar for layers.
-  
+
   It is not required for rendering process itself, because
   this action is taken automatically when the first
   widget gets rendered. Declaring layer css styles upfront

@@ -1,21 +1,21 @@
 /*
 ---
- 
+
 script: Draggable.js
- 
+
 description: Drag widget around the screen
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Mixin
   - More/Drag
 
-provides: 
+provides:
   - LSD.Mixin.Draggable
- 
+
 ...
 */
 
@@ -47,7 +47,7 @@ LSD.Mixin.Draggable = new Class({
           this.handles.push(handle);
           document.id(handle).addEvent('mousedown', this.dragger.bound.start);
         },
-        
+
         disable: function(handle) {
           if (!this.dragger) return;
           if (--this.index == 0) {
@@ -61,19 +61,19 @@ LSD.Mixin.Draggable = new Class({
       }
     }
   },
-  
+
   initialize: function() {
     this.parent.apply(this, arguments);
     this.handles = [];
     this.index = 0;
   },
-  
+
   unitialize: function() {
     this.handles.each(this.options.actions.draggable.disable, this);
     this.onStateChange('draggable', false);
     delete this.dragger;
   },
-  
+
   getDragger: function() {
     if (this.dragger) return this.dragger;
     var element = this.element;
@@ -93,22 +93,22 @@ LSD.Mixin.Draggable = new Class({
     }, true);
     return this.dragger;
   },
-  
+
   onDragStart: function() {
     this.onStateChange('dragged', true);
   },
-  
+
   onDragComplete: function() {
     this.onStateChange('dragged', false);
   },
-  
+
   onDrag: function() {
     this.setStyles({
       top: this.dragger.value.now.y,
       left: this.dragger.value.now.x
     });
   }
-  
+
 });
 
 LSD.Behavior.define('[draggable]', 'draggable');

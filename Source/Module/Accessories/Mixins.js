@@ -1,25 +1,25 @@
 /*
 ---
- 
+
 script: Element.js
- 
-description: Adds and removes Widget classes and traits 
- 
+
+description: Adds and removes Widget classes and traits
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module
 
-provides: 
+provides:
   - LSD.Module.Mixins
- 
+
 ...
 */
 
 LSD.Module.Mixins = new Class({
-  
+
   constructors: {
     tag: function(options) {
       if (options.context) this.properties.set('context', options.context)
@@ -47,11 +47,11 @@ LSD.Module.Mixins = new Class({
   unmix: function(mixin, light) {
     if (typeof mixin == 'string') {
       this.mixins.erase(mixin);
-    } else {  
+    } else {
       this.destruct(mixin.prototype, true);
       Class.unmix(this, mixin, light);
     }
     return this;
   }
-  
+
 });

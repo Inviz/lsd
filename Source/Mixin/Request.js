@@ -1,22 +1,22 @@
 /*
 ---
- 
+
 script: Request.js
- 
+
 description: Make various requests to back end
- 
+
 license: Public domain (http://unlicense.org).
- 
+
 requires:
   - LSD.Mixin
   - Core/Request
   - Ext/Request.Form
   - Ext/Request.Auto
   - Ext/document.createFragment
-  
-provides: 
+
+provides:
   - LSD.Mixin.Request
- 
+
 ...
 */
 
@@ -31,11 +31,11 @@ LSD.Mixin.Request = new Class({
         submit: function() {
           return this.send.apply(this, arguments);
         },
-        
+
         cancel: function() {
           return this.stop()
         },
-        
+
         getCommandAction: function() {
           if (!this.isRequestURLLocal()) return 'submit';
         },
@@ -50,7 +50,7 @@ LSD.Mixin.Request = new Class({
       }
     }
   },
-  
+
   send: function() {
     var data = this.getRequestData && this.getRequestData() || null;
     var options = Object.merge({}, this.options.request, {data: data, url: this.getRequestURL(), method: this.getRequestMethod()});
@@ -67,13 +67,13 @@ LSD.Mixin.Request = new Class({
     this.fireEvent('send', options);
     return request.send(options);
   },
-  
+
   stop: function() {
     if (this.request) this.request.cancel();
     this.fireEvent('stop');
     return this;
   },
-  
+
   getRequest: function(options, fresh) {
     var type = (options && options.type) || this.getRequestType();
     if (fresh || !this.request || this.request.type != type) {
@@ -84,33 +84,33 @@ LSD.Mixin.Request = new Class({
       }
       request.addEvent('complete', function() {
         if (request.isSuccess && request.isSuccess() && this.getCommandAction && this.getCommandAction() == 'submit')
-          if (this.chainPhase == -1 || (this.chainPhase == this.getActionChain().length - 1))  
+          if (this.chainPhase == -1 || (this.chainPhase == this.getActionChain().length - 1))
             this.eachLink('optional', arguments, true);
       }.bind(this));
     }
     return this.request;
   },
-  
+
   getXHRRequest: function(options) {
     return new Request.Auto(options);
   },
-  
+
   getFormRequest: function(options) {
     return new Request.Form(options);
   },
-  
+
   getRequestType: function() {
     return this.attributes.transport || this.options.request.type;
   },
-  
+
   getRequestMethod: function() {
     return this.attributes.method || this.options.request.method;
   },
-  
+
   getRequestURL: function() {
     return this.attributes.href || this.attributes.src || this.attributes.action;
   },
-  
+
   isRequestURLLocal: function(base, host) {
     if (!host) host = location.host;
     if (!base) base = location.pathname;

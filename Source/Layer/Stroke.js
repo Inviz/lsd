@@ -1,39 +1,39 @@
 /*
 ---
- 
+
 script: Stroke.js
- 
+
 description: Fills shape with color and strokes with a stroke
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Layer
   - LSD.Layer.Color
- 
-provides: 
+
+provides:
   - LSD.Layer.Stroke
- 
+
 ...
 */
 
 LSD.Layer.Stroke = {
-  
+
   properties: {
-    stroke:    ['width', ['cap', 'join', 'dash'], 'color'], 
+    stroke:    ['width', ['cap', 'join', 'dash'], 'color'],
     color:     ['gradient', 'color'],
     width:     ['length'],
     cap:       ['butt', 'round', 'square'],
     join:      ['butt', 'round', 'square'],
     dash:      ['tokens']
   },
-  
+
   paint: function(color, width, cap, join, dash) {
     if (!width) width = 0;
     var gradient = color && (color['gradient'] || color['linear-gradient']);
-    var result = {    
+    var result = {
       dash: dash,
       size: {
         width: width,

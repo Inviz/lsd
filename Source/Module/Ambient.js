@@ -3,12 +3,12 @@
 
 script: Ambient.js
 
-description: When it needs to know what's going on around 
+description: When it needs to know what's going on around
 
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Module.DOM
   - LSD.Module.Selectors
@@ -20,7 +20,7 @@ requires:
   - LSD.Module.Proxies
   - LSD.Module.Interpolations
 
-provides: 
+provides:
   - LSD.Module.Ambient
 
 ...
@@ -28,7 +28,7 @@ provides:
 
 LSD.Module.Ambient = new Class({
   Implements: [
-    LSD.Module.DOM, 
+    LSD.Module.DOM,
     LSD.Module.Selectors,
     LSD.Module.Layout,
     LSD.Module.Expectations,
