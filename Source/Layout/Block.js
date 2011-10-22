@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Layout
-  - LSD.Script.Scope
+  - LSD.Script/LSD.Script.Scope
 
 provides: 
   - LSD.Layout.Block

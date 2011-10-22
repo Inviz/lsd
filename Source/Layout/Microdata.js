@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Layout
-  - LSD.Object
+  - LSD.Script/LSD.Object
   - Ext/Element.Item
   
 provides:

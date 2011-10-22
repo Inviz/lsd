@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires: 
   - LSD.Module
-  - LSD.Object
+  - LSD.Script/LSD.Object
   - Ext/States
   
 provides: 

@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Module
-  - LSD.Object
+  - LSD.Script/LSD.Object
   - Core/Slick.Parser
  
 provides: 
@@ -161,7 +161,7 @@ LSD.Module.Attributes.resolve = function(name, value, bind) {
     case "boolean":
       return (name == value || value === true);
     case "number":
-      return parseFloat(name);
+      return parseFloat(value);
     default:
       if (attribute && attribute.call) {
         var resolved = attribute.call(bind || this, value)

@@ -11,11 +11,11 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Module
-  - LSD.Object
+  - LSD.Script/LSD.Script.Scope
+  - LSD.Script/LSD.Object.Stack
   - LSD.Module.Options
   - LSD.Module.Events
   - LSD.Module.Attributes
-  - LSD.Script.Scope
   
 provides:
   - LSD.Module.Properties

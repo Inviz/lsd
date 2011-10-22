@@ -12,9 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD
   - LSD.Helpers
-  - LSD.Script.Interpolation
-  - LSD.Script.Parser
-  - LSD.Script.Selector
+  - LSD.Script/*
   - More/Object.Extras
 
 provides: 
