@@ -24,6 +24,7 @@ sources:
   - Source/Tools/Command.js
   - Source/Tools/Require.js
   - Source/Tools/Position.js
+  - Source/Tools/Logger.js
   - Source/Document.js
   - Source/LSD.js
   - Source/Type.js

@@ -15,6 +15,7 @@ requires:
   - LSD.Module.Ambient
   - LSD.Module.Graphics
   - LSD.Mixin.Value
+  - LSD.Logger
 
 provides: 
   - LSD.Widget
