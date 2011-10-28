@@ -78,9 +78,9 @@ LSD.Document = new Class({
     this.params = (location.search.length > 1) ? location.search.substr(1, location.search.length - 1).parseQueryString() : {}
     document.addEvent('domready', function() {
       this.building = true;
-      if ("benchmark" in this.params) console.profile();
+      if ("benchmark" in this.params) LSD.console.profile();
       this.build();
-      if ("benchmark" in this.params) console.profileEnd();
+      if ("benchmark" in this.params) LSD.console.profileEnd();
       this.building = false;
     }.bind(this));
     this.element.addEvent('click', this.onClick.bind(this));
@@ -162,12 +162,14 @@ LSD.Document = new Class({
   },
   
   build: function(document) {
+    this.fireEvent('beforeBuild', document)
     this.built = true;
     if (!document) document = this.element || window.document;
     this.setHead(document.head);
     var element = this.element = document.body;
     this.setBody(document.body);
     this.render();
+    this.fireEvent('build', document)
   },
   
   setBody: function(element) {
