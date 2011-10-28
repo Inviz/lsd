@@ -3,7 +3,7 @@
  
 script: Logger.js
  
-description: An observable object 
+description: A logger, a queue and a console shim
  
 license: Public domain (http://unlicense.org).
 
@@ -22,33 +22,46 @@ LSD.Array.Logger = function(options) {
   this.options = options;
   this.length = 0;
 };
-LSD.Array.Logger.start = +(new Date)
+LSD.Array.Logger.start = + new Date
 LSD.Array.Logger.prototype = Object.append({
   flush: function() {
     if (this.options) new Request.JSON(this.options).send(LSD.toObject(this));
   },
   
-  build: function(method, args) {
-    var now = +(new Date)
-    return {
-      created_at: now,
-      type: method,
-      message: this.convert(Array.prototype.slice.call(args, 0)),
-      browser: {
-        user_agent: navigator.userAgent
-      },
+  build: function(method, args, meta) {
+    if (!this.meta) this.meta = {
       screen: {
         height: screen.height,
         width: screen.width,
-        colorDepth: screen.colorDepth,
-        pixelDepth: screen.pixelDepth
+        color_depth: screen.colorDepth,
+        pixel_depth: screen.pixelDepth
       },
-      page: {
+      browser: {
+        user_agent: navigator.userAgent
+      },
+      page: LSD.toObject({
         title: document.title,
         location: location.toString(),
-        lifetime: now - LSD.Array.Logger.start
+        start: LSD.Array.Logger.start
+      }),
+      window: {
+        width: window.getWidth(),
+        height: window.getHeight()
+      },
+    }
+    return Object.append({
+      created_at: LSD.toObject(new Date),
+      type: method,
+      message: this.convert(Array.prototype.slice.call(args, 0)),
+      browser: this.meta.browser,
+      screen: this.meta.screen,
+      page: this.meta.page,
+      window: this.meta.window,
+      scroll: {
+        top: document.body.scrollTop,
+        left: document.body.scrollLeft
       }
-    };
+    }, meta);
   },
   
   convert: function(object) {
@@ -57,22 +70,49 @@ LSD.Array.Logger.prototype = Object.append({
       return {
         filename: object.filename,
         line: object.lineno,
-        message: object.message,
-        timestamp: object.timestamp
+        message: object.message
       }
     switch (typeOf(object)) {
       case "array":
         return object.map(this.convert, this);
       case "object":
         return Object.map(object, this.convert, this);
+      default:
+        return LSD.toObject(object);
     }
+  },
+  
+  time: function(name) {
+    if (!this.times) this.times = {};
+    this.times[name] = new Date;
+  },
+  
+  timeEnd: function(name) {
+    var time = this.times[name];
+    if (time) {
+      var now = new Date;
+      return this.push(this.build('time', [name, now - time, now, time]));
+    }
+  },
+  
+  exception: function(exception) {
+    var args = Array.prototype.slice.call(arguments, 1)
+    var meta = {exception: this.convert(exception)};
+    return this.push(this.build('exception', args, meta))
   }
 }, LSD.Array.prototype);
 
-['log', 'error', 'info', 'exception'].each(function(method) {
+['log', 'error', 'info'].each(function(method) {
   LSD.Array.Logger.prototype[method] = function() {
     return this.push(this.build(method, arguments))
   }
 });
 
-LSD.Logger = new LSD.Array.Logger;
+['profile', 'profileEnd', 'group', 'groupEnd', 'timeline'].each(function(method) {
+  LSD.Array.Logger.prototype[method] = function() {
+    if (window.console && console[method] && console[method].apply) 
+      return console[method].apply(console, arguments);
+  }
+});
+
+LSD.Logger = LSD.console = new LSD.Array.Logger;
