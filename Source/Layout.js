@@ -525,7 +525,7 @@ LSD.Layout.prototype = Object.append({
           if (before.lsd) before = before.toElement();
           parent = before.parentNode;
         };
-        widget.insertBefore(child, before, element, bypass);
+        widget.insertBefore(child, before, null, bypass);
       }
     } else {
       widget.appendChild(child, element, bypass);

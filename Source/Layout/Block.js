@@ -95,11 +95,14 @@ LSD.Template = {};
 
 LSD.Layout.Block.prototype = Object.append({
   block: true,
+  nodeType: 11,
+  
   permit: function() {
     for (var block = this; block = block.options.superBlock;)
       if (block.checked) return false;
     return true;
   },
+
   getVariable: function() {
     if (typeof this.variable == 'undefined') {
       if (this.options.collection) {
@@ -112,17 +115,21 @@ LSD.Layout.Block.prototype = Object.append({
     }
     return this.variable;
   },
+
   match: function() {
     if (this.permit() && (!this.options.expression || this.evaluate(true)))
       return this.check();
   },
+
   rematch: function() {
     return this.attach() || this.fireEvent('miss');
   },
+
   unmatch: function(lazy) {
     if (!this.options.expression || this.evaluate(false))
       return this.uncheck(lazy);
   },
+
   check: function(lazy) {
     if (!this.checked) {
       this.checked = true;
@@ -131,6 +138,7 @@ LSD.Layout.Block.prototype = Object.append({
       return true;
     }
   },
+
   uncheck: function(lazy) {
     if (this.checked || this.checked == null) {
       this.checked = false;
@@ -139,6 +147,7 @@ LSD.Layout.Block.prototype = Object.append({
       return true;
     }  
   },
+
   attach: function() {
     if (!this.parentScope) {
       this.parentScope = this.parentNode;
@@ -146,6 +155,7 @@ LSD.Layout.Block.prototype = Object.append({
     }
     return this.match();
   },
+
   detach: function() {
     if (this.parentScope) {
       LSD.Script.Scope.unsetScope(this, this.parentScope);
@@ -154,21 +164,26 @@ LSD.Layout.Block.prototype = Object.append({
     this.unmatch(true);
     this.fireEvent('detach');
   },
+
   evaluate: function(state) {
     var variable = this.getVariable();
     var value = variable.attach ? variable[state ? 'attach' : 'detach']().value : variable;
     if (this.value !== value) this.set(value);
     return this.validate();
   },
+
   validate: function(strict) {
     return ((strict ? this.value !== false : this.value != false) && this.value != null) ^ this.options.invert;
   },
+
   add: function(value) {
     return this.render.apply(this, arguments);
   },
+
   remove: function(value) {
     
   },
+
   set: function(value) {
     this.value = value;
     if (this.options.collection) {
@@ -183,6 +198,7 @@ LSD.Layout.Block.prototype = Object.append({
       this[this.validate() ? 'check' : 'uncheck']();
     }
   },
+
   show: function(lazy) {
     var layout = this.layout;
     if (!layout) return;
@@ -196,7 +212,7 @@ LSD.Layout.Block.prototype = Object.append({
         }
       }
     }
-    if (!lazy) {
+    if (!lazy && !this.next) {
       var before = this.options.before;
       if (before && before.parentNode != this.element) before = null;
       if (!before && !this.options.name && this.options.origin) {
@@ -219,13 +235,14 @@ LSD.Layout.Block.prototype = Object.append({
       this.rendered = this.collapse(this.rendered) || this.rendered;
     }
   },
+
   hide: function() {
     var layout = this.rendered || this.layout;
     if (!layout) return;
     this.widget.removeLayout(this.id, layout, null, {blocks: [this]});
     this.hidden = true;
   },
-  
+
   render: function(args, options, widget) {
     if (args != null && !args.push) args = [args]; 
     if (!this.options.original) {
@@ -239,6 +256,7 @@ LSD.Layout.Block.prototype = Object.append({
     block.show();
     return block;
   },
+
   clone: function(parent, opts, shallow) {
     var layout = this.layout;
     if (!layout) return;
@@ -255,6 +273,7 @@ LSD.Layout.Block.prototype = Object.append({
     if (shallow) delete options.expression;
     return new LSD.Layout.Block(options);
   },
+
   splice: function(block, layout, baseline) {
     var offset = 0;
     if (block.layout) {
@@ -273,6 +292,7 @@ LSD.Layout.Block.prototype = Object.append({
     }
     return offset;
   },
+
   /*
     Checks out if a given layout is a single comment possibly
     surrounded by whitespace. If it's true, the comment node
@@ -314,15 +334,18 @@ LSD.Layout.Block.prototype = Object.append({
     }
     return layout;
   },
+
   setLayout: function(layout, soft) {
     this.layout = layout;
     if (this.checked) {
       this.show(true);
     } else if (!soft) this.hide();
   },
+
   getLayout: function(layout) {
     return this.layout;
   },
+
   expand: function(text) {
     var depth = 0;
     text = text.replace(LSD.Layout.Block.rComment, function(whole, start, end) {

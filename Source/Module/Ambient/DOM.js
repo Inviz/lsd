@@ -54,6 +54,7 @@ LSD.Module.DOM = new Class({
           var same = index == length - 1 && previous == index - 1;
           if (!same) unset.call(this, widget);
           widget.childNodes.splice(previous, 1);
+          if (index > previous) index--;
           if (same) return;
         } else return
       }
@@ -90,6 +91,8 @@ LSD.Module.DOM = new Class({
   },
   
   appendChild: function(child, element, bypass) {
+    if (child.nodeType == 11) 
+      return LSD.Module.DOM.setFragment(this, child, element, bypass);
     if (child.lsd && !child.parentNode) child.parentNode = this;
     if (bypass !== true) {
       var proxy = LSD.Module.Proxies.perform(this, child, bypass);
@@ -102,7 +105,7 @@ LSD.Module.DOM = new Class({
             return proxy.widget.appendChild(child, element, true);
         }
         if (proxy.before) 
-          return this.insertBefore(child, proxy.before, element, true)
+          return this.insertBefore(child, proxy.before, null, true)
       } else if (proxy === false) {
         if (child.parentNode) child.parentNode.removeChild(child);
         return false;
@@ -122,6 +125,44 @@ LSD.Module.DOM = new Class({
       if (this.document.rendered && !child.rendered) child.render()
     }
     return true;
+  },
+
+  insertBefore: function(child, node, element, bypass) {
+    if (child.nodeType == 11) 
+      return LSD.Module.DOM.setFragment(this, child, element, bypass, node)
+    if (child.lsd && !child.parentNode) child.parentNode = this;
+    if (!bypass) {
+      var proxy = LSD.Module.Proxies.perform(this, child);
+      if (proxy) {
+        if (proxy.element != null) {
+          element = proxy.element;
+          if (!proxy.widget && !proxy.before) return this.appendChild(child, element, true);
+        }
+        if (proxy.widget && child.lsd && proxy.widget != this) {
+          if (proxy.before)
+            return proxy.widget.insertBefore(child, proxy.before, element, true);
+          else
+            return proxy.widget.appendChild(child, element, true);
+        }
+        if (proxy.before) node = proxy.before;
+      } else if (proxy === false) {
+        if (child.parentNode) child.parentNode.removeChild(child);
+        return false;
+      }
+    }
+    if (element !== false) {
+      if (element == null) element = node && node.lsd ? node.element || node.toElement() : node;
+      var parent = element ? element.parentNode : node && node.parentNode || this.toElement();
+      parent.insertBefore(child.lsd ? child.element || child.toElement() : child, element);
+    }
+    if (child.lsd) {
+      if (node) var widget = node.lsd ? node : LSD.Module.DOM.findSibling(node, false, element);
+      var index = widget && widget != this ? this.childNodes.indexOf(widget) : this.childNodes.length;
+      if (index == -1) return;
+      this.childNodes.splice(index, 0, child);
+      child.setParent(this, index);
+    }
+    return this;
   },
   
   removeChild: function(child, element) {
@@ -146,43 +187,6 @@ LSD.Module.DOM = new Class({
     this.childNodes.splice(index, 0, insertion);
     insertion.setParent(this, index);
   },
-  
-  insertBefore: function(child, node, element, bypass) {
-    if (child.lsd && !child.parentNode) child.parentNode = this;
-    if (!bypass) {
-      var proxy = LSD.Module.Proxies.perform(this, child);
-      if (proxy) {
-        if (proxy.element != null) {
-          element = proxy.element;
-          if (!proxy.widget && !proxy.before) return this.appendChild(child, element, true);
-        }
-        if (proxy.widget && child.lsd && proxy.widget != this) {
-          if (proxy.before)
-            return proxy.widget.insertBefore(child, proxy.before, element, true);
-          else
-            return proxy.widget.appendChild(child, element, true);
-        }
-        if (proxy.before) node = proxy.before;
-      } else if (proxy === false) {
-        if (child.parentNode) child.parentNode.removeChild(child);
-        return false;
-      }
-    }
-    if (element == null) element = this.toElement();
-    if (element !== false) {
-      var before = node && node.lsd ? node.element || node.toElement() : node;
-      if (node) element = node.parentNode;
-      element.insertBefore(child.lsd ? child.element || child.toElement() : child, before);
-    }
-    if (child.lsd) {
-      if (node) var widget = node.lsd ? node : LSD.Module.DOM.findNext(node, element);
-      var index = widget && widget != this ? this.childNodes.indexOf(widget) : this.childNodes.length;
-      if (index == -1) return;
-      this.childNodes.splice(index, 0, child);
-      child.setParent(this, index);
-    }
-    return this;
-  },
 
   cloneNode: function(children, options) {
     var clone = this.factory.create(this.element.cloneNode(children), Object.merge({
@@ -195,27 +199,29 @@ LSD.Module.DOM = new Class({
     return clone;
   },
   
-  inject: function(node, where) {
+  inject: function(node, where, invert) {
     if (!node.lsd) {
-      var instance = LSD.Module.DOM.find(node, true);
-      if (instance) widget = instance;
+      switch (where) {
+        case 'after':
+          var instance = LSD.Module.DOM.findSibling(node, true, null, this);
+          break;
+        case 'before':
+          var instance = LSD.Module.DOM.findSibling(node, false, null, this);
+          break;
+        default:
+          var instance = LSD.Module.DOM.find(node);
+      }
+      if (instance) var widget = instance, element = node;
     } else var widget = node;
     if (where === false) {
       if (widget) widget.appendChild(this, false);
-    } else if (!inserters[where || 'bottom'](widget ? this : this.toElement(), widget || node)) return false;
+    } else if (!inserters[where || 'bottom'](widget ? this : this.toElement(), widget || node, element)) return false;
     if (widget && widget.rendered) widget.render();
     return this;
   },
 
   grab: function(node, where){
-    if (!node.lsd) {
-      var instance = LSD.Module.DOM.find(widget, true);
-      if (instance) widget = instance;
-    } else var widget = node;
-    if (where === false) {
-      if (widget) this.appendChild(widget, false);
-    } else if (!inserters[where || 'bottom'](widget || node, widget ? this : this.toElement())) return false;
-    return this;
+    return this.inject(node, where, true);
   },
   
   /*
@@ -307,26 +313,48 @@ var unset = function(widget, index) {
 */
 
 var inserters = LSD.Module.DOM.inserters = {
-  before: function(context, element){
+  before: function(context, element, node){
     var parent = element.parentNode;
-    if (parent) return parent.insertBefore(context, element);
+    if (parent) return parent.insertBefore(context, element, node);
   },
 
-  after: function(context, element){
+  after: function(context, element, node){
     var parent = element.parentNode;
-    if (parent) return parent.insertBefore(context, element.nextSibling);
+    if (parent) return parent.insertBefore(context, element.nextSibling, node && node.nextSibling);
   },
 
-  bottom: function(context, element){
-    return element.appendChild(context);
+  bottom: function(context, element, node){
+    return element.appendChild(context, node);
   },
 
-  top: function(context, element){
-    return element.insertBefore(context, element.firstChild);
+  top: function(context, element, node){
+    return element.insertBefore(context, element.firstChild, node);
   }
 };
 
 Object.append(LSD.Module.DOM, {
+  setFragment: function(widget, fragment, element, bypass, before) {
+    if (fragment.childNodes) {
+      for (var i = 0, nodes = child.childNodes, j = nodes.length, result; i < j; i++) {
+        if (before) result = widget.insertBefore(nodes[i], before, element, bypass);
+        else result = widget.appendChild(nodes[i], element, bypass);
+      }
+    } else {
+      if (before) {
+        fragment.next = before;
+        if (before.lsd) {
+          fragment.widget = before.parentNode;
+          fragment.element = before.toElement().parentNode;
+        } else {
+          fragment.widget = LSD.Module.DOM.find(before.parentNode);
+          fragment.element = before.parentNode;
+        }
+      }
+      fragment.show();
+    }
+    return result;
+  },
+  
   dispose: function(node) {
     
   },
@@ -395,20 +423,30 @@ Object.append(LSD.Module.DOM, {
     }
   },
   
-  findNext: function(node, limit) {
+  findSibling: function(node, revert, limit, exclude) {
     var widget = node;
-    if (widget && !widget.lsd)
-      if (!node.uid || !(widget = Element.retrieve(node, 'widget')))
-        for (var item = node, stack = [item.nextSibling], sibling; item = stack.pop();)
-          if (item.uid && (widget = Element.retrieve(item, 'widget'))) {
-            break;
-          } else {
-            if (!(sibling = item.nextSibling)) {
-              var parent = item.parentNode;
-              if (!parent || parent == limit) break;
-              stack.push(item.parentNode);
-            } else stack.push(sibling);
-          }
+    var properties = revert ? ['previousSibling', 'lastChild'] : ['nextSibling', 'firstChild']
+    if (widget && (!widget.lsd || widget === exclude))
+      if (!node.uid || !(widget = Element.retrieve(node, 'widget') || widget === exclude))
+        for (var item = node, stack = [item[properties[0]]], sibling, first, invert; item = stack.pop();) {
+          if (item.push) {
+            invert = true
+            item = item[0]
+          } else invert = false;
+          if (!item.uid || !(widget = Element.retrieve(item, 'widget')) || widget === exclude) {
+            if (exclude !== widget)
+              if ((first = item[properties[1]]))
+                stack.push([first]);
+            widget = null;
+            if (!(sibling = item[properties[0]])) {  
+              if (!invert) {
+                var parent = item.parentNode;
+                if (!parent || parent === limit) break;
+                stack.unshift(item.parentNode);
+              }
+            } else stack.push(sibling);  
+          } else break;
+        }
     return widget;
   }
 });
