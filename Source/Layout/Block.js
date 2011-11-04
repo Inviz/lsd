@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Layout
+  - LSD.Module.DOM
   - LSD.Script/LSD.Script.Scope
 
 provides: 
@@ -355,7 +356,9 @@ LSD.Layout.Block.prototype = Object.append({
     });
     if (depth) throw "The lazy block is unbalanced"
     return text;
-  }
+  },
+  
+  inject: LSD.Module.DOM.prototype.inject
 }, Events.prototype);
 
 // Match whitespace string
