@@ -29,5 +29,8 @@ LSD.Action.State = LSD.Action.build({
   
   getState: function(target, name, state) {
     return !((state !== true && state !== false) ? target.hasClass(name) : state);
-  }
+  },
+  
+  enabler: 'add',
+  disabler: 'remove'
 });
