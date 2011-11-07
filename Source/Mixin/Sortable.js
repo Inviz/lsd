@@ -84,6 +84,10 @@ LSD.Mixin.Sortable = new Class({
   onBeforeSortStart: function(event) {
     for (var target = event.target, widget; target && target.tagName; target = target.parentNode) {
       if (target == this.element) break;
+      switch (LSD.toLowerCase(target.tagName)) {
+        case "select": case "input": case "textarea":
+          return;
+      }
       widget = target.uid && Element.retrieve(target, 'widget');
       if (widget && widget.pseudos.reorderable) {
         if (widget.getHandle) {
