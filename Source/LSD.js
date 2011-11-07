@@ -30,6 +30,7 @@ var LSD = Object.append(new Events, {
   Events: {},
   Attributes: {},
   Styles: {},
+  Negation: {},
   States: {
     built:    {enabler: 'build',      disabler: 'destroy',   reflect: false},
     attached: {enabler: 'attach',     disabler: 'detach',    reflect: false},
@@ -56,3 +57,7 @@ var LSD = Object.append(new Events, {
 States.get = function(name) { 
   return LSD.States[name];
 };
+for (var state in LSD.States) {
+  LSD.Negation[LSD.States[state].enabler]  = LSD.States[state].disabler;
+  LSD.Negation[LSD.States[state].disabler] = LSD.States[state].enabler;
+}
