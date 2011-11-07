@@ -200,22 +200,24 @@ LSD.Module.DOM = new Class({
   },
   
   inject: function(node, where, invert) {
-    if (!node.lsd) {
+    if (invert) var subject = node, object = this;
+    else var subject = this, object = node;
+    if (!object.lsd) {
       switch (where) {
         case 'after':
-          var instance = LSD.Module.DOM.findSibling(node, true, null, this);
+          var instance = LSD.Module.DOM.findSibling(object, true, null, this);
           break;
         case 'before':
-          var instance = LSD.Module.DOM.findSibling(node, false, null, this);
+          var instance = LSD.Module.DOM.findSibling(object, false, null, this);
           break;
         default:
-          var instance = LSD.Module.DOM.find(node);
+          var instance = LSD.Module.DOM.find(object);
       }
-      if (instance) var widget = instance, element = node;
-    } else var widget = node;
+      if (instance) var widget = instance, element = object;
+    } else var widget = object;
     if (where === false) {
-      if (widget) widget.appendChild(this, false);
-    } else if (!inserters[where || 'bottom'](widget ? this : this.toElement(), widget || node, element)) return false;
+      if (widget) widget.appendChild(subject, false);
+    } else if (!inserters[where || 'bottom'](widget ? subject : subject.toElement(), widget || node, element)) return false;
     if (widget && widget.rendered) widget.render();
     return this;
   },
