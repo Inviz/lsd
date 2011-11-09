@@ -77,6 +77,10 @@ LSD.Type.prototype = {
     if (!this.find(LSD.Layout.getSource(element))) return;
     var klass = this.klass || LSD.Widget;
     return new LSD.Widget(element, options);
+  },
+  
+  $family: function() {
+    return 'type';
   }
 }
 // must-have stuff for all widgets 
