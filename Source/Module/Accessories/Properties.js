@@ -116,7 +116,7 @@ LSD.Module.Properties.Methods = {
   tag: function(value, state, old) {
     if (!this.options.source && this.prepared) {
       if (state && value) this.properties.set('source', value)
-      else if (old) this.properties.unset('source', old);
+      else if (old) this.properties.unset('source', value);
     }
   },
   
@@ -128,21 +128,20 @@ LSD.Module.Properties.Methods = {
     if (this.prepared) {
       if (state) {
         this.properties.set('role', role);
-      } else {
-        if (this.properties.role) 
-          this.properties.unset('role', this.role);
+      } else if (this.properties.role) {
+        this.properties.unset('role', this.role);
       }
     }
   },
   
   role: function(value, state, old) {
     if (state) return LSD.Module.Properties.setRole(this, value)
-    else if (old) LSD.Module.Properties.unsetRole(this, old)
+    else if (old) LSD.Module.Properties.unsetRole(this, value)
   },
   
   scope: function(value, state, old) {
     if (state) return LSD.Script.Scope.setScope(this, value)
-    else if (old) LSD.Script.Scope.unsetScope(this, old);
+    else if (old) LSD.Script.Scope.unsetScope(this, value);
   }
 };
 
