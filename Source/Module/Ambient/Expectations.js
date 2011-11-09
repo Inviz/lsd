@@ -109,7 +109,6 @@ var Expectations = LSD.Module.Expectations = new Class({
           if (!kind) kind = expectations[type] = {};
           var group = kind[value];
           if (!group) group = kind[value] = [];
-          for (var k = group.length, expectation; expectation = group[--k];) if (expectation[0] == selector) continue values;
           group.push([selector, callback]);
         }
       }
@@ -271,7 +270,9 @@ var check = function(type, value, state, target) {
             }
           } else subject.expect(selector.state, expectation[1])
         }
-      } else if (subject.match(selector)) expectation[1].call(this, subject, !!state)
+      } else if (subject.match(selector)) {
+        expectation[1].call(this, subject, !!state)
+      }
     }
     if (expectations == this.expectations) expectations = Expectations.Default;
     else break;
