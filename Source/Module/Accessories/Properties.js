@@ -106,9 +106,13 @@ LSD.Module.Properties.Methods = {
     var source = this.source;
     if (source) this.properties.unset('source', source);
     if (state) {
-      var camel = LSD.toClassName(value);
-      this.factory = window[this.options.namespace][camel];
-      if (!this.factory) throw "Can not find LSD.Type in " + ['window', this.options.namespace, camel].join('.');
+      if (typeof value == 'string') {
+        var camel = LSD.toClassName(value);
+        this.factory = window[this.options.namespace][camel];
+        if (!this.factory) throw "Can not find LSD.Type in " + ['window', this.options.namespace, camel].join('.');
+      } else {
+        this.factory = value;
+      }
     }
     if (source) this.properties.set('source', source);
   },
