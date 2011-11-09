@@ -345,10 +345,7 @@ var inserters = LSD.Module.DOM.inserters = {
 Object.append(LSD.Module.DOM, {
   setFragment: function(widget, fragment, element, bypass, before) {
     if (fragment.childNodes) {
-      for (var i = 0, nodes = child.childNodes, j = nodes.length, result; i < j; i++) {
-        if (before) result = widget.insertBefore(nodes[i], before, element, bypass);
-        else result = widget.appendChild(nodes[i], element, bypass);
-      }
+      return widget.layout.render(fragment, [widget, element])
     } else {
       if (before) {
         fragment.next = before;
@@ -359,10 +356,12 @@ Object.append(LSD.Module.DOM, {
           fragment.widget = LSD.Module.DOM.find(before.parentNode);
           fragment.element = before.parentNode;
         }
+      } else {
+        fragment.widget = widget;
+        fragment.element = widget.toElement()
       }
-      fragment.show();
+      fragment.attach();
     }
-    return result;
   },
   
   dispose: function(node) {
