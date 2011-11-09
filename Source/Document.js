@@ -52,14 +52,15 @@ LSD.Document = new Class({
   },
   
   initialize: function(document, options) {
-    if (document && !document.documentElement) options = [document, document = options][0];
-    if (!document) document = window.document;
+    if (options && options.documentElement) options = [document, document = options][0];
+    if (document == null) document = window.document;
     if (!LSD.document) LSD.document = this;
     this.setOptions(options || {});
     this.document = this;
     this.element = document;
     this.sourceIndex = 1;
     this.layout = this.getLayout();
+    this.childNodes = [];
     this.factory = Object.getFromPath(window[this.options.namespace], LSD.toClassName(this.options.context));
     LSD.uid(this);
     if (this.constructors.properties) this.constructors.properties.apply(this, arguments);
@@ -76,15 +77,19 @@ LSD.Document = new Class({
     this.attributes = {};
     
     this.params = (location.search.length > 1) ? location.search.substr(1, location.search.length - 1).parseQueryString() : {}
-    document.addEvent('domready', function() {
-      this.building = true;
-      if ("benchmark" in this.params) LSD.console.profile();
+    if (this.element && this.element.documentElement) {
+      this.element.addEvent('domready', function() {
+        this.building = true;
+        if ("benchmark" in this.params) LSD.console.profile();
+        this.build();
+        if ("benchmark" in this.params) LSD.console.profileEnd();
+        this.building = false;
+      }.bind(this));
+      this.element.addEvent('click', this.onClick.bind(this));
+      this.element.addEvent('mousedown', this.onMousedown.bind(this));
+    } else {
       this.build();
-      if ("benchmark" in this.params) LSD.console.profileEnd();
-      this.building = false;
-    }.bind(this));
-    this.element.addEvent('click', this.onClick.bind(this));
-    this.element.addEvent('mousedown', this.onMousedown.bind(this));
+    }
   },
   
   /* 
@@ -164,10 +169,12 @@ LSD.Document = new Class({
   build: function(document) {
     this.fireEvent('beforeBuild', document)
     this.built = true;
-    if (!document) document = this.element || window.document;
-    this.setHead(document.head);
-    var element = this.element = document.body;
-    this.setBody(document.body);
+    if (this.element !== false) {
+      if (!document) document = this.element || window.document;
+      this.setHead(document.head);
+      var element = this.element = document.body;
+      this.setBody(document.body);
+    }
     this.render();
     this.fireEvent('build', document)
   },
@@ -190,7 +197,7 @@ LSD.Document = new Class({
     if (this.options.context) options.context = this.options.context;
     new LSD.Widget(element, options);
     this.fireEvent('body', [this.body, element]);
-    this.childNodes = [this.body];
+    this.childNodes.push(this.body)
     return element;
   },
 
