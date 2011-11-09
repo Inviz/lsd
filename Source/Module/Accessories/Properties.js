@@ -39,19 +39,19 @@ LSD.Module.Properties = new Class({
         var alias = LSD.Module.Properties.Aliased[name];
         var events = self.events && self.events[name];
         if (!state) old = value;
-        if (old != null) {
-          if (alias) delete self[alias];
-          delete self[property];
-          self.fireEvent('unset' + name.capitalize(), old);
-          if (events) LSD.Module.Events.setStoredEvents.call(old, events, false, self);
-          if (method) method.call(self, old, false, value, memo);
-        }
         if (state && value != null) {
           if (alias) self[alias] = value;
           self[property] = value;
           self.fireEvent('set' + name.capitalize(), value);
           if (events) LSD.Module.Events.setStoredEvents.call(value, events, true, self);
           if (method) method.call(self, value, true, old, memo);
+        }
+        if (old != null) {
+          if (alias) delete self[alias];
+          delete self[property];
+          self.fireEvent('unset' + name.capitalize(), old);
+          if (events) LSD.Module.Events.setStoredEvents.call(old, events, false, self);
+          if (method) method.call(self, old, false, value, memo);
         }
       });
       LSD.Script.Scope(this);
