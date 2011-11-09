@@ -96,31 +96,53 @@ LSD.Layout.prototype = Object.append({
   */
   
   element: function(element, parent, memo) {
-    // Prepare options and run walker (once per element tree)
+    /*
+      Prepare options and run walker (once per element tree)
+    */
     if (!memo || !memo.walking) return this.walk(element, parent, memo);
+    /*
+      Match element against current stack of mutations to retrieve widget options
+    */
     this.match(element, parent, memo);
     var group, converted = element.uid && Element.retrieve(element, 'widget');
     var ascendant = parent[0] || parent, container = parent[1] || parent.toElement();
-    // Create, clone or reuse a widget.
+    /* 
+      Create, clone or reuse a widget.
+    */
     if (!memo.defaults) memo.defaults = this.getOptions(memo, parent);
     if (memo.options) LSD.reverseMerge(memo.options, memo.defaults)
     if (!converted) {
-      // Retrieve the widget type object that finds the appropriate classes for widgets
+      /* 
+        Retrieve the widget type object that finds the appropriate classes for widgets
+      */
       if (!memo.type) memo.type = this.getType(memo, parent);
       if (memo.options) {
-        // If there are options produced by the selector matching routine, it's a widget
+        /*
+          If there are options produced by the selector matching routine, it's a widget
+        */
         var widget = memo.type.create(element, memo.options);
       } else {
-        // Otherwise, try converting the element (will turn <input type=date> into Input.Date)
+        /* 
+          Otherwise, try converting the element (will turn <input type=date> into Input.Date)
+        */
         var widget = memo.type.convert(element, memo.defaults);
       }
       if (memo.clone && widget) widget.options.clone = memo.clone;
     } else {
+      /*
+        Reuse widget or create a a shallow copy of it
+      */
       var widget = memo.clone ? converted.cloneNode(false, memo.defaults) : converted;
     }
     if (!widget && memo.clone) var clone = element.cloneNode(false);
-    LSD.Script.Interpolation((clone || element).attributes, widget || parent[0], clone || element);
-    // Append a node to parent
+    /*
+      Find interpolations in element attributes and compile them
+    */
+    var scope = (memo.scopes && memo.scopes[memo.scopes.length - 1]) || widget || parent[0];
+    LSD.Script.Interpolation((clone || element).attributes, scope, clone || element);
+    /*
+      Append a node to parent and notify the ancestors
+    */
     if ((!converted || !widget.parentNode) || (memo && memo.clone))
       this.appendChild([ascendant, container], widget || clone || element, memo);
     return widget || clone || element;
@@ -165,8 +187,15 @@ LSD.Layout.prototype = Object.append({
         if (!previous.lsd) previous = null;
       } else {
         var result = this[child.nodeType ? LSD.Layout.NodeTypes[child.nodeType] : 'render'].apply(this, args);
-        if (result != child && result !== true && result && !result.block) 
-          children[i] = result.lsd ? result.element : result;
+        if (result != child && result !== true && result && !result.block) {
+          if (result.push) {
+            result.unshift(i, 1);
+            children.splice.apply(children, result);
+            i += result.length - 3; // 2 arguments added, 1 was already there
+          } else {
+            children[i] = result.lsd ? result.element : result;
+          }
+        }
         previous = null;
       }
     }
@@ -188,7 +217,8 @@ LSD.Layout.prototype = Object.append({
   textnode: function(element, parent, memo) {
     if (memo && memo.clone) var clone = element.cloneNode(false);
     this.appendChild(parent, clone || element, memo);
-    LSD.Script.Interpolation(clone || element, memo && memo.scope || parent[0] || parent);
+    var scope = (memo && memo.scopes && memo.scopes[memo.scopes.length - 1]) || parent[0] || parent;
+    LSD.Script.Interpolation(clone || element, scope);
     return clone || element;
   },
   
@@ -229,7 +259,7 @@ LSD.Layout.prototype = Object.append({
   },
   
   /*
-    Creates a text node from a string and try to interpolate it.
+    Create a text node from a string and try to interpolate it.
   */
   
   string: function(string, parent, memo) {
@@ -240,12 +270,13 @@ LSD.Layout.prototype = Object.append({
     var element = parent[1] || parent.toElement();
     var textnode = element.ownerDocument.createTextNode(string);
     this.appendChild(parent, textnode, memo);
-    LSD.Script.Interpolation(textnode, memo && memo.scope || parent[0] || parent);
+    var scope = (memo && memo.scopes && memo.scopes[memo.scopes.length - 1]) || parent[0] || parent
+    LSD.Script.Interpolation(textnode, scope);
     return textnode;
   },
   
   /*
-    Create from a javascript object layout template. 
+    Create a layout from a javascript object layout template. 
   */
   
   object: function(object, parent, memo) {
@@ -289,14 +320,14 @@ LSD.Layout.prototype = Object.append({
         `Input.Text.Colorful` class name. Only `type` and `kind` attribute have the 
         subclassing semantics.
       * Selector is given as parsed options object and `source` option is given. 
-        It makes the method skip all tests and build the widget with that source.
-        It often happens after element mutation and results in a source expression,
-        which is basically another selector that has enough information about the 
+        It make method skip all tests and build the widget with that source.
+        It usually happens after element mutation and results in a source expression,
+        which is basically another selector that has more information about the 
         widget class to be used.
       
       If a tag name in selector has dashes which makes the method treat it like a `source`
       option described above. For example, `p-more[name=signin]` does not imply `p` tag,
-      but `p-more` source which translates to P.More class name. If the actual class
+      but `p-more` source which translates to `P.More` class name. If the actual class
       object is not found by that name, a widget is created without specific role. 
         
       If a `memo.lazy` flag is set, the node is not rendered immediately. Function
@@ -305,7 +336,7 @@ LSD.Layout.prototype = Object.append({
       is compatible with Proxy options object and is used that way by an `object` layout
       method. Proxies set expectation of an element that was meant to be rendered and 
       lets other parts of layout to be rendered. While those parts are rendered,
-      the elements being processed and matched against all promise expectations.
+      the elements being processed and matched against all selectors that were promised.
       That allows layout engine to reuse DOM nodes that happen to match the selector
       instead of building its own new DOM nodes. 
   */
@@ -322,12 +353,16 @@ LSD.Layout.prototype = Object.append({
     }
     if (options.allocation || options.source || (options.tag && (memo.type.find(options.tag) || !LSD.Layout.NodeNames[options.tag]))) {
       var allocation = options.allocation;
-      // If a pseudo class is recognized as allocatable widget, 
-      // it needs to retrieve the selectors that gives additional options
+      /* 
+        If a pseudo class is recognized as allocatable widget, 
+        it needs to retrieve the selectors that gives additional options
+      */
       if (allocation) {
         if (memo.lazy) {
           var allocated = (parent[0] || parent).preallocate(allocation);
-          // The node is prematurely built, because allocation is not lazy
+          /* 
+            The node is prematurely built, because allocation is not lazy
+          */
           if (allocated.nodeType) return allocated;
           if (!allocated.source) throw "Allocation of type " + allocation.type + " did not provide `source` selector to build nodes"
           allocated.options = memo.options = Object.merge(allocated.options || {}, options);
@@ -336,7 +371,9 @@ LSD.Layout.prototype = Object.append({
           var selector = allocated.selector || allocated.source;
           if (options.order) selector += options.order;
           if (options.combinator) selector = options.order + selector;
-          // Parse selector coming from allocation and pass the promise
+          /*
+            Parse selector coming from allocation and make a promise
+          */
           return this.selector(selector, parent, memo);
         } else {
           var widget = (parent[0] || parent).allocate(allocation);
@@ -385,10 +422,10 @@ LSD.Layout.prototype = Object.append({
     var keyword = LSD.Layout.Keyword[parsed.keyword];
     if (!keyword) return;
     var options = keyword(parsed.expression);
-    var parentblock = memo.blocks && memo.blocks[memo.blocks.length - 1];
     if (options.ends || options.link) {
       if (!(options.superBlock = (memo.blocks && memo.blocks.pop()))) 
         throw "Alternative block is missing its original block";
+      memo.scopes.pop();
       var node = options.superBlock.options.origin;
       if (node) {
         for (var layout = []; (node = node.nextSibling) != element;) layout.push(node);
@@ -397,27 +434,36 @@ LSD.Layout.prototype = Object.append({
           options.superBlock.setLayout(layout, options.superBlock.checked || options.superBlock.layout);
       }
       if (options.ends) return true;
-    }
+    } 
     if (origin && origin.block || options.block) {
       options.keyword = parsed.keyword;
-      options.parent = parentblock;
-      options.scope = memo.scope;
+      if (memo.scopes)
+        for (var i = memo.scopes.length, scope; scope = memo.scopes[--i];) {
+          if (!options.scope) options.scope = scope
+          if (scope.block) {
+            options.parent = scope;
+            break;
+          }
+        }
       options.widget = parent[0] || parent;
       options.element = parent[1] || parent.toElement();
       options.origin = element;
     }
+    var block;
     if (origin) {
       options.walking = true;
       if (memo && memo.clone)
-        return origin.clone(parent, options);
+        block = origin.clone(parent, options);
       else
-        return origin;
+        block = origin;
     } else if (options.block) {
-      return new LSD.Layout.Block(options);
-    } else {
-      if (options.layout) {
-        return this.render(options.layout);
-      }
+      block = new LSD.Layout.Block(options);
+    } else if (options.layout) {
+      block = this.render(options.layout);
+    }
+    if (block) {
+      (memo.scopes || (memo.scopes = [])).push(block);
+      return block;
     }
   },
   
@@ -518,6 +564,12 @@ LSD.Layout.prototype = Object.append({
         delete memo.bypass;
       }
       if (!before && memo.before) before = memo.before;
+      if (memo.scopes && memo.scopes.length && child.lsd) {
+        var layoutScope = child.layoutScope;
+        child.layoutScope = memo.scopes && memo.scopes[memo.scopes.length - 1]
+        child.properties.set('scope', child.layoutScope);
+        if (layoutScope) child.properties.unset('scope', layoutScope);
+      }
     }
     if (before) {
       if (before !== true) {
@@ -557,18 +609,11 @@ LSD.Layout.prototype = Object.append({
         case 8:
           if (!memo || memo.plain !== true) {
             var keyword = Element.retrieve(node, 'keyword');
-            if (!superBlock) var superBlock = memo && memo.blocks && memo.blocks[memo.blocks.length - 1];
-            if (keyword && keyword !== true && (keyword.parentNode == widget || keyword.parentNode == superBlock || node == element)) {
-              if (state) {
-                if (!keyword.parentScope) {
-                  keyword.attach();
-                }
-              } else {  
-                if (keyword.parentScope) {
-                  keyword.detach();
-                }
-              }
-            }
+            if (!superBlock) 
+              var superBlock = memo && memo.blocks && memo.blocks[memo.blocks.length - 1];
+            if (keyword && keyword !== true && (keyword.parentNode == widget || keyword.parentNode == superBlock || node == element))
+              if (state ^ !!keyword.parentScope)
+                keyword[state ? 'attach' : 'detach']();
           }
           break;
         /*
@@ -578,13 +623,8 @@ LSD.Layout.prototype = Object.append({
         case 1:
           if (node != element) {
             var instance = node.uid && Element.retrieve(node, 'widget');
-            if (instance) {
-              if (state) {
-                if (!instance.parentNode) widget.appendChild(instance, false);
-              } else {
-                if (instance.parentNode == widget) widget.removeChild(instance, false);
-              }
-            }
+            if (instance && (state ? !instance.parentNode : instance.parentNode == widget))
+              widget[state ? 'appendChild' : 'removeChild'](instance, false);
           };
           var first = node.firstChild;
           if (first) (stack || (stack = [])).push(first);
@@ -639,9 +679,13 @@ LSD.Layout.prototype = Object.append({
             for (var k = 0, possibility, exp; possibility = group[k++];) {
               var exp = possibility[0], result = possibility[1];
               if ((!exp.classes && !exp.attributes && !exp.pseudos) 
-                // Quickly match tag and id, if other things dont matter
+                /* 
+                  Quickly match tag and id, if other things dont matter
+                */
                 ? ((j == 0 || tagName == exp.tag) && (!exp.id || element.id == exp.id))
-                // Or do a full match
+                /* 
+                  Or do a full match
+                */
                 : (Slick.matchSelector(element, exp.tag, exp.id, exp.classes, exp.attributes, exp.pseudos)))
                 /* 
                   If selector matches, proceed and execute callback
@@ -706,13 +750,12 @@ LSD.Layout.prototype = Object.append({
       for (var i = parents.length, node, widget; node = parents[--i];) {
         this.match(node, parent, memo, true);
         if (direct) {
-          for (var j = 0, index; index = direct[j++];) stack.splice(index, 1);
-          direct = null;
+          for (var j = 0, index; (index = direct[j++]) != null;) stack.splice(index, 1);
+          direct.length = 0;
         }
         widget = node.uid && LSD.Module.DOM.find(node, true);
         if (widget) {
           if ((group = widget.mutations[' '])) stack.push([' ', group]);
-          if ((group = widget.mutations['>'])) stack.push(['>', group]);
         }
         if (memo.advanced) {
           stack.push.apply(stack, memo.advanced);
@@ -730,8 +773,10 @@ LSD.Layout.prototype = Object.append({
           }
           delete memo.advanced;
         }
+        if (widget && (group = widget.mutations['>'])) 
+          (direct || (direct = [])).push(stack.push(['>', group]) - 1);
       }
-    }  
+    }
   },
   
   /*
@@ -776,6 +821,7 @@ LSD.Layout.prototype = Object.append({
     var ret = this.element(element, parent, memo);
     if (ret.lsd) {
       var widget = ret;
+      (memo.scopes || (memo.scopes = [])).push(widget);
     } else if (ret.block) {
       (memo.blocks || (memo.blocks = [])).push(ret);
     } else if (memo.clone) {
@@ -826,13 +872,6 @@ LSD.Layout.prototype = Object.append({
     var before = memo.before;
     if (before) delete memo.before;
     /*
-      Redefine current scope
-    */
-    if (widget) {
-      var scope = memo.scope;
-      if (scope) delete memo.scope;
-    };
-    /*
       Scan element for microdata
     */
     var itempath = memo.itempath;
@@ -872,12 +911,9 @@ LSD.Layout.prototype = Object.append({
     /*
       Notify widget that children are processed
     */
+    if (widget) memo.scopes.pop();
     stack.splice(boundary, 1);
     if (widget) widget.fireEvent('DOMChildNodesRendered');
-    /*
-      Restore scope
-    */
-    if (scope) memo.scope = scope;
     return ret;
   },
   
@@ -929,7 +965,7 @@ LSD.Layout.Combinators = {
     return {parent: parent.parentNode};
   },
   /*
-    Inwert node as a first node at parent's level
+    Insert node as a first node at parent's level
   */
   '!~': function(parent, child) {
     return {parent: parent.parentNode, before: parent.parentNode.firstChild};

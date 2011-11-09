@@ -73,18 +73,25 @@ LSD.Layout.Block = function(options) {
   this.widget = options.widget;
   this.expression = options.expression;
   this.parentBlock = options.parent;
-  this.parentNode = this.parentBlock || options.widget;
   this.superBlock = options.superBlock;
+  if (options.scope && options.scope != this.parentBlock) this.scope = options.scope
   LSD.Script.Scope(this);
   if (this.superBlock) {
     this.superBlock.addEvents({
       check: this.unmatch.bind(this),
+      unmatch: this.unmatch.bind(this),
       miss: this.rematch.bind(this),
       detach: this.detach.bind(this),
       uncheck: this.rematch.bind(this)
     });
     if (this.permit()) this.attach();
   } else {
+    if (this.parentBlock) {
+      this.parentBlock.addEvents({
+        uncheck: this.detach.bind(this),
+        check: this.rematch.bind(this)
+      });
+    }
     if (options.collection) this.values = [];
     if (options.name) LSD.Template[options.name] = this;
     else this.attach();
@@ -123,12 +130,14 @@ LSD.Layout.Block.prototype = Object.append({
   },
 
   rematch: function() {
-    return this.attach() || this.fireEvent('miss');
+    if (!this.checked)
+      return (this.parentScope ? this.match() : this.attach()) || this.fireEvent('miss');
   },
 
   unmatch: function(lazy) {
     if (!this.options.expression || this.evaluate(false))
       return this.uncheck(lazy);
+    return this.fireEvent('unmatch');
   },
 
   check: function(lazy) {
@@ -151,17 +160,23 @@ LSD.Layout.Block.prototype = Object.append({
 
   attach: function() {
     if (!this.parentScope) {
-      this.parentScope = this.parentNode;
-      LSD.Script.Scope.setScope(this, this.parentScope);
+      var widget = this.widget;
+      var scope = this.scope || this.parentBlock;
+      if (scope && widget)
+        for (var parent = scope.nodeType ? scope.element : scope.options.origin; parent; parent = parent.parentNode)
+          if (parent === widget.element) {
+            var found = true;
+            break;
+          }
+      LSD.Script.Scope.setScope(this, found ? scope : widget);
     }
+    this.fireEvent('attach');
     return this.match();
   },
 
   detach: function() {
-    if (this.parentScope) {
+    if (this.parentScope)
       LSD.Script.Scope.unsetScope(this, this.parentScope);
-      delete this.parentScope;
-    }  
     this.unmatch(true);
     this.fireEvent('detach');
   },
@@ -228,7 +243,7 @@ LSD.Layout.Block.prototype = Object.append({
       options: this.options.options, 
       plain: (lazy === true), 
       clone: !!this.options.original && !this.options.original.checked,
-      scope: this,
+      scopes: [this],
       blocks: [this]
     };
     this.rendered = this.widget.addLayout(this.id, collapsed || layout, [this.widget, this.element], memo);
