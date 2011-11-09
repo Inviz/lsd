@@ -120,9 +120,12 @@ LSD.Module.DOM = new Class({
     if (child.lsd) {
       // set parent 'for real' and do callbacks
       child.setParent(this, this.childNodes.push(child) - 1);
-      if (this.document && child.properties.document != this.document) 
-        child.properties.set('document', this.document);
-      if (this.document.rendered && !child.rendered) child.render()
+      if (this.document) {
+        if (child.document != this.document)
+          child.properties.set('document', this.document);
+        if (this.document.rendered && !child.rendered) 
+          child.render()
+      }
     }
     return true;
   },
@@ -161,6 +164,12 @@ LSD.Module.DOM = new Class({
       if (index == -1) return;
       this.childNodes.splice(index, 0, child);
       child.setParent(this, index);
+      if (this.document) {
+        if (child.document != this.document)
+          child.properties.set('document', this.document);
+        if (this.document.rendered && !child.rendered) 
+          child.render()
+      }
     }
     return this;
   },
@@ -218,7 +227,6 @@ LSD.Module.DOM = new Class({
     if (where === false) {
       if (widget) widget.appendChild(subject, false);
     } else if (!inserters[where || 'bottom'](widget ? subject : subject.toElement(), widget || node, element)) return false;
-    if (widget && widget.rendered) widget.render();
     return this;
   },
 
