@@ -52,7 +52,8 @@ LSD.Document = new Class({
   },
   
   initialize: function(document, options) {
-    if (options && options.documentElement) options = [document, document = options][0];
+    if (options && options.documentElement || document && !document.documentElement) 
+      options = [document, document = options][0];
     if (document == null) document = window.document;
     if (!LSD.document) LSD.document = this;
     this.setOptions(options || {});
