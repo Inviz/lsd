@@ -135,7 +135,7 @@ LSD.Mixin.Fieldset = new Class({
       results.push(match[1] || match[2]);
     var index = results.join('.');
     fields.set(index, widget);
-    params.set(index, widget.getValue());
+    if ((LSD.Mixin.Command.getCommandType.call(widget) == 'command') || widget.checked) params.set(index, widget.getValue());
     var key = index + ':value:callback'
     var callback = this.retrieve(key);
     if (!callback) {
