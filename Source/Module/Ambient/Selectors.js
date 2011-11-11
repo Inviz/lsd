@@ -163,6 +163,40 @@ for (var combinator in Combinators)
 
 for (var name in Combinators) Slick.defineCombinator(name, Combinators[name]);
 
+var Pseudos = LSD.Module.Selectors.Pseudos = {
+  'first-of-class': function(klass){
+    var bits = ' ' + klass + ' ';
+    for (var node = this.previousSibling; node = node.previousSibling;)
+      if ((' ' + node.className + ' ').indexOf(bits) > -1)
+        return false;
+    return true;
+  },
+
+  'last-of-class': function(klass){
+    var bits = ' ' + klass + ' ';
+    for (var node = this.nextSibling; node = node.nextSibling;) 
+      if ((' ' + node.className + ' ').indexOf(bits) > -1)
+        return false;
+    return true;
+  },
+  
+  'only-of-class': function(klass){
+    console.log(this, klass)
+    var bits = ' ' + klass + ' ';
+    for (var node = this; node = node.previousSibling;)
+      if ((' ' + node.className + ' ').indexOf(bits) > -1)
+        return false;
+          console.log(this, klass)
+    for (var node = this; node = node.nextSibling;) 
+      if ((' ' + node.className + ' ').indexOf(bits) > -1)
+        return false;
+          console.log(this, klass)
+    return true;
+  }
+}  
+
+for (var name in Pseudos) Slick.definePseudo(name, Pseudos[name]);
+
 LSD.Module.Selectors.Features = {
   brokenStarGEBTN: false,
   starSelectsClosedQSA: false,
@@ -175,7 +209,7 @@ LSD.Module.Selectors.Features = {
   nativeMatchesSelector: false,
   documentSorter: function(a, b) {
     if (!a.sourceIndex || !b.sourceIndex) return 0;
-		return a.sourceIndex - b.sourceIndex;
+    return a.sourceIndex - b.sourceIndex;
   },
   hasAttribute: function(node, attribute) {
     return (attribute in node.attributes) || ((attribute in node.$states) && (attribute in node.pseudos))
