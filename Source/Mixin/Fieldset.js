@@ -109,7 +109,6 @@ LSD.Mixin.Fieldset = new Class({
     if (typeof response == "object") {
       if (typeof result != 'object') result = {};
       if (errors) {
-        console.log('found errors', errors, root, response)
         if (errors.push) {
           for (var i = 0, error; error = errors[i++];)
             result[Fieldset.getName(root || this.getModelName(error[0]), error[0])] = error[1];
