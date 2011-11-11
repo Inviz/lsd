@@ -571,6 +571,7 @@ LSD.Layout.prototype = Object.append({
         if (layoutScope) child.properties.unset('scope', layoutScope);
       }
     }
+    if (!child.lsd && child.parentNode != element) var added = true;
     if (before) {
       if (before !== true) {
         if (!parent.lsd) {
@@ -582,7 +583,9 @@ LSD.Layout.prototype = Object.append({
     } else {
       widget.appendChild(child, element, bypass);
     }
-    if (child.nodeType == 8 || (child.nodeType == 1 && !child.lsd)) this.notify(child, widget, true, memo);
+    if ((!memo || !memo.walking) && added && (child.nodeType == 8 || child.nodeType == 1)) {
+      this.notify(child, widget, true, memo);
+    }
     return true;
   },
   
@@ -593,19 +596,26 @@ LSD.Layout.prototype = Object.append({
     var parent = child.lsd ? widget : element;
     if (child.parentNode != parent) return;
     var element = child.lsd ? child.toElement() : child;
+    if (!child.lsd && child.parentNode) var removed = true;
+    if (removed && (child.nodeType == 8 || child.nodeType == 1)) 
+      this.notify(child, widget, false, memo);
     widget.removeChild(child, element);
-    if (child.nodeType == 8 || (child.nodeType == 1 && !child.lsd)) this.notify(child, widget, false, memo);
     return true;
   },
   
   notify: function(element, widget, state, memo) {
-    var lsd = widget.element == element;
+    var lsd = widget.element == element, parentscope;
     for (var stack, node = element; node; node = stack && stack.pop()) {
       if (node != element) {
         var next = node.nextSibling;
         if (next) (stack || (stack = [])).push(next);
       }
       switch (node.nodeType) {
+        /*
+          When a comment node is added or removed, it should be checked
+          if it was previously recognized as a conditional layout block 
+          and do the same action to it
+        */
         case 8:
           if (!memo || memo.plain !== true) {
             var keyword = Element.retrieve(node, 'keyword');
@@ -618,13 +628,21 @@ LSD.Layout.prototype = Object.append({
           break;
         /*
           When removed child is an element, it needs to be scanned
-          for widgets to detach them from DOM cleanly
+          for widgets and microdata to detach them cleanly
         */
         case 1:
-          if (node != element) {
-            var instance = node.uid && Element.retrieve(node, 'widget');
-            if (instance && (state ? !instance.parentNode : instance.parentNode == widget))
-              widget[state ? 'appendChild' : 'removeChild'](instance, false);
+          if (node.uid) {
+            var itemprop = node.getAttribute('itemprop');
+            if (itemprop) {
+              //if (!parentscope) parentscope = LSD.Microdata.getScope(node);
+              var scope = LSD.Microdata[state ? 'extract' : 'unload'](node, widget, true, itemprop);
+              if (!state && scope && parent === true) parent = scope;
+            }
+            if (node != element) {
+              var instance = Element.retrieve(node, 'widget');
+              if (instance && (state ? !instance.parentNode : instance.parentNode == widget))
+                widget[state ? 'appendChild' : 'removeChild'](instance, false);
+            }
           };
           var first = node.firstChild;
           if (first) (stack || (stack = [])).push(first);
@@ -808,7 +826,7 @@ LSD.Layout.prototype = Object.append({
       Retrieve the stack if the render was not triggered from the root of the layout
     */
     if (!memo) memo = {};
-    memo.walking = true;
+    memo.walking = element;
     var stack = memo.stack;
     if (!stack) {
       this.push(parent, memo);
@@ -874,10 +892,17 @@ LSD.Layout.prototype = Object.append({
     /*
       Scan element for microdata
     */
-    var itempath = memo.itempath;
-    var itemscope = LSD.Microdata.extract(element, widget || ascendant, itempath && itempath[itempath.length - 1]);
-    if (itemscope) (itempath || (itempath = memo.itempath = [])).push(itemscope);
-    if (widget && itempath) widget.itempath = itempath;
+    var itemprop = element.getAttribute('itemprop');
+    if (itemprop) {
+      if (!memo.itempath) {
+        var path = LSD.Microdata.getScope(element)
+        if (path) memo.itempath = [path];
+      }
+      var itempath = memo.itempath;
+      var itemscope = LSD.Microdata.extract(element, widget || ascendant, itempath && itempath[itempath.length - 1], itemprop);
+      if (itemscope) (itempath || (itempath = memo.itempath = [])).push(itemscope);
+      if (widget && itempath) widget.itempath = itempath;
+    }
     /*
       Prepare parent array - first item is a nearest parent widget and second is a direct parent element
     */

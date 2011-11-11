@@ -41,35 +41,50 @@ LSD.Layout.Microdata = LSD.Microdata = function(element, name) {
   this._name = name;
 };
 
-LSD.Microdata.prototype = Object.append(new LSD.Object, {
+LSD.Microdata.prototype = Object.append(new LSD.Object.Stack, {
   add: function(element, property, value) {
     var group = (this._elements || (this._elements = {}))[property];
-    if (!group) group = element
-    else if (!group.push) group = [group]
-    else if (group.push) group.push(name);
+    if (!group) {
+      group = this._elements[property] = element
+    } else if (!group.push) {
+      if (group == element) return false;
+      else group = this._elements[property] = [group, element]
+    } else if (group.push) {
+      if (group.indexOf(element) > -1) return false;
+      else group.push(element);
+    }
     if (value == null) value = Element.get(element, 'itemvalue');
     this.set(property, value);
     if (element.getAttribute('itemscope') == null) {
       var callback = Element.retrieve(element, 'microdata:setter');
       if (!callback) Element.store(element, 'microdata:setter', (callback = function(value) {
-        Element.set(element, 'itemvalue', value);      
+        //Element.set(element, 'itemvalue', value);      
       }))
     }
     this.watch(property, callback, true)
   },
   remove: function(element, property, value) {
     var group = (this._elements || (this._elements = {}))[property];
-    if (group.push) group.erase(element)
-    else delete this._elements[property];
+    if (group) {
+      if (group.push) {
+        var index = group.indexOf(element);
+        if (index > -1) group.splice(index, 1);
+        else return false;
+      } else {
+        if (group == element) delete this._elements[property];
+        else return false;
+      }
+    } else return false;
+    if (group && group.push) group.erase(element);
     if (value == null) value = Element.get(element, 'itemvalue');
-    if (this.property && this.property == value) this.unset(property);
+    this.unset(property, value);
     var setter = Element.retrieve(element, 'microdata:setter');
     if (setter) this.unwatch(property, setter);
   }
 });
 
-LSD.Microdata.extract = function(element, widget, parent) {
-  var itemprop = element.getAttribute('itemprop');
+LSD.Microdata.extract = function(element, widget, parent, itemprop) {
+  if (itemprop == null) itemprop = element.getAttribute('itemprop');
   if (itemprop) {
     var itemscope = element.getAttribute('itemscope');
     if (itemscope != null) {
@@ -81,15 +96,34 @@ LSD.Microdata.extract = function(element, widget, parent) {
         var obj = {};
         obj[itemprop] = scope;
         for (var node = widget; node; node = (!parent && node.parentNode))
-          node.variables.merge(obj);
-        if (!widget.itemPropertyExportCallback) widget.itemPropertyExportCallback = function(name, value, state) {
-          if (!value.watch || !value.set) widget.variables[state ? 'set' : 'unset'](name, value);
+          node.variables.merge(obj, true);
+        if (!widget.itemPropertyExportCallback) widget.itemPropertyExportCallback = function(name, value, state, old) {
+          if (state && (!value.watch || !value.set)) widget.variables.set(name, value);
+          if (!state || old != null) widget.variables.unset(name, state ? old : value);
         }
         if (scope && widget.itemscope && widget.itemscope == scope)
-          scope.addEvent('change', widget.itemPropertyExportCallback).addEvent('beforechange', widget.itemPropertyExportCallback);
+          scope.addEvent('change', widget.itemPropertyExportCallback)
       }
     }
-    if (parent) parent.add(element, itemprop, scope);
+    if (parent === true) parent = LSD.Microdata.getScope(element.parentNode);
+    if(parent) parent.add(element, itemprop, scope);
   }
   return scope;
+};
+
+LSD.Microdata.unload = function(element, widget, parent, itemprop) {
+  if (itemprop == null) itemprop = element.getAttribute('itemprop');
+  if (itemprop) {
+    var scope = Element.retrieve(element, 'microdata:scope');
+    if (parent === true) parent = LSD.Microdata.getScope(element.parentNode);
+    if (parent) parent.remove(element, itemprop, scope);
+  };
+  return scope;
+};
+
+LSD.Microdata.getScope = function(element) {
+  for (var node = element; node; node = node.parentNode) {
+    var scope = node.uid && Element.retrieve(node, 'microdata:scope');
+    if (scope) return scope;
+  }
 };
