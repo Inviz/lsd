@@ -181,16 +181,13 @@ var Pseudos = LSD.Module.Selectors.Pseudos = {
   },
   
   'only-of-class': function(klass){
-    console.log(this, klass)
     var bits = ' ' + klass + ' ';
     for (var node = this; node = node.previousSibling;)
       if ((' ' + node.className + ' ').indexOf(bits) > -1)
         return false;
-          console.log(this, klass)
     for (var node = this; node = node.nextSibling;) 
       if ((' ' + node.className + ' ').indexOf(bits) > -1)
         return false;
-          console.log(this, klass)
     return true;
   }
 }  
