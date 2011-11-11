@@ -104,26 +104,28 @@ LSD.Mixin.Fieldset = new Class({
     delete this.errors
   },
 
-  parseFieldErrors: function(response) {
-    var result = {}, errors = response.errors;
-    if (errors) { //rootless response ({errors: {}), old rails
-      if (errors.push) {
-        for (var i = 0, error; error = errors[i++];)
-          result[Fieldset.getName(this.getModelName(error[0]), error[0])] = error[1];
-      } else {
-        for (var name in errors)
-          result[Fieldset.getName(this.getModelName(name), name)] = errors[name];
+  parseFieldErrors: function(response, result, root) {
+    var errors = response.errors;
+    if (typeof response == "object") {
+      if (typeof result != 'object') result = {};
+      if (errors) {
+        console.log('found errors', errors, root, response)
+        if (errors.push) {
+          for (var i = 0, error; error = errors[i++];)
+            result[Fieldset.getName(root || this.getModelName(error[0]), error[0])] = error[1];
+        } else {
+          for (var name in errors)
+            result[Fieldset.getName(root || this.getModelName(name), name)] = errors[name];
+        }
       }
-    } else { //rooted response (publication: {errors: {}}), new rails
-      var regex = Fieldset.rPrefixAppender;
-      for (var model in response) {
-        var value = response[model]; 
-        if (!(errors = value.errors)) continue;
-        for (var i = 0, error; error = errors[i++];)
-          result[Fieldset.getName(model, error[0])] = error[1];
-      }
+      Object.each(response, function(value, key) {
+        if (!root) root = this.getModelName(key);
+        if (typeof value == "object" && value != null && key != 'errors') {
+          this.parseFieldErrors(value, result, root ? Fieldset.getName(root, key) : key);
+        }
+      }, this)
     }
-    if (Object.getLength(result) > 0) this.addFieldErrors(result);
+    if (result != null && Object.getLength(result) > 0) this.addFieldErrors(result);
   },
   
   addField: function(widget) {
@@ -140,7 +142,6 @@ LSD.Mixin.Fieldset = new Class({
     var callback = this.retrieve(key);
     if (!callback) {
       callback = function(value) {
-        $b = this;
         params.set(index, value)
       }
       this.store(key, callback)
