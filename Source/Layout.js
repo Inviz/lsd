@@ -1038,8 +1038,9 @@ Object.append(LSD.Layout, {
   },
   
   getSource: function(options, tagName) {
-    if (options && options.localName) {
-      var source = LSD.toLowerCase(options.tagName);
+    var tag = options.tagName;
+    if (options && tag && !options.lsd) {
+      var source = LSD.toLowerCase(tag);
       var type = options.getAttribute('type');
       if (type) (source.push ? source : [source]).push(type);
     } else {

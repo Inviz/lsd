@@ -39,7 +39,7 @@ Object.append(LSD, {
   
   uid: function(object) {
     if (object.lsd) return object.lsd;
-    if (object.localName) return $uid(object);
+    if (object.nodeName) return $uid(object);
     return (object.lsd = ++LSD.UID); 
   },
   
@@ -121,6 +121,6 @@ if (!window.console.log) window.console.log = function() {};
 
 (function(toString) {
   Type.isEnumerable = function(item){
-    return (item != null && !item.localName && !item.nodeType && toString.call(item) != '[object Function]' && typeof item.length == 'number');
+    return (item != null && !item.nodeName && !item.nodeType && toString.call(item) != '[object Function]' && typeof item.length == 'number');
   };
 })(Object.prototype.toString);

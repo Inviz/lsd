@@ -23,11 +23,11 @@ provides:
 
 LSD.Module.Selectors = new Class({
   getElements: function(selector, origin) {
-    return Slick.search(origin || this.getSelectorOrigin(selector), selector)
+    return LSD.Slick.search(origin || this.getSelectorOrigin(selector), selector)
   },
   
   getElement: function(selector, origin) {
-    return Slick.find(origin || this.getSelectorOrigin(selector), selector)
+    return LSD.Slick.find(origin || this.getSelectorOrigin(selector), selector)
   },
   
   /*
@@ -36,7 +36,7 @@ LSD.Module.Selectors = new Class({
   */
     
   getSelectorOrigin: function(selector) {
-    if (!selector.Slick) selector = Slick.parse(selector);
+    if (!selector.Slick) selector = LSD.Slick.parse(selector);
     var first = selector.expressions[0][0];
     switch (first.combinator.charAt(0)) {
       case "$":
@@ -51,7 +51,7 @@ LSD.Module.Selectors = new Class({
   },
   
   match: function(selector) {
-    if (typeof selector == 'string') selector = Slick.parse(selector);
+    if (typeof selector == 'string') selector = LSD.Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
     if (selector.combinator == '::') {
       if (selector.tag && (selector.tag != '*')) {
@@ -83,7 +83,7 @@ LSD.Module.Selectors = new Class({
 */
 LSD.Module.Selectors.parse = function(selector, parent) {
   var options = {};
-  var expressions = (selector.Slick ? selector : Slick.parse(selector)).expressions[0];
+  var expressions = (selector.Slick ? selector : LSD.Slick.parse(selector)).expressions[0];
   loop: for (var j = expressions.length, expression; expression = expressions[--j];) {
     switch (expression.combinator) {
       case ' ':

@@ -108,7 +108,7 @@ LSD.Module.Properties.Methods = {
     if (state) {
       if (typeof value == 'string') {
         var camel = LSD.toClassName(value);
-        this.factory = window[this.options.namespace][camel];
+        this.factory = LSD.global[this.options.namespace][camel];
         if (!this.factory) throw "Can not find LSD.Type in " + ['window', this.options.namespace, camel].join('.');
       } else {
         this.factory = value;

@@ -95,7 +95,7 @@ LSD.Module.Element = new Class({
   
   build: function(query) {
     if (query) {
-      if (query.localName) {
+      if (query.nodeType) {
         var element = query; 
         query = {};
       }
@@ -121,7 +121,7 @@ LSD.Module.Element = new Class({
       element = this.element = new Element(tag, attrs.type ? {type: attrs.type} : null);
     } else {
       element = this.element = document.id(element);
-    }  
+    }
     for (var name in attrs) 
       if (name != 'type' || tag != 'input') {
         if (LSD.Attributes[name] == 'boolean') element[name] = true;

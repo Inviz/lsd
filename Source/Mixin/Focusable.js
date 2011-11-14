@@ -55,7 +55,7 @@ LSD.Mixin.Focusable = new Class({
   
   focus: function(element) {
     if (element !== false) {
-      if (this.focuser) this.focuser.focus(element && element.localName ? element : this.element);
+      if (this.focuser) this.focuser.focus(element && !element.lsd ? element : this.element);
       else this.element.focus();
       this.document.activeElement = this;
     }

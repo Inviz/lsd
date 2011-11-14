@@ -69,12 +69,12 @@ Object.append(LSD.Module.Proxies, {
     }
     var result = {};
     if (container && container !== true) {
-      if (container.localName) {
-        result.element = container;
-        if (proxy.rewrite === false) result.widget = parent[0] || parent;
-      } else if (container.lsd) {
+      if (container.lsd) {
         result.widget = container;
         result.element = container.element || container.toElement()
+      } else if (container.nodeType) {
+        result.element = container;
+        if (proxy.rewrite === false) result.widget = parent[0] || parent;
       } else {
         result.widget = parent[0] || parent;
         result.element = container;

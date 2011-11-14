@@ -26,7 +26,7 @@ LSD.Action.Display = LSD.Action.build({
     if (widget) {
       if (widget.animate) widget.animate(true);
       else widget.show();
-    } else if (target.localName) {
+    } else if (target.nodeName) {
       target.removeAttribute('hidden');
     }
   },
@@ -36,7 +36,7 @@ LSD.Action.Display = LSD.Action.build({
     if (widget) {
       if (widget.animate) widget.animate(false);
       else widget.hide();
-    } else if (target.localName) {
+    } else if (target.nodeName) {
       target.setAttribute('hidden', 'hidden');
     }
   },

@@ -19,6 +19,7 @@ requires:
   - Ext/Macro
   - Ext/Class.mixin
   - Ext/Object.Array
+  - Slick/Slick.Finder
  
 provides: 
   - LSD
@@ -26,7 +27,7 @@ provides:
 ...
 */
 
-var LSD = Object.append(new Events, {
+var LSD = this.LSD = Object.append(new Events, {
   Events: {},
   Attributes: {},
   Styles: {},
@@ -51,8 +52,12 @@ var LSD = Object.append(new Events, {
     invoked:  {enabler: 'invoke',     disabler: 'revoke'}
   },
   Options: {},
-  useNative: true
+  useNative: true,
+  global: this
 });
+
+LSD.Slick = (typeof exports != 'undefined' && exports.Slick) || this.Slick;
+if (typeof Slick == 'undefined') var Slick = LSD.Slick;
 
 States.get = function(name) { 
   return LSD.States[name];

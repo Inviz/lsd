@@ -11,7 +11,6 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD
-  - Slick/Slick.Parser
   
 provides:
   - LSD.Behavior
@@ -43,7 +42,7 @@ LSD.Behavior.prototype = {
       else widget[state ? 'mixin' : 'unmix'](behavior, true);
     }
     if (proto.expect) {
-      var parsed = Object.clone(Slick.parse(selector).expressions[0][0]);
+      var parsed = Object.clone(LSD.Slick.parse(selector).expressions[0][0]);
       delete parsed.combinator;
       proto.expect(parsed, watcher);
     }

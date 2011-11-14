@@ -62,7 +62,7 @@ LSD.Document = new Class({
     this.sourceIndex = 1;
     this.layout = this.getLayout();
     this.childNodes = [];
-    this.factory = Object.getFromPath(window[this.options.namespace], LSD.toClassName(this.options.context));
+    this.factory = Object.getFromPath(LSD.global[this.options.namespace], LSD.toClassName(this.options.context));
     LSD.uid(this);
     if (this.constructors.properties) this.constructors.properties.apply(this, arguments);
     if (this.constructors.render) this.constructors.render.apply(this, arguments);
@@ -77,7 +77,9 @@ LSD.Document = new Class({
     this.nodeType = 9;
     this.attributes = {};
     
-    this.params = (location.search.length > 1) ? location.search.substr(1, location.search.length - 1).parseQueryString() : {}
+    this.params = (typeof location != 'undefined' && location.search.length > 1) 
+      ? location.search.substr(1, location.search.length - 1).parseQueryString() 
+      : {}
     if (this.element && this.element.documentElement) {
       this.element.addEvent('domready', function() {
         this.building = true;
@@ -132,7 +134,7 @@ LSD.Document = new Class({
   onMousedown: function(event) {
     if (event.target.ownerDocument == document)
     for (var target = event.target, widget; target && target.tagName; target = target.parentNode) {
-      widget = target.localName ? target.uid && Element.retrieve(target, 'widget') : target;
+      widget = target.nodeType && !target.lsd ? target.uid && Element.retrieve(target, 'widget') : target;
       if (widget && widget.pseudos.activatable) {
         widget.fireEvent('mousedown', event);
         target = widget;

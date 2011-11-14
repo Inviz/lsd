@@ -28,7 +28,7 @@ provides:
 LSD.Type = function(name, namespace) {
   this.name = name;
   this.namespace = namespace || 'LSD';
-  var holder = Object.getFromPath(window, this.namespace);
+  var holder = Object.getFromPath(LSD.global, this.namespace);
   if (this.storage = holder[name]) {
     for (var key in this) {
       this.storage[key] = (this[key].call) ? this[key].bind(this) : this[key];

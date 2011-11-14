@@ -89,7 +89,7 @@ provides:
     },
     
     exec: function(selector) {
-      var parsed = selector.Slick ? selector : Slick.parse(selector), expressions = [];
+      var parsed = selector.Slick ? selector : LSD.Slick.parse(selector), expressions = [];
       for (var i = 0, expression; expression = parsed.expressions[i]; i++) {
         var started = 0;
         var first = expression[0];

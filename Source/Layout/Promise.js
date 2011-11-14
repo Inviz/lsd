@@ -37,7 +37,7 @@ LSD.Layout.Promise = function(layout, selector, lsd, parent, options, memo) {
     this.order = match;
     return "";
   }.bind(this))
-  var parsed = Slick.parse(selector), expressions = parsed.expressions[0];
+  var parsed = LSD.Slick.parse(selector), expressions = parsed.expressions[0];
   // makes proxy deep - look into elements
   this.deep = true;
   this.layout = layout;

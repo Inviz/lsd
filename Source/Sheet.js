@@ -314,7 +314,7 @@ Value.compile = function(value, context) {
 
 LSD.Sheet.Rule.fromSelectors = function(selectors, style) { //temp solution, split by comma
   return selectors.split(/\s*,\s*/).map(function(selector){
-    return new LSD.Sheet.Rule(Slick.parse(selector), style);
+    return new LSD.Sheet.Rule(LSD.Slick.parse(selector), style);
   });
 };
 

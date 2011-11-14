@@ -64,7 +64,7 @@ var Expectations = LSD.Module.Expectations = new Class({
     - classes, pseudos and attributes.
   */
   expect: function(selector, callback, self) {
-    if (selector.indexOf) selector = Slick.parse(selector);
+    if (selector.indexOf) selector = LSD.Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
     if (!this.expectations) this.expectations = {};
     var id = selector.id, combinator = selector.combinator;
@@ -117,7 +117,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   },
   
   unexpect: function(selector, callback, self, iterator) {
-    if (selector.indexOf) selector = Slick.parse(selector);
+    if (selector.indexOf) selector = LSD.Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
     if (iterator === true) iterator = function(widget) {
       if (widget.match(selector)) callback(widget, false);
@@ -155,7 +155,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   },
   
   watch: function(selector, callback, depth) {
-    if (selector.indexOf) selector = Slick.parse(selector);
+    if (selector.indexOf) selector = LSD.Slick.parse(selector);
     if (!depth) depth = 0;
     selector.expressions.each(function(expressions) {
       var watcher = function(widget, state) {
@@ -168,7 +168,7 @@ var Expectations = LSD.Module.Expectations = new Class({
   },
   
   unwatch: function(selector, callback, depth) {
-    if (selector.indexOf) selector = Slick.parse(selector);
+    if (selector.indexOf) selector = LSD.Slick.parse(selector);
     if (!depth) depth = 0;
     selector.expressions.each(function(expressions) {
       this.unexpect(expressions[depth], callback, false, function(widget) {

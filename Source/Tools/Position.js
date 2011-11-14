@@ -157,7 +157,7 @@ LSD.Position.prototype = {
         }
       } else object = object.toElement();
     } 
-    if (object.localName) {
+    if (object.nodeType && !object.lsd) {
       var result = Element[scroll ? 'getScrollSize' : 'getSize'](object);
       if (position) {
         position = Element.getPosition(object);

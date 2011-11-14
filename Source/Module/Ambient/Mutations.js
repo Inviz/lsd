@@ -26,7 +26,7 @@ LSD.Module.Mutations = new Class({
   },
   
   mutate: function(selector, callback, object) {
-    if (selector.indexOf) selector = Slick.parse(selector);
+    if (selector.indexOf) selector = LSD.Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
     if (!object) object = this.mutations;
     if (!object) object = this.mutations = {};
@@ -38,7 +38,7 @@ LSD.Module.Mutations = new Class({
   },
   
   unmutate: function(selector, callback, iterator) {
-    if (selector.indexOf) selector = Slick.parse(selector);
+    if (selector.indexOf) selector = LSD.Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
     if (iterator === true) iterator = function(widget) {
       if (widget.match(selector)) callback(widget, false);
@@ -55,8 +55,8 @@ LSD.Module.Mutations = new Class({
   },
   
   addMutation: function(selector, callback) {
-    if (selector.indexOf) selector = Slick.parse(selector);
-    if (this.document && !this.document.building) Slick.search(this.element, selector).each(function(node) {
+    if (selector.indexOf) selector = LSD.Slick.parse(selector);
+    if (this.document && !this.document.building) LSD.Slick.search(this.element, selector).each(function(node) {
       var parent = LSD.Module.DOM.find(node);
       var options = Object.append({context: this.options.context}, callback.indexOf ? LSD.Module.Selectors.parse(callback) : callback);
       var mutated = this.document.create(node, options);
@@ -83,7 +83,7 @@ LSD.Module.Mutations = new Class({
   },
   
   removeMutation: function(selector, callback, depth) {
-    if (selector.indexOf) selector = Slick.parse(selector);
+    if (selector.indexOf) selector = LSD.Slick.parse(selector);
     if (!depth) depth = 0;
     selector.expressions.each(function(expressions) {
       this.unmutate(expressions[depth], callback, function(widget) {

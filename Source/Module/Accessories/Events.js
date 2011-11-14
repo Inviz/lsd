@@ -26,23 +26,23 @@ provides:
 !function() {
   
 LSD.Module.Events = new Class({
-  Implements: window.Events
+  Implements: Events
 });
 
-var proto = window.Events.prototype;
+var proto = Events.prototype;
 var UID = 0;
-var Events = Object.append(LSD.Module.Events, {
+var LSDEvents = Object.append(LSD.Module.Events, {
   setStoredEvents: function(events, state, bind) {
-    var target = Events.Targets[name];
+    var target = LSDEvents.Targets[name];
     for (var event in events)
       for (var i = 0, fn, group = events[event]; fn = group[i++];)
-        Events.setEvent.call(this, event, (fn.indexOf && bind ? bind.bind(fn) : fn), !state);
+        LSDEvents.setEvent.call(this, event, (fn.indexOf && bind ? bind.bind(fn) : fn), !state);
   },
   
   watchEventTarget: function(name, fn) {
-    var target = Events.Targets[name];
+    var target = LSDEvents.Targets[name];
     if (target.events) Object.each(target.events, function(state, event) {
-      Events.setEvent.call(this, event, function(object) {
+      LSDEvents.setEvent.call(this, event, function(object) {
         if (target.getter === false) object = this;
         fn.call(this, object, state);
       });
@@ -59,11 +59,11 @@ var Events = Object.append(LSD.Module.Events, {
         var method = 'addEvent';
       } else var method = 'removeEvent'
       var kicker = this[method];
-      if (!kicker || kicker.$origin == Events[method]) kicker = proto[method];
+      if (!kicker || kicker.$origin == LSDEvents[method]) kicker = proto[method];
       return kicker.call(this, name, fn);
     } else {
       if (name.charAt(0) == '_') {
-        for (var event in fn) Events.setEvent.call(this, event, fn[event], revert);
+        for (var event in fn) LSDEvents.setEvent.call(this, event, fn[event], revert);
         return this;
       }
       if (!revert && !this.events) this.events = {};
@@ -77,17 +77,17 @@ var Events = Object.append(LSD.Module.Events, {
           if (i > -1) group.slice(i, 1);
         } else group.push(bound[event])
       }
-      var target = Events.Targets[name];
+      var target = LSDEvents.Targets[name];
       if (target)
         if (target === true) {
           if (this.properties[name]) this.properties[name][revert ? 'removeEvents' : 'addEvents'](bound);
         } else if (target.call) {
           if ((target = target.call(this))) 
-            for (var event in bound) Events.setEvent.call(target, event, bound[event], revert);
+            for (var event in bound) LSDEvents.setEvent.call(target, event, bound[event], revert);
         } else {
           if (initial && target.events) {
-            Events.watchEventTarget.call(this, name, function(object, state) {
-              Events.setStoredEvents.call(object, events, state, this);
+            LSDEvents.watchEventTarget.call(this, name, function(object, state) {
+              LSDEvents.setStoredEvents.call(object, events, state, this);
             })
           }
           if (target.getter && this[target.getter]) this[target.getter][revert ? 'removeEvents' : 'addEvents'](bound);
@@ -97,25 +97,25 @@ var Events = Object.append(LSD.Module.Events, {
   },
   
   setEvents: function(events, revert) {
-    for (var type in events) Events.setEvent.call(this, type, events[type], revert);
+    for (var type in events) LSDEvents.setEvent.call(this, type, events[type], revert);
     return this;
 	},
 	
   addEvent: function(name, fn) {
-    return Events.setEvent.call(this, name, fn);
+    return LSDEvents.setEvent.call(this, name, fn);
   },
   
   addEvents: function(events) {
-    for (var type in events) Events.setEvent.call(this, type, events[type]);
+    for (var type in events) LSDEvents.setEvent.call(this, type, events[type]);
     return this;
   },
   
   removeEvent: function(name, fn) {
-    return Events.setEvent.call(this, name, fn, true);
+    return LSDEvents.setEvent.call(this, name, fn, true);
   },
   
   removeEvents: function(events) {
-    for (var type in events) Events.setEvent.call(this, type, events[type], true);
+    for (var type in events) LSDEvents.setEvent.call(this, type, events[type], true);
     return this;
   },
   
@@ -126,11 +126,11 @@ var Events = Object.append(LSD.Module.Events, {
     switch (register[name] += (state ? 1 : -1)) {
       case 1:
         if (events) this.addEvents(events)
-        else if (this.events) Events.setStoredEvents.call(this, this.events[name], true);
+        else if (this.events) LSDEvents.setStoredEvents.call(this, this.events[name], true);
         return true;
       case 0:
         if (events) this.removeEvents(events)
-        else if (this.events) Events.setStoredEvents.call(this, this.events[name], false);
+        else if (this.events) LSDEvents.setStoredEvents.call(this, this.events[name], false);
         return false;
     }
   },
@@ -182,8 +182,8 @@ var Events = Object.append(LSD.Module.Events, {
       for (var name in method) {
         var value = method[name];
         if (!value || value.call) result[name] = value;
-        else if (value.indexOf) result[name] = Events.bind.call(this, value);
-        else result[name] = Events.bind.call(this, value);
+        else if (value.indexOf) result[name] = LSDEvents.bind.call(this, value);
+        else result[name] = LSDEvents.bind.call(this, value);
       }
       return result;
     }
@@ -201,7 +201,7 @@ var Events = Object.append(LSD.Module.Events, {
 ['addEvent',  'addEvents', 'removeEvent', 'removeEvents', 
  'fireEvent', 'captureEvent', 'dispatchEvent',
  'bind'].each(function(method) {
-  Events.implement(method, Events[method]);
+  LSDEvents.implement(method, LSDEvents[method]);
 });
 
 /*
@@ -234,7 +234,7 @@ var Events = Object.append(LSD.Module.Events, {
   |            | with underscore is auto-applied    |
   
 */
-Events.Targets = {
+LSDEvents.Targets = {
   self: function() { 
     return this
   },
@@ -250,7 +250,7 @@ Events.Targets = {
   root: true
 };
 
-Events.States = {
+LSDEvents.States = {
   Positive: {
     disabled: 'disabled',
     focused: 'focused'
@@ -266,7 +266,7 @@ Events.States = {
     var events = {}, positive = !!Positive[name], state = Known[name];
     events[state[!positive ? 'enabler' : 'disabler']] = true;
     events[state[ positive ? 'enabler' : 'disabler']] = false;
-    Events.Targets[condition] = {
+    LSDEvents.Targets[condition] = {
       getter: false,
       condition: function() {
         return positive ^ this[state && state.property || name]
@@ -274,7 +274,7 @@ Events.States = {
       events: events
     }
   });
-}(LSD.States, Events.States.Positive, Events.States.Negative);
+}(LSD.States, LSDEvents.States.Positive, LSDEvents.States.Negative);
 
 
 /*

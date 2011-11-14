@@ -112,7 +112,7 @@ LSD.Module.Options.implement('setOption', LSD.Module.Options.setOption);
 
 LSD.Module.Options.initialize = function(element, options) {
   // Swap arguments if they are in the wrong order
-  if ((element && !element.localName) || (options && options.localName)) 
+  if ((element && !element.nodeName) || (options && options.nodeName)) 
     options = [element, element = options][0];
   
   // Merge given options object into this.options
