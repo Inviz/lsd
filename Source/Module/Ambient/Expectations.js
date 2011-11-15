@@ -112,7 +112,7 @@ var Expectations = LSD.Module.Expectations = new Class({
           group.push([selector, callback]);
         }
       }
-      if (this.tagName && this.match(selector)) callback.call(this, this, true);
+      if ((this.tagName || this.source) && this.match(selector)) callback.call(this, this, true);
     }
   },
   
