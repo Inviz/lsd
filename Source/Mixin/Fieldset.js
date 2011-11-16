@@ -223,15 +223,22 @@ Fieldset.events = {
       if (!widget.options.clone) return;
       var attrs = query.attributes, attributes = widget.attributes;
       var name = attributes.name, id = attributes.id;
-      // bump name index
-      if (name) (attrs || (attrs = {})).name = Fieldset.bumpName(name) || name;
-      // bump id index
-      if (id) (attrs || (attrs = {})).id = Fieldset.bumpId(id) || id;
-      if (widget.tagName == 'label') {
-        var four = attributes['for'];
-        if (four) (attrs || (attrs = {}))['for'] = Fieldset.bumpId(four) || four;
+      for (var taken = this.names[name]; taken;) {
+        // bump name index
+        name = Fieldset.bumpName(name);
+        // bump id index
+        if (id) id = Fieldset.bumpId(id);
+        if (widget.tagName == 'label') {
+          var four = attributes['for'];
+          if (four) four = Fieldset.bumpId(four) || four;
+        }
+        if (!name || !(taken = this.names[name])) {
+          if (name) (attrs || (attrs = {})).name = name;
+          if (id) (attrs || (attrs = {})).id = id;
+          if (four != null) (attrs || (attrs = {}))['for'] = four;
+          if (attrs) query.attributes = attrs;
+        }
       }
-      if (attrs) query.attributes = attrs;
     }
   }
 };
