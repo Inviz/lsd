@@ -166,7 +166,7 @@ for (var name in Combinators) Slick.defineCombinator(name, Combinators[name]);
 var Pseudos = LSD.Module.Selectors.Pseudos = {
   'first-of-class': function(klass){
     var bits = ' ' + klass + ' ';
-    if ((' ' + node.className + ' ').indexOf(bits) == -1) return;
+    if ((' ' + this.className + ' ').indexOf(bits) == -1) return;
     for (var node = this.previousSibling; node = node.previousSibling;)
       if ((' ' + node.className + ' ').indexOf(bits) > -1)
         return false;
@@ -175,7 +175,7 @@ var Pseudos = LSD.Module.Selectors.Pseudos = {
 
   'last-of-class': function(klass){
     var bits = ' ' + klass + ' ';
-    if ((' ' + node.className + ' ').indexOf(bits) == -1) return;
+    if ((' ' + this.className + ' ').indexOf(bits) == -1) return;
     for (var node = this.nextSibling; node = node.nextSibling;) 
       if ((' ' + node.className + ' ').indexOf(bits) > -1)
         return false;
@@ -184,7 +184,7 @@ var Pseudos = LSD.Module.Selectors.Pseudos = {
   
   'only-of-class': function(klass){
     var bits = ' ' + klass + ' ';
-    if ((' ' + node.className + ' ').indexOf(bits) == -1) return;
+    if ((' ' + this.className + ' ').indexOf(bits) == -1) return;
     for (var node = this; node = node.previousSibling;)
       if ((' ' + node.className + ' ').indexOf(bits) > -1)
         return false;
