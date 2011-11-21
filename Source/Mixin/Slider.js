@@ -49,26 +49,27 @@ LSD.Trait.Slider = new Class({
     if (this.slider) this.slider.update();
   },
   
-  getSlider: Macro.getter('slider', function (update) {
-    var slider = new Slider(document.id(this.getTrack()), document.id(this.getTrackThumb()), Object.merge(this.options.slider, {
+  getSlider: function (update) {
+    if (this.slider) return this.slider;
+    this.slider = new Slider(document.id(this.getTrack()), document.id(this.getTrackThumb()), Object.merge(this.options.slider, {
       mode: this.options.mode
     })).set(parseFloat(this.options.value));
-    slider.addEvent('change', this.onSet.bind(this));
-    this.properties.set('slide', slider);
-    return slider;
-  }),
+    this.slider.addEvent('change', this.onSet.bind(this));
+    this.properties.set('slide', this.slider);
+    return this.slider;
+  },
   
-  onSet: Macro.defaults(function() {
+  onSet: function() {
     return true;
-  }),
+  },
   
-  getTrack: Macro.defaults(function() {
+  getTrack: function() {
     return this
-  }),
+  },
   
-  getTrackThumb: Macro.defaults(function() {
+  getTrackThumb: function() {
     return this.thumb;
-  }),
+  },
   
   increment: function() {
     this.slider.set((this.slider.step || 0) + 10)

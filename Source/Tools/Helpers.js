@@ -96,14 +96,7 @@ Object.append(LSD, {
         if (typeof object[identifier] != 'undefined') return object[identifier];
   },
   
-  identifiers: ['id', '_id', '$id'],
-  
-  getCleanDocument: function() {
-    return (LSD.Test.document || (LSD.Test.document = new LSD.Document(false)))
-  },
-  getCleanContext: function() {
-    return new LSD.Type('Clean')
-  }
+  identifiers: ['id', '_id', '$id']
 });
 LSD.Test = {};
 

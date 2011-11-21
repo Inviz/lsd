@@ -49,8 +49,8 @@ LSD.Mixin.Fieldset = new Class({
     fieldset: function(options, state) {
       if (state) {
         this.names = new LSD.Object.Stack;
-        this.fields = new LSD.Object.Stack;
-        this.params = new LSD.Object.Stack;
+        this.params = new LSD.Object.Params;
+        this.fields = new LSD.Object.Params;
       }
       this.variables[state ? 'merge' : 'unmerge']({params: this.params, fields: this.fields});
       if (!state) {
@@ -131,13 +131,10 @@ LSD.Mixin.Fieldset = new Class({
     var name = widget.attributes.name;
     if (!name || !widget.toData) return;
     this.names.set(name, widget);
-    var params = this.params, fields = this.fields;
-    for (var results = [], regex = Fieldset.rNameParser, match; match = regex.exec(name);) 
-      results.push(match[1] || match[2]);
-    var index = results.join('.');
-    fields.set(index, widget);
-    if ((LSD.Mixin.Command.getCommandType.call(widget) == 'command') || widget.checked) params.set(index, widget.getValue());
-    var key = index + ':value:callback'
+    if ((LSD.Mixin.Command.getCommandType.call(widget) == 'command') || widget.checked)
+      this.params.set(name, widget.getValue())
+    this.fields.set(name, widget)
+    var key = widget.lsd + ':value:callback'
     var callback = this.retrieve(key);
     if (!callback) {
       callback = function(value) {
@@ -163,12 +160,9 @@ LSD.Mixin.Fieldset = new Class({
     var name = widget.attributes.name;
     if (!name) return;
     this.names.unset(name, widget);
-    var params = this.params, fields = this.fields;
-    for (var results = [], regex = Fieldset.rNameParser, match; match = regex.exec(name);) 
-      results.push(match[1] || match[2]);
-    var index = results.join('.');
-    fields.unset(index, widget);
-    params.unset(index, widget.getValue());
+    if ((LSD.Mixin.Command.getCommandType.call(widget) == 'command') || widget.checked)
+      this.params.unset(name, widget.getValue())
+    this.fields.unset(name, widget)
     var key = widget.lsd + ':value:callback'
     var callback = this.retrieve(key);
     if (callback) widget.removeEvent('change', callback);
@@ -193,7 +187,6 @@ LSD.Mixin.Fieldset = new Class({
 var Fieldset = Object.append(LSD.Mixin.Fieldset, {
   rNameIndexBumper: /(\[)(\d+?)(\])/,
   rIdIndexBumper:   /(_)(\d+?)(_|$)/,
-  rNameParser:      /(^[^\[]+)|\[([^\]]*)\]/g,
   rNameMultiplier:  /(?:\[\])?$/,
   rPrefixAppender:  /^[^\[]+/,
   getName: function(model, name) {

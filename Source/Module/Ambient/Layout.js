@@ -34,7 +34,7 @@ LSD.Module.Layout = new Class({
   constructors: {
     layout: function(options) {
       if (!options.document && !this.document) 
-        this.properties.set('document', LSD.document || LSD.getCleanDocument());
+        this.properties.set('document', LSD.document || new LSD.Document);
       this.layouts = {};
     }
   },

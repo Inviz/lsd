@@ -727,7 +727,7 @@ LSD.Layout.prototype = Object.append({
                   `soft` parameter tells matcher to skip mutations
                   and only advance selectors instead.
                 */
-                if (!result || !result.call || (result = result(element))) {
+                if (!result || !result.call || (result = result(element, parent[0] || parent))) {
                   if (!result) result = true;
                   if (result.push) {
                     (advanced || (advanced = [])).push(result);
@@ -951,7 +951,8 @@ LSD.Layout.prototype = Object.append({
   
   getType: function(memo, parent) {
     var context = this.getContext(memo, parent);
-    return LSD[LSD.toClassName(context)];
+    if (typeof context == 'string') return LSD[LSD.toClassName(context)];
+    return context;
   },
   
   getContext: function(memo, parent) {

@@ -26,16 +26,25 @@ provides:
 */
 
 LSD.Type = function(name, namespace) {
-  this.name = name;
-  this.namespace = namespace || 'LSD';
-  var holder = Object.getFromPath(LSD.global, this.namespace);
-  if (this.storage = holder[name]) {
-    for (var key in this) {
-      this.storage[key] = (this[key].call) ? this[key].bind(this) : this[key];
-    }
-  }
-  else this.storage = (holder[name] = this);
-  if (typeOf(this.storage) == 'class') this.klass = this.storage;
+  if (name) {
+    this.name = name;
+    this.namespace = namespace || 'LSD';
+    var holder = Object.getFromPath(LSD.global, this.namespace);
+    if (typeof holder == 'undefined') throw "LSD.Type cant find namespace " + namespace
+    var storage = Object.getFromPath(holder, name);
+    if (storage) {
+      if (!storage.pool)
+        for (var key in this)
+          storage[key] = (this[key].call) ? this[key].bind(this) : this[key];
+      else storage = null;
+    } else 
+      storage = (holder[name] = this);
+  } else {
+    storage = this;
+  }  
+  this.storage = storage;
+  if (typeOf(this.storage) == 'class') 
+    this.klass = this.storage;
   this.pool = [this.storage];
   this.queries = {};
 };

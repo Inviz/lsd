@@ -27,7 +27,7 @@ LSD.Module.Proxies = new Class({
   
   addProxy: function(name, proxy) {
     var selector = proxy.selector || proxy.mutation;
-    if (selector && selector !== true && selector.match(LSD.Module.Proxies.rOrdered)) 
+    if (selector && this.parentNode && selector !== true && selector.match(LSD.Module.Proxies.rOrdered)) 
       var object = this.parentNode;
     else 
       var object = this;
@@ -37,7 +37,7 @@ LSD.Module.Proxies = new Class({
   
   removeProxy: function(name, proxy) {
     var selector = proxy.selector || proxy.mutation;
-    if (selector && selector !== true && selector.match(LSD.Module.Proxies.rOrdered)) 
+    if (selector && this.parentNode && selector !== true && selector.match(LSD.Module.Proxies.rOrdered)) 
       var object = this.parentNode;
     else 
       var object = this;

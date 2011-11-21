@@ -161,6 +161,11 @@ LSD.Mixin.Value = new Class({
   }
 });
 
+LSD.Options.value = {
+  add: 'setValue',
+  remove: 'unsetValue'
+};
+
 LSD.Mixin.Value.setValueOnCheck = function(value) {
   if (value) this.setValue();
   else this.unsetValue();
