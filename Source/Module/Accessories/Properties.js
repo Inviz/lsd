@@ -32,7 +32,7 @@ LSD.Module.Properties = new Class({
   constructors: {
     properties: function() {
       var self = this;
-      this.storage = new LSD.Object;
+      this.storage = {};
       this.properties = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
         var property = LSD.Module.Properties.Exported[name] || name;
         var method = LSD.Module.Properties.Methods[name];
@@ -59,7 +59,8 @@ LSD.Module.Properties = new Class({
   },
 
   store: function(name, value) {
-    return this.storage.set(name, value);
+    this.storage[name] = value;
+    return this;
   },
 
   retrieve: function(name, placeholder) {
@@ -72,7 +73,8 @@ LSD.Module.Properties = new Class({
   },
 
   eliminate: function(name, value) {
-    return this.storage.unset(name, value)
+    delete this.storage[name];
+    return this;
   }
 });
 

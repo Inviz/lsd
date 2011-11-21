@@ -48,8 +48,9 @@ LSD.Mixin.Request = new Class({
   },
 
   send: function() {
-    var data = this.getRequestData && this.getRequestData() || null;
-    var options = Object.merge({}, this.options.request, {data: data, url: this.getRequestURL(), method: this.getRequestMethod()});
+    var options = {url: this.getRequestURL(), method: this.getRequestMethod()};
+    if (this.getRequestData) options.data = LSD.toObject(this.getRequestData());
+    options = Object.merge({}, this.options.request, options);
     for (var i = 0, j = arguments.length, arg, opts; i < j; i++) {
       var arg = arguments[i];
       if (!arg) continue;

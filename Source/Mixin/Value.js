@@ -88,13 +88,7 @@ LSD.Mixin.Value = new Class({
       return this.values;
     } else {
       this.previousValue = this.value;
-      if (unset) {
-        if (this.value) this.removePseudo('valued');
-        delete this.value;
-      } else {
-        if (!this.value) this.addPseudo('valued');
-        this.value = value;
-      }
+      this.properties[unset ? 'unset' : 'set']('value', value);
       if (this.element) this.element[(this.element.get('tag') != 'select') ? 'setAttribute' : 'set']('value', unset ? '' : value);
       this.applyValue(this.value);
       return this.value;

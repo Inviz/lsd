@@ -25,7 +25,7 @@ LSD.Mixin.Fieldset = new Class({
           selector: ':form-associated',
           scopes: {
             submittable: {
-              filter: '[name]:valued'
+              filter: '[name]'
             },
             invalid: {
               filter: ':invalid'
@@ -48,13 +48,11 @@ LSD.Mixin.Fieldset = new Class({
   constructors: {
     fieldset: function(options, state) {
       if (state) {
-        this.names = new LSD.Object.Stack;
         this.params = new LSD.Object.Params;
         this.fields = new LSD.Object.Params;
       }
       this.variables[state ? 'merge' : 'unmerge']({params: this.params, fields: this.fields});
       if (!state) {
-        delete this.names;
         delete this.params;
         delete this.field;
       }
@@ -69,15 +67,12 @@ LSD.Mixin.Fieldset = new Class({
   },
   
   getData: function() {
-    var data = {}
-    this.submittableElements.each(function(element) {
-      data[element.attributes.name] = LSD.toObject(element.toData());
-    });
-    return data;
+    this.submittedFields = new LSD.Object.Params(this.fields.toObject(true, true));
+    return this.submittedFields;
   },
 
   getRequestData: function() {
-    return this.getData();
+    return this.getData.apply(this, arguments);
   },
   
   reset: function() {
@@ -86,8 +81,16 @@ LSD.Mixin.Fieldset = new Class({
   
   addFieldErrors: function(errors) {
     for (var name in errors) {
-      var field = this.names[name];
+      var field = this.submittedFields && this.submittedFields.get(name) || this.fields.get(name);
       if (!field) continue;
+      if (!field.lsd) {
+        for (var i in field)
+          if (field[i] != null && field[i].lsd) {
+            field = field[i];
+            break;
+          } 
+        if (field == null || !field.lsd) continue;
+      }
       field.invalidate(errors[name]);
     }
     this.errors = errors;
@@ -97,8 +100,16 @@ LSD.Mixin.Fieldset = new Class({
   removeFieldErrors: function() {
     var errors = this.errors;
     for (var name in errors) {
-      var field = this.names[name];
+      var field = this.submittedFields && this.submittedFields.get(name) || this.fields.get(name);
       if (!field) continue;
+      if (!field.lsd) {
+        for (var i in field)
+          if (field[i] != null && field[i].lsd) {
+            field = field[i];
+            break;
+          } 
+        if (field == null || !field.lsd) continue;
+      }
       if (field.invalid) field.setStateTo('invalid', false);
     }
     delete this.errors
@@ -130,16 +141,17 @@ LSD.Mixin.Fieldset = new Class({
   addField: function(widget) {
     var name = widget.attributes.name;
     if (!name || !widget.toData) return;
-    this.names.set(name, widget);
     if ((LSD.Mixin.Command.getCommandType.call(widget) == 'command') || widget.checked)
       this.params.set(name, widget.getValue())
     this.fields.set(name, widget)
     var key = widget.lsd + ':value:callback'
     var callback = this.retrieve(key);
     if (!callback) {
-      callback = function(value) {
-        params.set(index, value)
-      }
+      callback = function(value, old) {
+        if (typeof old != 'undefined')
+          this.params.unset(name, old);
+        this.params.set(name, value)
+      }.bind(this)
       this.store(key, callback)
     }
     widget.addEvent('change', callback);
@@ -159,7 +171,6 @@ LSD.Mixin.Fieldset = new Class({
   removeField: function(widget) {
     var name = widget.attributes.name;
     if (!name) return;
-    this.names.unset(name, widget);
     if ((LSD.Mixin.Command.getCommandType.call(widget) == 'command') || widget.checked)
       this.params.unset(name, widget.getValue())
     this.fields.unset(name, widget)
@@ -216,16 +227,15 @@ Fieldset.events = {
       if (!widget.options.clone) return;
       var attrs = query.attributes, attributes = widget.attributes;
       var name = attributes.name, id = attributes.id;
-      for (var taken = this.names[name]; taken;) {
+      if (widget.tagName == 'label') var four = attributes['for'];
+      for (var taken = this.fields.get(name); taken;) {
         // bump name index
         name = Fieldset.bumpName(name);
         // bump id index
         if (id) id = Fieldset.bumpId(id);
-        if (widget.tagName == 'label') {
-          var four = attributes['for'];
-          if (four) four = Fieldset.bumpId(four) || four;
-        }
-        if (!name || !(taken = this.names[name])) {
+        // bump for attribute
+        if (four) four = Fieldset.bumpId(four) || four;
+        if (!name || !(taken = this.fields.get(name))) {
           if (name) (attrs || (attrs = {})).name = name;
           if (id) (attrs || (attrs = {})).id = id;
           if (four != null) (attrs || (attrs = {}))['for'] = four;
