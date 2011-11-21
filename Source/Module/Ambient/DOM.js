@@ -198,7 +198,7 @@ LSD.Module.DOM = new Class({
   },
 
   cloneNode: function(children, options) {
-    var clone = this.factory.create(this.element.cloneNode(children), Object.merge({
+    var clone = this.factory.create(this.element, Object.merge({
       source: this.source,
       tag: this.tagName,
       pseudos: this.pseudos.toObject(),
