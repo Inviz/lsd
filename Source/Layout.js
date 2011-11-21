@@ -215,7 +215,12 @@ LSD.Layout.prototype = Object.append({
   */
   
   textnode: function(element, parent, memo) {
-    if (memo && memo.clone) var clone = element.cloneNode(false);
+    if (memo && memo.clone) {
+      var interpolation = element.uid && Element.retrieve(element, 'interpolation');
+      var clone = interpolation 
+        ? element.ownerDocument.createTextNode(interpolation.placeholder)
+        : element.cloneNode(false);
+    }
     this.appendChild(parent, clone || element, memo);
     var scope = (memo && memo.scopes && memo.scopes[memo.scopes.length - 1]) || parent[0] || parent;
     LSD.Script.Interpolation(clone || element, scope);
