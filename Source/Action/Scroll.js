@@ -23,6 +23,6 @@ provides:
 LSD.Action.Scroll = LSD.Action.build({
   enable: function(target) {
     var position = target.getPosition();
-    document.body.scrollTo(position.x, position.y - 20);
+    document.body.scrollTo(position.x, position.y - 40);
   }
 });
