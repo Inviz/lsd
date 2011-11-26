@@ -31,7 +31,6 @@ provides:
 
 LSD.Module.Accessories = new Class({
   Implements: [
-    LSD.Module.Options,
     LSD.Module.Properties,
     LSD.Module.States,
     LSD.Module.Attributes,
@@ -42,6 +41,7 @@ LSD.Module.Accessories = new Class({
     LSD.Module.Styles,
     LSD.Module.Shortcuts,
     LSD.Module.Chain,
-    LSD.Module.Actions
+    LSD.Module.Actions,
+    LSD.Module.Options
   ]
 });

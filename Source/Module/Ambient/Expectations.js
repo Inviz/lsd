@@ -154,25 +154,31 @@ var Expectations = LSD.Module.Expectations = new Class({
     }
   },
   
-  watch: function(selector, callback, depth) {
+  match: function(selector, callback, depth) {
+    /*
+      Add compatability with element.match(selector) API
+      that returns true or false and does not watch anything
+    */
+    if (typeof callback != 'function')
+      return this.test(selector);
     if (selector.indexOf) selector = LSD.Slick.parse(selector);
     if (!depth) depth = 0;
     selector.expressions.each(function(expressions) {
-      var watcher = function(widget, state) {
-        if (expressions[depth + 1]) widget[state ? 'watch' : 'unwatch'](selector, callback, depth + 1)
+      var matcher = function(widget, state) {
+        if (expressions[depth + 1]) widget[state ? 'match' : 'unmatch'](selector, callback, depth + 1)
         else callback(widget, state)
       };
-      watcher.callback = callback;
-      this.expect(expressions[depth], watcher);
+      matcher.callback = callback;
+      this.expect(expressions[depth], matcher);
     }, this);
   },
   
-  unwatch: function(selector, callback, depth) {
+  unmatch: function(selector, callback, depth) {
     if (selector.indexOf) selector = LSD.Slick.parse(selector);
     if (!depth) depth = 0;
     selector.expressions.each(function(expressions) {
       this.unexpect(expressions[depth], callback, false, function(widget) {
-        if (expressions[depth + 1]) widget.unwatch(selector, callback, depth + 1)
+        if (expressions[depth + 1]) widget.unmatch(selector, callback, depth + 1)
         else callback(widget, false)
       });
     }, this);
@@ -184,7 +190,7 @@ var Expectations = LSD.Module.Expectations = new Class({
     var callback = selectors.pop();
     var unresolved = selectors.length;
     selectors.each(function(selector, i) {
-      var watcher = function(widget, state) {
+      var matcher = function(widget, state) {
         if (state) {
           if (!widgets[i]) {
             widgets[i] = widget;
@@ -199,7 +205,7 @@ var Expectations = LSD.Module.Expectations = new Class({
           }
         }
       }
-      this.watch(selector, watcher);
+      this.match(selector, matcher);
     }, this);
   }
 });
@@ -386,8 +392,8 @@ LSD.Module.Events.Targets.expected = function() {
   var self = this, Targets = LSD.Module.Events.Targets;
   return {
     addEvent: function(key, value) {
-      if (!self.watchers) self.watchers = {};
-      self.watchers[key] = function(widget, state) {
+      if (!self.matchers) self.matchers = {};
+      self.matchers[key] = function(widget, state) {
         value = Object.append({}, value)
         for (var name in value) {
           if (typeof value[name] == 'object') continue;
@@ -400,10 +406,10 @@ LSD.Module.Events.Targets.expected = function() {
           break;
         }
       };
-      self.watch(key, self.watchers[key]);
+      self.match(key, self.matchers[key]);
     },
     removeEvent: function(key, event) {
-      self.unwatch(key, self.watchers[key]);
+      self.unmatch(key, self.matchers[key]);
     }
   }
 };
@@ -419,12 +425,12 @@ LSD.Options.expects = {
   process: 'bind'
 };
 
-LSD.Options.watches = Object.append({}, LSD.Options.expects, {
+LSD.Options.matches = Object.append({}, LSD.Options.expects, {
   add: function(selector, callback) {
-    this.watch(selector, callback);
+    this.match(selector, callback);
   },
   remove: function(callback) {
-    this.watch(selector, callback);
+    this.match(selector, callback);
   }
 });
 

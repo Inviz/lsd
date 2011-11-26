@@ -85,7 +85,7 @@ LSD.Action.prototype = {
     this[state ? 'enable' : 'disable'].apply(this, widgets);
   },
 
-  watch: function(widget, state) {
+  match: function(widget, state) {
     if (!this[state ? 'enable' : 'disable'](widget)) //try enable the action
       this.options[state ? 'enable' : 'disable'].call(this.target, widget); //just fire the callback 
   },
@@ -105,8 +105,8 @@ LSD.Action.prototype = {
     this.target.addEvents(this.events);
     if (this.options.uses) {
       this.target.use(this.options.uses, this.use.bind(this));
-    } else if (this.options.watches) {
-      this.target.watch(this.options.watches, this.watch.bind(this));
+    } else if (this.options.matches) {
+      this.target.match(this.options.matches, this.match.bind(this));
     } else if (!this.state || (name && this.target[name])) {
       if (this.target.lsd) {
         this.target.properties.watch('rendered', this.injection || ((this.injection = this.inject.bind(this))));
@@ -116,7 +116,7 @@ LSD.Action.prototype = {
 
   detach: function(widget) {
     this.target.removeEvents(this.events);
-    if (this.options.watches) this.target.unwatch(this.options.watches, this.watch);
+    if (this.options.matches) this.target.unmatch(this.options.matches, this.match);
     else if (this.options.uses) {
       
     } else {

@@ -25,8 +25,8 @@ LSD.Mixin.Invokable = new Class({
       feedback: function() {
         return {
           action: 'submit',
-          target: this.getSubmissionTarget,
-          arguments: this.getSubmissionData,
+          target: this.getFeedbackTarget,
+          arguments: this.getFeedbackData,
           priority: -5
         }
       }
@@ -40,6 +40,9 @@ LSD.Mixin.Invokable = new Class({
         },
         unsetParent: 'revoke'
       }
+    },
+    scripts: {
+      feedback: 'submit(getFeedbackTarget(), getFeedbackData())'
     }
   },
   
@@ -67,8 +70,12 @@ LSD.Mixin.Invokable = new Class({
     return this.invoker;
   },
   
-  getSubmissionTarget: function() {
+  getFeedbackTarget: function() {
     return this.getInvoker();
+  },
+  
+  getFeedbackData: function() { 
+    return {}
   }
 });
 

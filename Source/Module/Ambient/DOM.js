@@ -61,21 +61,6 @@ LSD.Module.DOM = new Class({
     this.properties.set('parent', widget);
     this.properties.set('scope', widget, null, true);
     set.call(this, widget, index);
-    var previous = this.previousSibling;
-    var start = previous ? (previous.sourceLastIndex || previous.sourceIndex) : widget.sourceIndex || (widget.sourceIndex = 1);
-    var sourceIndex = start;
-    LSD.Module.DOM.each(this, function(node) {
-      node.sourceIndex = ++ sourceIndex;
-      if (node.sourceLastIndex) node.sourceLastIndex += start;
-      for (var parent = widget; parent; parent = parent.parentNode) {
-        parent.sourceLastIndex = (parent.sourceLastIndex || parent.sourceIndex) ;
-        if (old == widget) continue;
-        var events = parent.$events.nodeInserted;
-        if (!events) continue;
-        for (var i = 0, j = events.length, fn; i < j; i++)
-          if ((fn = events[i])) fn.call(parent, node);
-      }
-    }, this);
   },
   
   unsetParent: function(widget, index) {
@@ -291,6 +276,28 @@ var set = function(widget, index) {
     next.properties.write('previous', this);
     this.properties.write('next', next);
   }
+  
+  var previous = this.previousSibling;
+  
+  var start = previous ? (previous.sourceLastIndex || previous.sourceIndex) : widget.sourceIndex || (widget.sourceIndex = 1);
+  var sourceIndex = start;
+  // Set source index for child nodes of the widget
+  for (var stack = [node], node; node = stack.pop();) {
+    node.properties.set('sourceIndex', ++sourceIndex);
+    if (node.sourceLastIndex) node.properties.set('sourceLastIndex', node.sourceLastIndex )
+  }
+  LSD.Module.DOM.each(this, function(node) {
+    node.sourceIndex = ++ sourceIndex;
+    if (node.sourceLastIndex) node.sourceLastIndex += start;
+    for (var parent = widget; parent; parent = parent.parentNode) {
+      parent.sourceLastIndex = (parent.sourceLastIndex || parent.sourceIndex) ;
+      //if (old == widget) continue;
+      var events = parent.$events.nodeInserted;
+      if (!events) continue;
+      for (var i = 0, j = events.length, fn; i < j; i++)
+        if ((fn = events[i])) fn.call(parent, node);
+    }
+  }, this);
   return index;
 };
 

@@ -98,7 +98,7 @@ LSD.Microdata.extract = function(element, widget, parent, itemprop) {
         for (var node = widget; node; node = (!parent && node.parentNode))
           node.variables.merge(obj, true);
         if (!widget.itemPropertyExportCallback) widget.itemPropertyExportCallback = function(name, value, state, old) {
-          if (state && (!value.watch || !value.set)) widget.variables.set(name, value);
+          if (state && (!value.watch || value.lsd)) widget.variables.set(name, value);
           if (!state || old != null) widget.variables.unset(name, state ? old : value);
         }
         if (scope && widget.itemscope && widget.itemscope == scope)

@@ -41,6 +41,10 @@ provides:
   The class contains a few hacks that allows Slick to initialize.
 */
 
+LSD.Document = LSD.Struct({
+  
+});
+
 
 LSD.Document = new Class({
   

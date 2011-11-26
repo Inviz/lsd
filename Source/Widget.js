@@ -46,8 +46,7 @@ LSD.Behavior.attach(LSD.Widget);
     '$events': 'slice', 
     'options': 'merge',
     '$states': 'append',
-    'constructors': 'append',
-    'destructors': 'append'
+    'constructors': 'append'
   };
   var expectations = Widget.prototype.expectations;
   LSD.Widget = function(element, options) {

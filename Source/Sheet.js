@@ -180,15 +180,15 @@ LSD.Sheet.Rule.separate = true;
 
 Object.append(LSD.Sheet.Rule.prototype, {  
   attach: function(node) {
-    if (!this.watcher) this.watcher = this.watch.bind(this);
-    node.watch(this.selector, this.watcher)
+    if (!this.matcher) this.matcher = this.match.bind(this);
+    node.match(this.selector, this.matcher)
   },
   
   detach: function(node) {
-    node.unwatch(this.selector, this.watcher);
+    node.unmatch(this.selector, this.matcher);
   },
   
-  watch: function(node, state) {
+  match: function(node, state) {
     node[state ? 'addRule' : 'removeRule'](this)
   },
   

@@ -1,7 +1,7 @@
 /*
 ---
  
-script: Checkbox.js
+script: Command.js
  
 description: A triggerable interaction abstraction
  
@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD
+  - LSD.Script/LSD.Struct
   - Ext/States
  
 provides: 
@@ -18,6 +19,37 @@ provides:
  
 ...
 */
+
+LSD.Command = LSD.Struct({
+  initialize: function() {
+    this.set('type', 'command', null, true);
+  },
+  id: function() {
+    
+  },
+  document: function() {
+    
+  },
+  action: function() {
+    
+  },
+  type: function() {
+  
+  },
+  disabled: function() {
+    
+  },
+  hidden: function() {
+    
+  },
+  checked: function() {
+    
+  }
+});
+
+LSD.Command.prototype.click = function() {
+  //if (this.type != 'command')
+}
 
 LSD.Command = function(document, options) {
   this.setOptions(options);

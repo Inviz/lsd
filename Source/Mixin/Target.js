@@ -31,7 +31,7 @@ provides:
             if (chain.selector) {
               chain.target = function(callback, state, revert) {
                 if (chain.keyword == 'watch' || (chain.keyword == 'do' && chain.selector.expressions[0][0].combinator.charAt(0) != '$')) {
-                  this[(state == true && revert) ? 'unwatch' : 'watch'](chain.selector, callback);
+                  this[(state == true && revert) ? 'unmatch' : 'match'](chain.selector, callback);
                   return true;
                 } else {
                   return this.getElements(chain.selector);

@@ -20,22 +20,35 @@ provides:
 */
 
 !function() {
-  
+
+LSD.Relation = LSD.Struct({
+  initialize: function() {
+    this.storage = storage = {};
+    this.addEvent('change', function(name, value, state, old) {
+      var setter = Options[name];
+      if (!setter || !setter.call) {}
+        for (var i = 0, widget; widget = this.widgets[i++];) 
+          this.applyOption(widget, name, value, unset, setter);
+      else this.memo[name] = setter.call(this, value, !unset, this.memo[name]);
+    })
+  }
+});
+
 LSD.Relation = function(name, origin, options) {
   this.name = name;
   this.origin = origin;
   if (this.$events) this.$events = Object.clone(this.$events);
   this.onChange = this.onChange.bind(this);
+  this.memo = {}
   this.options = {};
   this.$options = [];
-  this.memo = {};
   this.widgets = [];
   this.target = origin;
   origin.relations[name] = this;
   if (options) this.setOptions(options);
 }
 
-LSD.Relation.prototype = Object.append({
+Object.append(LSD.Relation.prototype, {
   
   setOptions: function(options, unset) {
     this.$options[unset ? 'erase' : 'include'](options);
@@ -142,14 +155,14 @@ LSD.Relation.prototype = Object.append({
   getSource: function() {
     return this.options.source;
   }
-}, Events.prototype);
+});
 
 var Options = LSD.Relation.Options = {
-  selector: function(selector, state, memo, a) {
-    if (memo) memo[0].unwatch(memo[1], this.onChange);
+  selector: function(selector, state, memo) {
+    if (memo) memo[0].unmatch(memo[1], this.onChange);
     if (state && this.target) {
       if (selector.call) selector = selector.call(this.origin);
-      this.target.watch(selector, this.onChange);
+      this.target.match(selector, this.onChange);
       return [this.target, selector];
     }
   },
@@ -172,7 +185,7 @@ var Options = LSD.Relation.Options = {
     if (memo) this.origin.properties.unwatch(target, memo);
     if (state) {
       if (Targets[target]) {
-        var watcher = function(object) {
+        var matcher = function(object) {
           if (object) {
             this.target = object.nodeType == 9 ? object.body : object;
             var selector = this.options.selector, expectation = this.options.expectation;
@@ -180,8 +193,8 @@ var Options = LSD.Relation.Options = {
             if (expectation) Options.expectation.call(this, expectation, true, this.memo.expectation);
           }
         }.bind(this);
-        this.origin.properties.watch(target, watcher);
-        return watcher;
+        this.origin.properties.watch(target, matcher);
+        return matcher;
       } else {
         if (this.origin[target]) this.target = this.origin[target];
       }
@@ -265,7 +278,7 @@ var Options = LSD.Relation.Options = {
     }, this);
   },
   
-  origin: function(options) {
+  origin: function(options, state) {
     this.origin.setOptions(options, !state)
   },
   
@@ -307,16 +320,16 @@ var Options = LSD.Relation.Options = {
     add: function(widget, states) {
       var get = states.get, set = states.set, add = states.add, lnk = states.link;
       if (add) for (var index in add) widget.states.set(index);
-      if (get) for (var from in get) widget.states.watch(from, [this.origin.states, get[from]]);
-      if (set) for (var to in set) this.origin.states.watch(to, [widget.states, set[to]]);
-      if (lnk) for (var to in lnk) widget.states.watch(to, [widget.states, lnk[to]])
+      if (get) for (var from in get) widget.states.match(from, [this.origin.states, get[from]]);
+      if (set) for (var to in set) this.origin.states.match(to, [widget.states, set[to]]);
+      if (lnk) for (var to in lnk) widget.states.match(to, [widget.states, lnk[to]])
     },
     remove: function(widget, states) {
       var get = states.get, set = states.set, add = states.add, lnk = states.link;
       if (add) for (var index in add) widget.states.unset(index)
-      if (get) for (var from in get) widget.states.unwatch(from, [this.origin.states, get[from]]);
-      if (set) for (var to in set) this.origin.states.unwatch(to, [widget.states, set[to]]);
-      if (lnk) for (var to in lnk) widget.states.unwatch(to, [widget.states, lnk[to]])
+      if (get) for (var from in get) widget.states.unmatch(from, [this.origin.states, get[from]]);
+      if (set) for (var to in set) this.origin.states.unmatch(to, [widget.states, set[to]]);
+      if (lnk) for (var to in lnk) widget.states.unmatch(to, [widget.states, lnk[to]])
     }
   },
   

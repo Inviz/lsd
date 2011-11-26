@@ -50,7 +50,7 @@ LSD.Module.Selectors = new Class({
     return this.captureEvent('getRelated', arguments) || this[name];
   },
   
-  match: function(selector) {
+  test: function(selector) {
     if (typeof selector == 'string') selector = LSD.Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
     if (selector.combinator == '::') {

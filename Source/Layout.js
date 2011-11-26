@@ -183,8 +183,10 @@ LSD.Layout.prototype = Object.append({
         If the child is element, walk it again and render it there, otherwise render it right away
       */
       if (child.nodeType == 1) {
-        children[i] = previous = this.walk.apply(this, args);
-        if (!previous.lsd) previous = null;
+        var tag = LSD.toLowerCase(child.tagName);
+        var method = (typeof this[tag] == 'function') ? tag : 'walk';
+        children[i] = previous = this[method].apply(this, args);
+        if (previous && !previous.lsd) previous = null;
       } else {
         var result = this[child.nodeType ? LSD.Layout.NodeTypes[child.nodeType] : 'render'].apply(this, args);
         if (result != child && result !== true && result && !result.block) {
@@ -287,6 +289,7 @@ LSD.Layout.prototype = Object.append({
   object: function(object, parent, memo) {
     var result = {}, layout, block;
     for (var selector in object) {
+      if (typeof object.has == 'function' ? !object.has(selector) : !object.hasOwnProperty(selector)) continue;
       layout = object[selector] === true || !object[selector] ? null : object[selector];
       if (!memo) memo = {};
       if ((block = this.keyword(selector, parent, memo))) {
@@ -419,6 +422,18 @@ LSD.Layout.prototype = Object.append({
       if (options.content) element.innerHTML = options.content;
     }
     return widget || element;
+  },
+  
+  script: function(element, parent, memo) {
+    switch (element.getAttribute('type')) {
+      case "text/lsd":
+        var script = Element.retrieve(element, 'script');
+        if (!script) {
+          script = new LSD.Script(Element.get(element, 'text'), parent[0] || parent);
+          Element.store(element, 'script', script);
+        }
+    }
+    return script;
   },
   
   keyword: function(text, parent, memo, element, origin) {

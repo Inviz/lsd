@@ -111,17 +111,17 @@ LSD.Layout.Block.prototype = Object.append({
     return true;
   },
 
-  getVariable: function() {
-    if (typeof this.variable == 'undefined') {
+  getScript: function() {
+    if (typeof this.script == 'undefined') {
       if (this.options.collection) {
         this.expression = this.expression.replace(LSD.Layout.Block.rLoopAlias, function(m, name) {
           this.arguments = [name];
           return '';
         }.bind(this));
       }
-      this.variable = LSD.Script.compile(this.expression, this, this, true);
+      this.script = LSD.Script.compile(this.expression, this, this, true);
     }
-    return this.variable;
+    return this.script;
   },
 
   match: function() {
@@ -182,8 +182,8 @@ LSD.Layout.Block.prototype = Object.append({
   },
 
   evaluate: function(state) {
-    var variable = this.getVariable();
-    var value = variable.attach ? variable[state ? 'attach' : 'detach']().value : variable;
+    var script = this.getScript();
+    var value = script.attach ? script[state ? 'attach' : 'detach']().value : script;
     if (this.value !== value) this.set(value);
     return this.validate();
   },

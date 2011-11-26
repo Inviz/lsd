@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Module
+  - LSD.Script/LSD.Object.Stack
   
 provides:
   - LSD.Module.Options
@@ -18,16 +19,67 @@ provides:
 ...
 */
 
+LSD.Object.Options = LSD.Struct.Stack();
+Object.append(LSD.Object.Options.prototype, {
+  initialize: function(widget) {
+    this._widget = widget;
+    this.addEvent('change', this.onChange);
+  },
+  set: function (name, value, memo) {
+    var setter = LSD.Options[name];
+      console.log(name, value, setter, memo)
+    if (!setter) {
+      if (memo === true) return this._constructor.prototype.set.call(this, name, value);
+      else return this.mix(name, value, true, null, true);
+    }
+    return this.process(name, value, state, setter);
+  },
+  unset: function(name, value, state) {
+    var setter = LSD.Options[name];
+    if (!setter) {
+      if (memo === true) return this._constructor.prototype.unset.call(this, name, value);
+      else return this.mix(name, value, false, null, true);
+    }
+    return this.process(name, value, state, setter);
+  },
+  process: function(name, value, state, setter) {
+    if (setter.process) {
+      value = (setter.process.charAt ? this._widget[setter.process] : setter.process).call(this._widget, value);
+    }
+    if (setter.events) LSD.Module.Events.setEventsByRegister.call(this._widget, name, state, setter.events);
+    var mode = state ? 'add' : 'remove', method = setter[mode];
+    if (method.charAt) method = this._widget[method];
+    if (setter.iterate) {
+      if (value.each) {
+        var length = value.length;
+        if (length != null) for (var i = 0, j = value.length; i < j; i++) method.call(this._widget, value[i]);
+        else value.each(method, this._widget);
+      } else {
+        for (var i in value)
+          if (typeof value.has == 'function' ? value.has(i) : value.hasOwnProperty(i))
+            method.call(this._widget, i, value[i])
+      }
+    } else method.call(this._widget, value);
+    return false;
+  }
+})
+
 LSD.Module.Options = new Class({
   Implements: [Options],
   
+  constructors: {
+    options: function() {
+      this.options = new LSD.Object.Options(this.options, this);
+    }
+  },
+  
   setOptions: function(options) {
-    for (var name in options) LSD.Module.Options.setOption.call(this, name, options[name]);
+    this.options.merge(options);
     return this;
   },
   
   unsetOptions: function(options) {
-    for (var name in options) LSD.Module.Options.setOption.call(this, name, options[name], true);
+    this.options.unmerge(options);
     return this;
   },
   
@@ -85,30 +137,6 @@ LSD.Module.Options = new Class({
     return object.options;
   }
 });
-
-LSD.Module.Options.setOption = function(name, value, unset, context) {
-  var setter = (context || LSD.Options)[name];
-  if (!setter) {
-    Object.merge(this.options, name, value);
-    return this;
-  };
-  if (setter.process) {
-    value = (setter.process.charAt ? this[setter.process] : setter.process).call(this, value);
-  }
-  if (setter.events) LSD.Module.Events.setEventsByRegister.call(this, name, !unset, setter.events);
-  var mode = unset ? 'remove' : 'add', method = setter[mode];
-  if (method.charAt) method = this[method];
-  if (setter.iterate) {
-    if (value.each) {
-      var length = value.length;
-      if (length != null) for (var i = 0, j = value.length; i < j; i++) method.call(this, value[i]);
-      else value.each(method, this);
-    } else for (var i in value) method.call(this, i, value[i])
-  } else method.call(this, value);
-  return this;
-};
-
-LSD.Module.Options.implement('setOption', LSD.Module.Options.setOption);
 
 LSD.Module.Options.initialize = function(element, options) {
   // Swap arguments if they are in the wrong order

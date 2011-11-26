@@ -48,7 +48,7 @@ LSD.Module.States = new Class({
   onStateChange: function(state, value, args, callback) {
     var args = Array.prototype.slice.call(arguments, 0);
     args.slice(1, 2); //state + args
-    if (callback !== false) this.states[value ? 'include' : 'erase'](state);
+    if (callback !== false) this.states.set(state, value);
     this.fireEvent('stateChange', [state, args]);
     return true;
   }

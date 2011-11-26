@@ -21,7 +21,6 @@ sources:
   - Source/ART/ART.Shape.Star.js
   - Source/Tools/Behavior.js
   - Source/Tools/Helpers.js
-  - Source/Tools/Command.js
   - Source/Tools/Require.js
   - Source/Tools/Position.js
   - Source/Tools/Logger.js
@@ -29,6 +28,7 @@ sources:
   - Source/LSD.js
   - Source/Type.js
   - Source/Relation.js
+  - Source/Object/Command.js
   - Source/Layer.js
   - Source/Layer/Color.js
   - Source/Layer/Offset.js
