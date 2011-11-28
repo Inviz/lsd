@@ -25,7 +25,7 @@ provides:
 */
 
 
-LSD.Properties = {
+LSD.Properties = Object.append(LSD.Properties || {}, {
 
   context: function(value, state, old) {
     var source = this.source;
@@ -72,53 +72,9 @@ LSD.Properties = {
     if (state) return LSD.Script.Scope.setScope(this, value)
     else if (old) LSD.Script.Scope.unsetScope(this, value);
   }
-};
-
-LSD.Module.Properties = LSD.Struct.Stack(LSD.Properties);
-LSD.Module.Properties.prototype.onChange = function(name, value, state, old, memo) {
-  var property = LSD.Module.Properties.Exported[name] || name;
-  var alias = LSD.Module.Properties.Aliased[name];
-  if (old != null) {
-    
-  } else {
-    
-  }
-}
+});
 
 LSD.Module.Properties = new Class({
-  options: {
-    context: 'element',
-    namespace: 'LSD'
-  },
-  
-  constructors: {
-    properties: function() {
-      var self = this;
-      this.storage = {};
-      this.properties = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
-        var property = LSD.Module.Properties.Exported[name] || name;
-        var method = LSD.Properties[name];
-        var alias = LSD.Module.Properties.Aliased[name];
-        var events = self.events && self.events[name];
-        if (!state) old = value;
-        if (old != null) {
-          if (alias) delete self[alias];
-          delete self[property];
-          self.fireEvent('unset' + name.capitalize(), old);
-          if (events) LSD.Module.Events.setStoredEvents.call(old, events, false, self);
-          if (method) method.call(self, old, false, value, memo);
-        }
-        if (state && value != null) {
-          if (alias) self[alias] = value;
-          self[property] = value;
-          self.fireEvent('set' + name.capitalize(), value);
-          if (events) LSD.Module.Events.setStoredEvents.call(value, events, true, self);
-          if (method) method.call(self, value, true, old, memo);
-        }
-      });
-      LSD.Script.Scope(this);
-    },
-  },
 
   store: function(name, value) {
     this.storage[name] = value;
@@ -149,17 +105,6 @@ LSD.Module.Events.addEvents.call(LSD.Module.Properties.prototype, {
     if (this.source || this.attributes.type || this.attributes.kind) {
       var role = LSD.Module.Properties.getRole(this);
       if (this.role !== role) this.properties.set('role', role)
-    }
-  }
-});
-
-['tag', 'context', 'source', 'scope'].each(function(name) {
-  LSD.Options[name] = {
-    add: function(value) {
-      this.properties.set(name, value);
-    },
-    remove: function(value) {
-      this.properties.unset(name, value);
     }
   }
 });

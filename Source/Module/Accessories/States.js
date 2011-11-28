@@ -21,7 +21,7 @@ provides:
 */
 
 !function(States) {
-  LSD.reverseMerge(States, {
+  LSD.States = Object.append({
     built:    ['build',      'destroy'],
     attached: ['attach',     'detach'],
     hidden:   ['hide',       'show'],
@@ -39,7 +39,7 @@ provides:
     editing:  ['edit',       'finish'],
     placeheld:['placehold',  'unplacehold'],
     invoked:  ['invoke',     'revoke']
-  });
+  }, States);
   
   LSD.Module.States = LSD.Struct.Stack();
   LSD.Module.States.prototype.onChange = function(name, value, state, old) {
@@ -77,33 +77,3 @@ provides:
   };
   
 }(LSD.States || (LSD.States = {}))
-
-LSD.Module.States = new Class({
-  Implements: States,
-  
-  constructors: {
-    states: function() {
-      this.states = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, quiet) {
-
-      }.bind(this))
-    }
-  },
-
-  onStateChange: function(state, value, args, callback) {
-    var args = Array.prototype.slice.call(arguments, 0);
-    args.slice(1, 2); //state + args
-    if (callback !== false) this.states.set(state, value);
-    this.fireEvent('stateChange', [state, args]);
-    return true;
-  }
-});
-
-LSD.Options.states = {
-  add: function(name, value) {
-    this.states.set(name);
-  },
-  remove: function(name, value) {
-    this.states.unset(name);
-  },
-  iterate: true
-};

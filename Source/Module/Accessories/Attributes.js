@@ -22,71 +22,76 @@ provides:
 
 LSD.Module.Pseudos = LSD.Struct.Stack();
 LSD.Module.Pseudos.implement({
-  onChange: function() {
-    if (!memo && LSD.States[name]) this.holder.states[state ? 'include' : 'erase'](name, 'pseudos');
-    this.holder.fireEvent('selectorChange', ['pseudos', name, state]);
+  onChange: function(name, value, state, old, memo) {
+    if (!memo && LSD.States[name]) this._parent.states[state ? 'include' : 'erase'](name, 'pseudos');
+    this._parent.fireEvent('selectorChange', ['pseudos', name, state]);
   }
 })
 
 LSD.Module.Classes = LSD.Struct.Stack();
 LSD.Module.Classes.implement({
-  onChange: function() {
-    if (!memo && LSD.States[name]) this.holder.states[state ? 'include' : 'erase'](name, 'classes');
-    if (this.holder.element) this.holder.element[state ? 'addClass' : 'removeClass'](name);
-    this.holder.fireEvent('selectorChange', ['classes', name, state]);
+  onChange: function(name, value, state, old, memo) {
+    if (!memo && LSD.States[name]) this._parent.states[state ? 'include' : 'erase'](name, 'classes');
+    if (this._parent.element) this._parent.element[state ? 'addClass' : 'removeClass'](name);
+    this._parent.fireEvent('selectorChange', ['classes', name, state]);
   }
 })
 
+
 LSD.Module.Attributes = LSD.Struct.Stack();
 LSD.Module.Attributes.implement({
-  onChange: function() {
-    if (!memo && LSD.States[name]) this.holder.states[state ? 'include' : 'erase'](name, 'attributes');
-    value = LSD.Module.Attributes.resolve(name, value, this.holder);
-    if (this.holder.element && (name != 'type' || LSD.toLowerCase(this.holder.element.tagName) != 'input')) {
-      if (state) this.holder.element.setAttribute(name, LSD.Attributes[name] == 'boolean' ? name : value);
-      else this.holder.element.removeAttribute(name);
-      if (LSD.Attributes[name] == 'boolean') this.holder.element[name] = state;
+  onChange: function(name, value, state, old, memo) {
+    if (!memo && LSD.States[name]) this._parent.states[state ? 'include' : 'erase'](name, 'attributes');
+    value = LSD.Module.Attributes.resolve(name, value, this._parent);
+    if (this._parent.element && (name != 'type' || LSD.toLowerCase(this._parent.element.tagName) != 'input')) {
+      if (state) this._parent.element.setAttribute(name, LSD.Attributes[name] == 'boolean' ? name : value);
+      else this._parent.element.removeAttribute(name);
+      if (LSD.Attributes[name] == 'boolean') this._parent.element[name] = state;
     }
-    this.holder.fireEvent('selectorChange', ['attributes', name, state]);
+    if (name.substr(0, 5) == 'data-') {
+      if (typeof value != 'undefined') this.dataset[state ? 'set' : 'unset'](name.substring(5), value);
+      if (typeof old != 'undefined') this.dataset.unset(name.substring(5), old);
+    }
+    this._parent.fireEvent('selectorChange', ['attributes', name, state]);
     return value;
   },
   
   onBeforeChange: function() {
-    this.holder.fireEvent('selectorChange', ['attributes', name, state]);
+    this._parent.fireEvent('selectorChange', ['attributes', name, state]);
   }
 });
 
-LSD.Module.Dataset = LSD.Struct.Stack();
-LSD.Module.Dataset.implement({
-  onChange: function() {
-    if (!memo && LSD.States[name]) this.holder.states[state ? 'include' : 'erase'](name, 'classes');
-    if (this.holder.element) this.holder.element[state ? 'addClass' : 'removeClass'](name);
-    this.holder.fireEvent('selectorChange', ['classes', name, state]);
+LSD.Attributes = Object.append({
+  tabindex: Number,
+  width:    'number',
+  height:   'number',
+  readonly: 'boolean',
+  disabled: 'boolean',
+  hidden:   'boolean',
+  checked:  'boolean',
+  multiple:  'boolean',
+  id: function(id) {
+    this.id = id;
+  },
+  'class': function(value) {
+    value.split(' ').each(this.addClass.bind(this));
+  },
+  style: function(value) {
+    value.split(/\s*;\s*/).each(function(definition) {
+      var bits = definition.split(/\s*:\s*/)
+      if (!bits[1]) return;
+      bits[0] = bits[0].camelCase();
+      var integer = bits[1].toInt();
+      if (bits[1].indexOf('px') > -1 || (integer == bits[1])) bits[1] = integer
+      //this.setStyle.apply(this, bits);
+    }, this);
   }
-})
+}, LSD.Attributes);
 
+LSD.Module.Dataset = LSD.Struct.Stack();
 LSD.Module.Variables = LSD.Struct.Stack()
 
 LSD.Module.Attributes = new Class({
-  constructors: {
-    attributes: function() {
-      var self = this;
-      this.pseudos = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
-      })
-      this.classes = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
-        if (!memo && LSD.States[name]) self.states[state ? 'include' : 'erase'](name, 'classes');
-        if (self.element) self.element[state ? 'addClass' : 'removeClass'](name);
-        self.fireEvent('selectorChange', ['classes', name, state]);
-      });
-      this.attributes = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
-
-      }).addEvent('beforechange', function(name, value, state) { 
-      });
-      this.dataset = new LSD.Object
-      this.variables.merge(this.dataset);
-    }
-  },
-  
   getAttribute: function(name) {
     switch (name) {
       case "class":           return this.classes.join(' ');
@@ -104,18 +109,12 @@ LSD.Module.Attributes = new Class({
   },
 
   setAttribute: function(name, value) {
-    if (name.substr(0, 5) == 'data-') {
-      this.dataset.set(name.substring(5), value);
-    } else {
-      this.attributes.set(name, value);
-    }
+    this.attributes.set(name, value);
     return this;
   },
   
   removeAttribute: function(name) {
-    if (name.substr(0, 5) == 'data-') {
-      this.dataset.unset(name.substring(5));
-    } else this.attributes.unset(name, this.attributes[name]);
+    this.attributes.unset(name, this.attributes[name]);
     return this;
   },
   
@@ -157,70 +156,5 @@ LSD.Module.Attributes = new Class({
         selector += ']';
       }
     return selector;
-  }
-});
-
-LSD.Module.Attributes.List = {
-  tabindex: 'number',
-  width:    'number',
-  height:   'number',
-  readonly: 'boolean',
-  disabled: 'boolean',
-  hidden:   'boolean',
-  checked:  'boolean',
-  multiple:  'boolean',
-  id: function(id) {
-    this.id = id;
-  },
-  'class': function(value) {
-    value.split(' ').each(this.addClass.bind(this));
-  },
-  style: function(value) {
-    value.split(/\s*;\s*/).each(function(definition) {
-      var bits = definition.split(/\s*:\s*/)
-      if (!bits[1]) return;
-      bits[0] = bits[0].camelCase();
-      var integer = bits[1].toInt();
-      if (bits[1].indexOf('px') > -1 || (integer == bits[1])) bits[1] = integer
-      //this.setStyle.apply(this, bits);
-    }, this);
-  }
-};
-
-Object.each(LSD.Module.Attributes.List, function(value, name) {
-  if (!LSD.Attributes[name]) LSD.Attributes[name] = value;
-});
-
-LSD.Module.Attributes.resolve = function(name, value, bind) {
-  var attribute = LSD.Attributes[name];
-  switch (attribute) {
-    case "boolean":
-      return (name == value || value === true);
-    case "number":
-      return parseFloat(value);
-    default:
-      if (attribute && attribute.call) {
-        var resolved = attribute.call(bind || this, value)
-        return resolved == null ? value : resolved;
-      }
-  }
-  return value;
-};
-
-Object.append(LSD.Options, {
-  attributes: {
-    add: 'setAttribute',
-    remove: 'removeAttribute',
-    iterate: true
-  },
-  pseudos: {
-    add: 'addPseudo',
-    remove: 'removePseudo',
-    iterate: true
-  },
-  classes: {
-    add: 'addClass',
-    remove: 'removeClass',
-    iterate: true
   }
 });
