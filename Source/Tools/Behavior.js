@@ -74,6 +74,7 @@ LSD.Behavior.prototype = {
     var proto = object.prototype, type = typeOf(behavior);
     var watcher = function(widget, state) {
       if (type == 'object') widget[state ? 'setOptions' : 'unsetOptions'](behavior);
+      else if (type == 'function') behavior(widget, state)
       else widget[state ? 'mixin' : 'unmix'](behavior, true);
     }
     if (proto.expect) {
