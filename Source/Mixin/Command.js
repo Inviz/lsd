@@ -68,7 +68,7 @@ LSD.Mixin.Command = new Class({
     this.fireEvent('click', arguments);
     this.getCommand().click();
     var method = this.getCommandState() ? 'callChain' : 'uncallChain';
-    return this[method].apply(this, arguments) != false;
+    return this[method].apply(this, arguments) != false || this.getCommandType() != 'command';
   },
   
   unclick: function() {

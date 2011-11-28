@@ -48,7 +48,7 @@ LSD.Command.prototype = Object.append(new Options, new Events, new States, {
     if (!this.bound.enable) this.bound.enable = this.enable.bind(this);
     if (!this.bound.disable) this.bound.disable = this.disable.bind(this);
     if (this.type && this.type != 'command') {
-      widget.states.set('checked');
+      widget.states.set('checked', undefined, undefined, true);
       if (this.checked) widget.states.include('checked');
       if (!this.bound.check) this.bound.check = this.check.bind(this);
       if (!this.bound.uncheck) this.bound.uncheck = this.uncheck.bind(this);

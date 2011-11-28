@@ -48,12 +48,12 @@ LSD.Mixin.Fieldset = new Class({
   constructors: {
     fieldset: function(options, state) {
       if (state) {
-        this.params = new LSD.Object.Params;
+        this.values = new LSD.Object.Params;
         this.fields = new LSD.Object.Params;
       }
-      this.variables[state ? 'merge' : 'unmerge']({params: this.params, fields: this.fields});
+      this.variables[state ? 'merge' : 'unmerge']({values: this.values, fields: this.fields});
       if (!state) {
-        delete this.params;
+        delete this.values;
         delete this.field;
       }
       this[state ? 'addEvents' : 'removeEvents'](LSD.Mixin.Fieldset.events);
@@ -141,16 +141,23 @@ LSD.Mixin.Fieldset = new Class({
   addField: function(widget) {
     var name = widget.attributes.name;
     if (!name || !widget.toData) return;
-    if ((LSD.Mixin.Command.getCommandType.call(widget) == 'command') || widget.checked)
-      this.params.set(name, widget.getValue())
+    var callback = function(value, old) {
+      if (typeof value == 'undefined') {
+        if (typeof old != 'undefined' && widget.getValue() === old) this.values.unset(name, old);
+      } else {
+        this.values.set(name, widget.getValue());
+      }
+    }.bind(this)
+    callback._callback = this;
+    widget.states.watch('checked', callback);
     this.fields.set(name, widget)
     var key = widget.lsd + ':value:callback'
     var callback = this.retrieve(key);
     if (!callback) {
       callback = function(value, old) {
         if (typeof old != 'undefined')
-          this.params.unset(name, old);
-        this.params.set(name, value)
+          this.values.unset(name, old);
+        this.values.set(name, value)
       }.bind(this)
       this.store(key, callback)
     }
@@ -158,7 +165,7 @@ LSD.Mixin.Fieldset = new Class({
   },
   
   getParams: function(object) {
-    if (!object) object = this.params;
+    if (!object) object = this.values;
     var result = {};
     for (var name in object) {
       var value = object[name];
@@ -171,8 +178,7 @@ LSD.Mixin.Fieldset = new Class({
   removeField: function(widget) {
     var name = widget.attributes.name;
     if (!name) return;
-    if ((LSD.Mixin.Command.getCommandType.call(widget) == 'command') || widget.checked)
-      this.params.unset(name, widget.getValue())
+    widget.states.unwatch('checked', this);
     this.fields.unset(name, widget)
     var key = widget.lsd + ':value:callback'
     var callback = this.retrieve(key);

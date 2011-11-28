@@ -21,16 +21,8 @@ LSD.Mixin.Value = new Class({
     actions: {
       value: {
         enable: function() {
-          if (LSD.Mixin.Command.getCommandType.call(this) == 'command') {
+          if (LSD.Mixin.Command.getCommandType.call(this) == 'command')
             this.setDefaultValue()
-          } else {
-            this.states.watch('checked', this.bind(LSD.Mixin.Value.setValueOnCheck))
-          }
-        },
-        disable: function() {
-          if (!this.attributes.multiple && LSD.Mixin.Command.getCommandType.call(this) != 'command') {
-            this.states.unwatch('checked', this.bind(LSD.Mixin.Value.setValueOnCheck))
-          }
         }
       }
     },
@@ -158,11 +150,6 @@ LSD.Mixin.Value = new Class({
 LSD.Options.value = {
   add: 'setValue',
   remove: 'unsetValue'
-};
-
-LSD.Mixin.Value.setValueOnCheck = function(value) {
-  if (value) this.setValue();
-  else this.unsetValue();
 };
 
 LSD.Behavior.define(':value', 'value');
