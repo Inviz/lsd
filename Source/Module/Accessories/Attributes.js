@@ -20,13 +20,58 @@ provides:
 ...
 */
 
+LSD.Module.Pseudos = LSD.Struct.Stack();
+LSD.Module.Pseudos.implement({
+  onChange: function() {
+    if (!memo && LSD.States[name]) this.holder.states[state ? 'include' : 'erase'](name, 'pseudos');
+    this.holder.fireEvent('selectorChange', ['pseudos', name, state]);
+  }
+})
+
+LSD.Module.Classes = LSD.Struct.Stack();
+LSD.Module.Classes.implement({
+  onChange: function() {
+    if (!memo && LSD.States[name]) this.holder.states[state ? 'include' : 'erase'](name, 'classes');
+    if (this.holder.element) this.holder.element[state ? 'addClass' : 'removeClass'](name);
+    this.holder.fireEvent('selectorChange', ['classes', name, state]);
+  }
+})
+
+LSD.Module.Attributes = LSD.Struct.Stack();
+LSD.Module.Attributes.implement({
+  onChange: function() {
+    if (!memo && LSD.States[name]) this.holder.states[state ? 'include' : 'erase'](name, 'attributes');
+    value = LSD.Module.Attributes.resolve(name, value, this.holder);
+    if (this.holder.element && (name != 'type' || LSD.toLowerCase(this.holder.element.tagName) != 'input')) {
+      if (state) this.holder.element.setAttribute(name, LSD.Attributes[name] == 'boolean' ? name : value);
+      else this.holder.element.removeAttribute(name);
+      if (LSD.Attributes[name] == 'boolean') this.holder.element[name] = state;
+    }
+    this.holder.fireEvent('selectorChange', ['attributes', name, state]);
+    return value;
+  },
+  
+  onBeforeChange: function() {
+    this.holder.fireEvent('selectorChange', ['attributes', name, state]);
+  }
+});
+
+LSD.Module.Dataset = LSD.Struct.Stack();
+LSD.Module.Dataset.implement({
+  onChange: function() {
+    if (!memo && LSD.States[name]) this.holder.states[state ? 'include' : 'erase'](name, 'classes');
+    if (this.holder.element) this.holder.element[state ? 'addClass' : 'removeClass'](name);
+    this.holder.fireEvent('selectorChange', ['classes', name, state]);
+  }
+})
+
+LSD.Module.Variables = LSD.Struct.Stack()
+
 LSD.Module.Attributes = new Class({
   constructors: {
     attributes: function() {
       var self = this;
       this.pseudos = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
-        if (!memo && LSD.States[name]) self.states[state ? 'include' : 'erase'](name, 'pseudos');
-        self.fireEvent('selectorChange', ['pseudos', name, state]);
       })
       this.classes = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
         if (!memo && LSD.States[name]) self.states[state ? 'include' : 'erase'](name, 'classes');
@@ -34,17 +79,8 @@ LSD.Module.Attributes = new Class({
         self.fireEvent('selectorChange', ['classes', name, state]);
       });
       this.attributes = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
-        if (!memo && LSD.States[name]) self.states[state ? 'include' : 'erase'](name, 'attributes');
-        value = LSD.Module.Attributes.resolve(name, value, self);
-        if (self.element && (name != 'type' || LSD.toLowerCase(self.element.tagName) != 'input')) {
-          if (state) self.element.setAttribute(name, LSD.Attributes[name] == 'boolean' ? name : value);
-          else self.element.removeAttribute(name);
-          if (LSD.Attributes[name] == 'boolean') self.element[name] = state;
-        }
-        self.fireEvent('selectorChange', ['attributes', name, state]);
-        return value;
+
       }).addEvent('beforechange', function(name, value, state) { 
-        self.fireEvent('selectorChange', ['attributes', name, state]);
       });
       this.dataset = new LSD.Object
       this.variables.merge(this.dataset);

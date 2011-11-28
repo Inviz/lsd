@@ -18,7 +18,6 @@ provides:
 ...
 */
 
-
 LSD.Module.Dimensions = new Class({
   constructors: {
     dimensions: function() {

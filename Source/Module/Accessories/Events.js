@@ -25,6 +25,39 @@ provides:
 
 !function() {
   
+LSD.Module.Events = LSD.Struct.Group({
+  'self':     '.',
+  'element':  '.element',
+  'document': '.document',
+  'window':   '.document.window',
+  'matches':  '.matches'
+});
+
+LSD.Module.Events.implement({
+  fire: function(key, a, b, c, d, e) {
+    var collection = this[key];
+    if (collection) for (var i = 0, j = collection.length, fn; i < j; i++) {
+      var fn = collection[i];
+      if (!fn) continue;
+      var result = fn.call(this, a, b, c, d, e);
+      if (result != null) b = result;
+    }
+    return b;
+  }
+});
+
+
+
+LSD.Module.Bound = LSD.Struct();
+LSD.Module.Bound.prototype.get = function(name) {
+  if (this[name]) return this[name];
+  var that = this;
+  return (this[name] = function() {
+    if (that._widget[name])
+      return that._widget.apply(that._widget, arguments);
+  });
+};
+  
 LSD.Module.Events = new Class({
   Implements: Events
 });

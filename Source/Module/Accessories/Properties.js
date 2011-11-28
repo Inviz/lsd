@@ -12,16 +12,78 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Module
   - LSD.Script/LSD.Script.Scope
-  - LSD.Script/LSD.Object.Stack
+  - LSD.Script/LSD.Struct
   - LSD.Module.Options
   - LSD.Module.Events
   - LSD.Module.Attributes
+  
   
 provides:
   - LSD.Module.Properties
 
 ...
 */
+
+
+LSD.Properties = {
+
+  context: function(value, state, old) {
+    var source = this.source;
+    if (source) this.properties.unset('source', source);
+    if (state) {
+      if (typeof value == 'string') {
+        var camel = LSD.toClassName(value);
+        this.factory = LSD.global[this.options.namespace][camel];
+        if (!this.factory) throw "Can not find LSD.Type in " + ['window', this.options.namespace, camel].join('.');
+      } else {
+        this.factory = value;
+      }
+    }
+    if (source) this.properties.set('source', source);
+  },
+
+  tag: function(value, state, old) {
+    if (!this.options.source && this.prepared) {
+      if (state && value) this.properties.set('source', value)
+      else if (old) this.properties.unset('source', value);
+    }
+  },
+  
+  source: function(value, state, old) {
+    if (state && value) {
+      var role = LSD.Module.Properties.getRole(this);
+      if (role && this.role === role) return;
+    }
+    if (this.prepared) {
+      if (state) {
+        this.properties.set('role', role);
+      } else if (this.properties.role) {
+        this.properties.unset('role', this.role);
+      }
+    }
+  },
+  
+  role: function(value, state, old) {
+    if (state) return LSD.Module.Properties.setRole(this, value)
+    else if (old) LSD.Module.Properties.unsetRole(this, value)
+  },
+  
+  scope: function(value, state, old) {
+    if (state) return LSD.Script.Scope.setScope(this, value)
+    else if (old) LSD.Script.Scope.unsetScope(this, value);
+  }
+};
+
+LSD.Module.Properties = LSD.Struct.Stack(LSD.Properties);
+LSD.Module.Properties.prototype.onChange = function(name, value, state, old, memo) {
+  var property = LSD.Module.Properties.Exported[name] || name;
+  var alias = LSD.Module.Properties.Aliased[name];
+  if (old != null) {
+    
+  } else {
+    
+  }
+}
 
 LSD.Module.Properties = new Class({
   options: {
@@ -35,7 +97,7 @@ LSD.Module.Properties = new Class({
       this.storage = {};
       this.properties = (new LSD.Object.Stack).addEvent('change', function(name, value, state, old, memo) {
         var property = LSD.Module.Properties.Exported[name] || name;
-        var method = LSD.Module.Properties.Methods[name];
+        var method = LSD.Properties[name];
         var alias = LSD.Module.Properties.Aliased[name];
         var events = self.events && self.events[name];
         if (!state) old = value;
@@ -101,55 +163,6 @@ LSD.Module.Events.addEvents.call(LSD.Module.Properties.prototype, {
     }
   }
 });
-
-LSD.Module.Properties.Methods = {
-
-  context: function(value, state, old) {
-    var source = this.source;
-    if (source) this.properties.unset('source', source);
-    if (state) {
-      if (typeof value == 'string') {
-        var camel = LSD.toClassName(value);
-        this.factory = LSD.global[this.options.namespace][camel];
-        if (!this.factory) throw "Can not find LSD.Type in " + ['window', this.options.namespace, camel].join('.');
-      } else {
-        this.factory = value;
-      }
-    }
-    if (source) this.properties.set('source', source);
-  },
-
-  tag: function(value, state, old) {
-    if (!this.options.source && this.prepared) {
-      if (state && value) this.properties.set('source', value)
-      else if (old) this.properties.unset('source', value);
-    }
-  },
-  
-  source: function(value, state, old) {
-    if (state && value) {
-      var role = LSD.Module.Properties.getRole(this);
-      if (role && this.role === role) return;
-    }
-    if (this.prepared) {
-      if (state) {
-        this.properties.set('role', role);
-      } else if (this.properties.role) {
-        this.properties.unset('role', this.role);
-      }
-    }
-  },
-  
-  role: function(value, state, old) {
-    if (state) return LSD.Module.Properties.setRole(this, value)
-    else if (old) LSD.Module.Properties.unsetRole(this, value)
-  },
-  
-  scope: function(value, state, old) {
-    if (state) return LSD.Script.Scope.setScope(this, value)
-    else if (old) LSD.Script.Scope.unsetScope(this, value);
-  }
-};
 
 Object.append(LSD.Module.Properties, {
   getSource: function(widget, tagName) {
