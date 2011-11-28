@@ -25,8 +25,7 @@ LSD.Command = function(document, options) {
   this.$events = Object.clone(this.$events);
   if (document) {
     this.document = document;
-    if (!this.document.commands) this.document.commands = {};
-    this.document.commands[this.options.id] = this;
+    this.document.commands.set(this.options.id.toString(), this);
   }
   if (this.options.type) this.setType(this.options.type);
 };

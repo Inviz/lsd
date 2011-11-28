@@ -56,6 +56,7 @@ LSD.Document = new Class({
       options = [document, document = options][0];
     if (document == null) document = window.document;
     if (!LSD.document) LSD.document = this;
+    this.commands = new LSD.Object;
     this.setOptions(options || {});
     this.document = this;
     this.element = document;

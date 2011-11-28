@@ -48,6 +48,7 @@ LSD.Module.Attributes = new Class({
       });
       this.dataset = new LSD.Object
       this.variables.merge(this.dataset);
+      this.variables.set('self', this)
     }
   },
   

@@ -90,7 +90,7 @@ LSD.Mixin.Command = new Class({
   },
   
   getCommandOptions: function() {
-    return {id: this.lsd, name: this.attributes.name, radiogroup: this.getCommandRadioGroup(), type: this.getCommandType()};
+    return {id: this.attributes.id || this.lsd, radiogroup: this.getCommandRadioGroup(), type: this.getCommandType()};
   },
   
   getCommandRadioGroup: function() {
