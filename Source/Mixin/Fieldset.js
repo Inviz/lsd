@@ -143,7 +143,7 @@ LSD.Mixin.Fieldset = new Class({
     if (!name || !widget.toData) return;
     var callback = function(value, old) {
       if (typeof value == 'undefined') {
-        if (typeof old != 'undefined') this.values.unset(name, old);
+        if (typeof old != 'undefined') this.values.unset(name, widget.getValue());
       } else {
         this.values.set(name, widget.getValue());
       }
