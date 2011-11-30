@@ -229,20 +229,6 @@ LSD.Module.DOM = new Class({
   getWrapper: function() {
     return this.toElement();
   },
-  
-  write: function(content, hard) {
-    if (!content || !(content = content.toString())) return;
-    var wrapper = this.getWrapper();
-    if (hard && this.written) for (var node; node = this.written.shift();) Element.dispose(node);
-    var fragment = document.createFragment(content);
-    var written = LSD.slice(fragment.childNodes);
-    if (!hard && this.written) this.written.push.apply(this.written, written);
-    else this.written = written;
-    wrapper.appendChild(fragment);
-    this.fireEvent('write', [written, hard])
-    this.innerText = wrapper.get('text').trim();
-    return written;
-  },
 
   replaces: function(el){
     this.inject(el, 'after');

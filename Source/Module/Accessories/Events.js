@@ -26,11 +26,14 @@ provides:
 !function() {
   
 LSD.Module.Events = LSD.Struct.Group({
-  'self':     '.',
-  'element':  '.element',
-  'document': '.document',
-  'window':   '.document.window',
-  'matches':  '.matches'
+  'self':         '.',
+  'element':      '.element',
+  'document':     '.document',
+  'window':       '.document.window',
+  'matches':      '.matches',
+  'relations':    '.relations',
+  'allocations':  '.allocations',
+  'expectations': '.expectations'
 });
 
 LSD.Module.Events.implement({
@@ -43,6 +46,20 @@ LSD.Module.Events.implement({
       if (result != null) b = result;
     }
     return b;
+  },
+  
+  delegate: function(object, key, value, state, old) {
+    switch (object.nodeType) {
+      case 1:
+        if (object.lsd) {
+          object.events.mix(key, value, state)
+        } else {
+          Element[state ? 'addEvent' : 'removeEvent'](object);
+        }
+        break;
+      default:
+        if (object.addEvents) object[state ? 'addEvents' : 'removeEvents'](value);
+    }
   }
 });
 
@@ -57,186 +74,6 @@ LSD.Module.Bound.prototype.get = function(name) {
       return that._widget.apply(that._widget, arguments);
   });
 };
-  
-LSD.Module.Events = new Class({
-  Implements: Events
-});
-
-var proto = Events.prototype;
-var UID = 0;
-var LSDEvents = Object.append(LSD.Module.Events, {
-  setStoredEvents: function(events, state, bind) {
-    var target = LSDEvents.Targets[name];
-    for (var event in events)
-      for (var i = 0, fn, group = events[event]; fn = group[i++];)
-        LSDEvents.setEvent.call(this, event, (fn.indexOf && bind ? bind.bind(fn) : fn), !state);
-  },
-  
-  watchEventTarget: function(name, fn) {
-    var target = LSDEvents.Targets[name];
-    if (target.events) Object.each(target.events, function(state, event) {
-      LSDEvents.setEvent.call(this, event, function(object) {
-        if (target.getter === false) object = this;
-        fn.call(this, object, state);
-      });
-    }, this);
-    if (target.condition && target.condition.call(this)) fn.call(this, this, true);
-    else if (target.getter && this[target.getter]) fn.call(this, this[target.getter], true);
-  },
-  
-  setEvent: function(name, fn, revert) {
-    if (fn.indexOf && this.lsd) fn = this.bind(fn);
-    if (fn.call || (fn.indexOf && !this.lsd)) {
-      if (!revert) {
-        if (!this.$events) this.$events = {};
-        var method = 'addEvent';
-      } else var method = 'removeEvent'
-      var kicker = this[method];
-      if (!kicker || kicker.$origin == LSDEvents[method]) kicker = proto[method];
-      return kicker.call(this, name, fn);
-    } else {
-      if (name.charAt(0) == '_') {
-        for (var event in fn) LSDEvents.setEvent.call(this, event, fn[event], revert);
-        return this;
-      }
-      if (!revert && !this.events) this.events = {};
-      var events = this.events[name], initial = !events;
-      if (!events) events = this.events[name] = {};
-      var bound = this.lsd ? this.bind(fn) : fn;
-      for (var event in bound) {
-        var group = (events[event] || (events[event] = []));
-        if (revert) {
-          var i = group.indexOf(bound[event]);
-          if (i > -1) group.slice(i, 1);
-        } else group.push(bound[event])
-      }
-      var target = LSDEvents.Targets[name];
-      if (target)
-        if (target === true) {
-          if (this.properties[name]) this.properties[name][revert ? 'removeEvents' : 'addEvents'](bound);
-        } else if (target.call) {
-          if ((target = target.call(this))) 
-            for (var event in bound) LSDEvents.setEvent.call(target, event, bound[event], revert);
-        } else {
-          if (initial && target.events) {
-            LSDEvents.watchEventTarget.call(this, name, function(object, state) {
-              LSDEvents.setStoredEvents.call(object, events, state, this);
-            })
-          }
-          if (target.getter && this[target.getter]) this[target.getter][revert ? 'removeEvents' : 'addEvents'](bound);
-        }
-      return this;
-    }
-  },
-  
-  setEvents: function(events, revert) {
-    for (var type in events) LSDEvents.setEvent.call(this, type, events[type], revert);
-    return this;
-	},
-	
-  addEvent: function(name, fn) {
-    return LSDEvents.setEvent.call(this, name, fn);
-  },
-  
-  addEvents: function(events) {
-    for (var type in events) LSDEvents.setEvent.call(this, type, events[type]);
-    return this;
-  },
-  
-  removeEvent: function(name, fn) {
-    return LSDEvents.setEvent.call(this, name, fn, true);
-  },
-  
-  removeEvents: function(events) {
-    for (var type in events) LSDEvents.setEvent.call(this, type, events[type], true);
-    return this;
-  },
-  
-  setEventsByRegister: function(name, state, events) {
-    var register = this.$register;
-    if (!register) register = this.$register = {};
-    if (register[name] == null) register[name] = 0;
-    switch (register[name] += (state ? 1 : -1)) {
-      case 1:
-        if (events) this.addEvents(events)
-        else if (this.events) LSDEvents.setStoredEvents.call(this, this.events[name], true);
-        return true;
-      case 0:
-        if (events) this.removeEvents(events)
-        else if (this.events) LSDEvents.setStoredEvents.call(this, this.events[name], false);
-        return false;
-    }
-  },
-  
-  fireEvent: function(type, args, delay){
-    var events = this.$events[type];
-    if (!events) return this;
-    for (var i = 0, j = events.length, fn; i < j; i++) {
-      if (!(fn = events[i])) continue;
-      if (fn.indexOf) fn = this[fn];
-      if (!delay) {
-        if (!method) var method = (args && args.hasOwnProperty('length') && (args.push || args.hasOwnProperty('callee'))) ? 'apply' : 'call';
-        fn[method](this, args);
-      } else fn.delay(delay, this, args);
-    }
-    return this;
-  },
-  
-  dispatchEvent: function(type, args){
-    for (var node = this; node; node = node.parentNode) {
-      var events = node.$events[type];
-      if (!events) continue;
-      if (!method) var method = (args && args.hasOwnProperty('length') && (args.push || args.hasOwnProperty('callee'))) ? 'apply' : 'call';
-      for (var i = 0, j = events.length, fn; i < j; i++)
-        if ((fn = events[i])) fn[method](node, args);
-    }
-    return this;
-  },
-  
-  captureEvent: function(type, args) {
-    var events = this.$events[type];
-    if (!events) return;
-    for (var i = 0, j = events.length, event; i < j; i++) {
-      if (!(event = events[i])) continue;
-      if (!method) var method = (args && args.hasOwnProperty('length') && (args.push || args.hasOwnProperty('callee'))) ? 'apply' : 'call';
-      var result = event[method](this, args);
-      if (result != null) return result;
-    }
-  },
-  
-  bind: function(method) {
-    if (method.call) {
-      var name = method.BINDUID || (name = method.BINDUID = ++UID);
-    } else if (method.match) {
-      var name = method;
-      method = this[name];
-    } else {
-      var result = {};
-      for (var name in method) {
-        var value = method[name];
-        if (!value || value.call) result[name] = value;
-        else if (value.indexOf) result[name] = LSDEvents.bind.call(this, value);
-        else result[name] = LSDEvents.bind.call(this, value);
-      }
-      return result;
-    }
-    var bind = this;
-    if (!this.$bound) this.$bound = {};
-    return this.$bound[name] || (this.$bound[name] = function() {
-      var fn = method || bind[name];
-      if (fn) return fn.apply(bind, arguments);
-    });
-  }
-});
-/*
-  Inject generic methods into the module prototype
-*/
-['addEvent',  'addEvents', 'removeEvent', 'removeEvents', 
- 'fireEvent', 'captureEvent', 'dispatchEvent',
- 'bind'].each(function(method) {
-  LSDEvents.implement(method, LSDEvents[method]);
-});
-
 /*
   Target system re-routes event groups to various objects.  
   

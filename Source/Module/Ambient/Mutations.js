@@ -18,6 +18,16 @@ provides:
 ...
 */
 
+LSD.Module.Mutations = LSD.Struct({
+  
+});
+
+LSD.Module.Mutations.implement({
+  onChange: function() {
+    
+  }
+})
+
 LSD.Module.Mutations = new Class({
   constructors: {
     mutations: function() {
@@ -37,12 +47,9 @@ LSD.Module.Mutations = new Class({
     group.push([selector, callback]);
   },
   
-  unmutate: function(selector, callback, iterator) {
+  unmutate: function(selector, callback) {
     if (selector.indexOf) selector = LSD.Slick.parse(selector);
     if (selector.expressions) selector = selector.expressions[0][0];
-    if (iterator === true) iterator = function(widget) {
-      if (widget.match(selector)) callback(widget, false);
-    };
     var group = this.mutations[selector.combinator][selector.tag];
     for (var i = group.length; i--;) {
       var fn = group[i][1]; 
