@@ -149,8 +149,8 @@ LSD.Mixin.Fieldset = new Class({
       }
     }.bind(this)
     callback._callback = this;
-    this.fields.set(name, widget)
-    this.values.set(name, widget.getValue())
+    if (LSD.Mixin.Command.getCommandType.call(widget) == 'command')
+      this.values.set(name, widget.getValue());
     widget.states.watch('checked', callback);
     var key = widget.lsd + ':value:callback'
     var callback = this.retrieve(key);
@@ -163,6 +163,7 @@ LSD.Mixin.Fieldset = new Class({
       this.store(key, callback)
     }
     widget.addEvent('change', callback);
+    this.fields.set(name, widget)
   },
   
   getParams: function(object) {
@@ -179,11 +180,9 @@ LSD.Mixin.Fieldset = new Class({
   removeField: function(widget) {
     var name = widget.attributes.name;
     if (!name) return;
+    widget.states.unwatch('checked', this);
     this.fields.unset(name, widget)
-    if (LSD.Mixin.Command.getCommandType.call(this) == 'command')
-      this.values.unset(name, widget.getValue())
-    else
-      widget.states.unwatch('checked', this);
+    this.values.unset(name, widget.getValue());
     var key = widget.lsd + ':value:callback'
     var callback = this.retrieve(key);
     if (callback) widget.removeEvent('change', callback);
