@@ -48,6 +48,11 @@ LSD.Module.Events.implement({
     return b;
   },
   
+  /*
+    A special method that allows events module to take control back
+    when a data flows through one of the sibling modules
+  */
+  
   delegate: function(object, key, value, state, old) {
     switch (object.nodeType) {
       case 1:
@@ -104,49 +109,6 @@ LSD.Module.Bound.prototype.get = function(name) {
   |            | with underscore is auto-applied    |
   
 */
-LSDEvents.Targets = {
-  self: function() { 
-    return this
-  },
-  window: function() {
-    return window;
-  },
-  mobile: function() {
-    return this;
-  },
-  element: true,
-  document: true,
-  parent: true,
-  root: true
-};
-
-LSDEvents.States = {
-  Positive: {
-    disabled: 'disabled',
-    focused: 'focused'
-  },
-  Negative: {
-    enabled: 'disabled',
-    blured: 'focused'
-  }
-};
-
-!function(Known, Positive, Negative) {
-  Object.each(Object.append({}, Positive, Negative), function(name, condition) {
-    var events = {}, positive = !!Positive[name], state = Known[name];
-    events[state[!positive ? 'enabler' : 'disabler']] = true;
-    events[state[ positive ? 'enabler' : 'disabler']] = false;
-    LSDEvents.Targets[condition] = {
-      getter: false,
-      condition: function() {
-        return positive ^ this[state && state.property || name]
-      },
-      events: events
-    }
-  });
-}(LSD.States, LSDEvents.States.Positive, LSDEvents.States.Negative);
-
-
 /*
   Defines special *on* pseudo class for events used for
   event delegation. The difference between usual event 
@@ -165,33 +127,5 @@ DOMEvent.definePseudo('on', function(split, fn, args){
     return;        
   }
 });
-
-LSD.Options.events = {
-  add: 'addEvent',
-  remove: 'removeEvent',
-  iterate: true
-};
-
-Class.Mutators.$events = function(events) {
-  var category = this.prototype.$events || (this.prototype.$events = {});
-  for (var name in events) {
-    var type = category[name] || (category[name] = []);
-    type.push.apply(type, events[name]);
-  }
-};
-
-Class.Mutators.events = function(events) {
-  var category = this.prototype.events || (this.prototype.events = {});
-  for (var label in events) {
-    var group = events[label];
-    var type = category[label] || (category[label] = {});
-    for (var name in group) {
-      var stored = type[name] || (type[name] = []);
-      var value = group[name];
-      stored.push.apply(stored, group[name]);
-    }
-  }
-};
-
 
 }();

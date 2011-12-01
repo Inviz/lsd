@@ -20,6 +20,91 @@ provides:
 ...
 */
 
+!function(Allocations) {
+  
+}(LSD.Allocatioms || (LSD.Allocations = {}));
+
+LSD.Allocations = Object.append({
+  
+  lightbox: {
+    source: 'body[type=lightbox]'
+  },
+  
+  dialog: {
+    multiple: true,
+    source: 'body[type=dialog]',
+    options: function(options, kind) {
+      if (kind) return {attributes: {kind: kind}}
+    }
+  },
+  
+  menu: {
+    source: 'menu[type=context]'
+  },
+  
+  scrollbar: {
+    source: 'scrollbar'
+  },
+  
+  container: {
+    source: '.container',
+    proxy: {
+      type: 'promise',
+      mutation: true,
+      priority: -1,
+      rewrite: false
+    }
+  },
+  
+  message: {
+    source: 'p.message',
+    parent: 'document',
+    options: function(options, type, message) {
+      var opts = {}
+      opts.content = message;
+      if (type) opts.classes = Array.object(type);
+      return opts;
+    }
+  },
+  
+  editableField: {
+    options: function(options, type, name) {
+      return Object.merge(
+        {source: type == 'area' ? 'textarea' : ('input' + (type ? '[type=' + type : ']'))}, 
+        name ? {attributes: {name: name}} : null
+      )
+    }
+  },
+  
+  input: function(options, type, name) {
+    return new Element('input', Object.merge({
+      type: type || 'text',
+      name: name
+    }, options));
+  },
+  
+  submit: function(options) {
+    var widget = this;
+    return new Element('input', Object.merge({
+      type: 'submit',
+      styles: {
+        width: 1,
+        height: 0,
+        margin: 0,
+        display: 'block',
+        border: 0,
+        padding: 0,
+        overflow: 'hidden',
+        position: 'absolute'
+      }
+    }, options));
+  }
+}, LSD.Allocations)
+
+LSD.Module.Allocations = LSD.Struct({
+  
+});
+
 LSD.Module.Allocations = new Class({
   constructors: {
     allocations: function() {
@@ -131,16 +216,6 @@ LSD.Module.Allocations = new Class({
     var source = options.source;
     if (source && source.call) options.source = source = source.call(this, kind, options);
     var parent = options.parent ? (options.parent.call ? options.parent.call(this) : options.parent) : this;
-    //switch (parent) {
-    //  case "parent":
-    //    parent = this.parentNode;
-    //    break;
-    //  case "root":
-    //    parent = this.root;
-    //    break;
-    //  case "document":
-    //    parent = document.body;
-    //}
     if (!parent.lsd) parent = [this, parent];
     options.parent = parent.push ? [].concat(parent) : parent;
     var callbacks;
@@ -226,80 +301,3 @@ LSD.Module.Allocations.compile = function(type, classes, attributes, pseudos) {
   if (kind) result.kind = kind;
   return result;
 }
-
-LSD.Allocations = {
-  
-  lightbox: {
-    source: 'body[type=lightbox]'
-  },
-  
-  dialog: {
-    multiple: true,
-    source: 'body[type=dialog]',
-    options: function(options, kind) {
-      if (kind) return {attributes: {kind: kind}}
-    }
-  },
-  
-  menu: {
-    source: 'menu[type=context]'
-  },
-  
-  scrollbar: {
-    source: 'scrollbar'
-  },
-  
-  container: {
-    source: '.container',
-    proxy: {
-      type: 'promise',
-      mutation: true,
-      priority: -1,
-      rewrite: false
-    }
-  },
-  
-  message: {
-    source: 'p.message',
-    parent: 'document',
-    options: function(options, type, message) {
-      var opts = {}
-      opts.content = message;
-      if (type) opts.classes = Array.object(type);
-      return opts;
-    }
-  },
-  
-  editableField: {
-    options: function(options, type, name) {
-      return Object.merge(
-        {source: type == 'area' ? 'textarea' : ('input' + (type ? '[type=' + type : ']'))}, 
-        name ? {attributes: {name: name}} : null
-      )
-    }
-  },
-  
-  input: function(options, type, name) {
-    return new Element('input', Object.merge({
-      type: type || 'text',
-      name: name
-    }, options));
-  },
-  
-  submit: function(options) {
-    var widget = this;
-    return new Element('input', Object.merge({
-      type: 'submit',
-      styles: {
-        width: 1,
-        height: 0,
-        margin: 0,
-        display: 'block',
-        border: 0,
-        padding: 0,
-        overflow: 'hidden',
-        position: 'absolute'
-      }
-    }, options));
-  }
-};
