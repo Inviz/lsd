@@ -23,6 +23,141 @@ provides:
 
 !function() {
   
+  
+LSD.Module.Expectations = LSD.Struct.Group({
+  'pseudos': '.pseudos',
+  'attributes': '.attributes',
+  'classes': '.classes',
+  'properties': '.properties',
+  'document': '.document',
+  'root': '.root',
+});  
+/*
+  Expectation observes single selector expression. 
+  
+  Selector expression (e.g. `strong.important`) consists
+  of a part that rarely changes in life time of a node
+  (`strong` tag name) and another part that is dynamic
+  (a class name `important` may be easily removed from 
+  a node)
+  
+  The idea is to split the selector bit to static and dynamic
+  parts. The widget that is *expect*ing the selector, groups
+  his expectations by tag name. Every node inserted into
+  that element or its children will pick up expectations
+  related to it, thus matching static part of a selector
+  - tag name and combinator. 
+  
+  Then, dynamic part kicks in - a node itself observes 
+  the state and fires callbacks when classes, pseudo 
+  classes or attributes are changed.
+*/
+LSD.Module.Expectations.implement({
+  onChange: function(expression, callback, state, old, memo) {
+    if (typeof expression == 'string') expression = Slick.parse(key).expressions[0][0];
+    var storage = this.hash(expression);
+    /*
+      Selector without combinator,
+      depends on state of current widget.
+    */
+    if (!expression.combinator || expression.combinator == '&') {
+      for (var types = ['pseudos', 'classes', 'attributes'], type, i = 0; type = types[i++];) {
+        var values = selector[type];
+        if (values) for (var j = 0, value; (value = values[j++]) && (value = value.key || value.value);) {
+          if (state) {
+            var kind = storage[type];
+            if (!kind) kind = memo[type] = {};
+            var group = kind[value];
+            if (!group) group = kind[value] = [];
+            group.push([selector, callback]);
+          } else {
+            this._remove(group[bit.key || bit.value]);
+          }
+        }
+      }
+    } else {
+      if (state) {
+        if (!selector.structure) {
+          var separated = separate(selector);
+          selector.structure = { Slick: true, expressions: [[separated.structure]] }
+          if (separated.state) selector.state = separated.state;
+        }
+        if (this.document && this.document.documentElement) this.getElements(selector.structure).each(function(widget) {
+          if (selector.state) widget.expect(selector.state, callback);
+          else callback.call(widget, widget, true);
+        });
+      } else {
+        if (this.document) {
+          if (!selector.structure) {
+            var separated = separate(selector);
+            selector.structure = { Slick: true, expressions: [[separated.structure]] }
+            if (separated.state) selector.state = separated.state;
+          }
+          this.getElements(selector.structure).each(function(widget) {
+            if (selector.state) widget.unexpect(selector.state, callback);
+            if (iterator) iterator(widget)
+          });
+        }
+        remove(this.expectations[index][index == 'id' ? id : selector.tag], callback);
+      }
+    }
+  },
+  _hash: function(expression) {
+    if (typeof expression == 'string') expression = LSD.Slick.parse(key).expressions[0][0];
+    var storage = this._storage || (this._storage = {})
+    var id = expression.id, tag = expression.tag, combinator = expression.combinator || ' '
+    if (id && combinator == ' ') return (storage.id || (storage.id = {}))[id] || (storage.id[id] = [])
+    else return (storage[combinator] || (storage[combinator] = {}))[tag] || (storage.id[tag] = []);
+  },
+  _remove: function(array, callback) {
+    if (array) for (var i = array.length; i--;) {
+      var fn = array[i][1]; 
+      if (fn == callback || fn.callback == callback) {
+        array.splice(i, 1);
+        break;
+      }
+    }
+  }
+});
+
+LSD.Module.Matches = LSD.Struct.Group({
+  'expectations': '.expectations'
+  
+});
+
+LSD.Module.Matches.implement({
+  onChange: function(name, value, state, old, memo) {
+    if (typeof expression == 'string') expression = Slick.parse(key).expressions[0][0];
+    if (selector.indexOf) selector = LSD.Slick.parse(selector);
+    if (state) {
+      if (typeof callback != 'function')
+        return this.test(selector);
+      if (selector.indexOf) selector = LSD.Slick.parse(selector);
+      if (!depth) depth = 0;
+      selector.expressions.each(function(expressions) {
+        var matcher = function(widget, state) {
+          if (expressions[depth + 1]) widget.matches[state ? 'set' : 'unset'](selector, callback, depth + 1)
+          else callback(widget, state)
+        };
+        matcher.callback = callback;
+        this.expectations.set(expressions[depth], matcher);
+      }, this);
+    } else {
+      if (!depth) depth = 0;
+      selector.expressions.each(function(expressions) {
+        this.expectations.unset(expressions[depth], callback, false, function(widget) {
+          if (expressions[depth + 1]) widget.unmatch(selector, callback, depth + 1)
+          else callback(widget, false)
+        });
+      }, this);
+    }
+  }
+})
+
+
+
+  
+  
 var Expectations = LSD.Module.Expectations = new Class({
   
   constructors: {
@@ -46,195 +181,7 @@ var Expectations = LSD.Module.Expectations = new Class({
     return (this.expectations.tag && this.expectations.tag[LSD.toLowerCase(tag)]) || [];
   },
   
-  /*
-    Expect processes a single step in a complex selector.
-    
-    Each of those bits (e.g. strong.important) consists 
-    pieces that can not be cnahged in runtime (tagname)
-    and other dynamic parts (classes, pseudos, attributes).
-    
-    The idea is to split the selector bit to static and dynamic
-    parts. The widget that is *expect*ing the selector, groups
-    his expectations by tag name. Every node inserted into
-    that element or its children will pick up expectations
-    related to it, thus matching static part of a selector
-    - tag name and combinator. 
-    
-    It's only a matter of matching a dynamic part then. 
-    - classes, pseudos and attributes.
-  */
-  expect: function(selector, callback, self) {
-    if (selector.indexOf) selector = LSD.Slick.parse(selector);
-    if (selector.expressions) selector = selector.expressions[0][0];
-    if (!this.expectations) this.expectations = {};
-    var id = selector.id, combinator = selector.combinator;
-    switch (combinator) {
-      case '&':
-        self = true;
-        break;
-      case '&&':
-        return Expectations.setRootExpectation.call(this, selector, callback, true);
-    }
-    var index = self ? 'self' : (combinator == ' ' && id) ? 'id' : combinator || 'self'; 
-    var expectations = this.expectations[index];
-    if (!expectations) expectations = this.expectations[index] = {};
-    if (selector.combinator && !self) {
-      /*
-        Given selector has combinator.
-        Finds related elements and passes expectations to them.
-      */
-      if (!selector.structure) {
-        var separated = separate(selector);
-        selector.structure = { Slick: true, expressions: [[separated.structure]] }
-        if (separated.state) selector.state = separated.state;
-      }
-      var key = (index == 'id') ? id : selector.tag;
-      var group = expectations[key];
-      if (!group) group = expectations[key] = [];
-      group.push([selector, callback]);
-      var state = selector.state;
-      if (this.document && this.document.documentElement) this.getElements(selector.structure).each(function(widget) {
-        if (state) widget.expect(state, callback);
-        else callback.call(widget, widget, true);
-      });
-    } else {
-      /*
-        Selector without combinator,
-        depends on state of current widget.
-      */
-      for (var types = ['pseudos', 'classes', 'attributes'], type, i = 0; type = types[i++];) {
-        var values = selector[type];
-        if (values) values: for (var j = 0, value; (value = values[j++]) && (value = value.key || value.value);) {
-          var kind = expectations[type];
-          if (!kind) kind = expectations[type] = {};
-          var group = kind[value];
-          if (!group) group = kind[value] = [];
-          group.push([selector, callback]);
-        }
-      }
-      if ((this.tagName || this.source) && this.match(selector)) callback.call(this, this, true);
-    }
-  },
-  
-  unexpect: function(selector, callback, self, iterator) {
-    if (selector.indexOf) selector = LSD.Slick.parse(selector);
-    if (selector.expressions) selector = selector.expressions[0][0];
-    if (iterator === true) iterator = function(widget) {
-      if (widget.match(selector)) callback(widget, false);
-    };
-    var id = selector.id, combinator = selector.combinator;
-    switch (combinator) {
-      case '&':
-        self = true;
-        break;
-      case '&&':
-        return Expectations.setRootExpectation.call(this, selector, callback, false, iterator);
-    }
-    if (combinator && !self) {
-      var id = selector.id;
-      var index = (combinator == ' ' && id) ? 'id' : combinator;
-      remove(this.expectations[index][index == 'id' ? id : selector.tag], callback);
-      if (this.document) {
-        if (!selector.structure) {
-          var separated = separate(selector);
-          selector.structure = { Slick: true, expressions: [[separated.structure]] }
-          if (separated.state) selector.state = separated.state;
-        }
-        this.getElements(selector.structure).each(function(widget) {
-          if (selector.state) widget.unexpect(selector.state, callback);
-          if (iterator) iterator(widget)
-        });
-      }
-    } else {
-      if (iterator) iterator(this);
-      for (var types = ['pseudos', 'classes', 'attributes'], type, i = 0; type = types[i++];) {
-        var bits = selector[type], group = this.expectations.self[type];
-        if (bits) for (var j = 0, bit; bit = bits[j++];) remove(group[bit.key || bit.value], callback);
-      }
-    }
-  },
-  
-  match: function(selector, callback, depth) {
-    /*
-      Add compatability with element.match(selector) API
-      that returns true or false and does not watch anything
-    */
-    if (typeof callback != 'function')
-      return this.test(selector);
-    if (selector.indexOf) selector = LSD.Slick.parse(selector);
-    if (!depth) depth = 0;
-    selector.expressions.each(function(expressions) {
-      var matcher = function(widget, state) {
-        if (expressions[depth + 1]) widget[state ? 'match' : 'unmatch'](selector, callback, depth + 1)
-        else callback(widget, state)
-      };
-      matcher.callback = callback;
-      this.expect(expressions[depth], matcher);
-    }, this);
-  },
-  
-  unmatch: function(selector, callback, depth) {
-    if (selector.indexOf) selector = LSD.Slick.parse(selector);
-    if (!depth) depth = 0;
-    selector.expressions.each(function(expressions) {
-      this.unexpect(expressions[depth], callback, false, function(widget) {
-        if (expressions[depth + 1]) widget.unmatch(selector, callback, depth + 1)
-        else callback(widget, false)
-      });
-    }, this);
-  },
-  
-  use: function() {
-    var selectors = Array.flatten(arguments);
-    var widgets = []
-    var callback = selectors.pop();
-    var unresolved = selectors.length;
-    selectors.each(function(selector, i) {
-      var matcher = function(widget, state) {
-        if (state) {
-          if (!widgets[i]) {
-            widgets[i] = widget;
-            unresolved--;
-            if (!unresolved) callback.apply(this, widgets.concat(state));
-          }
-        } else {
-          if (widgets[i]) {
-            if (!unresolved) callback.apply(this, widgets.concat(state));
-            delete widgets[i];
-            unresolved++;
-          }
-        }
-      }
-      this.match(selector, matcher);
-    }, this);
-  }
 });
-
-Expectations.setRootExpectation = function(exp, callback, state, iterator) {
-  if (state) {
-    var finder = function(widget, state) {
-      Expectations.advanceRootExpectation(exp, widget, callback, state);
-    };
-    finder.callback = callback;
-    return this.expect('::root', finder);
-  } else {
-    return this.unexpect('::root', callback, null, function(widget) {
-      Expectations.advanceRootExpectation(exp, widget, callback, false, iterator);
-    });
-  }
-};
-
-Expectations.advanceRootExpectation = function(exp, widget, callback, state, iterator) {
-  if (exp.tag == '*' && !exp.classes && !exp.attributes && !exp.id) {
-    if (state) widget.expect({combinator: ' ', pseudos: exp.pseudos}, callback, true);
-    else widget.unexpect({combinator: ' ', pseudos: exp.pseudos}, callback, true, function(widget) {
-      callback(widget, false);
-    })
-  } else {  
-    var expression = {combinator: ' ', tag: exp.tag, classes: exp.classes, pseudos: exp.pseudos, attributes: exp.attributes, id: exp.id};
-    widget[state ? 'expect' : 'unexpect'](expression, callback, null, iterator);
-  }
-};
 
 Expectations.relate = function(object, name, subject, state) {
   if (state) {
@@ -388,50 +335,5 @@ Expectations.Properties = {
 
 LSD.Module.Events.addEvents.call(Expectations.prototype, Expectations.events);
 
-LSD.Module.Events.Targets.expected = function() {
-  var self = this, Targets = LSD.Module.Events.Targets;
-  return {
-    addEvent: function(key, value) {
-      if (!self.matchers) self.matchers = {};
-      self.matchers[key] = function(widget, state) {
-        value = Object.append({}, value)
-        for (var name in value) {
-          if (typeof value[name] == 'object') continue;
-          widget.addEvent(name, value[name]);
-          delete value[name];
-        }
-        for (var name in value) {
-          target = (Targets[name] || Targets.expected).call(widget);
-          target[state ? 'addEvents' : 'removeEvents'](value);
-          break;
-        }
-      };
-      self.match(key, self.matchers[key]);
-    },
-    removeEvent: function(key, event) {
-      self.unmatch(key, self.matchers[key]);
-    }
-  }
-};
-
-LSD.Options.expects = {
-  add: function(selector, callback) {
-    this.expect(selector, callback, true);
-  },
-  remove: function(selector, callback) {
-    this.unexpect(selector, callback, true);
-  },
-  iterate: true,
-  process: 'bind'
-};
-
-LSD.Options.matches = Object.append({}, LSD.Options.expects, {
-  add: function(selector, callback) {
-    this.match(selector, callback);
-  },
-  remove: function(callback) {
-    this.match(selector, callback);
-  }
-});
 
 }();

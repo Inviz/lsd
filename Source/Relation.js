@@ -316,28 +316,10 @@ var Options = LSD.Relation.Options = {
     }
   },
   
-  states: {
-    add: function(widget, states) {
-      var get = states.get, set = states.set, add = states.add, lnk = states.link;
-      if (add) for (var index in add) widget.states.set(index);
-      if (get) for (var from in get) widget.states.match(from, [this.origin.states, get[from]]);
-      if (set) for (var to in set) this.origin.states.match(to, [widget.states, set[to]]);
-      if (lnk) for (var to in lnk) widget.states.match(to, [widget.states, lnk[to]])
-    },
-    remove: function(widget, states) {
-      var get = states.get, set = states.set, add = states.add, lnk = states.link;
-      if (add) for (var index in add) widget.states.unset(index)
-      if (get) for (var from in get) widget.states.unmatch(from, [this.origin.states, get[from]]);
-      if (set) for (var to in set) this.origin.states.unmatch(to, [widget.states, set[to]]);
-      if (lnk) for (var to in lnk) widget.states.unmatch(to, [widget.states, lnk[to]])
-    }
-  },
-  
-  as: {
-    add: function(widget, name) {
+  scope: function(name, state, memo) {
+    if (state) {
       if (!widget[name]) widget[name] = this.origin;
-    },
-    remove: function(widget, name) {
+    } else {
       if (widget[name] == this.origin) delete widget[name];
     }
   },
@@ -348,37 +330,6 @@ var Options = LSD.Relation.Options = {
     },
     remove: function(widget, name) {
       widget[name].erase(this.origin);
-    }
-  },
-  
-  events: {
-    add: function(widget, events) {
-      widget.addEvents(events);
-    },
-    remove: function(widget, events) {
-      widget.removeEvents(events);
-    },
-    process: function(events) {
-      return this.origin.bind(events);
-    }
-  },
-  
-  relations: {
-    add: function(widget, name, relation) {
-      widget.addRelation(name, relation);
-    },
-    remove: function(widget, name, relation) {
-      widget.removeRelation(name, relation);
-    },
-    iterate: true
-  },
-  
-  options: {
-    add: function(widget, options) {
-      widget.setOptions(options.call ? options.call(this.origin) : options);
-    },
-    remove: function(widget, options) {
-      widget.setOptions(options.call ? options.call(this.origin) : options, true);
     }
   },
   

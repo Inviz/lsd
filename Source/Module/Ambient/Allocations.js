@@ -24,6 +24,13 @@ provides:
   
 }(LSD.Allocatioms || (LSD.Allocations = {}));
 
+LSD.Allocation = LSD.Struct({
+  proxy: LSD.Proxy,
+  position: LSD.Position
+})
+
+
+
 LSD.Allocations = Object.append({
   
   lightbox: {
