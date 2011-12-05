@@ -59,7 +59,7 @@ LSD.Mixin.Request = new Class({
         else options.data = Object.merge(options.data || {}, arg);
       } else if (arg.call) var callback = arg;
     }
-    if (options.data) options.data = LSD.Object.toObject(options.data);
+    if (options.data) options.data = LSD.Object.toObject(options.data, true);
     if (!this.request) this.properties.set('request', this.getRequest(options));
     if (callback) this.request.addEvent('complete:once', callback);
     this.fireEvent('send', options);
