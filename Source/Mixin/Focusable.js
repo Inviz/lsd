@@ -77,6 +77,7 @@ LSD.Mixin.Focusable = new Class({
       if (event.event.focused) return;
       event.event.focused = true;
     }
+    if (this.focused) this.focused = false;
     this.focus();
     this.document.activeElement = this;
     return false;
