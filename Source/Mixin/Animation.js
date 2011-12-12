@@ -43,8 +43,10 @@ LSD.Mixin.Animation = new Class({
   },
   
   animate: function(how) {
+    if (how) this.getAnimatedElement().setStyle('display', 'block');
     return this[this.attributes.animation](how).chain(function() {
       if (this.attributes.animation == 'height' && how) this.getAnimatedElement().setStyle('height', 'auto');
+      if (!how) this.getAnimatedElement().setStyle('display', 'none');
       this[how ? 'show' : 'hide']();
     }.bind(this));
   },
