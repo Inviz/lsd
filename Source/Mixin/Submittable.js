@@ -35,7 +35,7 @@ LSD.Mixin.Submittable = new Class({
           as: 'submittable',
           scope: {
             'default': {
-              filter: '[default]'
+              filter: '[-]'
             }
           },
           options: {
@@ -52,12 +52,10 @@ LSD.Mixin.Submittable = new Class({
           },
           callbacks: {
             fill: function() {
-              if (LSD.toLowerCase(this.element.tagName) == 'form')
-                this.properties.watch('rendered', this.bind(LSD.Mixin.Submittable.watchNativeSubmission));
+              this.properties.watch('rendered', this.bind(LSD.Mixin.Submittable.watchNativeSubmission));
             },
             empty: function() {
-              if (LSD.toLowerCase(this.element.tagName) == 'form')
-                this.properties.unwatch('rendered', this.bind(LSD.Mixin.Submittable.watchNativeSubmission));
+              this.properties.unwatch('rendered', this.bind(LSD.Mixin.Submittable.watchNativeSubmission));
             }
           }
         }
@@ -111,10 +109,14 @@ LSD.Mixin.Submittable = new Class({
   its value is used for submission data.
 */
 LSD.Mixin.Submittable.watchNativeSubmission = function(state) {
-  if (state) {
-    this.allocate('submit').inject(this.element, 'top').addEvent('click', this.bind('submit'))
+  if (LSD.toLowerCase(this.element.tagName) == 'form') {
+    if (state) {
+      this.allocate('submit').inject(this.element, 'top').addEvent('click', this.bind('submit'))
+    } else {
+      this.release('submit').dispose().removeEvent('click', this.bind('submit'));
+    }
   } else {
-    this.release('submit').dispose().removeEvent('click', this.bind('submit'));
+    this.element[state ? 'addEvent' : 'removeEvent']('keydown', this.bind(LSD.Mixin.Submittable.listenKeyPress))
   }
   /* 
     novalidate html attribute disables internal form validation 
@@ -122,6 +124,13 @@ LSD.Mixin.Submittable.watchNativeSubmission = function(state) {
     submission without any visual clues otherwise.
   */
   this.element[state ? 'setAttribute' : 'removeAttribute']('novalidate', '');
+};
+
+LSD.Mixin.Submittable.listenKeyPress = function(event) {
+  if (event.key == 'enter') {
+    this.submit()
+    event.preventDefault();
+  }
 };
 
 LSD.Behavior.define(':submittable', 'submittable');
