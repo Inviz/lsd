@@ -43,28 +43,6 @@ Object.append(LSD, {
     return (object.lsd = ++LSD.UID); 
   },
   
-  position: function(box, size, x, y) {
-    var position = {x: 0, y: 0};
-
-    switch (x) {
-      case "left":
-        position.x = 0;
-      case "right":
-        position.x = box.width - size.width;
-      case "center":
-        position.x = (box.width - size.width) / 2;
-    }
-    switch (y) {
-      case "top":
-        position.y = 0;
-      case "bottom":
-        position.y = box.height - size.height;
-      case "center":
-        position.y = (box.height- size.height) / 2;
-    }
-    return position;
-  },
-  
   UID: 0,
   
   slice: (Browser.ie ? function(list, start) {
