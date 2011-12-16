@@ -24,9 +24,10 @@ LSD.Type.Size = new LSD.Object({
     return Math.max(this.styles.minHeight, Math.min(this.styles.maxHeight, value))
   },
   clientHeight: 'height + styles.paddingTop + styles.paddingBottom',
-  offsetHeight: 'clientHeight + styles.borderTopWidth + styles.borderBottomWidth'
+  offsetHeight: 'clientHeight + styles.borderTopWidth + styles.borderBottomWidth',
+  layoutHeight: ''
   width: function(value) {
-    return Math.max(this.styles.minHeight, Math.min(this.styles.maxHeight, value))
+    return Math.max(this.styles.minWidth, Math.min(this.styles.maxWidth, value))
   },
   clientWidth: 'width + styles.paddingLeft + styles.paddingRight',
   offsetHeight: 'clientHeight + styles.borderLeftWidth + styles.borderRightWidth'

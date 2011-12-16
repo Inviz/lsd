@@ -38,8 +38,7 @@ LSD.Mixin.Placeholder = new Class({
       enabled: {
         element: {
           'focus': 'onUnplacehold',
-          'blur': 'onPlacehold',
-          'keypress': 'onUnplacehold'
+          'blur': 'onPlacehold'
         }
       }
     },

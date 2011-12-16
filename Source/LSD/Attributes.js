@@ -1,12 +1,12 @@
 LSD.Attributes = {
   tabindex: Number,
-  width:    'number',
-  height:   'number',
-  readonly: 'boolean',
-  disabled: 'boolean',
-  hidden:   'boolean',
-  checked:  'boolean',
-  multiple:  'boolean',
+  width:    Number,
+  height:   Number,
+  readonly: Boolean,
+  disabled: Boolean,
+  hidden:   Boolean,
+  checked:  Boolean,
+  multiple: Boolean,
   id: function(id) {
     this.id = id;
   },

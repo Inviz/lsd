@@ -133,6 +133,25 @@ LSD.Module.Element = new Class({
     if (classes.length) this.element.className = classes.join(' ');
     if (this.style) for (var property in this.style.element) this.element.setStyle(property, this.style.element[property]);
     this.attach(this.element);
+    
+    var role = LSD.Module.Properties.getRole(this);
+    if (this.role !== role) 
+      this.properties.set('role', role)
+
+    if (this.properties.layout)
+      this.addLayout('options', this.properties.layout, null, {lazy: true});
+
+    if (this.origin && !this.options.clone && this.origin.parentNode && this.origin != this.element) 
+      this.element.replaces(this.origin);
+
+    if (this.options.traverse !== false && !this.options.lazy) {
+      var nodes = LSD.slice((this.origin || this.element).childNodes);
+      var opts = {};
+      if (this.options.context) opts.context = this.options.context;
+      if (this.options.clone) opts.clone = this.options.clone
+      if (nodes.length) this.addLayout('children', nodes, null, opts);
+      this.fireEvent('DOMChildNodesRendered');
+    }
     return this.element;
   },
   
@@ -160,6 +179,8 @@ LSD.Module.Element = new Class({
       this.detach(element);
       element.destroy();
     }
+    if (this.layouts.children) this.removeLayout('children');
+    if (this.layouts.options) this.removeLayout('options');
     return this;
   },
   

@@ -28,26 +28,26 @@ provides:
 LSD.Widget = function(Properties) {
   
   Object.append(Properties, {
-    events:       LSD.Module.Events,
-    states:       LSD.Module.States,
-    pseudos:      LSD.Module.Pseudos,
-    attributes:   LSD.Module.Attributes,
-    classes:      LSD.Module.Classes,
-    dataset:      LSD.Module.Dataset,
-    variables:    LSD.Module.Variables,
-    mixins:       LSD.Module.Mixins,
-    properties:   LSD.Module.Properties,
-    shortcuts:    LSD.Module.Shortcuts,
-    styles:       LSD.Module.Styles,
-    layouts:      LSD.Module.Layout,
-    allocations:  LSD.Module.Allocations,
-    relations:    LSD.Module.Relations,
-    expectations: LSD.Module.Expectations,
-    matches:      LSD.Module.Matches,
-    mutations:    LSD.Module.Mutations,
-    proxies:      LSD.Module.Proxies,
-    layers:       LSD.Module.Layers,
-    shape:        LSD.Module.Shape
+    events:       LSD.Type.Events,
+    states:       LSD.Type.States,
+    pseudos:      LSD.Type.Pseudos,
+    attributes:   LSD.Type.Attributes,
+    classes:      LSD.Type.Classes,
+    dataset:      LSD.Type.Dataset,
+    variables:    LSD.Type.Variables,
+    mixins:       LSD.Type.Mixins,
+    properties:   LSD.Type.Properties,
+    shortcuts:    LSD.Type.Shortcuts,
+    styles:       LSD.Type.Styles,
+    layouts:      LSD.Type.Layout,
+    allocations:  LSD.Type.Allocations,
+    relations:    LSD.Type.Relations,
+    expectations: LSD.Type.Expectations,
+    matches:      LSD.Type.Matches,
+    mutations:    LSD.Type.Mutations,
+    proxies:      LSD.Type.Proxies,
+    layers:       LSD.Type.Layers,
+    shape:        LSD.Type.Shape
   });
   
   return LSD.Struct(Properties);

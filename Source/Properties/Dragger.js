@@ -19,6 +19,66 @@ provides:
 ...
 */
 
+LSD.Property.Dragger = new LSD.Class({
+  Extends: Drag,
+  
+  this.dragger.addEvents({
+    'start': this.onDragStart.bind(this),
+    'complete': this.onDragComplete.bind(this),
+    'cancel': this.onDragComplete.bind(this),
+    'drag': this.onDrag.bind(this)
+  }, true);
+  properties: {
+    element: '.element',
+
+    attached: {
+      src: '.attached',
+      set: function(value) {
+        if (value) {
+          this.attach()
+        } else {
+          this.detach();
+        }
+      }
+    },
+
+    handle: {
+      source: '.handle',
+      set: function(value) {
+        t
+      },
+    
+    }
+  },
+  
+  events: '.events',
+  
+  onStart: function() {
+    this.set('_parent.dragged', true);
+  },
+  
+  onComplete: function() {
+    this.unset('_parent.dragged', true);
+  },
+  
+  onCancel: function() {
+    this.unset('_parent.dragged', true);
+  },
+  
+  onDrag
+  
+  options: {
+    grid: false,
+    style: true,
+    limit: false,
+    handle: false,
+    invert: false,
+    preventDefault: false,
+    stopPropagation: false,
+    modifiers: {x: 'left', y: 'top'}
+  }
+})
+
 LSD.Mixin.Draggable = new Class({
   options: {
     dragger: {
@@ -29,10 +89,6 @@ LSD.Mixin.Draggable = new Class({
       snap: 5,
       style: false,
       container: true,
-      limit: {
-        x: [0, 3000],
-        y: [0, 3000]
-      },
       handle: []
     },
     actions: {
@@ -77,37 +133,8 @@ LSD.Mixin.Draggable = new Class({
   getDragger: function() {
     if (this.dragger) return this.dragger;
     var element = this.element;
-    this.properties.watch('rendered', function(value, state) {
-      if (!value || !state) return;
-      var position = element.getPosition();
-      element.left = position.x - element.getStyle('margin-left').toInt();
-      element.top = position.y - element.getStyle('margin-top').toInt();
-    }.create({delay: 50}));
-    this.dragger = new Drag(element, Object.append(this.options.dragger, this.options.dragger));
-    this.dragger.addEvents(this.events.dragger);
-    this.dragger.addEvents({
-      'start': this.onDragStart.bind(this),
-      'complete': this.onDragComplete.bind(this),
-      'cancel': this.onDragComplete.bind(this),
-      'drag': this.onDrag.bind(this)
-    }, true);
     return this.dragger;
   },
-  
-  onDragStart: function() {
-    this.onStateChange('dragged', true);
-  },
-  
-  onDragComplete: function() {
-    this.onStateChange('dragged', false);
-  },
-  
-  onDrag: function() {
-    this.setStyles({
-      top: this.dragger.value.now.y,
-      left: this.dragger.value.now.x
-    });
-  }
   
 });
 
