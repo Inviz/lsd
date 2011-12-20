@@ -983,9 +983,9 @@ LSD.Layout.prototype = Object.append({
   Combinator methods are used in appendChild/removeChild manipulations.
   All of those (and more) are also implemented for matching in Slick. 
   
-  When the layout is pattern matched, Slick first looks for nodes that
-  satisfy selector expressions with combinator to reuse. But if it does
-  not find those, LSD builds them there.
+  When the layout is matched against pattern, Slick first looks for nodes that
+  satisfy selector expressions to reuse the elements. But if it does
+  not match any element, it builds that element.
   
   Combinators preceeded with exclaimation mark, are Slick's invention.
   It logically inverts the meaning of combinator, so where a `+` means

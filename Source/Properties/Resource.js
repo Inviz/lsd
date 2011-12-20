@@ -11,6 +11,7 @@ requires:
   - LSD.Mixin
   - Resource/*
   - More/URI
+  - LSD.Mixin.Request
   
 provides: 
   - LSD.Mixin.Resource
@@ -30,7 +31,12 @@ LSD.Mixin.Resource = new Class({
     actions: {
       resource: {
         enable: function() {
+          this.pseudos.include('request');
           this.getModel();
+        },
+        
+        disable: function() {
+          this.pseudos.erase('request');
         }
       }
     },
@@ -86,7 +92,11 @@ LSD.Mixin.Resource = new Class({
     if (this.model) return this.model
     this.model = this.getResource().init(this.getResourceID() || this.element);
     var url = this.resource.getFormattedURL(this.model.id ? 'show' : 'index', this.model);
+<<<<<<< Updated upstream:Source/Properties/Resource.js
     //this.setAttribute('href', url);
+=======
+    this.attributes.set('href', url)
+>>>>>>> Stashed changes:Source/Mixin/Resource.js
     return this.model;
   },
   

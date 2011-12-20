@@ -42,7 +42,8 @@ provides:
 */
 
 LSD.Document = LSD.Struct({
-  
+  attributes: 'Attributes',
+  childNodes: 'Children'
 });
 
 
