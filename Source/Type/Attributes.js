@@ -30,12 +30,7 @@ LSD.Module.Attributes.implement({
       if (typeof value != 'undefined') this.dataset[state ? 'set' : 'unset'](name.substring(5), value);
       if (typeof old != 'undefined') this.dataset.unset(name.substring(5), old);
     }
-    this._parent.fireEvent('selectorChange', ['attributes', name, state]);
     return value;
-  },
-  
-  onBeforeChange: function() {
-    this._parent.fireEvent('selectorChange', ['attributes', name, state]);
   }
 });
 
