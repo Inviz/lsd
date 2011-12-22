@@ -41,6 +41,6 @@ LSD.Module.Events.addEvents.call(LSD.Module.Shortcuts.prototype, {
 LSD.Options.shortcuts = {
   add: 'addShortcut',
   remove: 'removeShortcut',
-  //process: 'bind',
+  process: 'bind',
   iterate: true
 };

@@ -68,6 +68,7 @@ sources:
   - Source/Mixin/Invokable.js
   - Source/Mixin/Slider.js
   - Source/Mixin/Date.js
+  - Source/Mixin/Datalist.js
   - Source/Module/Ambient/Allocations.js
   - Source/Module/Ambient/DOM.js
   - Source/Module/Ambient/Selectors.js
