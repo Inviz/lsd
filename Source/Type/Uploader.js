@@ -21,6 +21,28 @@ provides:
 ...
 */
 
+LSD.Mixin.Uploader = new LSD.Class({
+  Extends: Uploader,
+  
+  events: {
+    fileComplete: function() {
+      var blob = this.processStoredBlob(file.response.text);
+      if (blob && !blob.errors) {
+        this.onFileSuccess(file, blob);
+      } else {
+        this.onFileFailure(file, blob || response);
+      }
+    },
+    fileRemove: function() {
+      this.removeBlob(file);
+    },
+    fileProgress: 'onFileProgress',
+    beforeSelect: function() {
+      this.lastUploaderTarget = this.getUploader().target;
+    }
+  }
+})
+
 LSD.Mixin.Uploader = new Class({
   options: {
     actions: {
@@ -42,10 +64,6 @@ LSD.Mixin.Uploader = new Class({
     },
     events: {
       uploader: {
-        fileComplete: 'onFileComplete',
-        fileRemove: 'onFileRemove',
-        fileProgress: 'onFileProgress',
-        beforeSelect: 'onBeforeFileSelect'
       }
     },
     has: {
@@ -88,10 +106,6 @@ LSD.Mixin.Uploader = new Class({
     return this.uploader;
   },
   
-  onBeforeFileSelect: function() {
-    this.lastUploaderTarget =  this.getUploader().target;
-  },
-  
   getUploaderTarget: function() {
     var target = this.options.uploader.target;
     if (target) {
@@ -119,15 +133,6 @@ LSD.Mixin.Uploader = new Class({
   
   getUploaderFileClassBase: function() {
     return LSD.Widget.Filelist.File
-  },
-  
-  onFileComplete: function(file) {
-    var blob = this.processStoredBlob(file.response.text);
-    if (blob && !blob.errors) {
-      this.onFileSuccess(file, blob);
-    } else {
-      this.onFileFailure(file, blob || response);
-    }
   },
   
   processValue: function(blob) {

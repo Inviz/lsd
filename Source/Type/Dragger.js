@@ -34,13 +34,10 @@ LSD.Property.Dragger = new LSD.Class({
   },
 
   exports: {
-    dragged: '.dragged'
-  },
-
-  imports: {
     element: '.element',
     attached: '.attached',
-    handle: '.handle'
+    handle: '.handle',
+    dragged: '.dragged'
   },
   
   properties: {

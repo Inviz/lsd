@@ -1,4 +1,21 @@
-
+LSD.Attributes = {
+  tabindex: Number,
+  width:    Number,
+  height:   Number,
+  readonly: Boolean,
+  disabled: Boolean,
+  hidden:   Boolean,
+  checked:  Boolean,
+  multiple: Boolean,
+  'class': function(value) {
+    value.split(' ').each(this.addClass.bind(this));
+  },
+  style: function(value) {
+    value.split(/\s*;\s*/).each(function(definition) {
+      this.setStyle.apply(this, definition.split(/\s*:\s*/))
+    }, this);
+  }
+};
 
 LSD.Module.Pseudos = LSD.Struct.Stack();
 LSD.Module.Pseudos.implement({
@@ -16,7 +33,7 @@ LSD.Module.Classes.implement({
 })
 
 
-LSD.Module.Attributes = LSD.Struct.Stack();
+LSD.Module.Attributes = LSD.Struct.Stack(LSD.Attributes);
 LSD.Module.Attributes.implement({
   onChange: function(name, value, state, old, memo) {
     if (!memo && LSD.States[name]) this._parent.states[state ? 'include' : 'erase'](name, 'attributes');
@@ -33,8 +50,6 @@ LSD.Module.Attributes.implement({
     return value;
   }
 });
-
-LSD.Attributes = Object.append(, LSD.Attributes);
 
 LSD.Module.Dataset = LSD.Struct.Stack();
 LSD.Module.Variables = LSD.Struct.Stack()
