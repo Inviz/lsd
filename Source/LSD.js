@@ -29,5 +29,6 @@ provides:
 */
 
 var LSD = {
-  Type: {}
+  Type: {},
+  Attributes: {}
 };

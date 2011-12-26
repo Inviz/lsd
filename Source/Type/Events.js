@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Module
+  - LSD.Type
   - Core/Events
   - Core/Element.Event
   - Core/Element.Delegation
@@ -18,14 +18,12 @@ requires:
   - Ext/Element.Properties.widget
 
 provides:
-  - LSD.Module.Events
+  - LSD.Type.Events
 
 ...
 */
-
-!function() {
   
-LSD.Module.Events = LSD.Struct.Group({
+LSD.Type.Events = LSD.Struct.Group({
   'self':         '.',
   'element':      '.element',
   'document':     '.document',
@@ -36,7 +34,7 @@ LSD.Module.Events = LSD.Struct.Group({
   'expectations': '.expectations'
 });
 
-LSD.Module.Events.implement({
+LSD.Type.Events.implement({
   fire: function(key, a, b, c, d, e) {
     var collection = this[key];
     if (collection) for (var i = 0, j = collection.length, fn; i < j; i++) {
@@ -70,8 +68,8 @@ LSD.Module.Events.implement({
 
 
 
-LSD.Module.Bound = LSD.Struct();
-LSD.Module.Bound.prototype.get = function(name) {
+LSD.Type.Bound = LSD.Struct();
+LSD.Type.Bound.prototype.get = function(name) {
   if (this[name]) return this[name];
   var that = this;
   return (this[name] = function() {
@@ -127,5 +125,3 @@ DOMEvent.definePseudo('on', function(split, fn, args){
     return;        
   }
 });
-
-}();

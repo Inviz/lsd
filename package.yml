@@ -23,4 +23,5 @@ sources:
   - Source/Tools/Require.js
   - Source/Tools/Logger.js
   - Source/Type/Children.js
+  - Source/Type/States.js
   - Source/LSD.js
