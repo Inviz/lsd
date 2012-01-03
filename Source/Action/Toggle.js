@@ -26,14 +26,14 @@ LSD.Action.Toggle = LSD.Action.build({
     if (!target || target == this.invoker || target.element == this.invoker) return;
     var widget = LSD.Module.DOM.find(target, true);
     if (widget) target = widget;
-    if (!target.checked) (target.click || target.check).apply(target, Array.prototype.slice.call(arguments, 1));
+    if (!target.checked) (target.check || target.click).apply(target, Array.prototype.slice.call(arguments, 1));
   },
   
   disable: function(target) {
     if (!target || target == this.invoker || target.element == this.invoker) return;
     var widget = LSD.Module.DOM.find(target, true);
     if (widget) target = widget;
-    if (target.checked) (target.click || target.uncheck).apply(target, Array.prototype.slice.call(arguments, 1));
+    if (target.checked) (target.uncheck || target.click).apply(target, Array.prototype.slice.call(arguments, 1));
   },
   
   getState: function(target, name, state) {
