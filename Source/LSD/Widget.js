@@ -25,19 +25,6 @@ provides:
   
 /*
   ## Default options:
-  
-  ### key: 'widget'
-  
-  The key in element storage that widget will use to store itself.
-  When set to false, widget is not written into element storage.
-  
-  ### destructable: true
-  
-  If a widget that was attached to element is getting attached to
-  another element, it will destroy the old element.
-  If a widget is as not `destructable`, it will only detach
-  event handlers.
-  
   ### inline: null
   
   Inline option makes the widget render `<div>` element when true,
@@ -45,70 +32,217 @@ provides:
   `inline` option is not set
 */
 
-LSD.Widget = new LSD.Struct(LSD.Properties);
+LSD.Widget = new LSD.Struct.Stack(LSD.Properties);
+LSD.Widget.Properties = {
+  context: function(value, state, old) {
+    var source = this.source;
+    if (source) this.unset('source', source);
+    if (state) {
+      if (typeof value == 'string') {
+        var camel = LSD.toClassName(value);
+        this.factory = LSD.global[this.options.namespace][camel];
+        if (!this.factory) throw "Can not find LSD.Type in " + ['window', this.options.namespace, camel].join('.');
+      } else {
+        this.factory = value;
+      }
+    }
+    if (source) this.set('source', source);
+  },
+  tagName: function(value, state, old) {
+    if (!this.options.source && this.prepared) {
+      if (state && value) this.set('source', value)
+      if (old) this.unset('source', old);
+    }
+    var previous = this.previousSibling, next = this.nextSibling, parent = this.parentNode;
+    if (previous) {
+      if (tag) {
+        previous.matches.set('!+' + tag, this, null, null, true);
+        previous.matches.set('++' + tag, this, null, null, true);
+      }
+      if (old) {
+        previous.matches.unset('!+' + old, this, null, null, true);
+        previous.matches.unset('++' + old, this, null, null, true);
+      }
+      for (var sibling = previous; sibling; sibling = sibling.previousSibling) {
+        if (tag) {
+          sibling.matches.set('!~' + tag, this, null, null, true);
+          sibling.matches.set('~~' + tag, this, null, null, true);
+        }
+        if (old) {
+          sibling.matches.unset('!~' + old, this, null, null, true);
+          sibling.matches.unset('~~' + old, this, null, null, true);
+        }
+      }
+    }
+    if (next) {
+      if (tag) {
+        next.matches.set('+' + tag, this, null, null, true);
+        next.matches.set('++' + tag, this, null, null, true);
+      }
+      if (old) {
+        next.matches.unset('+' + old, this, null, null, true);
+        next.matches.unset('++' + old, this, null, null, true);
+      }
+      for (var sibling = next; sibling; sibling = sibling.nextSibling) {
+        if (tag) {
+          sibling.matches.set('~' + tag, this, null, null, true);
+          sibling.matches.set('~~' + tag, this, null, null, true);
+        }
+        if (old) {
+          sibling.matches.unset('~' + old, this, null, null, true);
+          sibling.matches.unset('~~' + old, this, null, null, true);
+        }
+      }
+    }
+    if (parent) {
+      if (tag) parent.matches.set('>' + tag, this, null, null, true);
+      if (old) parent.matches.unset('>' + old, this, null, null, true);
+      for (sibling = parent; sibling; sibling = parent.parentNode) {
+        if (tag) sibling.matches.set(tag, this, null, null, true);
+        if (old) sibling.matches.unset(old, this, null, null, true);
+      }
+    }
+  },
+  localName: function(value, state, old) {
+    
+  },
+  inline: function(value, state, old) {
+    if (state) this.set('localName', value ? 'span' : 'div', true);
+    if (typeof old != 'undefined') this.unset('localName', old ? 'span' : 'div', true);
+  },
+  source: function(value, state, old) {
+    if (state && value) {
+      var role = LSD.Module.Properties.getRole(this);
+      if (role && this.role === role) return;
+    }
+    if (this.prepared) {
+      if (state) {
+        this.set('role', role);
+      } else if (this.role) {
+        this.unset('role', this.role);
+      }
+    }
+  },
+  role: function(value, state, old) {
+    if (state) {
+      if (role == null) role = this.getRole(this)
+      if (role) this.mixin(role);
+      return role;
+    } else {
+      this.unmix(role);
+    }
+  },
+  scope: function(value, state, old) {
+    if (state) return LSD.Script.Scope.setScope(this, value)
+    else if (old) LSD.Script.Scope.unsetScope(this, value);
+  },
+  element: function() {
+    if (this.key !== false) 
+      Element[state ? 'store' : 'eliminate'](this.element, this.key || 'widget', this);
+  },
+  /*
+    Extract and apply options from elements
+  */
+  origin: function(value, state, old, memo) {
+    if (state) {
+      if (!this.extracted && this.extracted !== false) {
+        this.extracted = LSD.Module.Element.extract(value, this);
+        this.mix(this.extracted, null, memo);
+      }
+    }
+    if (state ? old : value) {
+      if (this.extracted) {
+        this.mix(this.extracted, null, memo, false);
+        delete this.extracted;
+      }
+    }
+  },
+  previousSibling: function(value, old) {
+    if (value) {
+      value.matches.set('!+' + this.tagName, this, null, null, true);
+      value.matches.set('!+', this, null, null, true);
+      value.matches.set('++' + this.tagName, this, null, null, true);
+      value.matches.set('++', this, null, null, true);
+      for (var sibling = this; sibling = sibling.previousSibling;) {
+        sibling.matches.set('!~' + this.tagName, this, null, null, true);
+        sibling.matches.set('!~', this, null, null, true);
+        sibling.matches.set('~~' + this.tagName, this, null, null, true);
+        sibling.matches.set('~~', this, null, null, true);
+      }
+    }
+    if (old) {
+      value.matches.unset('!+' + this.tagName, this, null, null, true);
+      value.matches.unset('!+', this, null, null, true);
+      value.matches.unset('++' + this.tagName, this, null, null, true);
+      value.matches.unset('++', this, null, null, true);
+      for (var sibling = this; sibling = sibling.previousSibling;) {
+        sibling.matches.unset('!~' + this.tagName, this, null, null, true);
+        sibling.matches.unset('!~', this, null, null, true);
+        sibling.matches.unset('~~' + this.tagName, this, null, null, true);
+        sibling.matches.unset('~~', this, null, null, true);
+      }
+    }
+  },
+  nextSibling: function(value, state, old, memo) {
+    if (value) {
+      value.matches.set('+' + this.tagName, this, null, null, true);
+      value.matches.set('+', this, null, null, true);
+      value.matches.set('++' + this.tagName, this, null, null, true);
+      value.matches.set('++', this, null, null, true);
+      for (var sibling = value; sibling; sibling = sibling.nextSibling) {
+        sibling.matches.set('~' + this.tagName, this, null, null, true);
+        sibling.matches.set('~', this, null, null, true);
+        sibling.matches.set('~~' + this.tagName, this, null, null, true);
+        sibling.matches.set('~~', this, null, null, true);
+      }
+    }
+    if (old) {
+      old.matches.unset('+' + this.tagName, this, null, null, true);
+      old.matches.unset('+', this, null, null, true);
+      old.matches.unset('++' + this.tagName, this, null, null, true);
+      old.matches.unset('++', this, null, null, true);
+      for (var sibling = old; sibling; sibling = sibling.nextSibling) {
+        sibling.matches.unset('~' + this.tagName, this, null, null, true);
+        sibling.matches.unset('~', this, null, null, true);
+        sibling.matches.unset('~~' + this.tagName, this, null, null, true);
+        sibling.matches.unset('~~', this, null, null, true);
+      }
+    }
+  },
+  parentNode: function(value, old) {
+    if (value) {
+      this.matches.set('!>' + value.tagName, value, null, null, true);
+      this.matches.set('!>', value, null, null, true);
+      value.matches.set('>' + this.tagName, this, null, null, true);
+      value.matches.set('>', this, null, null, true);
+      for (var node = value; node; node = node.parentNode) {
+        node.matches.set(this.tagName, this, null, null, true);
+        node.matches.set(' ', this, null, null, true);
+        this.matches.set('!' + node.tagName, node, null, null, true);
+        this.matches.set('!', node, null, null, true);
+      }
+    }
+    if (old) {
+      this.matches.unset('!>' + old.tagName, old, null, null, true);
+      this.matches.unset('!>', old, null, null, true);
+      old.matches.unset('>' + this.tagName, this, null, null, true);
+      old.matches.unset('>', this, null, null, true);
+      for (var node = old; node; node = node.parentNode) {
+        node.matches.unset(this.tagName, this, null, null, true);
+        node.matches.unset(' ', this, null, null, true);
+        this.matches.unset('!' + node.tagName, node, null, null, true);
+        this.matches.unset('!', node, null, null, true);
+      }
+    }
+  }
+};
+
 LSD.Widget.implement({
   initialize: function() {
     LSD.uid(this);
   },
   
-  properties: {
-    context: function(value, state, old) {
-      var source = this.source;
-      if (source) this.unset('source', source);
-      if (state) {
-        if (typeof value == 'string') {
-          var camel = LSD.toClassName(value);
-          this.factory = LSD.global[this.options.namespace][camel];
-          if (!this.factory) throw "Can not find LSD.Type in " + ['window', this.options.namespace, camel].join('.');
-        } else {
-          this.factory = value;
-        }
-      }
-      if (source) this.set('source', source);
-    },
-    tag: function(value, state, old) {
-      if (!this.options.source && this.prepared) {
-        if (state && value) this.set('source', value)
-        else if (old) this.unset('source', value);
-      }
-    },
-    source: function(value, state, old) {
-      if (state && value) {
-        var role = LSD.Module.Properties.getRole(this);
-        if (role && this.role === role) return;
-      }
-      if (this.prepared) {
-        if (state) {
-          this.set('role', role);
-        } else if (this.role) {
-          this.unset('role', this.role);
-        }
-      }
-    },
-    role: function(value, state, old) {
-      if (state) {
-        if (role == null) role = this.getRole(this)
-        if (role) {
-          this.mixin(role);
-          if ((this.sourced = this.captureEvent('setRole', role)))
-            this.setOptions(this.sourced);
-        }
-        return role;
-      } else {
-        this.unmix(role);
-        var options = this.sourced;
-        if (options) {
-          delete this.sourced;
-          this.unsetOptions(options);
-        }
-      }
-    },
-    scope: function(value, state, old) {
-      if (state) return LSD.Script.Scope.setScope(this, value)
-      else if (old) LSD.Script.Scope.unsetScope(this, value);
-    }
-  },
-  
+  properties: LSD.Widget.Properties,
   
   appendChild: function(child, element, bypass) {
     if (child.nodeType == 11) 
@@ -253,17 +387,6 @@ LSD.Widget.implement({
   grab: function(node, where){
     return this.inject(node, where, true);
   },
-  
-  /*
-    Wrapper is where content nodes get appended. 
-    Defaults to this.element, but can be redefined
-    in other Modules or Traits (as seen in Container
-    module)
-  */
-  
-  getWrapper: function() {
-    return this.toElement();
-  },
 
   replaces: function(el){
     this.inject(el, 'after');
@@ -307,22 +430,22 @@ LSD.Widget.implement({
   },
   
   addPseudo: function(name){
-    this.pseudos.include(name);
+    this.pseudos.set(name, true);
     return this;
   },
 
   removePseudo: function(name) {
-    this.pseudos.erase(name);
+    this.pseudos.unset(name, true);
     return this;
   },
   
   addClass: function(name) {
-    this.classes.include(name);
+    this.classes.set(name, true);
     return this;
   },
 
   removeClass: function(name){
-    this.classes.erase(name);
+    this.classes.unset(name, true);
     return this;
   },
   
@@ -391,7 +514,7 @@ LSD.Widget.implement({
   },
   
   getPseudoElementsByName: function(name) {
-    return this.captureEvent('getRelated', arguments) || this[name];
+    return this[name];
   },
   
   test: function(selector) {
@@ -428,44 +551,6 @@ LSD.Widget.implement({
   
   getChildren: function() {
     return this.childNodes;
-  },
-
-  /*
-    Attaches widget to a DOM element. If a widget was
-    attached to some other element, it deattaches that first
-  */
-
-  attach: function(element) {
-    if (element) {
-      if (this.element) {
-        if (this.built && this.element != element) this[this.options.destructable !== false ? 'destroy' : 'detach']();
-      } else this.element = document.id(element);
-    }
-    if (!this.built) this.build();
-    this.properties.set('element', this.element);
-    if (this.options.key !== false) 
-      this.element.store(this.options.key || 'widget', this).fireEvent('attach', this);
-    /*
-      Extracts and sets layout options from attached element
-    */
-    if (!this.extracted && this.options.extract !== false && (!this.built || this.origin)) {
-      this.extracted = LSD.Module.Element.extract(element, this);
-      this.setOptions(this.extracted);
-    }
-    return this.element;
-  },
-
-  detach: function(element) {
-    if (this.options.key !== false) 
-      this.element.eliminate(this.options.key || 'widget', this).fireEvent('detach', this)
-    this.properties.unset('element', this.element);
-    /*
-      Unsets options previously extracted from the detached element
-    */
-    if (this.extracted) {
-      this.unsetOptions(this.extracted);
-      delete this.extracted, delete this.origin;
-    }
   },
 
   toElement: function(){

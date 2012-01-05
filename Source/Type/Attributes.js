@@ -30,7 +30,8 @@ LSD.Type.Classes.implement({
   onChange: function(name, value, state, old, memo) {
     if ((!memo || memo === 'states') && LSD.States[name]) 
       this._parent.states[state ? 'set' : 'unset'](name, true, 'classes');
-    if (this._parent.element) this._parent.element[state ? 'addClass' : 'removeClass'](name);
+    if (this._parent.element)
+      this._parent.element[state ? 'addClass' : 'removeClass'](name);
   }
 })
 

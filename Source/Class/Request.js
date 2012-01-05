@@ -26,8 +26,7 @@ LSD.Type.Request = new LSD.Class({
   options: {
     request: {
       method: 'get'
-    },
-    states: Array.object('working')
+    }
   },
   
   properties: {

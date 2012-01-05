@@ -30,8 +30,8 @@ LSD.Type.Children = LSD.Struct.Array({
 });
 LSD.Type.Children.implement({
   onSet: function(value, index, state, old) {
-    if (index === 0) this[state ? 'set' : 'unset']('first', value);
-    if (index === this.length - +state) this.set('last', this[this.length - 1]);
+    if (index === 0) this.reset('first', state ? value : null);
+    if (index === this.length - +state) this.reset('last', this[this.length - 1] || null);
     if (!state || this._parent != value.parentNode)
       value[state ? 'set' : 'unset']('parentNode', this._parent || null);
     var previous = this[index - 1] || null;

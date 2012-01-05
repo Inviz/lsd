@@ -1,3 +1,22 @@
+LSD.Type.Allocations = new LSD.Object.Group.Array({
+});
+
+LSD.Type.Allocations.Properties = {
+  proxy: function() {
+    
+  },
+  
+  source: function() {
+    
+  },
+  
+  options: function() {
+    
+  }
+}
+
+
+
 LSD.Allocations = {
   lightbox: {
     source: 'body[type=lightbox]'
@@ -49,7 +68,6 @@ LSD.Allocations = {
     }, options));
   },
   submit: function(options) {
-    var widget = this;
     return new Element('input', Object.merge({
       type: 'submit',
       styles: {

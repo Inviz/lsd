@@ -32,7 +32,7 @@ LSD.Module.Selectors = {
 LSD.Module.Selectors.parse = function(selector, parent) {
   var options = {};
   var expressions = (selector.Slick ? selector : LSD.Slick.parse(selector)).expressions[0];
-  loop: for (var j = expressions.length, expression; expression = expressions[--j];) {
+  for (var j = expressions.length, expression; expression = expressions[--j];) {
     switch (expression.combinator) {
       case ' ':
         break;

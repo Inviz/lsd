@@ -24,4 +24,5 @@ sources:
   - Source/Tools/Logger.js
   - Source/Type/Children.js
   - Source/Type/States.js
+  - Source/Type/Matches.js
   - Source/LSD.js

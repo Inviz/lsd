@@ -45,7 +45,7 @@ LSD.Object.Params.prototype = Object.append(new LSD.Object, {
       if (next == null) {
         if (name !== '') {
           if (object !== this) object.set(name, value);
-          else LSD.Object.prototype.set.call(this, name, value);
+          else this._set(name, value);
         } else object.push(value)
       } else object = object[name]
       array = index;
@@ -60,7 +60,7 @@ LSD.Object.Params.prototype = Object.append(new LSD.Object, {
       if (name === '') name = object.length - 1;
       if (i == matched.length) {
         if (object !== this) object.unset(name, value);
-        else LSD.Object.prototype.unset.call(this, name, value);
+        else this._unset(name, value);
       } else object = object[name];
     }
   },
@@ -79,7 +79,7 @@ LSD.Object.Params.prototype = Object.append(new LSD.Object, {
     }
   },
   
-  _exclusions: Array.object('_method')
+  _exclusions: {'_method': true}
 });
 
 LSD.Object.Params.rNameParser = /(^[^\[]+)|\[([^\]]*)\]/g;

@@ -43,11 +43,10 @@ LSD.Type.States = LSD.Struct.Stack();
 LSD.Type.States.implement({
   onChange: function(name, value, state, old, memo) {
     var known = LSD.States[name];
-    var valueDefined = typeof value != 'undefined';
-    var method = valueDefined && state ? 'set' : 'unset';
+    var method = value && state ? 'set' : 'unset';
     if (known && state && this._stack[name].length === 1) 
       this._parent.mix(LSD.Type.States.Compiled[name] || LSD.Type.States.compile(name));
-    if (value || typeof old != 'undefined') {
+    if (value || old) {
       if (LSD.Attributes[name] !== Boolean) {
         if (memo != 'classes')
           this._parent[method]('classes.' + (known ? name : 'is-' + name), true);
@@ -62,7 +61,7 @@ LSD.Type.States.implement({
       if (state) this._parent.reset(name, value);
       else this._parent.unset(name, value);
       if (this._stack[name].length === 0) 
-        this._parent.mix(LSD.Type.States.Compiled[name], null, false);
+        this._parent.mix(LSD.Type.States.Compiled[name], null, memo, false);
     }
     return value;
   }

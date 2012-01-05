@@ -65,16 +65,7 @@ Object.append(LSD, {
       }
     }
     return object;
-  },
-  
-  getID: function(object) {
-    if (this !== LSD) object = this;
-    if (object != null)
-      for (var i = 0, identifier; identifier = LSD.identifiers[i++];)
-        if (typeof object[identifier] != 'undefined') return object[identifier];
-  },
-  
-  identifiers: ['id', '_id', '$id']
+  }
 });
 LSD.Test = {};
 

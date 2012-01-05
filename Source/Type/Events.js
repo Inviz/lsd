@@ -51,11 +51,11 @@ LSD.Type.Events.implement({
     when a data flows through one of the sibling modules
   */
   
-  delegate: function(object, key, value, state, old) {
+  _delegate: function(object, key, value, state, old, memo) {
     switch (object.nodeType) {
       case 1:
         if (object.lsd) {
-          object.events.mix(key, value, state)
+          object.events.mix(key, value, memo, state)
         } else {
           Element[state ? 'addEvent' : 'removeEvent'](object);
         }
