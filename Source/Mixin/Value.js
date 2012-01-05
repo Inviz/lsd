@@ -22,7 +22,7 @@ LSD.Mixin.Value = new Class({
       value: {
         enable: function() {
           if (LSD.Mixin.Command.getCommandType.call(this) == 'command')
-            this.setDefaultValue()
+            this.setDefaultValue.delay(10, this)
         }
       }
     },
