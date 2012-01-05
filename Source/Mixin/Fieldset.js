@@ -131,7 +131,7 @@ LSD.Mixin.Fieldset = new Class({
       Object.each(response, function(value, key) {
         if (!root) root = this.getModelName(key);
         if (typeof value == "object" && value != null && key != 'errors') {
-          this.parseFieldErrors(value, result, root ? Fieldset.getName(root, key) : key);
+          this.parseFieldErrors(value, result, key);
         }
       }, this)
     }
