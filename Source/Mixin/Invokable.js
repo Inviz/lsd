@@ -69,6 +69,10 @@ LSD.Mixin.Invokable = new Class({
   
   getSubmissionTarget: function() {
     return this.getInvoker();
+  },
+  
+  getSubmissionData: function() {
+    return this.getData ? LSD.toObject(this.getData()) : {};
   }
 });
 
