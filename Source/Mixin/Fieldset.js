@@ -129,13 +129,12 @@ LSD.Mixin.Fieldset = new Class({
         }
       }
       Object.each(response, function(value, key) {
-        if (!root) root = this.getModelName(key);
         if (typeof value == "object" && value != null && key != 'errors') {
-          this.parseFieldErrors(value, result, key);
+          this.parseFieldErrors(value, result, root ? root + '[' + key + ']' : key);
         }
       }, this)
     }
-    if (result != null && Object.getLength(result) > 0) this.addFieldErrors(result);
+    if (result != null && Object.getLength(result) > 0 && root == null) this.addFieldErrors(result);
   },
   
   addField: function(widget) {
