@@ -64,12 +64,14 @@ LSD.Mixin.Datalist = new Class({
   },
   
   suggestPrevious: function(e) {
+    if (this.getSuggestionsList().parentNode == null) return;
     if (--this.suggestionIndex < 0) this.suggestionIndex = this.suggestionLength - 1;
     this.selectSuggestionItem(this.suggestionIndex);
     e.preventDefault();
   },
   
   suggestNext: function(e) {
+    if (this.getSuggestionsList().parentNode == null) return;
     if (++this.suggestionIndex == this.suggestionLength) this.suggestionIndex = 0;
     this.selectSuggestionItem(this.suggestionIndex);
     e.preventDefault();
@@ -142,9 +144,7 @@ LSD.Mixin.Datalist = new Class({
   
   unsuggest: function() {
     var range = this.element.getSelectedRange();
-    if (range.start) {
-      this.setCurrentValue(this.getCurrentValue(false), false);
-    }
+    if (range.start) this.unsetSuggestion();
     this.getSuggestionsList().dispose();
     if (this.selectedSuggestion) this.selectedSuggestion.removeClass('selected');
     this.selectedSuggestion = null;
@@ -168,9 +168,9 @@ LSD.Mixin.Datalist = new Class({
         }
         this.suggestionLength++;
       }
-      if (!list.parentNode) list.inject(this.element, 'after')
+      if (!list.parentNode) list.inject(this.element, 'after');
     } else {
-      if (list.parentNode) list.dispose();
+      if (list.parentNode) list.setStyle('display', 'none');
     }
   },
   
