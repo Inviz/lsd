@@ -29,19 +29,17 @@ LSD.Type.Request = new LSD.Class({
     }
   },
   
-  properties: {
-    type: function() {
-      
-    },
-    data: function() {
-      
-    },
-    method: function() {
-      
-    },
-    url: function() {
-      
-    }
+  type: function() {
+    
+  },
+  data: function() {
+    
+  },
+  method: function() {
+    
+  },
+  url: function() {
+    
   },
   
   exports: {
@@ -51,18 +49,20 @@ LSD.Type.Request = new LSD.Class({
     stop: function() {
       
     },
-    started: '.started'
+    started: 'started'
   },
   
   events: {
     start: function() {
-      this.include('started');
+      this.set('started', true);
     },
     complete: function() {
-      this.erase('started');
+      this.unset('started', false);
     }
   }
   
 });
+
+LSD.Type.Request
 
 LSD.Behavior.define(':form[action], [src], [href], :request', 'request');

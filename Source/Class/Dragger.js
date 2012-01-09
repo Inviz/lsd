@@ -19,7 +19,7 @@ provides:
 ...
 */
 
-LSD.Property.Dragger = new LSD.Class({
+LSD.Property.Dragger = new LSD.Struct({
   Extends: Drag,
   
   options: {
@@ -32,39 +32,40 @@ LSD.Property.Dragger = new LSD.Class({
     container: true,
     handle: []
   },
+  
+  imports: {
+    element: '.element',
+    attached: '.draggable',
+    handle: '.handle'
+  },
 
   exports: {
-    element: '.element',
-    attached: '.attached',
-    handle: '.handle',
-    dragged: '.dragged'
+    dragged: 'dragged'
   },
   
-  properties: {
-    attached: function(value) {
-      if (value) {
-        this.attach()
-      } else {
-        this.detach();
-      }
-    },
-
-    handle: function(value) {
-      
+  attached: function(value, old) {
+    if (value) {
+      this.attach()
+    } else if (old) {
+      this.detach();
     }
+  },
+
+  handle: function(value) {
+    
   },
   
   events: {
     start: function() {
-      this.include('dragged');
+      this.set('dragged', true);
     },
 
     complete: function() {
-      this.erase('dragged');
+      this.unset('dragged', true);
     },
 
     cancel: function() {
-      this.erase('dragged');
+      this.unset('dragged', true);
     }
   }
 });

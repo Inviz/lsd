@@ -10,12 +10,9 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Type
-  - LSD.Module.Accessories
-  - LSD.Module.Ambient
-  - LSD.Module.Graphics
-  - LSD.Mixin.Value
-  - LSD.Logger
+  - LSD
+  - Slick/Slick.Finder
+  - LSD.Script/LSD.Struct.Stack
 
 provides: 
   - LSD.Widget
@@ -31,8 +28,8 @@ provides:
   `<span>` when false, and tries using the widget tag name if 
   `inline` option is not set
 */
-
-LSD.Widget = new LSD.Struct.Stack(LSD.Properties);
+LSD.Slick = window.Slick;
+LSD.Widget = new LSD.Struct.Stack(LSD.Type);
 LSD.Widget.Properties = {
   context: function(value, state, old) {
     var source = this.source;
@@ -49,7 +46,7 @@ LSD.Widget.Properties = {
     if (source) this.set('source', source);
   },
   tagName: function(value, state, old) {
-    if (!this.options.source && this.prepared) {
+    if (!this.source && this.prepared) {
       if (state && value) this.set('source', value)
       if (old) this.unset('source', old);
     }
@@ -234,12 +231,41 @@ LSD.Widget.Properties = {
         this.matches.unset('!', node, null, null, true);
       }
     }
+  },
+  focused: function(value, old) {
+    if (value) this.set('parentNode.focused', value);
+    if (old) this.unset('parentNode.focused', old);
+  },
+  rendered: function(value, old) {
+    if (value) this.set('childNodes.rendered', value);
+    if (old) this.unset('childNodes.rendered', old);
+  },
+  disabled: function(value, old) {
+    if (value) this.set('childNodes.disabled', value);
+    if (old) this.unset('childNodes.disabled', old);
+  },
+  root: function(value, old) {
+    if (value) this.set('childNodes.root', value);
+    if (old) this.unset('childNodes.root', old);
+  },
+  value: function(value, old) {
+    
+  },
+  multiple: function(value, old) {
+    if (value) {
+      if (!this.values) this.set('values', new LSD.Array);
+      this.set('value', this.values);
+    } else {
+      this.unset('value', this.values);
+    }
   }
 };
 
+LSD.Widget.UID = 0;
+
 LSD.Widget.implement({
   initialize: function() {
-    LSD.uid(this);
+    this.lsd = ++LSD.UID; 
   },
   
   properties: LSD.Widget.Properties,
@@ -530,12 +556,15 @@ LSD.Widget.implement({
     }
     if (selector.id && (this.attributes.id != selector.id)) return false;
     if (selector.attributes) for (var i = 0, j; j = selector.attributes[i]; i++) 
-      if (j.operator ? !j.test(this.attributes[j.key] && this.attributes[j.key].toString()) : !(j.key in this.attributes)) return false;
-    if (selector.classes) for (var i = 0, j; j = selector.classes[i]; i++) if (!this.classes[j.value]) return false;
+      if (!this.attributes || (j.operator ? !j.test(this.attributes[j.key] && this.attributes[j.key].toString()) : !(j.key in this.attributes))) 
+        return false;
+    if (selector.classes) 
+      for (var i = 0, j; j = selector.classes[i]; i++) 
+        if (!this.classes || !this.classes[j.value]) return false;
     if (selector.pseudos) {
       for (var i = 0, j; j = selector.pseudos[i]; i++) {
         var name = j.key;
-        if (this.pseudos[name]) continue;
+        if (!this.pseudos || this.pseudos[name]) continue;
         var pseudo = pseudos[name];
         if (pseudo == null) pseudos[name] = pseudo = Slick.lookupPseudo(name) || false;
         if (pseudo === false || (pseudo && !pseudo.call(this, this, j.value))) return false;
@@ -620,22 +649,6 @@ LSD.Widget.implement({
     return this.element;
   },
 
-  getElementTag: function(soft) {
-    if (this.element) return LSD.toLowerCase(this.element.tagName);
-    var options = this.options, element = options.element;
-    if (element && element.tag) return element.tag;
-    if (!soft) switch (options.inline) {
-      case null: case undefined:
-        return LSD.Layout.NodeNames[this.tagName] ? this.tagName : "div";
-      case true:
-        return "span";
-      case false:
-        return "div"
-      default:
-        return options.inline;
-    }
-  },
-
   destroy: function() {
     this.fireEvent('beforeDestroy');
     if (this.parentNode) this.dispose();
@@ -652,4 +665,12 @@ LSD.Widget.implement({
   $family: function() {
     return this.options.key || 'widget';
   }
-})
+});
+
+console.profile(123);
+for (var i = 0; i < 2000; i++) new LSD.Widget({tagName: 'div', events: {
+  click: function() {
+    
+  }
+}})
+console.profileEnd(123);

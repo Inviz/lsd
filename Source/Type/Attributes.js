@@ -1,4 +1,30 @@
-LSD.Attributes = {
+/*
+---
+ 
+script: Attributes.js
+ 
+description: Base objects for accessories holders - pseudos, attributes, classes, dataset
+ 
+license: Public domain (http://unlicense.org).
+
+authors: Yaroslaff Fedin
+ 
+requires:
+  - LSD
+  - LSD.Script/LSD.Struct.Stack
+
+provides: 
+  - LSD.Attributes
+  - LSD.Type.Pseudos
+  - LSD.Type.Classes
+  - LSD.Type.Attributes
+  - LSD.Type.Dataset
+  - LSD.Type.Variables
+ 
+...
+*/
+
+LSD.Attributes = Object.append(LSD.Attributes || {}, {
   tabindex: Number,
   width:    Number,
   height:   Number,
@@ -15,45 +41,57 @@ LSD.Attributes = {
       this.setStyle.apply(this, definition.split(/\s*:\s*/))
     }, this);
   }
-};
+});
 
 LSD.Type.Pseudos = LSD.Struct.Stack();
-LSD.Type.Pseudos.implement({
-  onChange: function(name, value, state, old, memo) {
-    if ((!memo || memo === 'states') && LSD.States[name])
-      this._parent.states[state ? 'set' : 'unset'](name, true, 'pseudos');
-  }
-})
+LSD.Type.Pseudos.prototype.onChange = function(name, value, state, old, memo) {
+  if ((!memo || memo === 'states') && LSD.States[name])
+    this._parent[state ? 'set' : 'unset']('states.' + name, true, 'pseudos');
+}
 
 LSD.Type.Classes = LSD.Struct.Stack();
-LSD.Type.Classes.implement({
-  onChange: function(name, value, state, old, memo) {
-    if ((!memo || memo === 'states') && LSD.States[name]) 
-      this._parent.states[state ? 'set' : 'unset'](name, true, 'classes');
-    if (this._parent.element)
-      this._parent.element[state ? 'addClass' : 'removeClass'](name);
+LSD.Type.Classes.prototype.onChange = function(name, value, state, old, memo) {
+  if ((!memo || memo === 'states') && LSD.States[name]) 
+    this._parent[state ? 'set' : 'unset']('states.' + name, true, 'classes');
+  var element = this._parent.element;
+  if (element) {
+    if (typeof element.classList == 'undefined') {
+      if (state && value) element.classList.add(value);
+      if (!state || old) element.classList.remove(state ? value : old);
+    } else {
+      var index = (' ' + element.className + ' ').indexOf(' ' + name + ' ');
+      if (state && value && index == -1) element.className += ' ' + name;
+      if (!state && index > -1) element.className.splice(index - 1, name.length);
+    }
   }
-})
+};
+LSD.Type.Classes.prototype.contains = function(name) {
+  return this[name];
+};
+LSD.Type.Classes.prototype.add = function(name) {
+  return this.set(name, true);
+};
+LSD.Type.Classes.prototype.remove = function(name) {
+  return this.unset(name, true);
+};
 
 
 LSD.Type.Attributes = LSD.Struct.Stack(LSD.Attributes);
-LSD.Type.Attributes.implement({
-  onChange: function(name, value, state, old, memo) {
-    if ((!memo || memo === 'states') && LSD.States[name]) 
-      this._parent.states[state ? 'set' : 'unset'](name, true, 'attributes');
-    if (this._parent.element && (name != 'type' || LSD.toLowerCase(this._parent.element.tagName) != 'input')) {
-      if (state) this._parent.element.setAttribute(name, value === true ? name : value);
-      else this._parent.element.removeAttribute(name);
-      if (value === true) this._parent.element[name] = state;
-    }
-    if (name.substr(0, 5) == 'data-') {
-      var property = name.substring(5);
-      if (typeof value != 'undefined') this.dataset[state ? 'set' : 'unset'](property, value);
-      if (typeof old != 'undefined') this.dataset.unset(property, old);
-    }
-    return value;
+LSD.Type.Attributes.prototype.onChange = function(name, value, state, old, memo) {
+  if ((!memo || memo === 'states') && LSD.States[name]) 
+    this._parent[state ? 'set' : 'unset']('states.' + name, true, 'attributes');
+  if (this._parent.element && (name != 'type' || LSD.toLowerCase(this._parent.element.tagName) != 'input')) {
+    if (state) this._parent.element.setAttribute(name, value === true ? name : value);
+    else this._parent.element.removeAttribute(name);
+    if (value === true) this._parent.element[name] = state;
   }
-});
+  if (name.substr(0, 5) == 'data-') {
+    var property = name.substring(5);
+    if (typeof value != 'undefined') this.dataset[state ? 'set' : 'unset'](property, value);
+    if (typeof old != 'undefined') this.dataset.unset(property, old);
+  }
+  return value;
+}
 
 LSD.Type.Dataset = LSD.Struct.Stack();
 LSD.Type.Variables = LSD.Struct.Stack()

@@ -18,34 +18,23 @@ provides:
 ...
 */
 
-//LSD.Proxy = 
+LSD.Type.Proxies = LSD.Object.Group();
 
-LSD.Type.Proxies = LSD.Object.Typed({
-  regexp: function() {
-    
-  },
+LSD.Type.Proxies.prototype.match = function(element) {
   
-  match: function() {
-    
-  },
+};
+LSD.Type.Proxies.prototype.onChange = function(key, value, state, old, memo) {
   
-  mutation: function() {
-    
-  },
+};
+LSD.Type.Proxies.prototype._hash = function(value) {
   
-  text: function() {
-    
-  },
+};
+LSD.Type.Proxies.prototype._delegate = function(object, key, value) {
   
-  priority: function() {
-    
-  }
-});
+};
+LSD.Type.Proxies.rOrdered = /^\s*[+~]/;
+LSD.Type.Proxies
 
-LSD.Type.Proxies.implement({
-  
-})
-   
 LSD.Module.Proxies = new Class({
   constructors: {
     proxies: function() {
@@ -74,7 +63,6 @@ LSD.Module.Proxies = new Class({
   }
 });
  
-LSD.Module.Proxies.rOrdered = /^\s*[+~]/;
  
 Object.append(LSD.Module.Proxies, {
   match: function(node, proxy, parent) {

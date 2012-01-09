@@ -19,31 +19,39 @@ provides:
 ...
 */
 
-!function() {
 LSD.Type.Relations = new LSD.Struct.Group({
 });
-LSD.Type.Relations.implement({
-  onChange: function() {
-    
-  },
+LSD.Type.Relations.prototype.onChange = function() {
   
-  _delegate: function() {
+};
+LSD.Type.Relations.prototype._delegate = function() {
     
-  },
+};
+LSD.Type.Relations.prototype.__watcher = function(callback, widget, state) {
+    
+};
+LSD.Type.Relations.prototype.__proxier = function() {
+    
+};
+LSD.Type.Relations.prototype.__filter = function() {
 
-  __watcher: function(callback, widget, state) {
-    this.set
-  }
-})
+};
 
 LSD.Type.Relations.Properties = {
-  proxy: function(value, ) {
-    this.proxies.set()
+  proxy: function(value, state, old) {
+    if (value != null) this.proxies.set(value, {
+      fn: this.__proxier,
+      bind: this,
+      callback: this,
+      name: name
+    });
+    if (old != null) this.proxies.unset(old, this);
   },
   
   match: function(value, state, old) {
     if (state && value) this.matches.set(value, {
-      fn: this.__watcher, 
+      fn: this.__watcher,
+      bind: this,
       callback: this,
       name: name
     });
@@ -74,7 +82,7 @@ LSD.Type.Relations.Properties = {
     
   },
   
-  callbacks: function() {
+  callbacks: function(callback, state, old) {
     
   }
 };
@@ -85,7 +93,3 @@ LSD.Relation.getScopeName = function(scoped) {
     return (scoped[key] || (scoped[key] = (scope + LSD.capitalize(relation))))
   }
 }({});
-
-var Traits = LSD.Relation.Traits = {};
-var Targets = LSD.Module.Events.Targets;
-}();

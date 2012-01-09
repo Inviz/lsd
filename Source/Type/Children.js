@@ -24,8 +24,8 @@ provides:
 
 LSD.Type.Children = LSD.Struct.Array({
   exports: {
-    'first': '.firstChild',
-    'last': '.lastChild'
+    firstChild: 'first',
+    lastChild: 'last'
   }
 });
 LSD.Type.Children.implement({
@@ -46,5 +46,8 @@ LSD.Type.Children.implement({
       if (state || old === false) value.reset('nextSibling', next);
       else if (value.nextSibling == next) value.unset('nextSibling', next);
     }
-  }
+  },
+  
+  first: null,
+  last: null
 });

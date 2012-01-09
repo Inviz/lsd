@@ -69,18 +69,6 @@ Object.append(LSD, {
 });
 LSD.Test = {};
 
-if (!window.console) window.console = {};
-if (!window.console.log) window.console.log = function() {};
-['log', 'error', 'warn', 'info', 'dir'].each(function(method) {
-  try { 
-    LSD[method] = function() {
-      try {
-        (console[method] || console.log).apply(console.arguments);
-      } catch(e){}
-    } 
-  } catch(e) {};
-});
-
 (function(toString) {
   Type.isEnumerable = function(item){
     return (item != null && !item.nodeName && !item.nodeType && toString.call(item) != '[object Function]' && typeof item.length == 'number');

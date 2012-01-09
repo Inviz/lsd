@@ -18,19 +18,20 @@ provides:
 ...
 */
 
-LSD.Type.Size = new LSD.Object({
+LSD.Type.Size = new LSD.Struct({
+  exports: {
+    clientHeight: 'height + styles.paddingTop  + styles.paddingBottom',
+    clientWidth:  'width  + styles.paddingLeft + styles.paddingRight',
+    offsetHeight: 'clientHeight + styles.borderTopWidth  + styles.borderBottomWidth',
+    offsetWidth:  'clientWidth  + styles.borderLeftWidth + styles.borderRightWidth'
+  },
   styles: '.styles',
   height: function() {
     return Math.max(this.styles.minHeight, Math.min(this.styles.maxHeight, value))
   },
-  clientHeight: 'height + styles.paddingTop + styles.paddingBottom',
-  offsetHeight: 'clientHeight + styles.borderTopWidth + styles.borderBottomWidth',
-  layoutHeight: ''
   width: function(value) {
     return Math.max(this.styles.minWidth, Math.min(this.styles.maxWidth, value))
   },
-  clientWidth: 'width + styles.paddingLeft + styles.paddingRight',
-  offsetHeight: 'clientHeight + styles.borderLeftWidth + styles.borderRightWidth'
 })
 
 
