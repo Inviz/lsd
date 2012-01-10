@@ -19,51 +19,43 @@ provides:
  
 ...
 */
-  
-/*
-  ## Default options:
-  ### inline: null
-  
-  Inline option makes the widget render `<div>` element when true,
-  `<span>` when false, and tries using the widget tag name if 
-  `inline` option is not set
-*/
+
 LSD.Slick = window.Slick;
 LSD.Widget = new LSD.Struct.Stack(LSD.Type);
 LSD.Widget.Properties = {
-  context: function(value, state, old) {
-    var source = this.source;
-    if (source) this.unset('source', source);
-    if (state) {
-      if (typeof value == 'string') {
-        var camel = LSD.toClassName(value);
-        this.factory = LSD.global[this.options.namespace][camel];
-        if (!this.factory) throw "Can not find LSD.Type in " + ['window', this.options.namespace, camel].join('.');
-      } else {
-        this.factory = value;
-      }
-    }
-    if (source) this.set('source', source);
+  namespace: function() {
+    
   },
-  tagName: function(value, state, old) {
+  context: function(value, old) {
+    
+  },
+  tagName: function(value, old) {
     if (!this.source && this.prepared) {
-      if (state && value) this.set('source', value)
+      if (value) this.set('source', value)
       if (old) this.unset('source', old);
+    }
+    if (value) {
+      this.set('nodeName', value, null);
+      this.set('localName', value, null, true);
+    }
+    if (old) {
+      if (old) this.unset('nodeName', old, null);
+      if (old) this.unset('localName', old, null, true);
     }
     var previous = this.previousSibling, next = this.nextSibling, parent = this.parentNode;
     if (previous) {
-      if (tag) {
-        previous.matches.set('!+' + tag, this, null, null, true);
-        previous.matches.set('++' + tag, this, null, null, true);
+      if (value) {
+        previous.matches.set('!+' + value, this, null, null, true);
+        previous.matches.set('++' + value, this, null, null, true);
       }
       if (old) {
         previous.matches.unset('!+' + old, this, null, null, true);
         previous.matches.unset('++' + old, this, null, null, true);
       }
       for (var sibling = previous; sibling; sibling = sibling.previousSibling) {
-        if (tag) {
-          sibling.matches.set('!~' + tag, this, null, null, true);
-          sibling.matches.set('~~' + tag, this, null, null, true);
+        if (value) {
+          sibling.matches.set('!~' + value, this, null, null, true);
+          sibling.matches.set('~~' + value, this, null, null, true);
         }
         if (old) {
           sibling.matches.unset('!~' + old, this, null, null, true);
@@ -72,18 +64,18 @@ LSD.Widget.Properties = {
       }
     }
     if (next) {
-      if (tag) {
-        next.matches.set('+' + tag, this, null, null, true);
-        next.matches.set('++' + tag, this, null, null, true);
+      if (value) {
+        next.matches.set('+' + value, this, null, null, true);
+        next.matches.set('++' + value, this, null, null, true);
       }
       if (old) {
         next.matches.unset('+' + old, this, null, null, true);
         next.matches.unset('++' + old, this, null, null, true);
       }
       for (var sibling = next; sibling; sibling = sibling.nextSibling) {
-        if (tag) {
-          sibling.matches.set('~' + tag, this, null, null, true);
-          sibling.matches.set('~~' + tag, this, null, null, true);
+        if (value) {
+          sibling.matches.set('~' + value, this, null, null, true);
+          sibling.matches.set('~~' + value, this, null, null, true);
         }
         if (old) {
           sibling.matches.unset('~' + old, this, null, null, true);
@@ -92,36 +84,28 @@ LSD.Widget.Properties = {
       }
     }
     if (parent) {
-      if (tag) parent.matches.set('>' + tag, this, null, null, true);
+      if (value) parent.matches.set('>' + value, this, null, null, true);
       if (old) parent.matches.unset('>' + old, this, null, null, true);
       for (sibling = parent; sibling; sibling = parent.parentNode) {
-        if (tag) sibling.matches.set(tag, this, null, null, true);
+        if (value) sibling.matches.set(value, this, null, null, true);
         if (old) sibling.matches.unset(old, this, null, null, true);
       }
     }
+    return value;
   },
-  localName: function(value, state, old) {
-    
+  localName: function(value, old) {
+    return value;
   },
-  inline: function(value, state, old) {
-    if (state) this.set('localName', value ? 'span' : 'div', true);
-    if (typeof old != 'undefined') this.unset('localName', old ? 'span' : 'div', true);
+  inline: function(value, old) {
+    if (typeof value != 'undefined') this.set('localName', value ? 'span' : 'div', null, true);
+    if (typeof old != 'undefined') this.unset('localName', old ? 'span' : 'div', null, true);
   },
-  source: function(value, state, old) {
-    if (state && value) {
-      var role = LSD.Module.Properties.getRole(this);
-      if (role && this.role === role) return;
-    }
-    if (this.prepared) {
-      if (state) {
-        this.set('role', role);
-      } else if (this.role) {
-        this.unset('role', this.role);
-      }
-    }
+  source: function(value, old) {
+    if (typeof value != 'undefined') this.set('role', role);
+    if (typeof old != 'undefined') this.unset('role', this.role);
   },
-  role: function(value, state, old) {
-    if (state) {
+  role: function(value, old) {
+    if (value) {
       if (role == null) role = this.getRole(this)
       if (role) this.mixin(role);
       return role;
@@ -129,27 +113,36 @@ LSD.Widget.Properties = {
       this.unmix(role);
     }
   },
-  scope: function(value, state, old) {
-    if (state) return LSD.Script.Scope.setScope(this, value)
-    else if (old) LSD.Script.Scope.unsetScope(this, value);
+  scope: function(value, old) {
+    if (value) LSD.Script.Scope.setScope(this, value)
+    if (old) LSD.Script.Scope.unsetScope(this, old);
   },
-  element: function() {
-    if (this.key !== false) 
-      Element[state ? 'store' : 'eliminate'](this.element, this.key || 'widget', this);
+  element: function(element, old) {
+    Element[element ? 'store' : 'eliminate'](element || old, 'widget', this);
+    return element;
   },
   /*
     Extract and apply options from elements
   */
-  origin: function(value, state, old, memo) {
-    if (state) {
-      if (!this.extracted && this.extracted !== false) {
-        this.extracted = LSD.Module.Element.extract(value, this);
-        this.mix(this.extracted, null, memo);
+  origin: function(value, old, memo) {
+    var extracted = this.extracted;
+    if (value) {
+      if (!this.extracted) {
+        var tag = value.tagName.toLowerCase();
+        this.extracted = {
+          tagName: tag,
+          localName: tag
+        };
+        for (var i = 0, attribute; attribute = value.attributes[i++];)
+          (this.extracted.attributes || (this.extracted.attributes = {}))[attribute.name] = attribute.value;
+        for (var i = 0, clses = value.className.split(' '), cls; cls = clses[i++];)
+          (this.extracted.classes || (this.extracted.classes = {}))[cls] = true;
+        this.mix(this.extracted, null, true, memo, true, true);
       }
     }
-    if (state ? old : value) {
-      if (this.extracted) {
-        this.mix(this.extracted, null, memo, false);
+    if (old) {
+      if (extracted) {
+        this.mix(extracted, null, memo, false, true, true);
         delete this.extracted;
       }
     }
@@ -180,7 +173,7 @@ LSD.Widget.Properties = {
       }
     }
   },
-  nextSibling: function(value, state, old, memo) {
+  nextSibling: function(value, old) {
     if (value) {
       value.matches.set('+' + this.tagName, this, null, null, true);
       value.matches.set('+', this, null, null, true);
@@ -264,8 +257,12 @@ LSD.Widget.Properties = {
 LSD.Widget.UID = 0;
 
 LSD.Widget.implement({
-  initialize: function() {
-    this.lsd = ++LSD.UID; 
+
+  localName: 'div',
+  tagName: null,
+  
+  initialize: function(element) {
+    this.lsd = ++LSD.Widget.UID; 
   },
   
   properties: LSD.Widget.Properties,
@@ -587,66 +584,15 @@ LSD.Widget.implement({
     return this.element;
   },
 
-  build: function(query) {
-    if (query) {
-      if (query.nodeType) {
-        var element = query; 
-        query = {};
-      }
-    } else query = {};
-    element = query.element = element || this.element;
-    var options = this.options;
-    this.fireEvent('beforeBuild', query);
-    if (element) LSD.Module.Element.validate(this, query);
-    if (this.parentNode) this.parentNode.dispatchEvent('beforeNodeBuild', [query, this]);
-    var build = query.build;
-    delete query.element, delete query.build;
-    var attrs = {};
-    for (var attribute in this.attributes) 
-      if (this.attributes.has(attribute)) 
-        attrs[attribute] = this.attributes[attribute];
-    Object.merge(attrs, options.element, query.attributes);
-    for (var attribute in attrs)
-      if (this.attributes[attribute] != attrs[attribute]) 
-        this.attributes.set(attribute, attrs[attribute]);
-    var tag = query.tag || attrs.tag || this.getElementTag();
-    delete attrs.tag; delete query.tag;
-    if (!element || build) {
-      element = this.element = new Element(tag, attrs.type ? {type: attrs.type} : null);
-    } else {
-      element = this.element = document.id(element);
-    }
-    for (var name in attrs) 
-      if (name != 'type' || tag != 'input') {
-        if (LSD.Attributes[name] == 'boolean') element[name] = true;
-        element.setAttribute(name, attrs[name] === true ? name : attrs[name]);
-      }
-    var classes = [];
-    if (this.tagName != tag) classes.push('lsd ', this.tagName);
-    for (var name in this.classes) if (this.classes.has(name)) classes.include(name);
-    if (classes.length) this.element.className = classes.join(' ');
-    if (this.style) for (var property in this.style.element) this.element.setStyle(property, this.style.element[property]);
-    this.attach(this.element);
-
-    var role = LSD.Module.Properties.getRole(this);
-    if (this.role !== role) 
-      this.properties.set('role', role)
-
-    if (this.properties.layout)
-      this.addLayout('options', this.properties.layout, null, {lazy: true});
-
-    if (this.origin && !this.options.clone && this.origin.parentNode && this.origin != this.element) 
-      this.element.replaces(this.origin);
-
-    if (this.options.traverse !== false && !this.options.lazy) {
-      var nodes = LSD.slice((this.origin || this.element).childNodes);
-      var opts = {};
-      if (this.options.context) opts.context = this.options.context;
-      if (this.options.clone) opts.clone = this.options.clone
-      if (nodes.length) this.addLayout('children', nodes, null, opts);
-      this.fireEvent('DOMChildNodesRendered');
-    }
-    return this.element;
+  build: function() {
+    var element = document.createElement(this.localName);
+    for (var name in this.attributes)
+      if (this.attributes.has(name))
+        element.setAttribute(name, this.attributes[name])
+    if (this.classes && this.classes.className != element.className) 
+      element.className = this.classes.className;
+    this.set('element', element)
+    return element;
   },
 
   destroy: function() {
@@ -663,14 +609,6 @@ LSD.Widget.implement({
   },
 
   $family: function() {
-    return this.options.key || 'widget';
+    return 'widget';
   }
 });
-
-console.profile(123);
-for (var i = 0; i < 2000; i++) new LSD.Widget({tagName: 'div', events: {
-  click: function() {
-    
-  }
-}})
-console.profileEnd(123);

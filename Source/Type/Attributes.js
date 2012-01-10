@@ -49,7 +49,11 @@ LSD.Type.Pseudos.prototype.onChange = function(name, value, state, old, memo) {
     this._parent[state ? 'set' : 'unset']('states.' + name, true, 'pseudos');
 }
 
-LSD.Type.Classes = LSD.Struct.Stack();
+LSD.Type.Classes = LSD.Struct.Stack({
+  exports: {
+    className: '_name'
+  }
+});
 LSD.Type.Classes.prototype.onChange = function(name, value, state, old, memo) {
   if ((!memo || memo === 'states') && LSD.States[name]) 
     this._parent[state ? 'set' : 'unset']('states.' + name, true, 'classes');
@@ -59,12 +63,13 @@ LSD.Type.Classes.prototype.onChange = function(name, value, state, old, memo) {
       if (state && value) element.classList.add(value);
       if (!state || old) element.classList.remove(state ? value : old);
     } else {
-      var index = (' ' + element.className + ' ').indexOf(' ' + name + ' ');
-      if (state && value && index == -1) element.className += ' ' + name;
-      if (!state && index > -1) element.className.splice(index - 1, name.length);
+      var index = (' ' + this._name + ' ').indexOf(' ' + name + ' ');
+      if (state && value && index == -1) this._name.set(this._name + ' ' + name);
+      if (!state && index > -1) this.set('_name', this._name.substring(0, index - 1) + this._name.substring(name.length));
     }
   }
 };
+LSD.Type.Classes.prototype._name = '';
 LSD.Type.Classes.prototype.contains = function(name) {
   return this[name];
 };

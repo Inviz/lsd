@@ -192,4 +192,4 @@ LSD.Type.Matches.prototype._hash = function(expression, value, storage) {
   if (array == null) array = group[tag] = [];
   return array;
 };
-LSD.Type.Matches.prototype._types: ['pseudos', 'classes', 'attributes'];
+LSD.Type.Matches.prototype._types = ['pseudos', 'classes', 'attributes'];

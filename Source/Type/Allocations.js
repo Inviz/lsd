@@ -1,5 +1,10 @@
-LSD.Type.Allocations = new LSD.Object.Group.Array({
+LSD.Type.Allocations = new LSD.Struct({
+
 });
+
+LSD.Type.Allocations.prototype.onChange = function(key, value, state, old, memo) {
+  
+}
 
 LSD.Type.Allocations.Properties = {
   proxy: function() {
