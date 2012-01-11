@@ -35,7 +35,7 @@ LSD.Mixin.Submittable = new Class({
           as: 'submittable',
           scope: {
             'default': {
-              filter: '[-]'
+              filter: '[default]'
             }
           },
           options: {
