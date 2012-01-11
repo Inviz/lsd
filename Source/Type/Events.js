@@ -15,7 +15,7 @@ requires:
   - Core/Element.Event
   - Core/Element.Delegation
   - More/Element.Event.Pseudos
-  - Ext/Element.Properties.widget
+  - LSD.Script/LSD.Struct.Group
 
 provides:
   - LSD.Type.Events

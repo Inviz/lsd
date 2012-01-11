@@ -15,10 +15,6 @@ requires:
   - Core/Options
   - Core/Browser
   - Core/Object
-  - Ext/States
-  - Ext/Macro
-  - Ext/Class.mixin
-  - Ext/Object.Array
   - Slick/Slick.Finder
  
 provides: 

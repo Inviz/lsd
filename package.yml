@@ -25,6 +25,8 @@ sources:
   - Source/Type/Children.js
   - Source/Type/States.js
   - Source/Type/Matches.js
+  - Source/Type/Relations.js
   - Source/Type/Attributes.js
+  - Source/Type/Events.js
   - Source/LSD.js
   - Source/LSD/Widget.js
