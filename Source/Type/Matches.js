@@ -109,7 +109,8 @@ LSD.Type.Matches.prototype.onChange = function(selector, callback, state, old, m
       if (typeof memo != 'number') memo = 0;
       if (state) {
         this.set(expressions[memo], {
-          fn: this._callback,
+          fn: this.__watcher,
+          bind: this,
           index: memo + 1,
           callback: callback,
           expressions: expressions
@@ -174,9 +175,11 @@ LSD.Type.Matches.prototype.onChange = function(selector, callback, state, old, m
     }
   }
 };
-LSD.Type.Matches.prototype._callback = function(widget, state, memo) {
-  if (expressions[memo.index + 1]) widget.matches[substate ? 'set' : 'unset'](expressions, memo.callback, memo.index + 1)
-  else memo.callback(widget, substate)
+LSD.Type.Matches.prototype.__watcher = function(call, widget, state) {
+  if (expressions[memo.index + 1]) {
+    if (typeof call.callback == 'function') call.callback(widget, state);
+    else this._callback(call.callback, widget, state)
+  } else widget.matches[substate ? 'set' : 'unset'](expressions, call.callback, memo.index + 1)
 };
 LSD.Type.Matches.prototype._hash = function(expression, value, storage) {
   if (typeof expression == 'string') expression = Slick.parse(expression).expressions[0][0];
