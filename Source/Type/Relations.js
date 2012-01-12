@@ -25,25 +25,37 @@ LSD.Type.Relations.prototype.onChange = function(key, value, state, old) {
   if (value.lsd) {
     var group = this[key]
     if (this._parent) {
-      var widget = group[0] || value;
-      if (!state) widget = group[1];
-      if (this._singular && this._singular[key]) {
-        if (this._parent[key] != widget) this._parent[key] = widget;
-      } else {
-        if (state) {
-          if (this._parent[key] != group)
-            this._parent.set(key, group);
-        } else {
-          if (this._parent[key] == group && group.length == 0)
-            this._parent.unset(key, group);
-        }
-      }
-      var as = this._as && this._as[key];
-      if (as != null && (as = as[0]) != null) {
-        if (state) {
-          if (old == null) value.set(as, this._parent);
-        } else {
-          value.unset(as, this._parent);
+      var widget = state ? group[0] || value : group[1] || null;
+      var options = this._options && this._options[key];
+      if (options) {
+        for (var name in options) {
+          var opts = options[name];
+          if (!opts.length) continue;
+          switch (name) {
+            case 'singular':
+              var previous = this._parent[key];
+              this._parent.set(key, widget);
+              if (previous !== this[key]) this._parent.unset(key, previous);
+              break;
+            case 'as':
+              if (state) {
+                if (old == null) value.set(opts[opts.length - 1], this._parent);
+              } else {
+                value.unset(opts[opts.length - 1], this._parent);
+              }
+              break;
+            case 'collection':  
+              var collection = opts[opts.length - 1];
+              if (state) {
+                if (old == null) {
+                  if (value[collection] == null) value[collection] = new LSD.Array;
+                  value[collection].push(this._parent);
+                }
+              } else {
+                var index = value[collection].indexOf(this._parent);
+                value[collection].splice(index, 1);
+              }
+          }
         }
       }
     }
@@ -56,6 +68,7 @@ LSD.Type.Relations.prototype.onChange = function(key, value, state, old) {
 };
 LSD.Type.Relations.prototype.onGroup = function(key, value, state) {
   if (state !== false) {
+    this._parent.set(key, value, null, true);
     value.watch({
       callback: this,
       fn: this._observer,
@@ -120,24 +133,26 @@ LSD.Type.Relations.prototype._observer = function(call, value, index, state, old
     }
   }
 };
-LSD.Type.Relations.prototype._save = function(index, key, value, state, prepend) {
-  var storage = this[index];
-  if (!storage) storage = this[index] = {};
-  var group = storage[key];
-  if (!group) group = storage[key] = [];
-  if (state) {
+LSD.Type.Relations.prototype._setOption = function(index, key, value, state, prepend) {
+  var options = this._options;
+  if (!options) options = this._options = {};
+  var storage = options[key];
+  if (!storage) storage = options[key] = {};
+  var group = storage[index];
+  if (!group) group = storage[index] = [];
+  if (state !== false) {
     if (prepend) group.unshift(value);
     else group.push(value);
   } else {
     if (prepend) {
-      for (var i = 0, j = length; i < j; i++)
+      for (var i = 0, j = group.length; i < j; i++)
         if (group[i] === value) {
           group.splice(i, 1);
           break;
         }
       if (j == i) return
     } else {
-      for (var j = length; --j > -1;)
+      for (var j = group.length; --j > -1;)
         if (group[j] === value) {
           group.splice(j, 1);
           break;
@@ -146,7 +161,7 @@ LSD.Type.Relations.prototype._save = function(index, key, value, state, prepend)
     }
   }
   return group[group.length - 1];
-}
+};
 
 LSD.Type.Relations.prototype._Properties = 
 LSD.Type.Relations.prototype._unstorable = 
@@ -183,37 +198,41 @@ LSD.Type.Relations.Properties = {
   },
   
   scope: function() {
-    
   },
   
   as: function(key, value, state, prepend) {
-    var group = this._as && this._as[key];
-    if (group) var old = group[key];
-    var value = this._save('_as', key, value, state, prepend);
+    var group = this._options && this._options[key];
+    if (group && (group = group.as)) var old = group[group.length - 1];
+    var alias = this._setOption('as', key, value, state, prepend);
     var related = this[key];
     if (related) for (var i = 0, widget; widget = related[i++];) {
-      widget.set(value, this._parent);
+      if (alias != null) widget.set(alias, this._parent);
       if (old != null) widget.unset(old, this._parent);
     }
   },
   
-  collection: function() {
-    
-  },
-  
-  singular: function(key, value, state) {
-    if (!this._singular) this._singular = {};
-    if (!this._singular[key]) this._singular[key] = 0;
-    var index = (this._singular[key] += (state !== false ? 1 : -1))
-    var group = this[key];
-    if (group) {
-      if (index) {
-        if (this._parent[key] != group[0]) this._parent[key] = group[0];
-      } else {
-        if (this._parent[key] != group)
-          this._parent.set(key, group);
+  collection: function(key, value, state, prepend) {
+    var group = this._options && this._options[key];
+    if (group && (group = group.as)) var old = group[group.length - 1];
+    var alias = this._setOption('collection', key, value, state, prepend);
+    var related = this[key];
+    if (related) for (var i = 0, widget; widget = related[i++];) {
+      if (alias != null) {
+        if (!widget[alias]) widget[alias].set(alias, new LSD.Array);
+        widget[alias].push(this._parent);
+      }
+      if (old != null) {
+        widget[alias].splice(widget[alias].indexOf(this._parent), 1)
       }
     }
+  },
+  
+  singular: function(key, value, state, prepend) {
+    var singular = this._setOption('singular', key, true, state, prepend);
+    var group = this[key];
+    var widget = group && group[0] || null;
+    if (singular) this._parent.set(key, widget);
+    else this._parent.unset(key, widget);
   },
   
   callbacks: function(key, value, state) {
