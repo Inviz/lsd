@@ -610,5 +610,7 @@ LSD.Widget.implement({
 
   $family: function() {
     return 'widget';
-  }
+  },
+  
+  _parent: false
 });
