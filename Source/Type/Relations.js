@@ -1,24 +1,25 @@
 /*
 ---
  
-script: Relation.js
+script: Relations.js
  
-description: An unsettable relation that dispatches options to specific widgets
+description: An dynamic collection or link with specific configuration
  
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Script/LSD.Struct.Group.Array
+  - LSD.Type
+  - LSD.Struct.Group.Array
 
 provides: 
-  - LSD.Type.Relation
+  - LSD.Type.Relations
  
 ...
 */
 
-LSD.Type.Relations = new LSD.Struct.Group.Array({
+LSD.Type.Relations = LSD.Struct.Group.Array({
   matches: '.matches'
 });
 LSD.Type.Relations.prototype.onChange = function(key, value, state, old) {

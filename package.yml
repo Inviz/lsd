@@ -10,6 +10,14 @@ current: 0.4prealpha
 tags: [ui, svg, interface]
 demo: http://inviz.ru/lsd/Dependencies/lsd-examples/Demos/index.html
 sources:
+  - Source/LSD.js
+  - Source/LSD/Widget.js
+  - Source/LSD/Namespace.js
+  - Source/Object/Object.js
+  - Source/Object/Object.Stack.js
+  - Source/Object/Object.Group.js
+  - Source/Object/Struct.js
+  - Source/Object/Array.js
   - Source/ART/ART.js
   - Source/ART/ART.SVG.js
   - Source/ART/ART.Element.js
@@ -28,5 +36,4 @@ sources:
   - Source/Type/Relations.js
   - Source/Type/Attributes.js
   - Source/Type/Events.js
-  - Source/LSD.js
-  - Source/LSD/Widget.js
+  - Source/Type/Allocations.js

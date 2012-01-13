@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD
-  - LSD.Script/LSD.Struct
+  - LSD.Struct
   - Ext/States
  
 provides: 

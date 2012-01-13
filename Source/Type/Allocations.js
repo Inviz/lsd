@@ -1,46 +1,80 @@
-LSD.Type.Allocations = new LSD.Struct({
+/*
+---
+ 
+script: Relation.js
+ 
+description: An unsettable relation that dispatches options to specific widgets
+ 
+license: Public domain (http://unlicense.org).
+
+authors: Yaroslaff Fedin
+ 
+requires:
+  - LSD.Type
+  - LSD.Struct.Stack
+
+provides: 
+  - LSD.Type.Allocations
+  - LSD.allocations.lightbox
+  - LSD.allocations.dialog
+  - LSD.allocations.contextmenu
+  - LSD.allocations.scrollbar
+  - LSD.allocations.container
+  - LSD.allocations.message
+  - LSD.allocations.input
+  - LSD.allocations.submit
+ 
+...
+*/
+
+LSD.Type.Allocations = LSD.Struct({
 
 });
-
 LSD.Type.Allocations.prototype.onChange = function(key, value, state, old, memo) {
-  
+  var ns = this._parent.namespace || LSD;
+  var options = ns.allocations[key];
+  if (options) value.mix(options, null, state);
+  return value;
 }
-
+LSD.Type.Allocations.prototype._eager = true;
+LSD.Type.Allocations.prototype._getConstructor = function(key) {
+  var ns = this._parent.namespace || LSD;
+  if (ns.allocations[key]) return this._parent.__constructor || this._parent._constructor;
+}
 LSD.Type.Allocations.Properties = {
   proxy: function() {
-    
-  },
-  
-  source: function() {
     
   },
   
   options: function() {
     
   }
-}
-
-
-
-LSD.Allocations = {
+};
+LSD.mix('allocations', {
   lightbox: {
-    source: 'body[type=lightbox]'
+    tagName: 'body',
+    attributes: {
+      type: 'lightbox'
+    }
   },
   dialog: {
     multiple: true,
-    source: 'body[type=dialog]',
-    options: function(options, kind) {
-      if (kind) return {attributes: {kind: kind}}
+    tagName: 'body',
+    attributes: {
+      type: 'dialog'
     }
   },
-  menu: {
-    source: 'menu[type=context]'
+  contextmenu: {
+    tagName: 'menu',
+    attributes: {
+      type: 'context'
+    }
   },
   scrollbar: {
-    source: 'scrollbar'
+    tagName: 'scrollbar'
   },
   container: {
-    source: '.container',
+    clases: ['container'],
     proxy: {
       type: 'promise',
       mutation: true,
@@ -49,7 +83,8 @@ LSD.Allocations = {
     }
   },
   message: {
-    source: 'p.message',
+    tagName: 'p',
+    classes: ['message'],
     parent: 'document',
     options: function(options, type, message) {
       var opts = {}
@@ -87,4 +122,4 @@ LSD.Allocations = {
       }
     }, options));
   }
-}
+})

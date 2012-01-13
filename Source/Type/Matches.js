@@ -10,8 +10,8 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD
-  - LSD.Script/LSD.Struct.Group
+  - LSD.Type
+  - LSD.Struct.Group
 
 provides: 
   - LSD.Module.Matches

@@ -19,7 +19,7 @@ provides:
 ...
 */
 
-LSD.Property.Dragger = new LSD.Struct({
+LSD.Property.Dragger = LSD.Struct({
   Extends: Drag,
   
   options: {

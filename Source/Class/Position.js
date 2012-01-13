@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Script/LSD.Object
+  - LSD.Object
   
 provides:
   - LSD.Position

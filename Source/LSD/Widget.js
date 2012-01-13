@@ -12,7 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD
   - Slick/Slick.Finder
-  - LSD.Script/LSD.Struct.Stack
+  - LSD.Struct.Stack
 
 provides: 
   - LSD.Widget
@@ -21,7 +21,7 @@ provides:
 */
 
 LSD.Slick = window.Slick;
-LSD.Widget = new LSD.Struct.Stack(LSD.Type);
+LSD.Widget = LSD.Struct.Stack(LSD.Type);
 LSD.Widget.Properties = {
   namespace: function() {
     
@@ -257,9 +257,12 @@ LSD.Widget.Properties = {
 LSD.Widget.UID = 0;
 
 LSD.Widget.implement({
+  _preconstructed: ['allocations', 'attributes', 'children', 'events', 'matches', 'proxies', 'relations', 'states'],
 
   localName: 'div',
   tagName: null,
+  
+  namespace: LSD,
   
   initialize: function(element) {
     this.lsd = ++LSD.Widget.UID; 
@@ -614,3 +617,5 @@ LSD.Widget.implement({
   
   _parent: false
 });
+
+

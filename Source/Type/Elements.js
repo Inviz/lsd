@@ -11,10 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Type
-  - LSD.Script/LSD.Struct
-  - LSD.Script/LSD.Array
-  - LSD.Script/*
-  - Core/Element
+  - LSD.Array
 
 provides: 
   - LSD.Mixin.Draggable

@@ -10,11 +10,10 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD
-  - LSD.Script/LSD.Struct.Stack
+  - LSD.Type
+  - LSD.Struct.Stack
 
 provides: 
-  - LSD.Attributes
   - LSD.Type.Pseudos
   - LSD.Type.Classes
   - LSD.Type.Attributes
@@ -24,7 +23,7 @@ provides:
 ...
 */
 
-LSD.Attributes = Object.append(LSD.Attributes || {}, {
+LSD.mix('attributes', {
   tabindex: Number,
   width:    Number,
   height:   Number,
@@ -45,17 +44,15 @@ LSD.Attributes = Object.append(LSD.Attributes || {}, {
 
 LSD.Type.Pseudos = LSD.Struct.Stack();
 LSD.Type.Pseudos.prototype.onChange = function(name, value, state, old, memo) {
-  if ((!memo || memo === 'states') && LSD.States[name])
+  var ns = this._parent.namespace || LSD;
+  if ((!memo || memo === 'states') && ns.states[name])
     this._parent[state ? 'set' : 'unset']('states.' + name, true, 'pseudos');
 }
 
-LSD.Type.Classes = LSD.Struct.Stack({
-  exports: {
-    className: '_name'
-  }
-});
+LSD.Type.Classes = LSD.Struct.Stack();
 LSD.Type.Classes.prototype.onChange = function(name, value, state, old, memo) {
-  if ((!memo || memo === 'states') && LSD.States[name]) 
+  var ns = this._parent.namespace || LSD;
+  if ((!memo || memo === 'states') && ns.states[name]) 
     this._parent[state ? 'set' : 'unset']('states.' + name, true, 'classes');
   var element = this._parent.element;
   if (element) {
@@ -70,6 +67,9 @@ LSD.Type.Classes.prototype.onChange = function(name, value, state, old, memo) {
   }
 };
 LSD.Type.Classes.prototype._name = '';
+LSD.Type.Classes.prototype._exports = {
+  className: '_name'
+};
 LSD.Type.Classes.prototype.contains = function(name) {
   return this[name];
 };
@@ -81,9 +81,10 @@ LSD.Type.Classes.prototype.remove = function(name) {
 };
 
 
-LSD.Type.Attributes = LSD.Struct.Stack(LSD.Attributes);
+LSD.Type.Attributes = LSD.Struct.Stack(LSD.attributes);
 LSD.Type.Attributes.prototype.onChange = function(name, value, state, old, memo) {
-  if ((!memo || memo === 'states') && LSD.States[name]) 
+  var ns = this._parent.namespace || LSD;
+  if ((!memo || memo === 'states') && ns.states[name]) 
     this._parent[state ? 'set' : 'unset']('states.' + name, true, 'attributes');
   if (this._parent.element && (name != 'type' || LSD.toLowerCase(this._parent.element.tagName) != 'input')) {
     if (state) this._parent.element.setAttribute(name, value === true ? name : value);
@@ -96,7 +97,10 @@ LSD.Type.Attributes.prototype.onChange = function(name, value, state, old, memo)
     if (typeof old != 'undefined') this.dataset.unset(property, old);
   }
   return value;
-}
+};
+LSD.Type.Classes.prototype._exports = {
+  id: 'id'
+};
 
 LSD.Type.Dataset = LSD.Struct.Stack();
-LSD.Type.Variables = LSD.Struct.Stack()
+LSD.Type.Variables = LSD.Struct.Stack();

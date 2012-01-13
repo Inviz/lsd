@@ -11,8 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Type
-  - LSD.Script/LSD.Struct
-  - LSD.Script/LSD.Array
+  - LSD.Array
   - LSD.Script/*
   - Core/Element
 

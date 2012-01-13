@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Script/LSD.Array
+  - LSD.Array
   
 provides:
   - LSD.Logger

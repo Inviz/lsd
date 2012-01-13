@@ -18,7 +18,7 @@ provides:
 ...
 */
 
-LSD.Type.Size = new LSD.Struct({
+LSD.Type.Size = LSD.Struct({
   exports: {
     clientHeight: 'height + styles.paddingTop  + styles.paddingBottom',
     clientWidth:  'width  + styles.paddingLeft + styles.paddingRight',
