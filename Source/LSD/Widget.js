@@ -237,6 +237,10 @@ LSD.Widget.Properties = {
     if (value) this.set('childNodes.disabled', value);
     if (old) this.unset('childNodes.disabled', old);
   },
+  document: function(value, old) {
+    if (value) this.set('childNodes.document', value);
+    if (old) this.unset('childNodes.document', old);
+  },
   root: function(value, old) {
     if (value) this.set('childNodes.root', value);
     if (old) this.unset('childNodes.root', old);

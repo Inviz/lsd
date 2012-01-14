@@ -80,7 +80,10 @@ LSD.Type.Matches.prototype.onChange = function(selector, callback, state, old, m
   /*
     Expression may be a string selector, so it gets parsed with Slick
   */
-  if (typeof selector == 'string') selector = Slick.parse(selector);
+  if (typeof selector == 'string') {
+    selector = Slick.parse(selector);
+    if (callback.lsd) selector = selector.expressions[0];
+  }
   /*
     Expression may be a parsed Slick selector, only expressions part is used then
   */
@@ -89,20 +92,20 @@ LSD.Type.Matches.prototype.onChange = function(selector, callback, state, old, m
     If a selector is array of expressions, each of those expressions are processed then
   */
   if (callback.lsd) {
-    if (this._callbacks && selector === expression) {
+    if (typeof expression.push == 'function') expression = expression[memo || 0];
+    if (this._callbacks) {
       var storage = this._hash(expression);
       for (var i = 0, group; group = storage[i++];) {
-        if (group[2] === false) group[1](callback, state);
-        else callback.matches[state ? 'set' : 'unset'](group[0], group[1], group[2])
+        if (group[2] === false) {
+          if (typeof group[1] == 'function') group[1](callback, state);
+          else this._callback(group[1], callback, state)
+        } else callback.matches[state ? 'set' : 'unset'](group[0], group[1], group[2])
       }
     }
     return callback;
   } else if (typeof expression.push == 'function') {
     for (var i = 0, j = expression.length; i < j; i++) {
       var expressions = expression[i];
-      /*
-        If array has arrays nested array of expressions in it, it should iterate over them too
-      */
       if (typeof expressions.push != 'function') expressions = expression;
       var l = expressions.length;
       if (j == 1 && l == 1) break; 
@@ -118,7 +121,7 @@ LSD.Type.Matches.prototype.onChange = function(selector, callback, state, old, m
       } else {
         this.unset(expressions[memo], callback);
       }
-      if (j == 1) break;
+      if (j == 1 || expressions == expression) break;
     }
     if (j > 1 || l > 1) return;
   }
@@ -156,18 +159,28 @@ LSD.Type.Matches.prototype.onChange = function(selector, callback, state, old, m
       widgets that matches each of combinator-tag pair.
     */
     if (state) {
-      var stateful = !!(expression.id || expression.attributes || expression.pseudos || expression.classes)
+      var stateful = !!(expression.id || expression.attributes || expression.pseudos || expression.classes) 
       hash.push([expression, callback, stateful]);
       if (this._results) {
         var group = this._hash(expression, null, this._results);
         for (var i = 0, widget; widget = group[i++];) {
           if (stateful) widget.matches[state ? 'set' : 'unset'](expression, callback, 'state');
-          else callback.call(this._parent, widget, state);
+          else {
+            if (typeof callback == 'function') callback(widget, state);
+            else this._callback(callback, widget, state)
+          }
         }
       }
     } else {
       if (hash) for (var i = hash.length, fn; i--;) {
         if ((fn = hash[i]) && (fn = fn[1]) && (fn === callback || fn.callback === callback)) {
+          if (this._results) {
+            var results = this._hash(expression, null, this._results);
+            for (var j = 0, result; result = results[j++];) {
+              if (typeof fn == 'function') fn(widget, state);
+              else this._callback(fn, result, state)
+            }
+          }
           hash.splice(i, 1);
           break;
         }
@@ -176,15 +189,15 @@ LSD.Type.Matches.prototype.onChange = function(selector, callback, state, old, m
   }
 };
 LSD.Type.Matches.prototype.__watcher = function(call, widget, state) {
-  if (expressions[memo.index + 1]) {
+  if (call.expressions[call.index] == null) {
     if (typeof call.callback == 'function') call.callback(widget, state);
     else this._callback(call.callback, widget, state)
-  } else widget.matches[substate ? 'set' : 'unset'](expressions, call.callback, memo.index + 1)
+  } else widget.matches[state ? 'set' : 'unset'](call.expressions, call.callback, call.index)
 };
 LSD.Type.Matches.prototype._hash = function(expression, value, storage) {
   if (typeof expression == 'string') expression = Slick.parse(expression).expressions[0][0];
   var tag = expression.tag;
-  if (!tag) return;
+  if (!tag) return false;
   if (storage == null) storage = value != null && value.lsd
                                ? this._results || (this._results = {}) 
                                : this._callbacks || (this._callbacks = {});

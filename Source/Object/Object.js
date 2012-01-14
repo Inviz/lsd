@@ -44,7 +44,7 @@ LSD.Object.prototype = {
         key = hash;
         hash = null;
       }
-    }
+    } else var priv = key.charAt(0) == '_';
     if (hash == null && typeof index != 'number') index = key.indexOf('.');
     if (index > -1) return this.mix(key, value, memo, true, null, null, index);
     /*
@@ -63,7 +63,7 @@ LSD.Object.prototype = {
       Keys that start with `_` underscore do not trigger calls to global
       object listeners. But they can be watched individually.
     */
-    if (index !== -1 || key.charAt(0) != '_') {
+      if (index !== -1 || priv !== true) {
       if((this._onChange && typeof (value = this._onChange(key, value, true, old, memo, hash)) == 'undefined')
       || (this.onChange && typeof (value = this. onChange(key, value, true, old, memo, hash)) == 'undefined')) {
         if (hash == null) this[key] = old;
