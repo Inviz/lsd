@@ -1,18 +1,18 @@
 /*
 ---
- 
+
 script: Datalist.js
- 
+
 description: Add your widget have a real form value.
- 
+
 license: Public domain (http://unlicense.org).
- 
+
 requires:
   - LSD.Mixin
- 
-provides: 
+
+provides:
   - LSD.Mixin.Datalist
- 
+
 ...
 */
 
@@ -55,28 +55,28 @@ LSD.Mixin.Datalist = new Class({
       max: 10
     }
   },
-  
+
   constructors: {
     datalist: function() {
       this.suggestionItems = []
       this.suggestionIndex = -1;
     }
   },
-  
+
   suggestPrevious: function(e) {
     if (this.getSuggestionsList().parentNode == null) return;
     if (--this.suggestionIndex < 0) this.suggestionIndex = this.suggestionLength - 1;
     this.selectSuggestionItem(this.suggestionIndex);
     e.preventDefault();
   },
-  
+
   suggestNext: function(e) {
     if (this.getSuggestionsList().parentNode == null) return;
     if (++this.suggestionIndex == this.suggestionLength) this.suggestionIndex = 0;
     this.selectSuggestionItem(this.suggestionIndex);
     e.preventDefault();
   },
-  
+
   getCurrentValue: function(suggestion) {
     var position = this.element.getSelectedRange();
     var value = this.element.get('value');
@@ -86,11 +86,11 @@ LSD.Mixin.Datalist = new Class({
     var end = value.indexOf(',', position.end);
     if (end === -1) end = value.length;
     else end --
-    if (suggestion === false && position.start != position.end) 
+    if (suggestion === false && position.start != position.end)
       return value.substring(start, position.start) + value.substring(position.end, end)
     else return value.substring(start, end);
   },
-  
+
   setCurrentValue: function(text, suggestion) {
     var old = this.getCurrentValue();
     var position = this.element.getSelectedRange();
@@ -103,18 +103,18 @@ LSD.Mixin.Datalist = new Class({
     else end++;
     switch (suggestion) {
       case false:
-        this.element.set('value', value.substring(0, start) + text + value.substring(end, value.length));
+        this.setValue(value.substring(0, start) + text + value.substring(end, value.length));
         break;
       case true:
-        this.element.set('value', value.substring(0, start) + text + value.substring(end, value.length));
+        this.setValue(value.substring(0, start) + text + value.substring(end, value.length));
         this.element.selectRange(position.start, position.start + text.length - start);
         break;
       default:
-        this.element.set('value', value.substring(0, start) + text + value.substring(end, value.length));
+        this.setValue(value.substring(0, start) + text + value.substring(end, value.length));
         this.element.selectRange(position.start + text.length - start, position.start + text.length - start);
     }
   },
-  
+
   findSuggestions: function(event) {
     var input = this.getCurrentValue();
     if (input === this.input && this.getSuggestionsList().parentNode) return;
@@ -122,7 +122,7 @@ LSD.Mixin.Datalist = new Class({
     this.regexp = new RegExp(this.value.trim().replace(/\s+/, '\\s'), 'i')
     if (this.hasRemoteList()) this.send();
   },
-  
+
   suggestSelected: function(e) {
     if (this.selectedSuggestion) {
       this.setCurrentValue(this.selectedSuggestion.get('text'));
@@ -130,18 +130,18 @@ LSD.Mixin.Datalist = new Class({
     }
     this.unsuggest();
   },
-  
+
   unsetSuggestion: function() {
     this.setCurrentValue(this.getCurrentValue(false), false);
   },
-  
+
   suggest: function(text) {
     var input = this.getCurrentValue();
     var start = text.indexOf(input) + input.length;
     if (start == -1) start = 0;
     this.setCurrentValue(text, true);
   },
-  
+
   unsuggest: function() {
     var range = this.element.getSelectedRange();
     if (range.start) this.unsetSuggestion();
@@ -151,7 +151,7 @@ LSD.Mixin.Datalist = new Class({
     this.suggestionLength = 0;
     this.suggestionIndex = -1;
   },
-  
+
   renderSuggestions: function(results) {
     var list = this.getSuggestionsList();
     var n = results && results.length || 0
@@ -173,11 +173,11 @@ LSD.Mixin.Datalist = new Class({
       if (list.parentNode) list.setStyle('display', 'none');
     }
   },
-  
+
   highlight: function(result) {
     return result.replace(this.regexp, this.emphasize)
   },
-  
+
   emphasize: function(value) {
     return '<strong>' + value + '</strong>';
   },
@@ -190,12 +190,12 @@ LSD.Mixin.Datalist = new Class({
       this.setCurrentValue(item.get('text'), true);
     }
   },
-  
+
   getSuggestionItem: function(i) {
     if (!this.suggestionItems[i]) this.suggestionItems[i] = new Element('li');
     return this.suggestionItems[i];
   },
-  
+
   getSuggestionsList: function() {
     if (!this.suggestions) this.suggestions = new Element('ul', {'class': 'suggestions'}).addEvents({
       'mousedown:relay(li)': this.selectClickedSuggestion.bind(this),
@@ -203,20 +203,20 @@ LSD.Mixin.Datalist = new Class({
     });
     return this.suggestions;
   },
-  
+
   getRequestData: function() {
     return {q: this.input}
   },
-  
+
   selectClickedSuggestion: function(e, element) {
     if (this.selectedSuggestion) this.selectedSuggestion.removeClass('selected');
     this.setCurrentValue(element.get('text'));
   },
-  
+
   selectHoveredSuggestion: function(e, element) {
     this.selectSuggestionItem(Array.prototype.slice.call(element.parentNode.childNodes).indexOf(element))
   },
-  
+
   onSuccess: function(results) {
     if (!results.push) {
       for (var i in results) {
@@ -230,7 +230,7 @@ LSD.Mixin.Datalist = new Class({
       this.suggest(text)
     } else this.unsuggest()
   },
-  
+
   hasRemoteList: function() {
     return this.attributes.list && this.attributes.list.indexOf('/') > -1
   }
