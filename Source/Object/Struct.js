@@ -95,8 +95,8 @@ LSD.Struct.prototype = {
                 if (constructor) {
                   if (state && typeof this[key] == 'undefined') this._construct(key, prop, memo)
                 } else {
-                  if (state) return prop.call(this, value, old);
-                  else return prop.call(this, undefined, value);
+                  if (state) return prop.call(this, value, old, memo);
+                  else return prop.call(this, undefined, value, memo);
                 }
                 break;
               case 'string':

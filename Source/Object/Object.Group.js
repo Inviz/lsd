@@ -93,12 +93,27 @@ LSD.Object.Group.prototype = {
 
 LSD.Object.Group.prototype = Object.append(new LSD.Object, LSD.Object.Group.prototype);
 
+/*
+  LSD.Object.Group.Array groups values into observable LSD.Arrays
+*/
 
 LSD.Object.Group.Array = function() {
   LSD.Object.apply(this, arguments);
 };
 LSD.Object.Group.Array.prototype = new LSD.Object.Group;
 LSD.Object.Group.Array.prototype.___constructor = LSD.Array
+
+/*
+  LSD.Object.Group.Collection groups values into observable LSD.Collections
+  sorted by their sourceIndex. The collection is resorted as sourceIndex
+  values of the nodes are changed.
+*/
+
+LSD.Object.Group.Collection = function() {
+  LSD.Object.apply(this, arguments);
+};
+LSD.Object.Group.Collection.prototype = new LSD.Object.Group;
+LSD.Object.Group.Collection.prototype.___constructor = LSD.Collection
 
 
 
@@ -116,5 +131,11 @@ LSD.Struct.Group = function(properties) {
 LSD.Struct.Group.Array = function(properties) {
   if (!properties) properties = {};
   properties._constructor = LSD.Object.Group.Array;
+  return LSD.Struct(properties)
+}
+
+LSD.Struct.Group.Collection = function(properties) {
+  if (!properties) properties = {};
+  properties._constructor = LSD.Object.Group.Collection;
   return LSD.Struct(properties)
 }
