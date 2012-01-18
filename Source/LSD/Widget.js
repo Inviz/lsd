@@ -147,103 +147,125 @@ LSD.Widget.Properties = {
       }
     }
   },
+  sourceIndex: function(value, old, memo) {
+    if (memo !== false) for (var node = this, next, nodes, i = 0; node; node = next) {
+      next = node.firstChild || node.nextSibling ;
+      while (!next && (node = node.parentNode)) {
+        node.reset('sourceLastIndex', value + i, false)
+        next = node.nextSibling;
+      }
+      if (next) next.reset('sourceIndex', value + ++i, false)
+    }
+    return value || old;
+  },
+  sourceLastIndex: function(value, old, memo) {
+    if (memo !== false) for (var node = this, next, nodes, i = 0; node; node = next) {
+      next = node.nextSibling || node.parentNode;
+      while (!next && (node = node.parentNode)) {
+        node.reset('sourceLastIndex', value + i, false)
+        next = node.nextSibling;
+      }
+      if (next) next.reset('sourceIndex', value + ++i, false)
+    }
+    return value || old;
+  },
+  lastChild: function(value, old) {
+    if (value)
+      this.reset('sourceLastIndex', value.sourceLastIndex || value.sourceIndex);
+    return value || old;
+  },
+  firstChild: function(value, old) {
+    if (value)
+      value.reset('sourceIndex', (this.sourceIndex || 0) + 1);
+    return value || old;
+  },
   previousSibling: function(value, old) {
-    if (value) {
-      value.matches.set('!+' + this.tagName, this, null, null, true);
-      value.matches.set('!+', this, null, null, true);
-      value.matches.set('++' + this.tagName, this, null, null, true);
-      value.matches.set('++', this, null, null, true);
-      for (var sibling = this; sibling = sibling.previousSibling;) {
-        sibling.matches.set('!~' + this.tagName, this, null, null, true);
-        sibling.matches.set('!~', this, null, null, true);
-        sibling.matches.set('~~' + this.tagName, this, null, null, true);
-        sibling.matches.set('~~', this, null, null, true);
+    if (value === this) debugger
+    for (var i = 0, node, method; i < 2; i++) {
+      if (i) node = old, method = 'unset';
+      else node = value, method = 'set';
+      if (node) {
+        node.matches[method]('!+', this, null, null, true);
+        node.matches[method]('++', this, null, null, true);
+        if (this.tagName) {
+          node.matches[method]('!+' + this.tagName, this, null, null, true);
+          node.matches[method]('++' + this.tagName, this, null, null, true);
+        }
+        for (var sibling = this; sibling = sibling.previousSibling;) {
+          sibling.matches[method]('!~', this, null, null, true);
+          sibling.matches[method]('~~', this, null, null, true);
+          if (this.tagName) {
+            sibling.matches[method]('!~' + this.tagName, this, null, null, true);
+            sibling.matches[method]('~~' + this.tagName, this, null, null, true);
+          }
+        }
       }
     }
-    if (old) {
-      value.matches.unset('!+' + this.tagName, this, null, null, true);
-      value.matches.unset('!+', this, null, null, true);
-      value.matches.unset('++' + this.tagName, this, null, null, true);
-      value.matches.unset('++', this, null, null, true);
-      for (var sibling = this; sibling = sibling.previousSibling;) {
-        sibling.matches.unset('!~' + this.tagName, this, null, null, true);
-        sibling.matches.unset('!~', this, null, null, true);
-        sibling.matches.unset('~~' + this.tagName, this, null, null, true);
-        sibling.matches.unset('~~', this, null, null, true);
-      }
-    }
+    if (value) this.reset('sourceIndex', (value.sourceLastIndex || value.sourceIndex || 0) + 1);
+    return value || old;
   },
   nextSibling: function(value, old) {
-    if (value) {
-      value.matches.set('+' + this.tagName, this, null, null, true);
-      value.matches.set('+', this, null, null, true);
-      value.matches.set('++' + this.tagName, this, null, null, true);
-      value.matches.set('++', this, null, null, true);
-      for (var sibling = value; sibling; sibling = sibling.nextSibling) {
-        sibling.matches.set('~' + this.tagName, this, null, null, true);
-        sibling.matches.set('~', this, null, null, true);
-        sibling.matches.set('~~' + this.tagName, this, null, null, true);
-        sibling.matches.set('~~', this, null, null, true);
+    for (var i = 0, node, method; i < 2; i++) {
+      if (i) node = old, method = 'unset';
+      else node = value, method = 'set';
+      if (node) {
+        node.matches[method]('+', this, null, null, true);
+        node.matches[method]('++', this, null, null, true);
+        if (this.tagName) {
+          node.matches[method]('+' + this.tagName, this, null, null, true);
+          node.matches[method]('++' + this.tagName, this, null, null, true);
+        }
+        for (var sibling = node; sibling; sibling = sibling.nextSibling) {
+          sibling.matches[method]('~', this, null, null, true);
+          sibling.matches[method]('~~', this, null, null, true);
+          if (this.tagName) {
+            sibling.matches[method]('~' + this.tagName, this, null, null, true);
+            sibling.matches[method]('~~' + this.tagName, this, null, null, true);
+          }
+        }
       }
     }
-    if (old) {
-      old.matches.unset('+' + this.tagName, this, null, null, true);
-      old.matches.unset('+', this, null, null, true);
-      old.matches.unset('++' + this.tagName, this, null, null, true);
-      old.matches.unset('++', this, null, null, true);
-      for (var sibling = old; sibling; sibling = sibling.nextSibling) {
-        sibling.matches.unset('~' + this.tagName, this, null, null, true);
-        sibling.matches.unset('~', this, null, null, true);
-        sibling.matches.unset('~~' + this.tagName, this, null, null, true);
-        sibling.matches.unset('~~', this, null, null, true);
-      }
-    }
+    return value || old;
   },
   parentNode: function(value, old) {
-    if (value) {
-      this.matches.set('!>' + value.tagName, value, null, null, true);
-      this.matches.set('!>', value, null, null, true);
-      value.matches.set('>' + this.tagName, this, null, null, true);
-      value.matches.set('>', this, null, null, true);
-      for (var node = value; node; node = node.parentNode) {
-        node.matches.set(this.tagName, this, null, null, true);
-        node.matches.set(' ', this, null, null, true);
-        this.matches.set('!' + node.tagName, node, null, null, true);
-        this.matches.set('!', node, null, null, true);
+    if (!value) this.unset('sourceIndex', this.sourceIndex);
+    for (var i = 0, node, method; i < 2; i++) {
+      if (i) node = old, method = 'unset';
+      else node = value, method = 'set';
+      if (node) {
+        if (node.tagName) this.matches[method]('!>' + node.tagName, node, null, null, true);
+        this.matches[method]('!>', node, null, null, true);
+        if (this.tagName) node.matches[method]('>' + this.tagName, this, null, null, true);
+        node.matches[method]('>', this, null, null, true);
+        for (var parent = node; parent; parent = parent.parentNode) {
+          if (this.tagName) parent.matches[method](this.tagName, this, null, null, true);
+          parent.matches[method]('*', this, null, null, true);
+          if (parent.tagName) this.matches[method]('!' + parent.tagName, parent, null, null, true);
+          this.matches[method]('!', parent, null, null, true);
+        }
       }
     }
-    if (old) {
-      this.matches.unset('!>' + old.tagName, old, null, null, true);
-      this.matches.unset('!>', old, null, null, true);
-      old.matches.unset('>' + this.tagName, this, null, null, true);
-      old.matches.unset('>', this, null, null, true);
-      for (var node = old; node; node = node.parentNode) {
-        node.matches.unset(this.tagName, this, null, null, true);
-        node.matches.unset(' ', this, null, null, true);
-        this.matches.unset('!' + node.tagName, node, null, null, true);
-        this.matches.unset('!', node, null, null, true);
-      }
-    }
+    return value || old;
   },
   focused: function(value, old) {
-    if (value) this.set('parentNode.focused', value);
-    if (old) this.unset('parentNode.focused', old);
+    if (value) this.mix('parentNode.focused', value);
+    if (old) this.mix('parentNode.focused', old, null, false);
   },
   rendered: function(value, old) {
-    if (value) this.set('childNodes.rendered', value);
-    if (old) this.unset('childNodes.rendered', old);
+    if (value) this.mix('childNodes.rendered', value);
+    if (old) this.mix('childNodes.rendered', old, null, false);
   },
   disabled: function(value, old) {
-    if (value) this.set('childNodes.disabled', value);
-    if (old) this.unset('childNodes.disabled', old);
+    if (value) this.mix('childNodes.disabled', value);
+    if (old) this.mix('childNodes.disabled', old, null, false);
   },
   document: function(value, old) {
-    if (value) this.set('childNodes.document', value);
-    if (old) this.unset('childNodes.document', old);
+    if (value) this.mix('childNodes.document', value);
+    if (old) this.mix('childNodes.document', old, null, false);
   },
   root: function(value, old) {
-    if (value) this.set('childNodes.root', value);
-    if (old) this.unset('childNodes.root', old);
+    if (value) this.mix('childNodes.root', value);
+    if (old) this.mix('childNodes.root', old, null, false);
   },
   value: function(value, old) {
     
@@ -269,7 +291,9 @@ LSD.Widget.implement({
   namespace: LSD,
   
   initialize: function(element) {
-    this.lsd = ++LSD.Widget.UID; 
+    this.lsd = ++LSD.Widget.UID;
+    for (var i = 0, type; type = this._preconstructed[i++];)
+      if (!this[type]) this._construct(type);
   },
   
   properties: LSD.Widget.Properties,
@@ -621,5 +645,3 @@ LSD.Widget.implement({
   
   _parent: false
 });
-
-
