@@ -106,10 +106,6 @@ LSD.Layout.prototype = Object.append({
     this.match(element, parent, memo);
     var group, converted = element.uid && Element.retrieve(element, 'widget');
     var ascendant = parent[0] || parent, container = parent[1] || parent.toElement();
-    /* 
-      Create, clone or reuse a widget.
-    */
-    if (!memo.defaults) memo.defaults = this.getOptions(memo, parent);
     if (memo.options) LSD.reverseMerge(memo.options, memo.defaults)
     if (!converted) {
       /* 
@@ -699,146 +695,6 @@ LSD.Layout.prototype = Object.append({
     }
   },
   
-  /*
-    Match all selectors in the stack and find the right mutation
-  */
-  match: function(element, parent, memo, soft) {
-    var stack = memo.stack
-    var options, advanced, tagName = LSD.toLowerCase(element.tagName);
-    /* 
-      Matching process happens twice. First time, it matches against 
-      selectors on the stack with no regard to tag name (as `*`),
-      and the other time it takes tag name into account
-    */
-    for (var i = stack.length, item, result, ary = ['*', tagName]; (item = stack[--i]) || (item === null);)
-      if (item != null)
-        for (var j = 0, value = item[1] || item, tag; tag = ary[j++];)
-          if ((group = value[tag]))
-            for (var k = 0, possibility, exp; possibility = group[k++];) {
-              var exp = possibility[0], result = possibility[1];
-              if ((!exp.classes && !exp.attributes && !exp.pseudos) 
-                /* 
-                  Quickly match tag and id, if other things dont matter
-                */
-                ? ((j == 0 || tagName == exp.tag) && (!exp.id || element.id == exp.id))
-                /* 
-                  Or do a full match
-                */
-                : (Slick.matchSelector(element, exp.tag, exp.id, exp.classes, exp.attributes, exp.pseudos)))
-                /* 
-                  If selector matches, proceed and execute callback
-                  A callback may be a:
-                
-                  * **string**, to be evaluated as a mutation selector
-                    and parsed into options
-                  * **object**, with options for widget
-                  * **a function**, that may return a group of mutations
-                    that should be applied to the following elements
-                  * **true**, to initialize widget on that element with 
-                    no specific options.
-                  
-                  An element may match more than one mutation. In 
-                  that case options extracted from parsing selectors
-                  will be merged together. 
-                
-                  If callbacks produced options, the widget will 
-                  be initialized on that element with those options.
-                
-                  `soft` parameter tells matcher to skip mutations
-                  and only advance selectors instead.
-                */
-                if (!result || !result.call || (result = result(element, parent[0] || parent))) {
-                  if (!result) result = true;
-                  if (result.push) {
-                    (advanced || (advanced = [])).push(result);
-                  } else if (!soft) {  
-                    if (!options) options = this.getOptions(memo, parent);
-                    if (result !== true) 
-                      options = LSD.reverseMerge(options, result.match ? LSD.Module.Selectors.parse(result) : result);
-                  }
-                }
-              }
-    if (advanced) memo.advanced = advanced;      
-    if (options) memo.options = options;
-  },
-  
-  /*
-    Collect mutations and proxies from the widget. When it is first called
-    on a memo that doesnt have things collected from parent widgets,
-    it attempts to walk up and restore the context. Restored mutation stack
-    is limited to parents, so ~ and + combinators are not processed on parent
-    nodes for speed. So only > and <space> combiantors will be collected. 
-  */
-  
-  push: function(parent, memo) {
-    var group, stack = memo.stack;
-    if (stack) {
-      var widget = parent[0] || parent;
-      /* 
-        Collect mutations from a widget
-      */
-      if ((group = widget.mutations[' '])) stack.push([' ', group]);
-      if ((group = widget.mutations['>'])) stack.push(['>', group]);
-      if (widget.proxies) (memo.proxies || (memo.proxies = [])).push([parent[1] || parent.element, widget.proxies]);
-    } else {
-      var element = parent[1] || parent.element;
-      var stack = memo.stack = [], direct;
-      for (var parents = [], node = element; node && node.nodeType == 1; node = node.parentNode) 
-        parents.push(node);
-      for (var i = parents.length, node, widget; node = parents[--i];) {
-        this.match(node, parent, memo, true);
-        if (direct) {
-          for (var j = 0, index; (index = direct[j++]) != null;) stack.splice(index, 1);
-          direct.length = 0;
-        }
-        widget = node.uid && LSD.Module.DOM.find(node, true);
-        if (widget) {
-          if ((group = widget.mutations[' '])) stack.push([' ', group]);
-        }
-        if (memo.advanced) {
-          stack.push.apply(stack, memo.advanced);
-          reduce: for (var j = stack.length; group = stack[--j];) {
-            switch (group[0]) {
-              case '+': case '~':
-                stack.splice(j, 1);
-                break;
-              case '>':
-                (direct || (direct = [])).push(j);
-                break;
-              default:
-                break reduce;
-            }
-          }
-          delete memo.advanced;
-        }
-        if (widget && (group = widget.mutations['>'])) 
-          (direct || (direct = [])).push(stack.push(['>', group]) - 1);
-      }
-    }
-  },
-  
-  /*
-    Remove proxies that were collected from given widget from 
-    current stacks.
-  */
-  
-  pop: function(parent, memo) {
-    var group, widget = parent[0] || parent, stack = memo.stack;
-    if (stack) {
-      if ((group = widget.mutations[' '])) 
-        for (var j = stack.length, item; item = stack[--j];)
-          if (item && item[1] == group) {
-            stack.splice(j, 1)
-            break;
-          }
-      if ((group = widget.mutations['>'])) 
-        for (var j = stack.length, item; item = stack[--j];)
-          if (item && item[1] == group) {
-            stack.splice(j, 1)
-            break;
-          }
-    }
-  },
   
   walk: function(element, parent, memo) {
     var ascendant = parent[0] || parent;
@@ -967,16 +823,6 @@ LSD.Layout.prototype = Object.append({
       lazy: true,
       context: this.getContext(memo, parent)
     };
-  },
-  
-  getType: function(memo, parent) {
-    var context = this.getContext(memo, parent);
-    if (typeof context == 'string') return LSD[LSD.toClassName(context)];
-    return context;
-  },
-  
-  getContext: function(memo, parent) {
-    return memo.context || (parent && (parent[0] || parent).options.context) || (this.document && this.document.options.context)
   }
 });
 /*
