@@ -19,7 +19,7 @@ provides:
 ...
 */
 
-LSD.Type.Relations = LSD.Struct.Group.Array({
+LSD.Type.Relations = LSD.Struct.Group.Collection({
   matches: '.matches'
 });
 LSD.Type.Relations.prototype.onChange = function(key, value, state, old) {
