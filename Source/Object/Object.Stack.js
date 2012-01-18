@@ -118,7 +118,7 @@ LSD.Object.Stack.prototype = {
   },
   reset: function(key, value, memo) {
     var old = this[key];
-    this.set(key, value);
+    this.set(key, value, memo);
     if (typeof old != 'undefined') this.unset(key, old, memo)
     return true;
   }

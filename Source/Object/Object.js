@@ -212,7 +212,7 @@ LSD.Object.prototype = {
             }
           }
         } else {
-          group.push([key.substring(index + 1), value, memo, merge, prepend, index]);
+          group.push([subkey, value, memo, merge, prepend, index]);
         }
         var obj = this[name];
         if (obj == null) {
@@ -222,7 +222,7 @@ LSD.Object.prototype = {
           for (var i = 0, j = obj.length; i < j; i++)
             obj[i].mix(name, value, memo, state, merge, prepend)
         } else {
-          obj.mix(key.substring(index + 1), value, memo, state, merge, prepend);
+          obj.mix(subkey, value, memo, state, merge, prepend);
         }
       } else if (value != null && (typeof value == 'object' && !value.exec && !value.push && !value.nodeType)
                                && (!value._constructor || merge)) {
@@ -392,13 +392,16 @@ LSD.Object.prototype = {
   },
   
   _callback: function(callback, key, value, old, memo, obj) {
-    if (callback.substr) var subject = this, property = callback;
-    else if (callback.watch && callback.set) var subject = callback, property = key;
-    else if (callback.push) var subject = callback[0], property = callback[1];
-    else if (typeof callback.fn == 'function') {
-      return callback.fn.call(callback.bind || this, callback, key, value, old, memo, obj);
-    } else throw "Callbacks should be either functions, strings, thiss, or [this, string] arrays"
-    if (property === true || property == false) property = key;
+    if (callback.substr) 
+      var subject = this, property = callback;
+    else if (typeof callback.fn == 'function')
+      return (callback.fn || (callback.bind || this)[callback.method]).call(callback.bind || this, callback, key, value, old, memo, obj);
+    else if (callback.watch && callback.set) 
+      var subject = callback, property = key;
+    else if (callback.push) 
+      var subject = callback[0], property = callback[1];
+    if (property === true || property == false) 
+      property = key;
     // check for circular calls
     if (memo != null && memo.push) {
       for (var i = 0, a; a = memo[i++];)
@@ -416,9 +419,8 @@ LSD.Object.prototype = {
   toString: function() {
     var string = '{';
     for (var property in this)
-      if (this.has(property)) {
+      if (this.has(property) && typeof this[property] != 'function')
         string += (string.length > 1 ? ', ' : '') + (property + ': ' + this[property]);
-      }
     return string + '}'
   },
 
