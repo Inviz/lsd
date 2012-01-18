@@ -151,24 +151,25 @@ LSD.Type.Matches.prototype.onChange = function(selector, callback, state, old, m
       }
     }
     if (this._parent && this._parent.test(expression)) callback(this._parent, state);
+  /*
+    Expression may also be matching other node according to its combinator.
+    Expectation is indexed by its combinator & tag and stored in the object.
+    Every time DOM structure changes, this object is notified about all 
+    widgets that match each of combinator-tag pair.
+  */
   } else {
-    /*
-      Expression may also be matching other node according to its combinator.
-      Expectation is indexed by its combinator & tag and stored in the object.
-      Every time DOM structure changes, this object is notified about all 
-      widgets that matches each of combinator-tag pair.
-    */
     if (state) {
       var stateful = !!(expression.id || expression.attributes || expression.pseudos || expression.classes) 
       hash.push([expression, callback, stateful]);
       if (this._results) {
         var group = this._hash(expression, null, this._results);
         for (var i = 0, widget; widget = group[i++];) {
-          if (stateful) widget.matches[state ? 'set' : 'unset'](expression, callback, 'state');
-          else {
+          if (!stateful) {
             if (typeof callback == 'function') callback(widget, state);
-            else this._callback(callback, widget, state)
-          }
+            else if (callback.callback)
+              (callback.fn || (callback.bind || this)[callback.method]).call(callback.bind || this, callback, widget, state)
+            else widget.mix(callback, null, memo, state)
+          } else widget.matches.set(expression, callback, 'state');
         }
       }
     } else {
@@ -178,7 +179,9 @@ LSD.Type.Matches.prototype.onChange = function(selector, callback, state, old, m
             var results = this._hash(expression, null, this._results);
             for (var j = 0, result; result = results[j++];) {
               if (typeof fn == 'function') fn(widget, state);
-              else this._callback(fn, result, state)
+              else if (typeof fn.callback != 'undefined')
+                (fn.fn || (fn.bind || this)[fn.method]).call(fn.bind || this, fn, result, state)
+              else result.mix(fn, null, memo, state)
             }
           }
           hash.splice(i, 1);
