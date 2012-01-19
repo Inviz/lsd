@@ -117,7 +117,7 @@ LSD.Mixin.Fieldset = new Class({
 
   parseFieldErrors: function(response, result, root) {
     var errors = response.errors;
-    debugger
+
     if (typeof response == "object") {
       if (typeof result != 'object') result = {};
       if (errors) {
