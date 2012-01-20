@@ -144,15 +144,21 @@ LSD.Mixin.Fieldset = new Class({
       if (typeof value == 'undefined') {
         if (typeof old != 'undefined') {
           var val = widget.getValue();
-          if (this.values.get(name) == val) this.values.unset(name, val);
+          if (this.values.get(name) == val) {
+            this.values.unset(name, val);
+            this.fields.unset(name, widget)
+          }
         }
       } else {
         this.values.set(name, widget.getValue());
+        this.fields.set(name, widget);
       }
     }.bind(this)
     callback._callback = this;
-    if (LSD.Mixin.Command.getCommandType.call(widget) == 'command')
+    if (LSD.Mixin.Command.getCommandType.call(widget) == 'command') {
       this.values.set(name, widget.getValue());
+      this.fields.set(name, widget);
+    }
     widget.states.watch('checked', callback);
     var key = widget.lsd + ':value:callback'
     var callback = this.retrieve(key);
@@ -165,7 +171,6 @@ LSD.Mixin.Fieldset = new Class({
       this.store(key, callback)
     }
     widget.addEvent('change', callback);
-    this.fields.set(name, widget)
   },
   
   getParams: function(object) {
