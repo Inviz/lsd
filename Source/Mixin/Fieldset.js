@@ -117,7 +117,6 @@ LSD.Mixin.Fieldset = new Class({
 
   parseFieldErrors: function(response, result, root) {
     var errors = response.errors;
-
     if (typeof response == "object") {
       if (typeof result != 'object') result = {};
       if (errors) {
@@ -143,7 +142,10 @@ LSD.Mixin.Fieldset = new Class({
     if (!name || !widget.toData) return;
     var callback = function(value, old) {
       if (typeof value == 'undefined') {
-        if (typeof old != 'undefined') this.values.unset(name, widget.getValue());
+        if (typeof old != 'undefined') {
+          var val = widget.getValue();
+          if (this.values.get(name) == val) this.values.unset(name, val);
+        }
       } else {
         this.values.set(name, widget.getValue());
       }
