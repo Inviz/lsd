@@ -1,28 +1,24 @@
 /*
 ---
  
-script: Widget.js
+script: Element.js
  
-description: Base widget with all modules included
+description: A single page element
  
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD
-  - Slick/Slick.Finder
   - LSD.Struct.Stack
 
 provides: 
-  - LSD.Widget
+  - LSD.Element
  
 ...
 */
-
-LSD.Slick = window.Slick;
-LSD.Widget = LSD.Struct.Stack(LSD.Type);
-LSD.Widget.Properties = {
+LSD.Element = LSD.Struct.Stack(LSD.Type);
+LSD.Element.Properties = {
   namespace: function() {
     
   },
@@ -121,9 +117,6 @@ LSD.Widget.Properties = {
     Element[element ? 'store' : 'eliminate'](element || old, 'widget', this);
     return element;
   },
-  /*
-    Extract and apply options from elements
-  */
   origin: function(value, old, memo) {
     var extracted = this.extracted;
     if (value) {
@@ -247,6 +240,28 @@ LSD.Widget.Properties = {
     }
     return value || old;
   },
+  built: function(value, old) {
+    if (old) {
+      this.fireEvent('beforeDestroy');
+      if (this.parentNode) this.dispose();
+      var element = this.element;
+      if (element) {
+        this.detach(element);
+        element.destroy();
+      }
+      if (this.layouts.children) this.removeLayout('children');
+      if (this.layouts.options) this.removeLayout('options');
+    }
+    if (value) {
+      var element = document.createElement(this.localName);
+      for (var name in this.attributes)
+        if (this.attributes.has(name))
+          element.setAttribute(name, this.attributes[name])
+      if (this.classes && this.classes.className != element.className) 
+        element.className = this.classes.className;
+      this.set('element', element)
+    }
+  },
   focused: function(value, old) {
     if (value) this.mix('parentNode.focused', value);
     if (old) this.mix('parentNode.focused', old, null, false);
@@ -280,23 +295,29 @@ LSD.Widget.Properties = {
   }
 };
 
-LSD.Widget.UID = 0;
-
-LSD.Widget.implement({
-  _preconstructed: ['allocations', 'attributes', 'children', 'events', 'matches', 'proxies', 'relations', 'states'],
+LSD.Element.implement({
+  _preconstructed: ['allocations', 'children', 'events', 'matches', 'proxies', 'relations', 'states'],
 
   localName: 'div',
   tagName: null,
   
   namespace: LSD,
   
-  initialize: function(element) {
-    this.lsd = ++LSD.Widget.UID;
+  _initialize: function(options, element) {
+    this.lsd = ++LSD.UID;
     for (var i = 0, type; type = this._preconstructed[i++];)
       if (!this[type]) this._construct(type);
+    if (options != null && typeof options.nodeType == 'number') {
+      var memo = element;
+      element = options;
+      options = memo;
+    }
+    if (element != null && typeof element.nodeType == 'number')
+      this.set('origin', element);
+    return options;
   },
   
-  properties: LSD.Widget.Properties,
+  properties: LSD.Element.Properties,
   
   appendChild: function(child, element, bypass) {
     if (child.nodeType == 11) 
@@ -410,32 +431,15 @@ LSD.Widget.implement({
       source: this.source,
       tag: this.tagName,
       pseudos: this.pseudos.toObject(),
+      attributes: this.attributes.toObject(),
       traverse: !!children,
       clone: true
     }, options));
     return clone;
   },
   
-  inject: function(node, where, invert) {
-    if (invert) var subject = node, object = this;
-    else var subject = this, object = node;
-    if (!object.lsd) {
-      switch (where) {
-        case 'after':
-          var instance = LSD.Module.DOM.findSibling(object, true, null, this);
-          break;
-        case 'before':
-          var instance = LSD.Module.DOM.findSibling(object, false, null, this);
-          break;
-        default:
-          var instance = LSD.Module.DOM.find(object);
-      }
-      if (instance) var widget = instance, element = object;
-    } else var widget = object;
-    if (where === false) {
-      if (widget) widget.appendChild(subject, false);
-    } else if (!inserters[where || 'bottom'](widget ? subject : subject.toElement(), widget || node, element)) return false;
-    return this;
+  inject: function(node, where) {
+    return inserters[where || 'bottom'](node, this, element);
   },
 
   grab: function(node, where){
@@ -611,32 +615,8 @@ LSD.Widget.implement({
   },
 
   toElement: function(){
-    if (!this.built) this.build(this.origin);
+    if (!this.built) this.build();
     return this.element;
-  },
-
-  build: function() {
-    var element = document.createElement(this.localName);
-    for (var name in this.attributes)
-      if (this.attributes.has(name))
-        element.setAttribute(name, this.attributes[name])
-    if (this.classes && this.classes.className != element.className) 
-      element.className = this.classes.className;
-    this.set('element', element)
-    return element;
-  },
-
-  destroy: function() {
-    this.fireEvent('beforeDestroy');
-    if (this.parentNode) this.dispose();
-    var element = this.element;
-    if (element) {
-      this.detach(element);
-      element.destroy();
-    }
-    if (this.layouts.children) this.removeLayout('children');
-    if (this.layouts.options) this.removeLayout('options');
-    return this;
   },
 
   $family: function() {

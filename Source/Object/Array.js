@@ -378,6 +378,7 @@ LSD.Array.from = function(origin) {
 
 LSD.Array.prototype['<<'] = LSD.Array.prototype.push;
 LSD.Array.prototype['+'] = LSD.Array.prototype.concat;
+LSD.Array.prototype._children = false;
 
 /*=
   There're not too many methods in a standart javascript Array prototype.

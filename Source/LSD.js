@@ -8,7 +8,10 @@ description: LSD namespace definition
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
+requires:
+  - Slick/Slick.Parser
+
 provides: 
   - LSD
  
@@ -16,4 +19,8 @@ provides:
 */
 
 
-var LSD = {};
+var LSD = function() {
+  
+};
+LSD.Slick = this.Slick;
+LSD.UID = 0;

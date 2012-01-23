@@ -63,13 +63,13 @@ LSD.Object.prototype = {
       Keys that start with `_` underscore do not trigger calls to global
       object listeners. But they can be watched individually.
     */
-      if (index !== -1 || priv !== true) {
+    if (index !== -1 || priv !== true) {
       if((this._onChange && typeof (value = this._onChange(key, value, true, old, memo, hash)) == 'undefined')
       || (this.onChange && typeof (value = this. onChange(key, value, true, old, memo, hash)) == 'undefined')) {
         if (hash == null) this[key] = old;
         return;
       }
-      if (value != null && value._constructor && value._parent !== false)
+      if (value != null && value._constructor && this._children !== false && value._parent == null)
         value.set('_parent', this);
     }
     var watchers = this._watchers;
@@ -117,7 +117,7 @@ LSD.Object.prototype = {
         return false;
       if (this.onChange && (value = this.onChange(key, old, false, undefined, memo, hash)) == null && old != null)
         return false;
-      if (value != null && value._constructor && value._parent === this) 
+      if (value != null && this._children !== false && value._constructor && value._parent === this) 
         value.unset('_parent', this);
       this._length--;
     }
@@ -222,6 +222,8 @@ LSD.Object.prototype = {
           for (var i = 0, j = obj.length; i < j; i++)
             obj[i].mix(name, value, memo, state, merge, prepend)
         } else {
+          var parent = this._children !== false && obj._parent !== false && obj._parent;
+          if (state !== false && parent && parent !== this) obj = this._construct(name, null, memo, value).mix(obj)
           obj.mix(subkey, value, memo, state, merge, prepend);
         }
       } else if (value != null && (typeof value == 'object' && !value.exec && !value.push && !value.nodeType)
@@ -249,12 +251,15 @@ LSD.Object.prototype = {
             if (!memo || !memo._delegate || !memo._delegate(obj[i], key, value, state))
               obj[i].mix(value, null, memo, state, merge, prepend);
         } else {
-          obj.mix(value, null, memo, state, merge, prepend);
+          var parent = this._children !== false && obj._parent !== false && obj._parent;
+          if (state !== false && parent && parent !== this) obj = this._construct(key, null, memo, obj).mix(obj)
+          else obj.mix(value, null, memo, state, merge, prepend);
         }
       } else {
-        this[state !== false ? 'set' : 'unset'](key, value, memo, prepend);
+        this[memo === 'reset' ? memo : state !== false ? 'set' : 'unset'](key, value, memo, prepend);
       }
     }
+    return this;
   },
   
   merge: function(value, prepend, memo) {

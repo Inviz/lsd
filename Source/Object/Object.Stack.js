@@ -133,9 +133,7 @@ LSD.Object.Stack.prototype = {
 */
 
 LSD.Struct.Stack = function(properties) {
-  if (!properties) properties = {};
-  properties._constructor = LSD.Object.Stack;
-  return LSD.Struct(properties)
+  return LSD.Struct(properties, LSD.Object.Stack)
 }
 
 LSD.Object.Stack.prototype = Object.append(new LSD.Object, LSD.Object.Stack.prototype)

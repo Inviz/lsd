@@ -23,37 +23,31 @@ provides:
   observe changes to values to transform and use in callbacks
 */
 
-LSD.Struct = function(properties) {
-  if (this === LSD) {
-    if (properties) {
-      var constructor = properties._constructor
-      delete properties._constructor;
-    } else constructor = LSD.Object;
-    var Struct = function(object) {
-      if (properties) this._properties = this._toObject = properties;
-      if (object != null) this.mix(object)
-      if (this._imports) this._link(this._imports, true);
-      if (this._exports) this._link(this._exports, true, true);
-      if (properties) {
-        if (properties.imports) this._link(properties.imports, true);
-        if (properties.exports) this._link(properties.exports, true, true);
-        if (properties.initialize) properties.initialize.apply(this, arguments);
-      }
-      if (this.initialize) this.initialize.apply(this, arguments);
-      if (this._initialize) this._initialize.apply(this, arguments);
-    };
-    var proto = Struct.prototype = new (constructor || LSD.Object);
-    var obj = new LSD.Struct;
-    for (var property in obj) proto[property] = obj[property];
-    if (!proto._constructor) proto._constructor = LSD.Object;
-    if (properties)
-      for (var name in properties)
-        if (typeof properties[name] == 'object' && typeof LSD.Struct.Mutators[name] == 'function') 
-          LSD.Struct.Mutators[name].call(Struct, properties[name]);
-    proto.__constructor = Struct;
-    return Struct;
+LSD.Struct = function(properties, Base) {
+  var Struct = function(object) {
+    if (this._initialize) object = this._initialize.apply(this, arguments);
+    if (object != null) this.mix(object)
+    if (this.imports) this._link(this.imports, true);
+    if (this.exports) this._link(this.exports, true, true);
+    if (this.initialize) this.initialize.apply(this, arguments);
   }
-  if (properties) this._properties = this._toObject = properties;
+  var constructor = Base || LSD.Object;
+  Struct.prototype = new constructor;
+  Struct.prototype._constructor = constructor;
+  Struct.prototype.__constructor = Struct;
+  for (var property in LSD.Struct.prototype) 
+    Struct.prototype[property] = LSD.Struct.prototype[property];
+  if (properties) {
+    Struct.prototype._properties = properties;
+    for (var name in properties) {
+      var mutator = LSD.Struct.Mutators[name];
+      if (typeof properties[name] == 'object' && mutator) {
+        if (typeof mutator == 'function') LSD.Struct.Mutators[name].call(Struct, properties[name]);
+        else Struct.prototype[mutator === true ? 'set' : mutator](name, properties[name]);
+      }
+    }
+  }
+  return Struct;
 };
 
 LSD.Struct.Mutators = {
@@ -63,9 +57,11 @@ LSD.Struct.Mutators = {
   options: function(options) {
     Object.merge(this.prototype, {options: options})
   },
-  events: function(events, state) {
-    this.prototype[state === false ? 'removeEvents' : 'addEvents'](events);
-  }
+  events: 'mix',
+  _initialize: true,
+  initialize: true,
+  imports: true,
+  exports: true
 };
 
 LSD.Struct.prototype = {

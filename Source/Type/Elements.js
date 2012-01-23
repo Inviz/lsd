@@ -35,11 +35,11 @@ LSD.Type.Elements.prototype.onSet = function(value, index, state, old, memo) {
 };
 LSD.Type.Elements.prototype._identify = function(call, key, value, old) {
   var object = call.callback;
-  if (value) value.watch('formValue', (object._observer || object._observer = {
+  if (value) value.watch('nodeValue', (object._observer || object._observer = {
     fn: object._observe,
     callback: object
   }))
-  if (old) old.unwatch('formValue', object);
+  if (old) old.unwatch('nodeValue', object);
 };
 LSD.Type.Elements.prototype._observe = function(call, key, value, old) {
   call.callback.values.reset(this.attributes.name, value);

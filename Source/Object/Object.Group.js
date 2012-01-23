@@ -123,19 +123,13 @@ LSD.Object.Group.Collection.prototype.___constructor = LSD.Collection
 */
 
 LSD.Struct.Group = function(properties) {
-  if (!properties) properties = {};
-  properties._constructor = LSD.Object.Group;
-  return LSD.Struct(properties)
+  return LSD.Struct(properties, LSD.Object.Group)
 }
 
 LSD.Struct.Group.Array = function(properties) {
-  if (!properties) properties = {};
-  properties._constructor = LSD.Object.Group.Array;
-  return LSD.Struct(properties)
+  return LSD.Struct(properties, LSD.Object.Group.Array)
 }
 
 LSD.Struct.Group.Collection = function(properties) {
-  if (!properties) properties = {};
-  properties._constructor = LSD.Object.Group.Collection;
-  return LSD.Struct(properties)
+  return LSD.Struct(properties, LSD.Object.Group.Collection)
 }

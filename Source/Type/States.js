@@ -74,10 +74,10 @@ LSD.Type.States.compile = function(name, ns) {
     if (definition) {
       compiled[name] = {};
       compiled[name][definition[0]] = function() {
-        return this.states.reset(name, true)
+        return this.mix('states.' + name, true, 'reset');
       };
       compiled[name][definition[1]] = function() {
-        return this.states.reset(name, false)
+        return this.mix('states.' + name, false, 'reset');
       };
     }
   }

@@ -11,8 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD
-  - LSD.Struct
-  - Ext/States
+  - LSD.Struct.Stack
  
 provides: 
   - LSD.Command
@@ -20,43 +19,64 @@ provides:
 ...
 */
 
-LSD.Command = new LSD.Class({
-  options: {
-    type: 'command',
-    radiogroup: null,
-    id: null
-  },
+LSD.Command = new LSD.Struct({
   imports: {
     disabled: '.disabled'
   },
   exports: {
-    
+    commandType: 'type'
   },
   properties: {
-    id: function() {
+    id: function(value, old) {
 
     },
-    document: function() {
+    title: function() {
 
     },
-    action: function() {
+    icon: function() {
+      
+    },
+    label: function(value, old) {
+      
+    },
+    document: function(value, old) {
 
     },
-    type: function() {
+    action: function(value, old) {
 
     },
-    disabled: function() {
+    type: function(value, old) {
 
     },
-    hidden: function() {
+    radiogroup: function(value, old) {
+      
+    },
+    disabled: function(value, old) {
 
     },
-    checked: function() {
+    hidden: function(value, old) {
+
+    },
+    checked: function(value, old) {
 
     }
   }
 });
-
+LSD.Command.prototype.type = 'command';
 LSD.Command.prototype.click = function() {
-  //if (this.type != 'command')
+  switch (this.type) {
+    case 'radio':
+      if (!this.checked) this.set('checked', true);
+      break;
+    case 'checkbox':
+      this[this.checked === true ? 'unset' : 'set']('checked', true);
+      break;
+    case 'command':
+  }
+};
+LSD.Command.prototype.check = function() {
+  this.reset('checked', true)
+};
+LSD.Command.prototype.uncheck = function() {
+  this.reset('checked', false)
 };
