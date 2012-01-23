@@ -397,11 +397,7 @@ Object.each(Array.prototype, function(fn, method) {
 */
 
 LSD.Struct.Array = function(properties) {
-  if (!properties) properties = {};
-  properties._constructor = LSD.Array;
-  var struct = LSD.Struct(properties)
-  struct.prototype._parent = null;
-  return struct;
+  return LSD.Struct(properties, LSD.Array);
 };
 
 /*
@@ -449,9 +445,5 @@ LSD.Collection.prototype.fn = function(collection, value, old) {
 */
 
 LSD.Struct.Collection = function(properties) {
-  if (!properties) properties = {};
-  properties._constructor = LSD.Collection;
-  var struct = LSD.Struct(properties)
-  struct.prototype._parent = null;
-  return struct;
+  return LSD.Struct(properties, LSD.Collection);
 };
