@@ -245,12 +245,7 @@ LSD.Element.Properties = {
       this.fireEvent('beforeDestroy');
       if (this.parentNode) this.dispose();
       var element = this.element;
-      if (element) {
-        this.detach(element);
-        element.destroy();
-      }
-      if (this.layouts.children) this.removeLayout('children');
-      if (this.layouts.options) this.removeLayout('options');
+      if (element) element.destroy();
     }
     if (value) {
       var element = document.createElement(this.localName);
@@ -305,8 +300,13 @@ LSD.Element.implement({
   
   _initialize: function(options, element) {
     this.lsd = ++LSD.UID;
-    for (var i = 0, type; type = this._preconstructed[i++];)
-      if (!this[type]) this._construct(type);
+    for (var i = 0, type; type = this._preconstructed[i++];) {
+      if (!this[type]) {
+        var constructor = this._getConstructor(type) || this._constructor;
+        this[type] = new constructor;
+        this[type].set('_parent', this);
+      }
+    }
     if (options != null && typeof options.nodeType == 'number') {
       var memo = element;
       element = options;
@@ -509,6 +509,18 @@ LSD.Element.implement({
   
   hasClass: function(name) {
     return this.classes[name]
+  },
+  
+  fireEvent: function() {
+    return this.events.fire.apply(this.events, arguments);
+  },
+  
+  addEvent: function(name, fn, memo) {
+    return this.events.add(name, fn, memo);
+  },
+  
+  removeEvent: function(name, fn, memo) {
+    return this.events.remove(name, fn, memo);
   },
   
   store: function(name, value) {

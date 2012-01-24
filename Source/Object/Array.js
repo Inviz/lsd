@@ -364,9 +364,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
     var clone = new this._constructor;
     for (var i = 0; i < this.length; i++) clone.push(this[i]);
     return clone;
-  },
-  
-  _parent: false
+  }
 });
 
 LSD.Array.from = function(origin) {

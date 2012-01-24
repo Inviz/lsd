@@ -65,12 +65,12 @@ LSD.Object.prototype = {
     */
     if (index !== -1 || priv !== true) {
       if((this._onChange && typeof (value = this._onChange(key, value, true, old, memo, hash)) == 'undefined')
-      || (this.onChange && typeof (value = this. onChange(key, value, true, old, memo, hash)) == 'undefined')) {
+      || (this.onChange && typeof (value = this.onChange(key, value, true, old, memo, hash)) == 'undefined')) {
         if (hash == null) this[key] = old;
         return;
       }
       if (value != null && value._constructor && this._children !== false && value._parent == null)
-        value.set('_parent', this);
+        value._set('_parent', this);
     }
     var watchers = this._watchers;
     if (watchers) for (var i = 0, j = watchers.length, watcher, fn; i < j; i++) {
@@ -85,15 +85,14 @@ LSD.Object.prototype = {
         for (var i = 0, fn; fn = watched[i++];)
           if (fn.call) fn.call(this, value, old);
           else this._callback(fn, key, value, old, memo, hash);
-      var stored = this._stored && this._stored[key];
-      if (stored != null) {
+      var stored = this._stored;
+      if (stored && (stored = stored[key]))
         for (var i = 0, item; item = stored[i++];) {
           if (value != null && (!item[2] || !item[2]._delegate || !item[2]._delegate(value, key, item[0], true)))
             value.mix(item[0], item[1], item[2], true, item[3], item[4]);
           if (old != null && (!item[2] || !item[2]._delegate || !item[2]._delegate(old, key, item[0], false)))
             old.mix(item[0], item[1], item[2], false, item[3], item[4]);
         }
-      }
     } 
     return true;
   },
@@ -118,7 +117,7 @@ LSD.Object.prototype = {
       if (this.onChange && (value = this.onChange(key, old, false, undefined, memo, hash)) == null && old != null)
         return false;
       if (value != null && this._children !== false && value._constructor && value._parent === this) 
-        value.unset('_parent', this);
+        value._unset('_parent', this);
       this._length--;
     }
     var watchers = this._watchers;
@@ -223,8 +222,11 @@ LSD.Object.prototype = {
             obj[i].mix(name, value, memo, state, merge, prepend)
         } else {
           var parent = this._children !== false && obj._parent !== false && obj._parent;
-          if (state !== false && parent && parent !== this) obj = this._construct(name, null, memo, value).mix(obj)
-          obj.mix(subkey, value, memo, state, merge, prepend);
+          if (state !== false && parent && parent !== this) {
+            this[name] = null;
+            obj = this._construct(name, null, memo, value)
+          } else if (typeof obj.mix == 'function')
+            obj.mix(subkey, value, memo, state, merge, prepend);
         }
       } else if (value != null && (typeof value == 'object' && !value.exec && !value.push && !value.nodeType)
                                && (!value._constructor || merge)) {
@@ -251,9 +253,7 @@ LSD.Object.prototype = {
             if (!memo || !memo._delegate || !memo._delegate(obj[i], key, value, state))
               obj[i].mix(value, null, memo, state, merge, prepend);
         } else {
-          var parent = this._children !== false && obj._parent !== false && obj._parent;
-          if (state !== false && parent && parent !== this) obj = this._construct(key, null, memo, obj).mix(obj)
-          else obj.mix(value, null, memo, state, merge, prepend);
+          obj.mix(value, null, memo, state, merge, prepend);
         }
       } else {
         this[memo === 'reset' ? memo : state !== false ? 'set' : 'unset'](key, value, memo, prepend);

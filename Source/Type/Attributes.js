@@ -61,7 +61,7 @@ LSD.Type.Classes.prototype.onChange = function(name, value, state, old, memo) {
       if (!state || old) element.classList.remove(state ? value : old);
     } else {
       var index = (' ' + this._name + ' ').indexOf(' ' + name + ' ');
-      if (state && value && index == -1) this._name.set(this._name + ' ' + name);
+      if (state && value && index == -1) this.set('_name', this._name + ' ' + name);
       if (!state && index > -1) this.set('_name', this._name.substring(0, index - 1) + this._name.substring(name.length));
     }
   }

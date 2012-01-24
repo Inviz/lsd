@@ -37,9 +37,10 @@ LSD.Fragment.prototype.textnode = function(object, parent, memo) {
       widget   = uid && LSD.widgets[uid],
       nodeType = object.nodeType, 
       children = nodeType == 1 && object.childNodes;
-  if (widget) {
-    if (memo && memo.clone) widget = widget.cloneNode();
-  } else widget = parent.document.createNode(nodeType, object, memo);
+  if (!widget) 
+    widget = parent.document.createNode(nodeType, object, memo);
+  else if (memo && memo.clone) 
+    widget = widget.cloneNode()
   if (widget.parentNode != parent) parent.appendChild(widget, memo);
   if (children)
     for (var i = 0, child, array = this.slice.call(children, 0); child = array[i]; i++)
@@ -77,14 +78,17 @@ LSD.Fragment.prototype.instruction = function(object, parent, memo) {
       if (object.charAt(length - 1) == '?') object = object.substring(1, length - 2);
     }
   }
-  switch (object.charAt(0)) {
-    case '-': case '=':
-      
-    default:
-      var word = object.match(this.R_WORD);
-      
-      break;
-    
+  if (typeof object == 'string') {
+    switch (object.charAt(0)) {
+      case '-': case '=':
+
+      default:
+        var word = object.match(this.R_WORD);
+        if (!word/* || !parent.methods.lookup(word)*/) {
+          return LSD.Script()
+        }
+
+    }
   }
 };
 LSD.Fragment.prototype.typeOf = function(object, memo) {

@@ -18,8 +18,8 @@ provides:
 ...
 */
 
-LSD.Instruction = LSD.Struct({
+LSD.Instruction = function() {
   
-});
+}
 
 LSD.Instruction.prototype.nodeType = 5;

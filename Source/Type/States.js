@@ -42,44 +42,42 @@ LSD.mix('states', {
 LSD.Type.States = LSD.Struct.Stack();
 LSD.Type.States.implement({
   onChange: function(name, value, state, old, memo) {
-    var ns = this._parent.namespace || LSD;
-    var known = ns.states[name];
-    var method = value && state ? 'set' : 'unset';
-    if (known && state && this._stack[name].length === 1)
-      this._parent.mix(ns.states._compiled && ns.states._compiled[name] || LSD.Type.States.compile(name, ns));
+    var parent      = this._parent, 
+        stack       = this._stack[name],
+        ns          = parent.namespace || LSD,
+        states      = ns.states,
+        compiled    = states._compiled || (states._compiled = {}),
+        definition  = states[name],
+        substate    = value && state;
+    if (definition && state && stack.length === 1 && typeof parent[definition[0]] != 'function')
+      parent.mix(compiled[name] || (compiled[name] = LSD.Type.States.compile(name, ns, definition)));
     if (value || old) {
       if ((ns.attributes[name]) !== Boolean) {
-        if (memo != 'classes')
-          this._parent[method]('classes.' + (known ? name : 'is-' + name), true);
+        if (memo !== 'classes')
+          parent.mix('classes.' + (definition ? name : 'is-' + name), true, null, substate);
       } else {
-        if (memo != 'attributes') 
-          this._parent[method]('attributes.' + name, true);
+        if (memo !== 'attributes') 
+          parent.mix('attributes.' + name, true, null, substate);
       }
-      if (memo != 'pseudos')
-        this._parent[method]('pseudos.' + name, true);
+      if (memo !== 'pseudos')
+        parent.mix('pseudos.' + name, true, null, substate);
     }
-    if (known) {
-      if (state) this._parent.reset(name, value);
-      else this._parent.unset(name, value);
-      if (this._stack[name].length === 0) 
-        this._parent.mix(ns.states._compiled[name], null, memo, false);
+    if (definition) {
+      if (state) parent.reset(name, value);
+      else parent.unset(name, value);
+      if (stack.length === 0)
+        parent.mix(states._compiled[name], null, memo, false);
     }
     return value;
   }
 });
-LSD.Type.States.compile = function(name, ns) {
-  var compiled = (ns.states._compiled || (ns.states._compiled = {}));
-  if (!compiled[name]) {
-    var definition = ns.states[name];
-    if (definition) {
-      compiled[name] = {};
-      compiled[name][definition[0]] = function() {
-        return this.mix('states.' + name, true, 'reset');
-      };
-      compiled[name][definition[1]] = function() {
-        return this.mix('states.' + name, false, 'reset');
-      };
-    }
-  }
-  return compiled[name];
+LSD.Type.States.compile = function(name, ns, definition) {
+  var obj = {};
+  obj[definition[0]] = function() {
+    return this.mix('states.' + name, true, 'reset');
+  };
+  obj[definition[1]] = function() {
+    return this.mix('states.' + name, false, 'reset');
+  };
+  return obj;
 };

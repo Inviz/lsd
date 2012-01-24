@@ -25,6 +25,14 @@ provides:
 
 LSD.Struct = function(properties, Base) {
   var Struct = function(object) {
+    for (var i = 0, obj = this._inherited, inherited, group, cloned, value; obj && (inherited = obj[i++]);)
+      if ((group = this[inherited])) {
+        var cloned = this[inherited] = {};
+        for (var property in group) {
+          value = group[property];
+          cloned[property] = typeof value.push == 'function' ? value.slice() : value
+        }
+      }
     if (this._initialize) object = this._initialize.apply(this, arguments);
     if (object != null) this.mix(object)
     if (this.imports) this._link(this.imports, true);
