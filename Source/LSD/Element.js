@@ -115,7 +115,7 @@ LSD.Element.Properties = {
   },
   element: function(element, old) {
     Element[element ? 'store' : 'eliminate'](element || old, 'widget', this);
-    return element;
+    return element || old;
   },
   origin: function(value, old, memo) {
     var extracted = this.extracted;
@@ -139,6 +139,7 @@ LSD.Element.Properties = {
         delete this.extracted;
       }
     }
+    return value || old;
   },
   sourceIndex: function(value, old, memo) {
     if (memo !== false) for (var node = this, next, nodes, i = 0; node; node = next) {
@@ -173,7 +174,6 @@ LSD.Element.Properties = {
     return value || old;
   },
   previousSibling: function(value, old) {
-    if (value === this) debugger
     for (var i = 0, node, method; i < 2; i++) {
       if (i) node = old, method = 'unset';
       else node = value, method = 'set';
@@ -250,8 +250,11 @@ LSD.Element.Properties = {
     if (value) {
       var element = document.createElement(this.localName);
       for (var name in this.attributes)
-        if (this.attributes.has(name))
-          element.setAttribute(name, this.attributes[name])
+        if (this.attributes.has(name)) {
+          var value = this.attributes[name];
+          element.setAttribute(name, value);
+          if (value === true) element[name] = true;
+        }
       if (this.classes && this.classes.className != element.className) 
         element.className = this.classes.className;
       this.set('element', element)
@@ -291,7 +294,7 @@ LSD.Element.Properties = {
 };
 
 LSD.Element.implement({
-  _preconstructed: ['allocations', 'children', 'events', 'matches', 'proxies', 'relations', 'states'],
+  _preconstructed: ['allocations', 'children', 'events', 'matches', 'proxies', 'relations', 'attributes', 'pseudos', 'classes', 'states'],
 
   localName: 'div',
   tagName: null,
@@ -301,11 +304,9 @@ LSD.Element.implement({
   _initialize: function(options, element) {
     this.lsd = ++LSD.UID;
     for (var i = 0, type; type = this._preconstructed[i++];) {
-      if (!this[type]) {
-        var constructor = this._getConstructor(type) || this._constructor;
-        this[type] = new constructor;
-        this[type].set('_parent', this);
-      }
+      var constructor = this._getConstructor(type) || this._constructor;
+      this[type] = new constructor;
+      this[type].set('_parent', this);
     }
     if (options != null && typeof options.nodeType == 'number') {
       var memo = element;
@@ -483,7 +484,7 @@ LSD.Element.implement({
   },
   
   removeAttribute: function(name) {
-    this.attributes.unset(name, this.attributes[name]);
+    this.attributes.unset(name);
     return this;
   },
   
@@ -637,3 +638,9 @@ LSD.Element.implement({
   
   _parent: false
 });
+
+LSD.Element.prototype.mix({
+  states: {
+    'built': false
+  }
+})

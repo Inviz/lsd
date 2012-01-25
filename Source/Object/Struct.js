@@ -159,5 +159,8 @@ LSD.Struct.prototype = {
       this.mix(call.key, value, memo, true);
     if (old != null)
       this.mix(call.key, old, memo, false);
-  }
+  },
+
+  _inherited: ['_stack', '_stored']
+  
 };

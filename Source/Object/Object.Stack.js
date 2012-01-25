@@ -87,20 +87,25 @@ LSD.Object.Stack.prototype = {
       var length = group.length;
     }
     if (group != null) {
-      if (prepend) {
-        for (var i = 0, j = length; i < j; i++)
-          if (group[i] === value) {
-            group.splice(i, 1);
-            break;
-          }
-        if (j == i) return
+      if (typeof value == 'undefined') {
+        if (prepend) group.shift();
+        else group.pop()
       } else {
-        for (var j = length; --j > -1;)
-          if (group[j] === value) {
-            group.splice(j, 1);
-            break;
-          }
-        if (j == -1) return
+        if (prepend) {
+          for (var i = 0, j = length; i < j; i++)
+            if (group[i] === value) {
+              group.splice(i, 1);
+              break;
+            }
+          if (j == i) return
+        } else {
+          for (var j = length; --j > -1;)
+            if (group[j] === value) {
+              group.splice(j, 1);
+              break;
+            }
+          if (j == -1) return
+        }
       }
       if (length > 1) {
         var method = '_set';

@@ -18,11 +18,8 @@ provides:
 ...
 */
 
-LSD.Textnode = LSD.Struct.Stack({
+LSD.Textnode = LSD.Struct({
   initialize: function(string, options) {
-    
-  },
-  nodeValue: function() {
     
   },
   
@@ -30,3 +27,5 @@ LSD.Textnode = LSD.Struct.Stack({
     
   }
 })
+
+LSD.Textnode.prototype.nodeType = 3;

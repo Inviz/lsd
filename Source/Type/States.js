@@ -41,43 +41,43 @@ LSD.mix('states', {
 
 LSD.Type.States = LSD.Struct.Stack();
 LSD.Type.States.implement({
-  onChange: function(name, value, state, old, memo) {
+  onChange: function(key, value, state, old, memo) {
     var parent      = this._parent, 
-        stack       = this._stack[name],
-        ns          = parent.namespace || LSD,
+        stack       = this._stack[key],
+        ns          = parent.keyspace || LSD,
         states      = ns.states,
         compiled    = states._compiled || (states._compiled = {}),
-        definition  = states[name],
+        definition  = states[key],
         substate    = value && state;
     if (definition && state && stack.length === 1 && typeof parent[definition[0]] != 'function')
-      parent.mix(compiled[name] || (compiled[name] = LSD.Type.States.compile(name, ns, definition)));
+      parent.mix(compiled[key] || (compiled[key] = LSD.Type.States.compile(key, ns, definition)));
     if (value || old) {
-      if ((ns.attributes[name]) !== Boolean) {
-        if (memo !== 'classes')
-          parent.mix('classes.' + (definition ? name : 'is-' + name), true, null, substate);
+      if ((ns.attributes[key]) !== Boolean) {
+        if (memo !== 'classes' && parent.classes)
+          parent.classes[substate ? 'set' : 'unset']((definition ? key : 'is-' + key), true, 'states');
       } else {
-        if (memo !== 'attributes') 
-          parent.mix('attributes.' + name, true, null, substate);
+        if (memo !== 'attributes' && parent.attributes) 
+          parent.attributes[substate ? 'set' : 'unset'](key, substate ? true : undefined, 'states');
       }
-      if (memo !== 'pseudos')
-        parent.mix('pseudos.' + name, true, null, substate);
+      if (memo !== 'pseudos' && parent.pseudos)
+        parent.pseudos[substate ? 'set' : 'unset'](key, true, 'states');
     }
     if (definition) {
-      if (state) parent.reset(name, value);
-      else parent.unset(name, value);
+      if (state) parent.reset(key, value);
+      else parent.unset(key, value);
       if (stack.length === 0)
-        parent.mix(states._compiled[name], null, memo, false);
+        parent.mix(states._compiled[key], null, 'states', false);
     }
     return value;
   }
 });
-LSD.Type.States.compile = function(name, ns, definition) {
+LSD.Type.States.compile = function(key, ns, definition) {
   var obj = {};
   obj[definition[0]] = function() {
-    return this.mix('states.' + name, true, 'reset');
+    return this.states.reset(key, true);
   };
   obj[definition[1]] = function() {
-    return this.mix('states.' + name, false, 'reset');
+    return this.states.reset(key, false);
   };
   return obj;
 };
