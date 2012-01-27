@@ -72,7 +72,11 @@ LSD.Type.Attributes.prototype._exports = {
   id: 'id'
 };
 
-LSD.Type.Classes = LSD.Struct.Stack();
+LSD.Type.Classes = LSD.Struct.Stack({
+  skip: {
+    '_name': true
+  }
+});
 LSD.Type.Classes.prototype.onChange = function(name, value, state, old, memo) {
   var ns = this._parent.namespace || LSD;
   if ((!memo || memo !== 'states') && ns.states[name]) 
@@ -101,7 +105,7 @@ LSD.Type.Classes.prototype.contains =function(name) {
 };
 LSD.Type.Attributes.prototype.add =
 LSD.Type.Pseudos.prototype.add = 
-LSD.Type.Classes.prototype.add =function(name) {
+LSD.Type.Classes.prototype.add = function(name) {
   return this.set(name, true);
 };
 LSD.Type.Attributes.prototype.remove =

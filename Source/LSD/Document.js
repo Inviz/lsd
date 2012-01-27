@@ -52,7 +52,7 @@ LSD.Document = LSD.Struct({
 LSD.Document.prototype._preconstruct = ['childNodes', 'events'];
 LSD.Document.prototype.__initialize = LSD.Element.prototype.__initialize;
 LSD.Document.prototype.createNode = function(type, element, options) {
-  return new (LSD.Document.NodeTypes[type])(element, options);
+  return new (LSD.Document.NodeTypes[type])(element, options).mix('document', this);
 };
 LSD.NodeTypes = {
   1: 'element',
