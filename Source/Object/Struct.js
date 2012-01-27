@@ -33,11 +33,17 @@ LSD.Struct = function(properties, Base) {
           cloned[property] = typeof value.push == 'function' ? value.slice() : value
         }
       }
-    if (this._initialize) object = this._initialize.apply(this, arguments);
+    var preconstruct = this._preconstruct;
+    if (preconstruct) for (var i = 0, type, constructors = this._constructors; type = preconstruct[i++];) {
+      var constructor = constructors[type] || this._getConstructor(type);
+      this[type] = new constructor;
+      this[type].set('_parent', this);
+    }
+    if (this.__initialize) object = this.__initialize.apply(this, arguments);
     if (object != null) this.mix(object)
-    if (this.imports) this._link(this.imports, true);
-    if (this.exports) this._link(this.exports, true, true);
-    if (this.initialize) this.initialize.apply(this, arguments);
+    if (this._imports) this._link(this._imports, true);
+    if (this._exports) this._link(this._exports, true, true);
+    if (this._initialize) this._initialize.apply(this, arguments);
   }
   var constructor = Base || LSD.Object;
   Struct.prototype = new constructor;
@@ -51,7 +57,7 @@ LSD.Struct = function(properties, Base) {
       var mutator = LSD.Struct.Mutators[name];
       if (typeof properties[name] == 'object' && mutator) {
         if (typeof mutator == 'function') LSD.Struct.Mutators[name].call(Struct, properties[name]);
-        else Struct.prototype[mutator === true ? 'set' : mutator](name, properties[name]);
+        else Struct.prototype[mutator === true ? 'set' : mutator]('_' + name, properties[name]);
       }
     }
   }
@@ -89,7 +95,7 @@ LSD.Struct.prototype = {
               var prop = this._properties[Key]; 
             }
           }
-          if (prop == null && this.properties) prop = this.properties[key];
+          if (prop == null && this.__properties) prop = this.__properties[key];
           if (prop) {
             var group = this._observed && this._observed[key]
             if (group) {
@@ -114,7 +120,7 @@ LSD.Struct.prototype = {
     return value;
   },
   _construct: function(key, property, memo) {
-    var property = (this._properties && this._properties[key]) || (this.properties && this.properties[key]);
+    var property = (this._properties && this._properties[key]) || (this.__properties && this.__properties[key]);
     if (typeof property == 'string') {
       if (!this._observed) this._observed = {};
       if (!this._observed[key]) {
@@ -136,12 +142,12 @@ LSD.Struct.prototype = {
         var prop = this._properties[Key]; 
       }
     }
-    if (prop == null && this.properties) prop = this.properties[key];
+    if (prop == null && this.__properties) prop = this.__properties[key];
     if (prop) {
       var proto = prop.prototype;
-      if (proto && proto._constructor) return prop;
+      if (proto && proto._constructor) var constructor = prop;
     }
-    return this._constructor;
+    return (this._constructors[key] = (constructor || this._constructor));
   },
   _link: function(properties, state, external) {
     for (var name in properties) {
