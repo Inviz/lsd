@@ -365,7 +365,11 @@ LSD.Object.prototype = {
   },
   
   _construct: function(name, constructor, memo, value) {
-    if (!constructor) constructor = this._getConstructor ? this._getConstructor(name) : value && value.__constructor || this._constructor;
+    if (!constructor) {
+      var constructors = this._constructors;
+      constructor = (constructors && constructors[name])
+                || (this._getConstructor ? this._getConstructor(name) : value && value.__constructor || this._constructor);
+    }
     var instance = new constructor;
     if (this._delegate && !memo) memo = this;
     this.set(name, instance, memo);
