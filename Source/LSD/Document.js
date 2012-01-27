@@ -49,7 +49,11 @@ LSD.Document = LSD.Struct({
   attributes: 'Attributes',
   childNodes: 'Children'
 });
-
+LSD.Document.prototype._preconstruct = ['childNodes', 'events'];
+LSD.Document.prototype.__initialize = LSD.Element.prototype.__initialize;
+LSD.Document.prototype.createNode = function(type, element, options) {
+  return new (LSD.Document.NodeTypes[type])(element, options);
+};
 LSD.NodeTypes = {
   1: 'element',
   3: 'textnode',
@@ -58,9 +62,11 @@ LSD.NodeTypes = {
   11: 'fragment'
 };
 LSD.Document.NodeTypes = {};
-Object.each(LSD.NodeTypes, function(name, index) {
-  LSD.Document.NodeTypes[index] = LSD[name.capitalize()];
-  LSD.Document.prototype['create' + name.capitalize()] = function(element, options) {
-    return LSD.Document.NodeTypes[index](element, options);
+Object.each(LSD.NodeTypes, function(name, type) {
+  var capitalized = name.capitalize();
+  LSD.Document.NodeTypes[type] = LSD[capitalized];
+  LSD.Document.prototype['create' + capitalized] = function(element, options) {
+    return new LSD.Document.NodeTypes[type](element, options).mix('document', this);
   }
 });
+  LSD.Document.prototype.createTextNode = LSD.Document.prototype.createTextnode;
