@@ -437,7 +437,7 @@ Object.append(LSD.Module.DOM, {
     var properties = revert ? ['previousSibling', 'lastChild'] : ['nextSibling', 'firstChild']
     if (widget && (!widget.lsd || widget === exclude))
       if (!node.uid || !(widget = Element.retrieve(node, 'widget') || widget === exclude))
-        for (var item = node, stack = [item[properties[0]]], sibling, first, invert; item = stack.pop();) {
+        for (var item = node, stack = [item[properties[0]] || item[properties[1]] || item.parentNode], sibling, first, invert; item = stack.pop();) {
           if (item.push) {
             invert = true
             item = item[0]
