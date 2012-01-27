@@ -25,9 +25,6 @@ LSD.Fragment = LSD.Struct({
 });
 
 LSD.Fragment.prototype.nodeType = 11;
-LSD.Fragment.prototype.render = function(object, parent, memo) {
-  return this[this.typeOf(object)](object, parent, memo);
-};
 LSD.Fragment.prototype.node = 
 LSD.Fragment.prototype.element =
 LSD.Fragment.prototype.fragment = 
@@ -38,13 +35,13 @@ LSD.Fragment.prototype.textnode = function(object, parent, memo) {
       nodeType = object.nodeType, 
       children = nodeType == 1 && object.childNodes;
   if (!widget) 
-    widget = parent.document.createNode(nodeType, object, memo);
+    widget = parent.document.createNode(nodeType, object);
   else if (memo && memo.clone) 
     widget = widget.cloneNode()
   if (widget.parentNode != parent) parent.appendChild(widget, memo);
   if (children)
     for (var i = 0, child, array = this.slice.call(children, 0); child = array[i]; i++)
-      this.node(child, parent);
+      this.node(child, parent, memo);
   return widget;
 };
 LSD.Fragment.prototype.comment = function(object, parent, memo) {
@@ -55,19 +52,27 @@ LSD.Fragment.prototype.arguments =
 LSD.Fragment.prototype.collection = 
 LSD.Fragment.prototype.children =
 LSD.Fragment.prototype.array = function(object, parent, memo) {
-  for (var i = 0, result = [], length = object.length, val; i < length; i++) {
-    val = object[i];
-    result[i] = this[this.typeOf(val)](val, parent, memo)
-  }
-  return result;
+  for (var i = 0, length = object.length; i < length; i++)
+    this[this.typeOf(object[i])](object[i], parent, memo)
 };
 LSD.Fragment.prototype.object = function(object, parent, memo) {
+  var skip = object._skip, value, result;
   for (var selector in object) {
-    if (typeof object.has == 'function' ? !object.has(selector) : !object.hasOwnProperty(selector)) continue;
+    if (!object.hasOwnProperty(selector) || (skip && skip[selector])) continue;
+    result = this.instruction(selector, parent, memo) || this.selector(selector, parent, memo);
+    if ((value = object[selector]))
+      this[this.typeOf(value)](value, result, memo);
   }
 };
 LSD.Fragment.prototype.string = function(object, parent, memo) {
-  
+  var node = parent.document.createTextNode(object);
+  parent.appendChild(node, memo);
+  return node;
+};
+LSD.Fragment.prototype.selector = function(object, parent, memo) {
+  var node = parent.document.createElement(object).setSelector(object);
+  parent.appendChild(node, memo);
+  return node;
 };
 LSD.Fragment.prototype.instruction = function(object, parent, memo) {
   if (typeof object.nodeType == 'number') {
@@ -81,15 +86,21 @@ LSD.Fragment.prototype.instruction = function(object, parent, memo) {
   if (typeof object == 'string') {
     switch (object.charAt(0)) {
       case '-': case '=':
-
+      
       default:
         var word = object.match(this.R_WORD);
-        if (!word/* || !parent.methods.lookup(word)*/) {
-          return LSD.Script()
-        }
+        /*if (word || !parent.methods.lookup(word)) 
+          return */
+        
 
     }
+    var node = parent.document.createInstruction(object);
+    parent.appendChild(node);
+    return node;
   }
+};
+LSD.Fragment.prototype.render = function(object, parent, memo) {
+  return this[this.typeOf(object)](object, parent, memo);
 };
 LSD.Fragment.prototype.typeOf = function(object, memo) {
   var type = typeof object;
