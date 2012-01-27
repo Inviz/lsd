@@ -264,6 +264,10 @@ LSD.Object.prototype = {
     return this;
   },
   
+  unmix: function(key, value, memo, state, merge, prepend, index) {
+    return this.mix(key, value, memo, false, merge, prepend, index);
+  },
+  
   merge: function(value, prepend, memo) {
     return this.mix(value, null, memo, true, true, prepend)
   },
