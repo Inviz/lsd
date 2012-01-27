@@ -126,7 +126,10 @@ LSD.Object.Stack.prototype = {
     this.set(key, value, memo);
     if (typeof old != 'undefined') this.unset(key, old, memo)
     return true;
-  }
+  },
+  _skip: Object.append({
+    _stack: true
+  }, LSD.Object.prototype._skip)
 };
 
 /*

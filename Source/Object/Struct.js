@@ -65,6 +65,9 @@ LSD.Struct.Mutators = {
   options: function(options) {
     Object.merge(this.prototype, {options: options})
   },
+  skip: function(methods) {
+    this.prototype._skip = Object.append(methods, LSD.Object.prototype._skip)
+  },
   events: 'mix',
   _initialize: true,
   initialize: true,
@@ -160,7 +163,16 @@ LSD.Struct.prototype = {
     if (old != null)
       this.mix(call.key, old, memo, false);
   },
-
-  _inherited: ['_stack', '_stored']
-  
+  _inherited: ['_stack', '_stored'],
+  _constructors: {},
+  _skip: Object.append({
+    _initialize: true,
+    _properties: true,
+    _linker: true,
+    _exports: true,
+    _imports: true,
+    _constructors: true,
+    __initialize: true,
+    __constructor: true
+  }, LSD.Object.prototype._skip)
 };

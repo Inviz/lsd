@@ -88,7 +88,11 @@ LSD.Object.Group.prototype = {
       }
       return true;
     }
-  }
+  },
+  
+  _skip: Object.append({
+    ___constructor: true
+  }, LSD.Object.prototype._skip)
 };
 
 LSD.Object.Group.prototype = Object.append(new LSD.Object, LSD.Object.Group.prototype);

@@ -22,7 +22,6 @@ provides:
 
 LSD.mix('states', {
   built:    ['build',      'destroy'],
-  attached: ['attach',     'detach'],
   hidden:   ['hide',       'show'],
   disabled: ['disable',    'enable'],
   active:   ['activate',   'deactivate'],
@@ -49,8 +48,10 @@ LSD.Type.States.implement({
         compiled    = states._compiled || (states._compiled = {}),
         definition  = states[key],
         substate    = value && state;
-    if (definition && state && stack.length === 1 && typeof parent[definition[0]] != 'function')
-      parent.mix(compiled[key] || (compiled[key] = LSD.Type.States.compile(key, ns, definition)));
+    if (definition && state && stack.length === 1 && typeof parent[definition[0]] != 'function') {
+      var methods = compiled[key] || (compiled[key] = LSD.Type.States.compile(key, ns, definition));
+      for (var method in methods) parent.set(method, methods[method]);
+    }
     if (value || old) {
       if ((ns.attributes[key]) !== Boolean) {
         if (memo !== 'classes' && parent.classes)
@@ -65,8 +66,10 @@ LSD.Type.States.implement({
     if (definition) {
       if (state) parent.reset(key, value);
       else parent.unset(key, value);
-      if (stack.length === 0)
-        parent.mix(states._compiled[key], null, 'states', false);
+      if (stack.length === 0) {
+        var methods = states._compiled[key];
+        for (var method in methods) parent.unset(method, methods[method]);
+      }
     }
     return value;
   }

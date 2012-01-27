@@ -83,9 +83,9 @@ LSD.Type.Relations.prototype.onGroup = function(key, value, state) {
 }
 LSD.Type.Relations.prototype.onStore = function(key, value, memo, state, name) {
   if (name == null) {
-    var method = typeof value.has == 'function' ? 'has' : 'hasOwnProperty'; 
+    var skip = value._skip; 
     for (var prop in value) {
-      if (value[method](prop)) {
+      if (value.hasOwnProperty(prop) && (skip == null || !skip[prop])) {
         var property = this._Properties[prop];
         if (property != null) property.call(this, key, value[prop], state);
       }

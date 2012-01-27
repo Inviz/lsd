@@ -44,7 +44,7 @@ LSD.Object.prototype = {
         key = hash;
         hash = null;
       }
-    } else var priv = key.charAt(0) == '_';
+    } else var nonenum = this._skip[key];
     if (hash == null && typeof index != 'number') index = key.indexOf('.');
     if (index > -1) return this.mix(key, value, memo, true, null, null, index);
     /*
@@ -63,7 +63,7 @@ LSD.Object.prototype = {
       Keys that start with `_` underscore do not trigger calls to global
       object listeners. But they can be watched individually.
     */
-    if (index !== -1 || priv !== true) {
+    if (index !== -1 || nonenum !== true) {
       if((this._onChange && typeof (value = this._onChange(key, value, true, old, memo, hash)) == 'undefined')
       || (this.onChange && typeof (value = this.onChange(key, value, true, old, memo, hash)) == 'undefined')) {
         if (hash == null) this[key] = old;
@@ -111,7 +111,7 @@ LSD.Object.prototype = {
     if (vdef) old = value;
     else var old = this[key];
     if (!hash && vdef && typeof old == 'undefined') return false;
-    if (index !== -1 || key.charAt(0) != '_') {
+    if (index !== -1 || !this._skip[key]) {
       if (this._onChange && (value = this._onChange(key, old, false, undefined, memo, hash)) == null && old != null)
         return false;
       if (this.onChange && (value = this.onChange(key, old, false, undefined, memo, hash)) == null && old != null)
@@ -161,7 +161,7 @@ LSD.Object.prototype = {
       } else {
         result = typeof object.get == 'function' ? object.get(subkey, construct) : object[subkey];
       }  
-      if (typeof result == 'undefined' && construct && subkey.charAt(0) != '_') result = object._construct(subkey)
+      if (typeof result == 'undefined' && construct && !object._skip[subkey]) result = object._construct(subkey)
       if (typeof result != 'undefined') {
         if (dot != -1) object = result;
         else return result;
@@ -184,9 +184,11 @@ LSD.Object.prototype = {
           })
         }
       }
-      var method = typeof key.has == 'function' ? 'has' : 'hasOwnProperty';
-      for (var prop in key) if (key[method](prop) && (!memo || !memo._unstorable || !memo._unstorable[prop]))
-        this.mix(prop, key[prop], memo, state, merge, prepend);
+      var unstorable = memo && memo._unstorable;
+      var skip = key._skip; 
+      for (var prop in key) 
+        if (key.hasOwnProperty(prop) && (unstorable == null || !unstorable[prop]) && (skip == null || !skip[prop]))
+          this.mix(prop, key[prop], memo, state, merge, prepend);
     } else {
       /*
         A string in the key may contain dots `.` that denote nested
@@ -215,7 +217,7 @@ LSD.Object.prototype = {
         }
         var obj = this[name];
         if (obj == null) {
-          if (state !== false && name.charAt(0) != '_')
+          if (state !== false && !this._skip[name])
             obj = this._construct(name, null, memo, value);
         } else if (obj.push) {
           for (var i = 0, j = obj.length; i < j; i++)
@@ -246,7 +248,7 @@ LSD.Object.prototype = {
         }  
         var obj = this[key];
         if (obj == null) {
-          if (state !== false && key.charAt(0) != '_') 
+          if (state !== false && !this._skip[name]) 
             obj = this._construct(key, null, memo, value);
         } else if (obj.push) {
           for (var i = 0, j = obj.length; i < j; i++)
@@ -353,7 +355,9 @@ LSD.Object.prototype = {
   },
   
   has: function(key) {
-    return this.hasOwnProperty(key) && ((key.charAt(0) != '_') || (this._exclusions && this._exclusions[key]))
+    if (!this.hasOwnProperty(key)) return false;
+    var skip = this._skip;
+    return !skip || !skip[key]
   },
   
   _construct: function(name, constructor, memo, value) {
@@ -480,8 +484,9 @@ LSD.Object.prototype = {
       return obj.toString();
     } else if (!obj.indexOf && typeof obj == 'object') {
       var object = {};
-      for (var key in obj)
-        if (typeof obj.has == 'function' ? obj.has(key) : obj.hasOwnProperty(key)) {
+      var skip = obj._skip;
+      for (var key in obj) 
+        if (obj.hasOwnProperty(key) && (skip == null || !skip[key])) {
           var val = obj[key];
           val = (val == null || val.exec || typeof val != 'object') ? val : LSD.toObject(val, normalize, serializer);
           if (!normalize || typeof val != 'undefined') 
@@ -489,6 +494,19 @@ LSD.Object.prototype = {
         }
     }
     return object || obj;
+  },
+  
+  _skip: {
+    _skip: true,
+    _constructor: true,
+    _watchers: true,
+    _children: true,
+    _watched: true,
+    _parent: true,
+    _stored: true,
+    _length: true,
+    _merger: true,
+    _hash: true,
   }
 };
 
