@@ -113,6 +113,10 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
     else if (index < 0) index = length + index;
     if (offset == null) offset = length - index;
     else offset = Math.max(0, Math.min(length - index, offset))
+    if (this._onShift && arity - offset) {
+      offset = this._onShift(index, offset, args, arity - offset);
+      arity = args.length;
+    }
     var shift = arity - offset;
     var values = [];
     // when given arguments to insert
