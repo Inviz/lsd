@@ -210,9 +210,7 @@ LSD.Mixin.Fieldset = new Class({
     for (var name in this.fields) 
       if (this.fields.has(name)) {
         var object = this.fields[name];
-        if (!object.nodeType) {
-          if (object[key] && typeof object[key].nodeType == 'number') return name;
-        }
+        if (!object.nodeType && object[key]) return name;
       }
   }
 });
