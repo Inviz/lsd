@@ -204,10 +204,16 @@ LSD.Mixin.Fieldset = new Class({
     }.bind(this));
   },
   
-  getModelName: function() {
+  getModelName: function(key) {
+    var root = this.fields[key];
+    if (root != null && !root.nodeType) return '';
     for (var name in this.fields) 
-      if (this.fields.has(name))
-        if (!this.fields[name].nodeType) return name;
+      if (this.fields.has(name)) {
+        var object = this.fields[name];
+        if (!object.nodeType) {
+          if (object[key] && typeof object[key].nodeType == 'number') return name;
+        }
+      }
   }
 });
 
