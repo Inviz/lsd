@@ -19,9 +19,6 @@ provides:
 */
 LSD.Element = LSD.Struct.Stack(LSD.Type);
 LSD.Element.Properties = {
-  namespace: function() {
-    
-  },
   context: function(value, old) {
     
   },
@@ -290,15 +287,27 @@ LSD.Element.Properties = {
     } else {
       this.unset('value', this.values);
     }
+  },
+  type: function(value, old) {
+
+  },
+  radiogroup: function(value, old) {
+
   }
 };
 LSD.Element.prototype.localName = 'div';
 LSD.Element.prototype.tagName = null;
-LSD.Element.prototype.namespace = LSD;
 LSD.Element.prototype._parent = false;
 LSD.Element.prototype._preconstruct = ['allocations', 'childNodes', 'attributes', 'classes', 'events', 'matches', 'proxies', 'pseudos', 'relations', 'states'];
 LSD.Element.prototype.__initialize = function(options, element) {
   this.lsd = ++LSD.UID;
+  if (!LSD.Element.prototype.states) LSD.Element.prototype.mix({
+    states: {
+      built: false,
+      hidden: false,
+      disabled: false
+    }
+  });
   if (options != null && typeof options.nodeType == 'number') {
     var memo = element;
     element = options;
@@ -441,6 +450,17 @@ LSD.Element.prototype.dispose = function() {
   parent.removeChild(this);
   this.fireEvent('dispose', parent);
   return this;
+};
+LSD.Element.prototype.click = function() {
+  switch (this.type) {
+    case 'radio':
+      if (!this.checked) this.set('checked', true);
+      break;
+    case 'checkbox':
+      this[this.checked === true ? 'unset' : 'set']('checked', true);
+      break;
+    case 'command':
+  }
 };
 LSD.Element.prototype.getAttribute = function(name) {
   switch (name) {
@@ -590,11 +610,3 @@ LSD.Element.prototype.toElement = function(){
 LSD.Element.prototype.$family = function() {
   return 'widget';
 };
-
-LSD.Element.prototype.mix({
-  states: {
-    built: false,
-    hidden: false,
-    disabled: false
-  }
-});

@@ -13,6 +13,7 @@ requires:
   - LSD.Type
   - LSD.Object.Stack
   - LSD.Struct
+  - LSD.Document
   
 provides: 
   - LSD.Type.States
@@ -20,7 +21,7 @@ provides:
 ...
 */
 
-LSD.mix('states', {
+LSD.Document.prototype.states.mix({
   built:    ['build',      'destroy'],
   hidden:   ['hide',       'show'],
   disabled: ['disable',    'enable'],
@@ -41,13 +42,13 @@ LSD.mix('states', {
 LSD.Type.States = LSD.Struct.Stack();
 LSD.Type.States.implement({
   onChange: function(key, value, state, old, memo) {
-    var parent      = this._parent, 
-        stack       = this._stack[key],
-        ns          = parent.keyspace || LSD,
-        states      = ns.states,
-        compiled    = states._compiled || (states._compiled = {}),
-        definition  = states[key],
-        substate    = value && state;
+    var parent     = this._parent, 
+        stack      = this._stack[key],
+        ns         = parent.document || LSD.Document.prototype,
+        states     = ns.states,
+        compiled   = states._compiled || (states._compiled = {}),
+        definition = states[key],
+        substate   = value && state;
     if (definition && state && stack.length === 1 && typeof parent[definition[0]] != 'function') {
       var methods = compiled[key] || (compiled[key] = LSD.Type.States.compile(key, ns, definition));
       for (var method in methods) parent.set(method, methods[method]);

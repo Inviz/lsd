@@ -14,6 +14,7 @@ requires:
 
 provides: 
   - LSD
+  - LSD.Type
  
 ...
 */
@@ -22,5 +23,6 @@ provides:
 var LSD = function() {
   
 };
+LSD.Type = {};
 LSD.Slick = this.Slick;
 LSD.UID = 0;

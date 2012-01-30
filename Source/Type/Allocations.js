@@ -1,9 +1,9 @@
 /*
 ---
  
-script: Relation.js
+script: Allocations.js
  
-description: An unsettable relation that dispatches options to specific widgets
+description: A reusable temporary link to widgets built on demand
  
 license: Public domain (http://unlicense.org).
 
@@ -12,17 +12,10 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Type
   - LSD.Struct.Stack
+  - LSD.Document
 
 provides: 
   - LSD.Type.Allocations
-  - LSD.allocations.lightbox
-  - LSD.allocations.dialog
-  - LSD.allocations.contextmenu
-  - LSD.allocations.scrollbar
-  - LSD.allocations.container
-  - LSD.allocations.message
-  - LSD.allocations.input
-  - LSD.allocations.submit
  
 ...
 */
@@ -31,14 +24,14 @@ LSD.Type.Allocations = LSD.Struct({
 
 });
 LSD.Type.Allocations.prototype.onChange = function(key, value, state, old, memo) {
-  var ns = this._parent.namespace || LSD;
+  var ns = this._parent.document || LSD.Document.prototype;
   var options = ns.allocations[key];
   if (options) value.mix(options, null, state);
   return value;
 }
 LSD.Type.Allocations.prototype._eager = true;
 LSD.Type.Allocations.prototype._getConstructor = function(key) {
-  var ns = this._parent.namespace || LSD;
+  var ns = this._parent.document || LSD.Document.prototype;
   if (ns.allocations[key]) return this._parent.__constructor || this._parent._constructor;
 }
 LSD.Type.Allocations.Properties = {
@@ -50,7 +43,7 @@ LSD.Type.Allocations.Properties = {
     
   }
 };
-LSD.mix('allocations', {
+LSD.Document.prototype.allocations.mix({
   lightbox: {
     tagName: 'body',
     attributes: {

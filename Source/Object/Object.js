@@ -366,7 +366,7 @@ LSD.Object.prototype = {
   
   _construct: function(name, constructor, memo, value) {
     if (!constructor) {
-      var constructors = this._constructors;
+      var constructors = this._constructors || (this._constructors = {});
       constructor = (constructors && constructors[name])
                 || (this._getConstructor ? this._getConstructor(name) : value && value.__constructor || this._constructor);
     }
@@ -507,6 +507,7 @@ LSD.Object.prototype = {
   _skip: {
     _skip: true,
     _constructor: true,
+    _constructors: true,
     _watchers: true,
     _children: true,
     _watched: true,

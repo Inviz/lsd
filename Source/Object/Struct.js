@@ -35,7 +35,7 @@ LSD.Struct = function(properties, Base) {
       }
     var preconstruct = this._preconstruct;
     if (preconstruct) for (var i = 0, type, constructors = this._constructors; type = preconstruct[i++];) {
-      var constructor = constructors[type] || this._getConstructor(type);
+      var constructor = (constructors || (constructors = this._constructors = {}))[type] || this._getConstructor(type);
       this[type] = new constructor;
       this[type].set('_parent', this);
     }
@@ -170,14 +170,12 @@ LSD.Struct.prototype = {
       this.mix(call.key, old, memo, false);
   },
   _inherited: ['_stack', '_stored'],
-  _constructors: {},
   _skip: Object.append({
     _initialize: true,
     _properties: true,
     _linker: true,
     _exports: true,
     _imports: true,
-    _constructors: true,
     __initialize: true,
     __constructor: true
   }, LSD.Object.prototype._skip)

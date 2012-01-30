@@ -11,28 +11,17 @@ tags: [ui, svg, interface]
 demo: http://inviz.ru/lsd/Dependencies/lsd-examples/Demos/index.html
 sources:
   - Source/LSD.js
-  - Source/LSD/Element.js
-  - Source/LSD/Textnode.js
-  - Source/LSD/Fragment.js
-  - Source/LSD/Comment.js
-  - Source/LSD/Instruction.js
-  - Source/LSD/Namespace.js
+  - Source/Node/Element.js
+  - Source/Node/Textnode.js
+  - Source/Node/Fragment.js
+  - Source/Node/Comment.js
+  - Source/Node/Instruction.js
+  - Source/Node/Document.js
   - Source/Object/Object.js
   - Source/Object/Object.Stack.js
   - Source/Object/Object.Group.js
   - Source/Object/Struct.js
   - Source/Object/Array.js
-  - Source/ART/ART.js
-  - Source/ART/ART.SVG.js
-  - Source/ART/ART.Element.js
-  - Source/ART/ART.Glyphs.js
-  - Source/ART/ART.Shape.Arrow.js
-  - Source/ART/ART.Shape.Ellipse.js
-  - Source/ART/ART.Shape.Flower.js
-  - Source/ART/ART.Shape.Rectangle.js
-  - Source/ART/ART.Shape.Star.js
-  - Source/Tools/Helpers.js
-  - Source/Tools/Require.js
   - Source/Tools/Logger.js
   - Source/Type/Children.js
   - Source/Type/States.js

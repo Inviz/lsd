@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Type
   - LSD.Struct.Group.Array
+  - LSD.Document
 
 provides: 
   - LSD.Type.Relations
@@ -94,7 +95,7 @@ LSD.Type.Relations.prototype.onStore = function(key, value, memo, state, name) {
   return true;
 };
 LSD.Type.Relations.prototype._delegate = function(object, key, value, state) {
-  var property = LSD.Type.Relations.Properties[key];
+  var property = this._Properties[key];
   if (property) return true;
 };
 LSD.Type.Relations.prototype.__watcher = function(call, widget, state) {

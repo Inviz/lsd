@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Type
   - LSD.Struct.Stack
+  - LSD.Document
 
 provides: 
   - LSD.Type.Pseudos
@@ -23,7 +24,7 @@ provides:
 ...
 */
 
-LSD.mix('attributes', {
+LSD.Document.prototype.attributes.mix({
   tabindex: Number,
   width:    Number,
   height:   Number,
@@ -44,7 +45,7 @@ LSD.mix('attributes', {
 
 LSD.Type.Pseudos = LSD.Struct.Stack();
 LSD.Type.Pseudos.prototype.onChange = function(name, value, state, old, memo) {
-  var ns = this._parent.namespace || LSD;
+  var ns = this._parent.document || LSD.Document.prototype;;
   if ((!memo || memo !== 'states') && ns.states[name])
     this._parent.states[state ? 'set' : 'unset'](name, true, 'pseudos');
   return value;
@@ -52,7 +53,7 @@ LSD.Type.Pseudos.prototype.onChange = function(name, value, state, old, memo) {
 
 LSD.Type.Attributes = LSD.Struct.Stack(LSD.attributes);
 LSD.Type.Attributes.prototype.onChange = function(name, value, state, old, memo) {
-  var ns = this._parent.namespace || LSD;
+  var ns = this._parent.document || LSD.Document.prototype;
   if ((!memo || memo !== 'states') && ns.states[name])
     this._parent.states[state ? 'set' : 'unset'](name, true, 'attributes');
   if (this._parent.element && (name != 'type' || LSD.toLowerCase(this._parent.element.tagName) != 'input')) {  
@@ -78,7 +79,7 @@ LSD.Type.Classes = LSD.Struct.Stack({
   }
 });
 LSD.Type.Classes.prototype.onChange = function(name, value, state, old, memo) {
-  var ns = this._parent.namespace || LSD;
+  var ns = this._parent.document || LSD.Document.prototype;
   if ((!memo || memo !== 'states') && ns.states[name]) 
     this._parent.states[state ? 'set' : 'unset'](name, true, 'classes');
   var element = this._parent.element;
