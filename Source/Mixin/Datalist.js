@@ -22,9 +22,11 @@ LSD.Mixin.Datalist = new Class({
       datalist: {
         enable: function() {
           if (this.hasRemoteList()) this.attributes.set('href', this.attributes.list);
+          this.attributes.set('autocomplete', 'off');
         },
         disable: function() {
           if (this.hasRemoteList()) this.attributes.unset('href', this.attributes.list);
+          this.attributes.unset('autocomplete', 'off');
         }
       }
     },
@@ -39,13 +41,13 @@ LSD.Mixin.Datalist = new Class({
         }
       },
       self: {
-        blur: 'unsuggest',
+        //blur: 'unsuggest',
         focus: 'findSuggestions'
       }
     },
     shortcuts: {
-      previous: 'suggestPrevious',
-      next: 'suggestNext',
+      up: 'suggestPrevious',
+      down: 'suggestNext',
       enter: 'suggestSelected'
     },
     request: {
@@ -80,14 +82,12 @@ LSD.Mixin.Datalist = new Class({
   getCurrentValue: function(suggestion) {
     var position = this.element.getSelectedRange();
     var value = this.element.get('value');
-    var start = value.lastIndexOf(',', position.start);
-    if (start === -1) start = 0;
-    else start ++;
+    var start = value.lastIndexOf(',', position.start - 1) + 1;
     var end = value.indexOf(',', position.end);
     if (end === -1) end = value.length;
-    else end --
+    while (value.charAt(start) == ' ') start++;
     if (suggestion === false && position.start != position.end)
-      return value.substring(start, position.start) + value.substring(position.end, end)
+      return value.substring(start, position.start) + value.substring(position.end + 1, end)
     else return value.substring(start, end);
   },
 
@@ -95,29 +95,18 @@ LSD.Mixin.Datalist = new Class({
     var old = this.getCurrentValue();
     var position = this.element.getSelectedRange();
     var value = this.element.get('value');
-    var start = value.lastIndexOf(',', position.start);
-    if (start === -1) start = 0;
-    else start++;
+    var start = value.lastIndexOf(',', position.start - 1) + 1;
     var end = value.indexOf(',', position.end);
     if (end === -1) end = value.length;
-    else end++;
-    switch (suggestion) {
-      case false:
-        this.setValue(value.substring(0, start) + text + value.substring(end, value.length));
-        break;
-      case true:
-        this.setValue(value.substring(0, start) + text + value.substring(end, value.length));
-        this.element.selectRange(position.start, position.start + text.length - start);
-        break;
-      default:
-        this.setValue(value.substring(0, start) + text + value.substring(end, value.length));
-        this.element.selectRange(position.start + text.length - start, position.start + text.length - start);
-    }
+    if (start != 0) text = ' ' + text;
+    this.setValue(value.substring(0, start) + text + value.substring(end, value.length));
+    this.element.set('value', value.substring(0, start) + text + value.substring(end, value.length));
+    this.element.selectRange(suggestion === false ? position.start + text.length : position.start, start + text.length);
   },
 
   findSuggestions: function(event) {
     var input = this.getCurrentValue();
-    if (input === this.input && this.getSuggestionsList().parentNode) return;
+    if (!input || input === this.input && this.getSuggestionsList().parentNode) return;
     this.input = input;
     this.regexp = new RegExp(this.value.trim().replace(/\s+/, '\\s'), 'i')
     if (this.hasRemoteList()) this.send();
@@ -125,7 +114,7 @@ LSD.Mixin.Datalist = new Class({
 
   suggestSelected: function(e) {
     if (this.selectedSuggestion) {
-      this.setCurrentValue(this.selectedSuggestion.get('text'));
+      this.setCurrentValue(this.selectedSuggestion.get('text'), false);
       if (e) e.stop();
     }
     this.unsuggest();
@@ -137,8 +126,6 @@ LSD.Mixin.Datalist = new Class({
 
   suggest: function(text) {
     var input = this.getCurrentValue();
-    var start = text.indexOf(input) + input.length;
-    if (start == -1) start = 0;
     this.setCurrentValue(text, true);
   },
 
@@ -225,10 +212,9 @@ LSD.Mixin.Datalist = new Class({
       }
     };
     var text = results && results[0];
-    if (text) {
+    if (text && (results && results[1] != null || this.getCurrentValue() != text)) {
       this.renderSuggestions(results);
-      this.suggest(text)
-    } else this.unsuggest()
+    } else if (this.suggestionIndex) this.unsuggest()
   },
 
   hasRemoteList: function() {
