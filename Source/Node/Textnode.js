@@ -25,6 +25,10 @@ LSD.Textnode = LSD.Struct({
   
   parentNode: function() {
     
+  },
+  
+  nodeValue: function() {
+    
   }
 })
 

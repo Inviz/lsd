@@ -107,7 +107,7 @@ LSD.Object.Stack.prototype = {
           if (j == -1) return
         }
       }
-      if (length > 1) {
+      if (length > 1 && (value == null || !value.script)) {
         var method = '_set';
         value = group[length - 2];
       } else var method = '_unset';

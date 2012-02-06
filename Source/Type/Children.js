@@ -47,6 +47,10 @@ LSD.Type.Children.prototype.onSet = function(value, index, state, old) {
 };
 LSD.Type.Children.prototype.first = null;
 LSD.Type.Children.prototype.last = null;
+LSD.Type.Children.prototype._skip = Object.append({
+  _onShift: true, 
+  _prefilter: true
+}, LSD.Object.prototype._skip);
 LSD.Type.Children.prototype._onShift = function(index, offset, args, shift) {
   if (shift === -1 || shift === 1) {
     var arg = shift === 1 ? args[0] : this[index], children = arg.childNodes;

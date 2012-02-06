@@ -151,22 +151,35 @@ LSD.Struct.prototype = {
   },
   _link: function(properties, state, external) {
     for (var name in properties) {
-      if (state === false) {
-        this._unwatch(properties[name], this);
+      var alias = properties[name];
+      if (alias.match(this._simple_property)) {
+        if (state === false) {
+          this._unwatch(properties[name], this);
+        } else {
+          this._watch(properties[name], {
+            fn: this._linker,
+            bind: this,
+            callback: this,
+            key: external ? '.' + name : name
+          });
+        }
       } else {
-        this._watch(properties[name], {
-          fn: this._linker,
-          bind: this,
-          callback: this,
-          key: external ? '.' + name : name
-        });
+        this[state === false ? '_unscript' : '_script'](name, alias)
       }
     }
+  },
+  _script: function(key, expression) {
+    (this._scripted || (this._scripted = {}))[key] = LSD.Script(expression, this, key);
+  },
+  _unscript: function(key, value) {
+    this._scripted[key].onSet(undefined, null, this._scripted[key].value)
+    this._scripted[key].detach();
+    delete this._scripted[key]
   },
   _linker: function(call, key, value, old, memo) {
     if (typeof value != 'undefined') 
       this.mix(call.key, value, memo, true);
-    if (old != null)
+    if (old != null && (this._stack || typeof value == 'undefined'))
       this.mix(call.key, old, memo, false);
   },
   _inherited: ['_stack', '_stored'],
@@ -178,5 +191,6 @@ LSD.Struct.prototype = {
     _imports: true,
     __initialize: true,
     __constructor: true
-  }, LSD.Object.prototype._skip)
+  }, LSD.Object.prototype._skip),
+  _simple_property: /^[a-zA-Z._-]+?$/
 };

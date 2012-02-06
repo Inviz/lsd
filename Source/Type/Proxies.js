@@ -1,4 +1,4 @@
-/*
+ /*
 ---
  
 script: Proxies.js
@@ -19,10 +19,6 @@ provides:
 */
 
 LSD.Type.Proxies = LSD.Object.Group();
-
-LSD.Type.Proxies.prototype.match = function(element) {
-  
-};
 LSD.Type.Proxies.prototype.onChange = function(key, value, state, old, memo) {
   
 };
@@ -31,6 +27,13 @@ LSD.Type.Proxies.prototype._hash = function(value) {
 };
 LSD.Type.Proxies.prototype._delegate = function(object, key, value) {
   
+};
+LSD.Type.Proxies.prototype._bouncer = function(node) {
+  switch (node.nodeType) {
+    case 1:
+      
+      
+  }
 };
 LSD.Type.Proxies.rOrdered = /^\s*[+~]/;
 LSD.Type.Proxies

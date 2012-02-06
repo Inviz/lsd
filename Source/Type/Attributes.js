@@ -53,6 +53,10 @@ LSD.Type.Pseudos.prototype.onChange = function(name, value, state, old, memo) {
 
 LSD.Type.Attributes = LSD.Struct.Stack(LSD.attributes);
 LSD.Type.Attributes.prototype.onChange = function(name, value, state, old, memo) {
+  if (value.script) {
+    this[state ? '_script' : '_unscript'](name, value);
+    return 
+  };
   var ns = this._parent.document || LSD.Document.prototype;
   if ((!memo || memo !== 'states') && ns.states[name])
     this._parent.states[state ? 'set' : 'unset'](name, true, 'attributes');

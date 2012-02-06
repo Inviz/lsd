@@ -230,7 +230,7 @@ LSD.Object.prototype = {
           } else if (typeof obj.mix == 'function')
             obj.mix(subkey, value, memo, state, merge, prepend);
         }
-      } else if (value != null && (typeof value == 'object' && !value.exec && !value.push && !value.nodeType)
+      } else if (value != null && (typeof value == 'object' && !value.exec && !value.push && !value.nodeType && value.script !== true)
                                && (!value._constructor || merge)) {
         if (this.onStore && typeof this.onStore(key, value, memo, state, prepend) == 'undefined') return;
         var storage = (this._stored || (this._stored = {}));

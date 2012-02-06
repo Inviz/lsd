@@ -116,25 +116,73 @@ LSD.Element.Properties = {
   },
   origin: function(value, old, memo) {
     var extracted = this.extracted;
-    if (value) {
-      if (!this.extracted) {
-        var tag = value.tagName.toLowerCase();
-        this.extracted = {
-          tagName: tag,
-          localName: tag
-        };
-        for (var i = 0, attribute; attribute = value.attributes[i++];)
-          (this.extracted.attributes || (this.extracted.attributes = {}))[attribute.name] = attribute.value;
-        for (var i = 0, clses = value.className.split(' '), cls; cls = clses[i++];)
-          (this.extracted.classes || (this.extracted.classes = {}))[cls] = true;
-        this.mix(this.extracted, null, true, memo, true, true);
+    if (value && !extracted) {
+      var tag = value.tagName.toLowerCase();
+      extracted = this.extracted = {
+        tagName: tag,
+        localName: tag
+      };  
+      for (var i = 0, start, end, attribute, bit, exp, len, attributes = value.attributes, name, script; attribute = attributes[i++];) {
+        loop: for (var j = 0; j < 2; j++) {
+          start = end = undefined;
+          bit = j ? attribute.value : attribute.name;
+          len = bit.length;
+          /*
+            Finds various kind of interpolations in attributes.
+            
+            So far these are all valid interpolations:
+            
+            * <button title="Delete ${person.title}" />
+            * <section ${itemscope(person), person.staff && class("staff")}></section>
+            * <input type="range" value=${video.time} />
+            
+          */
+          while (start != -1) {
+            if (exp == null && (start = bit.indexOf('${', start + 1)) > -1) {
+              if (script == null) script = []
+              if (start > 0) script.push(bit.substring(end, start));
+            }
+            if (exp != null || start > -1) {
+              if ((end = bit.indexOf('}', start + 1)) == -1) {
+                exp = (exp || '') + (start == null ? ' ' + bit : bit.substr(start + 2, len - 2));
+                start = undefined;
+                continue loop;
+              } else {
+                exp = (exp || '') + bit.substring(start == null ? 0 : start + 2, end);
+                start = undefined;
+              }
+            }
+            if (exp != null) {
+              script.push(LSD.Script(exp, this));
+              if (start == null) start = -1
+            }
+          }
+          if (exp != null) {
+            if (len != end + 1) {
+              script.push(bit.substring(end + 1))
+              exp = null;
+            } else exp += ' ' + bit.substring(end + 1)
+          }
+        }
+        if (j === 0 && start === -1 && name == null) name = bit;
+        if (script || exp == null)
+          (extracted.attributes || (extracted.attributes = {}))[name || attribute.name] = script 
+            ? script.length > 1 
+              ? new LSD.Script.Function(script, this, null, 'concat') 
+              : script[0]
+            : attribute.value;
+        if (script) {
+          name = null;
+          script = null;
+        }
       }
+      for (var i = 0, clses = value.className.split(' '), cls; cls = clses[i++];)
+        (extracted.classes || (extracted.classes = {}))[cls] = true;
+      this.mix(extracted, null, memo, true, true, true);
     }
-    if (old) {
-      if (extracted) {
-        this.mix(extracted, null, memo, false, true, true);
-        delete this.extracted;
-      }
+    if (old && extracted) {
+      this.mix(extracted, null, memo, false, true, true);
+      delete this.extracted;
     }
     return value || old;
   },
@@ -288,6 +336,7 @@ LSD.Element.Properties = {
       this.unset('value', this.values);
     }
   },
+  date: Date,
   type: function(value, old) {
 
   },
@@ -297,8 +346,9 @@ LSD.Element.Properties = {
 };
 LSD.Element.prototype.localName = 'div';
 LSD.Element.prototype.tagName = null;
+LSD.Element.prototype.nodeType = 1;
 LSD.Element.prototype._parent = false;
-LSD.Element.prototype._preconstruct = ['allocations', 'childNodes', 'attributes', 'classes', 'events', 'matches', 'proxies', 'pseudos', 'relations', 'states'];
+LSD.Element.prototype._preconstruct = ['allocations', 'childNodes', 'variables', 'attributes', 'classes', 'events', 'matches', 'proxies', 'pseudos', 'relations', 'states'];
 LSD.Element.prototype.__initialize = function(options, element) {
   this.lsd = ++LSD.UID;
   if (!LSD.Element.prototype.states) LSD.Element.prototype.mix({
@@ -318,108 +368,25 @@ LSD.Element.prototype.__initialize = function(options, element) {
   return options;
 };
 LSD.Element.prototype.__properties = LSD.Element.Properties;
-LSD.Element.prototype.appendChild = function(child, element, bypass) {
-  if (child.nodeType == 11) 
-    return LSD.Module.DOM.setFragment(this, child, element, bypass);
-  if (child.lsd && !child.parentNode) child.parentNode = this;
-  if (bypass !== true) {
-    var proxy = LSD.Module.Proxies.perform(this, child, bypass);
-    if (proxy) {
-      if (proxy.element != null) element = proxy.element;
-      if (proxy.widget && child.lsd && proxy.widget != this) {
-        if (proxy.before)
-          return proxy.widget.insertBefore(child, proxy.before, element, true);
-        else
-          return proxy.widget.appendChild(child, element, true);
-      }
-      if (proxy.before) 
-        return this.insertBefore(child, proxy.before, null, true)
-    } else if (proxy === false) {
-      if (child.parentNode) child.parentNode.removeChild(child);
-      return false;
-    }
-  }
-  if (element !== false) {
-    if (element == null) element = this.element || this.toElement();
-    if (child.lsd && child.getParentElement) element = child.getParentElement(element, this);
-    var node = child.lsd ? (child.element || child.toElement()) : child;
-    if (node.parentNode != element) element.appendChild(node);
-  }
-  if (child.lsd) {
-    // set parent 'for real' and do callbacks
-    child.setParent(this, this.childNodes.push(child) - 1);
-    if (this.document) {
-      if (child.document != this.document)
-        child.properties.set('document', this.document);
-      if (this.document.rendered && !child.rendered) 
-        child.render()
-    }
-  }
-  return true;
-};
-LSD.Element.prototype.insertBefore = function(child, node, element, bypass) {
-  if (child.nodeType == 11) 
-    return LSD.Module.DOM.setFragment(this, child, element, bypass, node)
-  if (child.lsd && !child.parentNode) child.parentNode = this;
-  if (!bypass) {
-    var proxy = LSD.Module.Proxies.perform(this, child);
-    if (proxy) {
-      if (proxy.element != null) {
-        element = proxy.element;
-        if (!proxy.widget && !proxy.before) return this.appendChild(child, element, true);
-      }
-      if (proxy.widget && child.lsd && proxy.widget != this) {
-        if (proxy.before)
-          return proxy.widget.insertBefore(child, proxy.before, element, true);
-        else
-          return proxy.widget.appendChild(child, element, true);
-      }
-      if (proxy.before) node = proxy.before;
-    } else if (proxy === false) {
-      if (child.parentNode) child.parentNode.removeChild(child);
-      return false;
-    }
-  }
-  if (element !== false) {
-    if (element == null) element = node && node.lsd ? node.element || node.toElement() : node;
-    var parent = element ? element.parentNode : node && node.parentNode || this.toElement();
-    parent.insertBefore(child.lsd ? child.element || child.toElement() : child, element);
-  }
-  if (child.lsd) {
-    if (node) var widget = node.lsd ? node : LSD.Module.DOM.findSibling(node, false, element);
-    var index = widget && widget != this ? this.childNodes.indexOf(widget) : this.childNodes.length;
-    if (index == -1) return;
-    this.childNodes.splice(index, 0, child);
-    child.setParent(this, index);
-    if (this.document) {
-      if (child.document != this.document)
-        child.properties.set('document', this.document);
-      if (this.document.rendered && !child.rendered) 
-        child.render()
-    }
-  }
+LSD.Element.prototype.appendChild = function(child) {
+  this.childNodes.push(child)
   return this;
 };
-LSD.Element.prototype.removeChild = function(child, element) {
-  var widget = child.lsd ? child : LSD.Module.DOM.find(child, true);
-  if (widget) {
-    child = widget.element;
-    var index = this.childNodes.indexOf(widget);
-    if (index > -1) {
-      this.childNodes.splice(index, 1);
-      widget.unsetParent(this, index);
-    }
-  }
-  if (element !== false && child && child.parentNode) child.parentNode.removeChild(child)
+LSD.Element.prototype.insertBefore = function(child, before) {
+  var index = this.childNodes.indexOf(before);
+  if (index == -1) index = this.childNodes.length;
+  this.childNodes.splice(index, 0, child);
+  return this;
 };
-LSD.Element.prototype.replaceChild = function(insertion, child, element) {
-  var index = this.childNodes.indexOf(child);
-  if (index == -1) return;
-  this.childNodes.splice(index, 1);
-  child.unsetParent(this, index);
-  if (element !== false && child && child.parentNode) child.parentNode.removeChild(child)
-  this.childNodes.splice(index, 0, insertion);
-  insertion.setParent(this, index);
+LSD.Element.prototype.removeChild = function(child) {
+  var index = this.childNodes.indexOf(before);
+  if (index > -1) this.childNodes.splice(index, 1);
+  return this;
+};
+LSD.Element.prototype.replaceChild = function(child, old) {
+  var index = this.childNodes.indexOf(old);
+  if (index > -1) this.childNodes.splice(index, 1, child);
+  return this;
 };
 LSD.Element.prototype.cloneNode = function(children, options) {
   var clone = this.factory.create(this.element, Object.merge({
@@ -433,10 +400,10 @@ LSD.Element.prototype.cloneNode = function(children, options) {
   return clone;
 };
 LSD.Element.prototype.inject = function(node, where) {
-  return inserters[where || 'bottom'](node, this, element);
+  return this.inserters[where || 'bottom'](this, node);
 };
 LSD.Element.prototype.grab = function(node, where){
-  return this.inject(node, where, true);
+  return this.inserters[where || 'bottom'](node, this);
 };
 LSD.Element.prototype.replaces = function(el) {
   this.inject(el, 'after');
@@ -609,4 +576,25 @@ LSD.Element.prototype.toElement = function(){
 };
 LSD.Element.prototype.$family = function() {
   return 'widget';
+};
+LSD.Element.prototype.inserters = {
+
+	before: function(context, element){
+		var parent = element.parentNode;
+		if (parent) parent.insertBefore(context, element);
+	},
+
+	after: function(context, element){
+		var parent = element.parentNode;
+		if (parent) parent.insertBefore(context, element.nextSibling);
+	},
+
+	bottom: function(context, element){
+		element.appendChild(context);
+	},
+
+	top: function(context, element){
+		element.insertBefore(context, element.firstChild);
+	}
+
 };

@@ -53,8 +53,10 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   length: 0,
   
   push: function() {
-    for (var i = 0, j = arguments.length; i < j; i++)
-      this.set(this.length, arguments[i]);
+    for (var i = 0, j = arguments.length, filter = this._prefilter; i < j; i++) {
+      if (!filter || filter(arguments[i]))
+        this.set(this.length, arguments[i]);
+    }
     return this.length;
   },
   
@@ -107,8 +109,15 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   },
   
   splice: function(index, offset) {
-    var args = Array.prototype.slice.call(arguments, 2);
-    var arity = args.length, length = this.length;
+    var args = Array.prototype.slice.call(arguments, 2), 
+        filter = this._prefilter, 
+        arity = args.length, 
+        length = this.length
+    if (filter) for (var j = arity; j--;)
+      if (!filter(args[j])) {
+        args.splice(j--, 1);
+        arity--;
+      }
     if (index == null) index = 0;
     else if (index < 0) index = length + index;
     if (offset == null) offset = length - index;
@@ -225,11 +234,11 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
       else
         var diff = shifts[index + 1] - shift;
       if (state ? result ? diff : !diff : diff)
-        for (var i = index + 1, j = shifts.length; i < j; i++) 
-          shifts[i] += (state && !result ? 1 : -1);
+        for (var i = index + 1, j = shifts.length, k = (state && !result ? 1 : -1); i < j; i++) 
+          shifts[i] += k;
       if (result && state) {
         var current = filtered[index - shift];
-        if (old !== false && ((!spliced || index - shift > 0 || (filtered[index - shift] != value && old > index)))) {
+        if (old !== false && !diff && ((!spliced || index - shift > 0 || (filtered[index - shift] != value && old > index)))) {
           filtered.set ? filtered.set(index - shift, value) : filtered[index - shift] = value;
         } else {
           filtered.splice(index - shift, 0, value);
