@@ -41,14 +41,16 @@ LSD.Mixin.Datalist = new Class({
         }
       },
       self: {
-        //blur: 'unsuggest',
+        blur: 'unsuggest',
         focus: 'findSuggestions'
       }
     },
     shortcuts: {
       up: 'suggestPrevious',
       down: 'suggestNext',
-      enter: 'suggestSelected'
+      enter: 'suggestSelected',
+      left: 'findSuggestions',
+      right: 'findSuggestions'
     },
     request: {
       type: 'xhr'
@@ -101,7 +103,8 @@ LSD.Mixin.Datalist = new Class({
     if (start != 0) text = ' ' + text;
     this.setValue(value.substring(0, start) + text + value.substring(end, value.length));
     this.element.set('value', value.substring(0, start) + text + value.substring(end, value.length));
-    this.element.selectRange(suggestion === false ? position.start + text.length : position.start, start + text.length);
+    if (suggestion != null)
+      this.element.selectRange(suggestion === false ? position.start + text.length : position.start, start + text.length);
   },
 
   findSuggestions: function(event) {
@@ -121,12 +124,12 @@ LSD.Mixin.Datalist = new Class({
   },
 
   unsetSuggestion: function() {
-    this.setCurrentValue(this.getCurrentValue(false), false);
+    this.setCurrentValue(this.getCurrentValue(false));
   },
 
   suggest: function(text) {
     var input = this.getCurrentValue();
-    this.setCurrentValue(text, true);
+    if (input != text) this.setCurrentValue(text, true);
   },
 
   unsuggest: function() {
@@ -197,7 +200,7 @@ LSD.Mixin.Datalist = new Class({
 
   selectClickedSuggestion: function(e, element) {
     if (this.selectedSuggestion) this.selectedSuggestion.removeClass('selected');
-    this.setCurrentValue(element.get('text'));
+    this.setCurrentValue(element.get('text'), false);
   },
 
   selectHoveredSuggestion: function(e, element) {
