@@ -43,7 +43,8 @@ LSD.Mixin.Value = new Class({
     if (this.isValueDifferent(value) ^ unset) {
       result = this.writeValue(value, unset);
       var previous = this.getPreviousValue();
-      this.fireEvent('change', [result, previous]);
+      if (LSD.Mixin.Command.getCommandType.call(this) == 'command')
+        this.fireEvent('change', [result, previous]);
       this.fireEvent(unset ? 'unsetValue' : 'setValue', value);
       if (!this.pseudos.clickable && previous != null) this.callChain(value, previous);
     }
