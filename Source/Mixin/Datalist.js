@@ -109,10 +109,14 @@ LSD.Mixin.Datalist = new Class({
 
   findSuggestions: function(event) {
     var input = this.getCurrentValue();
-    if (!input || input === this.input && this.getSuggestionsList().parentNode) return;
+    var same = input === this.input;
+    if (!input || same && this.getSuggestionsList().parentNode) return;
     this.input = input;
     this.regexp = new RegExp(this.value.trim().replace(/\s+/, '\\s'), 'i')
-    if (this.hasRemoteList()) this.send();
+    if (this.hasRemoteList()) {
+      if (this.suggestedResults && same) this.onSuccess(this.suggestedResults)
+      else this.send();
+    }
   },
 
   suggestSelected: function(e) {
@@ -134,7 +138,7 @@ LSD.Mixin.Datalist = new Class({
 
   unsuggest: function() {
     var range = this.element.getSelectedRange();
-    if (range.start) this.unsetSuggestion();
+    if (range.start != range.end) this.unsetSuggestion();
     this.getSuggestionsList().dispose();
     if (this.selectedSuggestion) this.selectedSuggestion.removeClass('selected');
     this.selectedSuggestion = null;
@@ -208,6 +212,7 @@ LSD.Mixin.Datalist = new Class({
   },
 
   onSuccess: function(results) {
+    this.suggestedResults = results;
     if (!results.push) {
       for (var i in results) {
         results = results[i];
@@ -217,7 +222,7 @@ LSD.Mixin.Datalist = new Class({
     var text = results && results[0];
     if (text && (results && results[1] != null || this.getCurrentValue() != text)) {
       this.renderSuggestions(results);
-    } else if (this.suggestionIndex) this.unsuggest()
+    } else this.unsuggest()
   },
 
   hasRemoteList: function() {
