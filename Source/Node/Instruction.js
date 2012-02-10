@@ -18,8 +18,6 @@ provides:
 ...
 */
 
-LSD.Instruction = function() {
-  
-}
+LSD.Instruction = LSD.Script
 
 LSD.Instruction.prototype.nodeType = 5;

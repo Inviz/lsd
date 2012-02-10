@@ -18,25 +18,25 @@ provides:
 ...
 */
 
-LSD.Type.Proxies = LSD.Object.Group();
-LSD.Type.Proxies.prototype.onChange = function(key, value, state, old, memo) {
+LSD.Properties.Proxies = LSD.Object.Group();
+LSD.Properties.Proxies.prototype.onChange = function(key, value, state, old, memo) {
   
 };
-LSD.Type.Proxies.prototype._hash = function(value) {
+LSD.Properties.Proxies.prototype._hash = function(value) {
   
 };
-LSD.Type.Proxies.prototype._delegate = function(object, key, value) {
+LSD.Properties.Proxies.prototype._delegate = function(object, key, value) {
   
 };
-LSD.Type.Proxies.prototype._bouncer = function(node) {
+LSD.Properties.Proxies.prototype._bouncer = function(node) {
   switch (node.nodeType) {
     case 1:
       
       
   }
 };
-LSD.Type.Proxies.rOrdered = /^\s*[+~]/;
-LSD.Type.Proxies
+LSD.Properties.Proxies.rOrdered = /^\s*[+~]/;
+LSD.Properties.Proxies
 
 LSD.Module.Proxies = new Class({
   constructors: {

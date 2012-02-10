@@ -10,20 +10,19 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Type
-  - LSD.Struct.Group.Array
-  - LSD.Document
+  - LSD.Properties
+  - LSD.Struct.Group.NodeList
 
 provides: 
-  - LSD.Type.Relations
+  - LSD.Properties.Relations
  
 ...
 */
 
-LSD.Type.Relations = LSD.Struct.Group.Collection({
+LSD.Properties.Relations = LSD.Struct.Group.NodeList({
   matches: '.matches'
 });
-LSD.Type.Relations.prototype.onChange = function(key, value, state, old) {
+LSD.Properties.Relations.prototype.onChange = function(key, value, state, old) {
   if (value.lsd) {
     var group = this[key]
     if (this._parent) {
@@ -68,7 +67,7 @@ LSD.Type.Relations.prototype.onChange = function(key, value, state, old) {
     }
   }
 };
-LSD.Type.Relations.prototype.onGroup = function(key, value, state) {
+LSD.Properties.Relations.prototype.onGroup = function(key, value, state) {
   if (state !== false) {
     this._parent.set(key, value, null, true);
     value.watch({
@@ -82,7 +81,7 @@ LSD.Type.Relations.prototype.onGroup = function(key, value, state) {
     value.unwatch(this);
   }
 }
-LSD.Type.Relations.prototype.onStore = function(key, value, memo, state, name) {
+LSD.Properties.Relations.prototype.onStore = function(key, value, memo, state, name) {
   if (name == null) {
     var skip = value._skip; 
     for (var prop in value) {
@@ -94,20 +93,20 @@ LSD.Type.Relations.prototype.onStore = function(key, value, memo, state, name) {
   }
   return true;
 };
-LSD.Type.Relations.prototype._delegate = function(object, key, value, state) {
+LSD.Properties.Relations.prototype._delegate = function(object, key, value, state) {
   var property = this._Properties[key];
   if (property) return true;
 };
-LSD.Type.Relations.prototype.__watcher = function(call, widget, state) {
+LSD.Properties.Relations.prototype.__watcher = function(call, widget, state) {
     
 };
-LSD.Type.Relations.prototype.__proxier = function() {
+LSD.Properties.Relations.prototype.__proxier = function() {
     
 };
-LSD.Type.Relations.prototype.__filter = function() {
+LSD.Properties.Relations.prototype.__filter = function() {
 
 };
-LSD.Type.Relations.prototype._observer = function(call, value, index, state, old) {
+LSD.Properties.Relations.prototype._observer = function(call, value, index, state, old) {
   var key = call.key;
   var callbacks = this._callbacks && this._callbacks[key];
   if (callbacks) {
@@ -135,7 +134,7 @@ LSD.Type.Relations.prototype._observer = function(call, value, index, state, old
     }
   }
 };
-LSD.Type.Relations.prototype._setOption = function(index, key, value, state, prepend) {
+LSD.Properties.Relations.prototype._setOption = function(index, key, value, state, prepend) {
   var options = this._options;
   if (!options) options = this._options = {};
   var storage = options[key];
@@ -165,9 +164,9 @@ LSD.Type.Relations.prototype._setOption = function(index, key, value, state, pre
   return group[group.length - 1];
 };
 
-LSD.Type.Relations.prototype._Properties = 
-LSD.Type.Relations.prototype._unstorable = 
-LSD.Type.Relations.Properties = {
+LSD.Properties.Relations.prototype._Properties = 
+LSD.Properties.Relations.prototype._unstorable = 
+LSD.Properties.Relations.Properties = {
   proxy: function(key, value, state) {
     if (value != null) this.proxies.set(value, {
       fn: this.__proxier,
@@ -253,7 +252,7 @@ LSD.Type.Relations.Properties = {
   }
 };
 
-LSD.Type.Relations.getScopeName = function(scoped) {
+LSD.Properties.Relations.getScopeName = function(scoped) {
   return function(relation, scope, multiple) {
     var key = Array.prototype.join.call(arguments);
     return (scoped[key] || (scoped[key] = (scope + LSD.capitalize(relation))))

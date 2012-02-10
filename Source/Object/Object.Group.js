@@ -13,12 +13,15 @@ requires:
   - LSD.Object
   - LSD.Struct
   - LSD.Array
+  - LSD.NodeList
 
 provides:
   - LSD.Object.Group
   - LSD.Object.Group.Array
+  - LSD.Object.Group.NodeList
   - LSD.Struct.Group
   - LSD.Struct.Group.Array
+  - LSD.Struct.Group.NodeList
 ...
 */
 
@@ -27,7 +30,7 @@ LSD.Object.Group = function(object) {
 };
 
 LSD.Object.Group.prototype = {
-  _constructor: LSD.Object.Stack,
+  constructor: LSD.Object.Stack,
   
   set: function(key, value, memo, prepend, hash) {
     if (typeof key === 'string' && hash !== true) {
@@ -113,11 +116,11 @@ LSD.Object.Group.Array.prototype.___constructor = LSD.Array
   values of the nodes are changed.
 */
 
-LSD.Object.Group.Collection = function() {
+LSD.Object.Group.NodeList = function() {
   LSD.Object.apply(this, arguments);
 };
-LSD.Object.Group.Collection.prototype = new LSD.Object.Group;
-LSD.Object.Group.Collection.prototype.___constructor = LSD.Collection
+LSD.Object.Group.NodeList.prototype = new LSD.Object.Group;
+LSD.Object.Group.NodeList.prototype.___constructor = LSD.NodeList
 
 
 
@@ -134,6 +137,6 @@ LSD.Struct.Group.Array = function(properties) {
   return LSD.Struct(properties, LSD.Object.Group.Array)
 }
 
-LSD.Struct.Group.Collection = function(properties) {
-  return LSD.Struct(properties, LSD.Object.Group.Collection)
+LSD.Struct.Group.NodeList = function(properties) {
+  return LSD.Struct(properties, LSD.Object.Group.NodeList)
 }

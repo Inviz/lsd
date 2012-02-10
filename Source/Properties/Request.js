@@ -20,7 +20,7 @@ provides:
 ...
 */
 
-LSD.Type.Request = new LSD.Class({
+LSD.Properties.Request = new LSD.Class({
   Extends: Request.Auto,
   
   options: {
@@ -32,21 +32,13 @@ LSD.Type.Request = new LSD.Class({
   type: function() {
     
   },
-  data: function() {
-    
-  },
-  method: function() {
-    
-  },
-  url: function() {
-    
+  
+  imports: {
+    data: '.fields'
   },
   
   exports: {
     send: function() {
-      
-    },
-    stop: function() {
       
     },
     started: 'started'
@@ -63,6 +55,6 @@ LSD.Type.Request = new LSD.Class({
   
 });
 
-LSD.Type.Request
+LSD.Properties.Request
 
 LSD.Behavior.define(':form[action], [src], [href], :request', 'request');

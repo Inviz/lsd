@@ -99,6 +99,11 @@ LSD.Mixin.Validity.message = {
   }
 };
 
+LSD.Properties.Validity = new LSD.Struct({
+  valid: '.valid',
+  invalid: '.invalid'
+})
+
 var Attributes = LSD.Mixin.Validity.Attributes = {
   required: function(value) {
     if (!value) return "valueMissing"

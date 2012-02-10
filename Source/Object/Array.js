@@ -15,9 +15,7 @@ requires:
   
 provides:
   - LSD.Array
-  - LSD.Collection
   - LSD.Struct.Array
-  - LSD.Struct.Collection
   
 ...
 */
@@ -48,16 +46,22 @@ LSD.Array = function(arg) {
 };
 
 LSD.Array.prototype = Object.append(new LSD.Object, {
-  _constructor: LSD.Array,
-  
+  constructor: LSD.Array,
+  /*
+    Public array-like length property. Although in javascript,
+    some objects like functions have their own length property
+    which can not be overwritten, thus is not reliable. So internally
+    __length property is checked
+  */
   length: 0,
+  __length: 0,
   
   push: function() {
     for (var i = 0, j = arguments.length, filter = this._prefilter; i < j; i++) {
       if (!filter || filter(arguments[i]))
-        this.set(this.length, arguments[i]);
+        this.set(this.__length, arguments[i]);
     }
-    return this.length;
+    return this.__length;
   },
   
   set: function(key, value, old, memo) {
@@ -66,7 +70,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
       return this._set(key, value, memo);
     } else {
       this[index] = value;
-      if (index + 1 > this.length) this._set('length', index + 1);
+      if (index + 1 > this.__length) this._set('length', (this.__length = index + 1));
       var watchers = this.__watchers;
       if (watchers) for (var i = 0, j = watchers.length, fn; i < j; i++) {
         if (!(fn = watchers[i])) continue;
@@ -85,7 +89,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
       return this._unset(key, value, memo);
     } else {
       delete this[index];
-      if (index + 1 == this.length) this._set('length', index);
+      if (index + 1 == this.__length) this._set('length', (this.__length = index));
       var watchers = this.__watchers;
       if (watchers) for (var i = 0, j = watchers.length, fn; i < j; i++) {
         if (!(fn = watchers[i])) continue;
@@ -100,7 +104,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   
   indexOf: function(object, from) {
     var hash = typeof object == 'object' && this._hash ? this._hash(object) : object;
-    var length = this.length >>> 0;
+    var length = this.__length >>> 0;
     for (var i = (from < 0) ? Math.max(0, length + from) : from || 0; i < length; i++) {
       var value = this[i];
       if (value === object || (this._hash && hash != null && value != null && this._hash(value) == hash)) return i;
@@ -112,7 +116,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
     var args = Array.prototype.slice.call(arguments, 2), 
         filter = this._prefilter, 
         arity = args.length, 
-        length = this.length
+        length = this.__length
     if (filter) for (var j = arity; j--;)
       if (!filter(args[j])) {
         args.splice(j--, 1);
@@ -152,8 +156,8 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
         }
         this.set(i + shift, this[i], i);
       }
-    this.set('length', length + shift);
-    for (var i = this.length; i < length; i++) {
+    this.set('length', (this.__length = length + shift));
+    for (var i = this.__length; i < length; i++) {
       if (values.length < - shift) {
         values.push(this[i])
         this.unset(i, this[i]);
@@ -178,7 +182,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   
   watch: function(callback, fn) {
     if (typeof fn != 'undefined') return this._watch(callback, fn);
-    for (var i = 0, j = this.length >>> 0; i < j; i++) {
+    for (var i = 0, j = this.__length >>> 0; i < j; i++) {
       if (callback.call) callback.call(this, this[i], i, true);
       else this._callback(callback, this[i], i, true);
     }
@@ -189,7 +193,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   
   unwatch: function(callback, fn) {
     if (typeof fn != 'undefined') return this._unwatch(callback, fn);
-    for (var i = 0, j = this.length >>> 0; i < j; i++) {
+    for (var i = 0, j = this.__length >>> 0; i < j; i++) {
       if (callback.call) callback.call(this, this[i], i, false);
       else this._callback(callback, this[i], i, false);
     }
@@ -262,7 +266,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
     var map = [];
     this.watch(function(value, index, state, old) {
       if (state) {
-        for (var i = sorted.length; i > 0; i--)
+        for (var i = sorted.__length || sorted.length; i > 0; i--)
           if (callback(sorted[i - 1], value) < 0) break;
         if (old == null) {
           sorted.splice(i, 0, value);
@@ -304,7 +308,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
       if (callback.block) callback.block.update(callback.watcher.result === 0);
       return callback.watcher.result === 0;
     });
-    return this.length === 0 || callback.watcher.result === 0;
+    return this.__length === 0 || callback.watcher.result === 0;
   },
   
   some: function(callback) {
@@ -342,7 +346,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   },
   
   toObject: function(normalize, serializer) {
-    for (var result = [], i = 0; i < this.length; i++) {
+    for (var result = [], i = 0; i < this.__length; i++) {
       var value = this[i];
       if (value != null) value = LSD.toObject(this[i], normalize, serializer);
       if ((!normalize || typeof value != 'undefined') && (typeof value._length == 'undefined' || value._length > 0))
@@ -374,8 +378,8 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   },
   
   clone: function() {
-    var clone = new this._constructor;
-    for (var i = 0; i < this.length; i++) clone.push(this[i]);
+    var clone = new this.constructor;
+    for (var i = 0; i < this.__length; i++) clone.push(this[i]);
     return clone;
   }
 });
@@ -409,52 +413,4 @@ Object.each(Array.prototype, function(fn, method) {
 
 LSD.Struct.Array = function(properties) {
   return LSD.Struct(properties, LSD.Array);
-};
-
-/*
-  LSD.Collection is a variation of LSD.Array that keeps its elements
-  sorted by source index.
-*/
-
-LSD.Collection = function() {
-  if (this === LSD) {
-    var collection = new LSD.Collection;
-    collection.push.apply(collection, arguments);
-    return collection;
-  } else {
-    if (this._sortBy) this.watch(this._observeIndex);
-    return LSD.Array.apply(this, arguments);
-  }
-}
-LSD.Collection.prototype = new LSD.Array;
-LSD.Collection.prototype.push = function() {
-  for (var i = 0, j = arguments.length, l = this.length; i < j; i++) {
-    var k = this.indexFor(arguments[i]);
-    if (k == l) this.set(l, arguments[i])
-    else this.splice(k, 0, arguments[i]);
-  }
-  return this.length;
-};
-LSD.Collection.prototype.indexFor = function(value, criteria) {
-  if (!value) return this.length;
-  for (var i = 0, j = this.length, k = value[this._sortBy]; i < j; i++)
-    if (!this[i] || this[i][this._sortBy] > k) break;
-  return i;
-};
-LSD.Collection.prototype._sortBy = 'sourceIndex';
-LSD.Collection.prototype._observeIndex = function(value, index, state, old) {
-  if (old == null) value[state ? 'watch' : 'unwatch'](this._sortBy, this)
-  return value;
-};
-LSD.Collection.prototype.fn = function(collection, value, old) {
-  collection.move(collection.indexOf(this), collection.indexFor(this));
-};
-
-/*
-  A special kind of object that is based on LSD.Collection but also 
-  has its own properties.
-*/
-
-LSD.Struct.Collection = function(properties) {
-  return LSD.Struct(properties, LSD.Collection);
 };

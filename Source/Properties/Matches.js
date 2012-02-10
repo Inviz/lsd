@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Type
+  - LSD.Properties
   - LSD.Struct.Group
 
 provides: 
@@ -55,7 +55,7 @@ provides:
 
 */
   
-LSD.Type.Matches = LSD.Struct.Group();  
+LSD.Properties.Matches = LSD.Struct.Group();  
 /*
   Expectation observes single selector expression. 
   
@@ -76,7 +76,7 @@ LSD.Type.Matches = LSD.Struct.Group();
   the state and fires callbacks when classes, pseudo 
   classes or attributes are changed.
 */
-LSD.Type.Matches.prototype.onChange = function(selector, callback, state, old, memo, hash) {
+LSD.Properties.Matches.prototype.onChange = function(selector, callback, state, old, memo, hash) {
   /*
     Expression may be a string selector, so it gets parsed with Slick
   */
@@ -191,13 +191,13 @@ LSD.Type.Matches.prototype.onChange = function(selector, callback, state, old, m
     }
   }
 };
-LSD.Type.Matches.prototype.__watcher = function(call, widget, state) {
+LSD.Properties.Matches.prototype.__watcher = function(call, widget, state) {
   if (call.expressions[call.index] == null) {
     if (typeof call.callback == 'function') call.callback(widget, state);
     else this._callback(call.callback, widget, state)
   } else widget.matches[state ? 'set' : 'unset'](call.expressions, call.callback, call.index)
 };
-LSD.Type.Matches.prototype._hash = function(expression, value, storage) {
+LSD.Properties.Matches.prototype._hash = function(expression, value, storage) {
   if (typeof expression == 'string') expression = Slick.parse(expression).expressions[0][0];
   var tag = expression.tag;
   if (!tag) return false;
@@ -211,4 +211,4 @@ LSD.Type.Matches.prototype._hash = function(expression, value, storage) {
   if (array == null) array = group[tag] = [];
   return array;
 };
-LSD.Type.Matches.prototype._types = ['pseudos', 'classes', 'attributes'];
+LSD.Properties.Matches.prototype._types = ['pseudos', 'classes', 'attributes'];

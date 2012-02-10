@@ -38,7 +38,7 @@ LSD.Object.Stack = function(object) {
 };
 
 LSD.Object.Stack.prototype = {
-  _constructor: LSD.Object.Stack,
+  constructor: LSD.Object.Stack,
   
   set: function(key, value, memo, prepend, hash) {
     if (typeof key != 'string') {

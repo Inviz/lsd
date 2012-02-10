@@ -38,7 +38,7 @@ provides:
 */
 
 LSD.Document = LSD.Struct.Stack({
-  childNodes: 'Children',
+  childNodes: 'childNodes',
   title: 'origin.title',
   origin: function(document, old) {
     if (!this.onDomReady) this.onDomReady = this.onReady.bind(this);
@@ -71,12 +71,55 @@ LSD.Document.prototype.createNode = function(type, element, options) {
 LSD.Document.prototype.mix({
   roles:       {},
   layers:      {},
-  states:      {},
+  states:      {
+    built:     ['build',      'destroy'],
+    hidden:    ['hide',       'show'],
+    disabled:  ['disable',    'enable'],
+    active:    ['activate',   'deactivate'],
+    focused:   ['focus',      'blur'],     
+    selected:  ['select',     'unselect'], 
+    chosen:    ['choose',     'forget'],
+    checked:   ['check',      'uncheck'],
+    open:      ['collapse',   'expand'],
+    started:   ['start',      'finish'],
+    empty:     ['unfill',     'fill'],
+    invalid:   ['invalidate', 'validate'],
+    editing:   ['edit',       'save'],
+    placeheld: ['placehold',  'unplacehold'],
+    invoked:   ['invoke',     'revoke']
+  },
   styles:      {},
   relations:   {},
-  attributes:  {},
   properties:  {},
-  allocations: {}
+  attributes:  {
+    tabindex:  Number,
+    width:     Number,
+    height:    Number,
+    readonly:  Boolean,
+    disabled:  Boolean,
+    hidden:    Boolean,
+    open:      Boolean,
+    checked:   Boolean,
+    multiple:  Boolean,
+    id:        '.id',
+    name:      '.name',
+    title:     '.title',
+    accesskey: '.accesskey',
+    action:    '.action',
+    href:      '.href',
+    itemtype:  '.itemtype',
+    radiogroup:'.radiogroup'
+  },
+  allocations: {
+    lightbox:     'body[type=dialog]',
+    dialog:       'body[type=dialog]',
+    contextmenu:  'menu[type=context]',
+    toolbar:      'menu[type=toolbar]',
+    scrollbar:    'input[type=range][kind=scrollbar]',
+    message:      'p.message',
+    container:    '.container << :inline',
+    submit:       'input[type=submit]'
+  }
 });
 LSD.NodeTypes = {
   1:  'element',

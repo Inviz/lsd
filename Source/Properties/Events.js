@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Type
+  - LSD.Properties
   - Core/Events
   - Core/Element.Event
   - Core/Element.Delegation
@@ -18,12 +18,12 @@ requires:
   - LSD.Struct.Group
 
 provides:
-  - LSD.Type.Events
+  - LSD.Properties.Events
 
 ...
 */
   
-LSD.Type.Events = LSD.Struct.Group({
+LSD.Properties.Events = LSD.Struct.Group({
   'self':         '.',
   'element':      '.element',
   'document':     '.document',
@@ -34,7 +34,7 @@ LSD.Type.Events = LSD.Struct.Group({
   'expectations': '.expectations'
 });
 
-LSD.Type.Events.prototype.fire = function(key, a, b, c, d, e) {
+LSD.Properties.Events.prototype.fire = function(key, a, b, c, d, e) {
   var collection = this[key];
   if (collection) for (var i = 0, j = collection.length, fn; i < j; i++) {
     var fn = collection[i];
@@ -50,7 +50,7 @@ LSD.Type.Events.prototype.fire = function(key, a, b, c, d, e) {
   when a data flows through one of the sibling modules
 */
 
-LSD.Type.Events.prototype._delegate = function(object, key, value, state, old, memo) {
+LSD.Properties.Events.prototype._delegate = function(object, key, value, state, old, memo) {
   switch (object.nodeType) {
     case 1:
       if (object.lsd) {
@@ -64,8 +64,8 @@ LSD.Type.Events.prototype._delegate = function(object, key, value, state, old, m
   }
 };
 
-LSD.Type.Bound = LSD.Struct();
-LSD.Type.Bound.prototype.get = function(name) {
+LSD.Properties.Bound = LSD.Struct();
+LSD.Properties.Bound.prototype.get = function(name) {
   if (this[name]) return this[name];
   var that = this;
   return (this[name] = function() {

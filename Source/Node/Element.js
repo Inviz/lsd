@@ -11,14 +11,40 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Struct.Stack
-
+  
 provides: 
   - LSD.Element
- 
 ...
 */
-LSD.Element = LSD.Struct.Stack(LSD.Type);
-LSD.Element.Properties = {
+
+LSD.Element = new LSD.Struct.Stack(LSD.Properties);
+LSD.Element.prototype.onChange = function(key, value, state, old, memo) {
+  var ns         = this.document || LSD.Document.prototype,
+      states     = ns.states,
+      definition = states[key];
+  if (!definition) return value;
+  if (state && this._stack[key].length === 1 && typeof this[definition[0]] != 'function') {    
+    var compiled = states._compiled || (states._compiled = {});
+    var methods = compiled[key] || (compiled[key] = LSD.Element.compileState(key, definition, ns));
+    for (var method in methods) this.set(method, methods[method]);
+  }
+  if (value || old) {
+    if ((ns.attributes[key]) !== Boolean) {
+      if (memo !== 'classes')
+        this.classList[value && state ? 'set' : 'unset'](key, true, 'states');
+    } else {
+      if (memo !== 'attributes') 
+        if (value && state) this.attributes.set(key, true, 'states')
+        else this.attributes.unset(key, undefined, 'states')
+    }
+  }
+  if (this._stack[key].length === 0) {
+    var methods = states._compiled[key];
+    for (var method in methods) this.unset(method, methods[method]);
+  }
+  return value;
+};
+LSD.Element.prototype.__properties = {
   context: function(value, old) {
     
   },
@@ -294,39 +320,45 @@ LSD.Element.Properties = {
     }
     if (value) {
       var element = document.createElement(this.localName);
-      var attributes = this.attributes, classes = this.classes;
+      var attributes = this.attributes, classes = this.classList;
       var skip = attributes._skip; 
       for (var name in attributes) {
         if (this.attributes.hasOwnProperty(name) && (skip == null || !skip[name])) {
-          var value = attributes[name];
-          element.setAttribute(name, value);
-          if (value === true) element[name] = true;
+          var val = attributes[name];
+          element.setAttribute(name, val);
+          if (val === true) element[name] = true;
         }
       }
       if (classes && classes.className != element.className) 
         element.className = classes.className;
       this.set('element', element)
     }
+    return typeof value == 'undefined' ? old : value;
   },
   focused: function(value, old) {
     if (value) this.mix('parentNode.focused', value);
     if (old) this.mix('parentNode.focused', old, null, false);
+    return value;
   },
   rendered: function(value, old) {
     if (value) this.mix('childNodes.rendered', value);
     if (old) this.mix('childNodes.rendered', old, null, false);
+    return value;
   },
   disabled: function(value, old) {
     if (value) this.mix('childNodes.disabled', value);
     if (old) this.mix('childNodes.disabled', old, null, false);
+    return value;
   },
   document: function(value, old) {
     if (value) this.mix('childNodes.document', value);
     if (old) this.mix('childNodes.document', old, null, false);
+    return value;
   },
   root: function(value, old) {
     if (value) this.mix('childNodes.root', value);
     if (old) this.mix('childNodes.root', old, null, false);
+    return value;
   },
   multiple: function(value, old) {
     if (value) {
@@ -337,6 +369,13 @@ LSD.Element.Properties = {
     }
   },
   date: Date,
+  value: function(value, old, memo) {
+    if (this.checked === true || typeof this.checked == 'undefined')
+      this.reset('nodeValue', value);
+  },
+  name: function(value, old) {
+    
+  },
   type: function(value, old) {
 
   },
@@ -348,15 +387,13 @@ LSD.Element.prototype.localName = 'div';
 LSD.Element.prototype.tagName = null;
 LSD.Element.prototype.nodeType = 1;
 LSD.Element.prototype._parent = false;
-LSD.Element.prototype._preconstruct = ['allocations', 'childNodes', 'variables', 'attributes', 'classes', 'events', 'matches', 'proxies', 'pseudos', 'relations', 'states'];
+LSD.Element.prototype._preconstruct = ['allocations', 'childNodes', 'variables', 'attributes', 'classList', 'events', 'matches', 'proxies', 'relations'];
 LSD.Element.prototype.__initialize = function(options, element) {
   this.lsd = ++LSD.UID;
-  if (!LSD.Element.prototype.states) LSD.Element.prototype.mix({
-    states: {
-      built: false,
-      hidden: false,
-      disabled: false
-    }
+  if (this.built == null) LSD.Element.prototype.mix({
+    built: false,
+    hidden: false,
+    disabled: false
   });
   if (options != null && typeof options.nodeType == 'number') {
     var memo = element;
@@ -367,7 +404,6 @@ LSD.Element.prototype.__initialize = function(options, element) {
     this.set('origin', element);
   return options;
 };
-LSD.Element.prototype.__properties = LSD.Element.Properties;
 LSD.Element.prototype.appendChild = function(child) {
   this.childNodes.push(child)
   return this;
@@ -392,7 +428,6 @@ LSD.Element.prototype.cloneNode = function(children, options) {
   var clone = this.factory.create(this.element, Object.merge({
     source: this.source,
     tag: this.tagName,
-    pseudos: this.pseudos.toObject(),
     attributes: this.attributes.toObject(),
     traverse: !!children,
     clone: true
@@ -431,7 +466,7 @@ LSD.Element.prototype.click = function() {
 };
 LSD.Element.prototype.getAttribute = function(name) {
   switch (name) {
-    case "class":           return this.classes.join(' ');
+    case "class":           return this.className;
     case "slick-uniqueid":  return this.lsd;
     default:                return this.attributes[name];
   }
@@ -451,24 +486,16 @@ LSD.Element.prototype.removeAttribute = function(name) {
   this.attributes.unset(name);
   return this;
 };
-LSD.Element.prototype.addPseudo = function(name) {
-  this.pseudos.set(name, true);
-  return this;
-};
-LSD.Element.prototype.removePseudo = function(name) {
-  this.pseudos.unset(name, true);
-  return this;
-};
 LSD.Element.prototype.addClass = function(name) {
-  this.classes.set(name, true);
+  this.classList.set(name, true);
   return this;
 };
 LSD.Element.prototype.removeClass = function(name) {
-  this.classes.unset(name, true);
+  this.classList.unset(name, true);
   return this;
 };
 LSD.Element.prototype.hasClass = function(name) {
-  return this.classes[name]
+  return this.classList[name]
 };
 LSD.Element.prototype.fireEvent = function() {
   return this.events.fire.apply(this.events, arguments);
@@ -506,8 +533,7 @@ LSD.Element.prototype.getSelector = function() {
   var selector = (parent && parent.getSelector) ? parent.getSelector() + ' ' : '';
   selector += this.tagName;
   if (this.attributes.id) selector += '#' + this.attributes.id;
-  for (var klass in this.classes) if (this.classes.has(klass))  selector += '.' + klass;
-  for (var pseudo in this.pseudos) if (this.pseudos.has(pseudo)) selector += ':' + pseudo;
+  for (var klass in this.classList) if (this.classList.has(klass))  selector += '.' + klass;
   for (var name in this.attributes) if (this.attributes.has(name))
     if (name != 'id') {
       selector += '[' + name;
@@ -519,19 +545,15 @@ LSD.Element.prototype.getSelector = function() {
 LSD.Element.prototype.setSelector = function(selector, state) {
   if (typeof selector == 'string') selector = Slick.parse(selector).expressions[0][0];
   var method     = state !== false ? 'set' : 'unset',
-      attributes = selector.attributes, 
-      pseudos    = selector.pseudos, 
+      attributes = selector.attributes,
       classes    = selector.classes,
       id         = selector.id;
   if (attributes)
     for (var i = 0, attribute; attribute = attributes[i++];)
       element.attributes[method](attribute.key, attribute.value);
-  if (pseudos)
-    for (var i = 0, pseudo; pseudo = pseudos[i++];)
-      element.pseudos[method](pseudo.key, pseudo.value);
   if (classes)
     for (var i = 0, klass; klass = classes[i++];)
-      element.classes[method](klass.value, true);
+      element.classList[method](klass.value, true);
   if (id) element.attributes[method]('id', id);
 };
 LSD.Element.prototype.test = function(selector) {
@@ -551,11 +573,11 @@ LSD.Element.prototype.test = function(selector) {
       return false;
   if (selector.classes) 
     for (var i = 0, j; j = selector.classes[i]; i++) 
-      if (!this.classes || !this.classes[j.value]) return false;
+      if (!this.classList || !this.classList[j.value]) return false;
   if (selector.pseudos) {
     for (var i = 0, j; j = selector.pseudos[i]; i++) {
       var name = j.key;
-      if (!this.pseudos || this.pseudos[name]) continue;
+      if (this[name]) continue;
       var pseudo = pseudos[name];
       if (pseudo == null) pseudos[name] = pseudo = Slick.lookupPseudo(name) || false;
       if (pseudo === false || (pseudo && !pseudo.call(this, this, j.value))) return false;
@@ -578,23 +600,28 @@ LSD.Element.prototype.$family = function() {
   return 'widget';
 };
 LSD.Element.prototype.inserters = {
-
-	before: function(context, element){
-		var parent = element.parentNode;
-		if (parent) parent.insertBefore(context, element);
-	},
-
-	after: function(context, element){
-		var parent = element.parentNode;
-		if (parent) parent.insertBefore(context, element.nextSibling);
-	},
-
-	bottom: function(context, element){
-		element.appendChild(context);
-	},
-
-	top: function(context, element){
-		element.insertBefore(context, element.firstChild);
-	}
-
+  before: function(context, element){
+    var parent = element.parentNode;
+    if (parent) parent.insertBefore(context, element);
+  },
+  after: function(context, element){
+    var parent = element.parentNode;
+    if (parent) parent.insertBefore(context, element.nextSibling);
+  },
+  bottom: function(context, element){
+    element.appendChild(context);
+  },
+  top: function(context, element){
+    element.insertBefore(context, element.firstChild);
+  }
+};
+LSD.Element.compileState = function(key, definition) {
+  var obj = {};
+  obj[definition[0]] = function() {
+    return this.reset(key, true);
+  };
+  obj[definition[1]] = function() {
+    return this.reset(key, false);
+  };
+  return obj;
 };

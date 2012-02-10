@@ -35,7 +35,7 @@ LSD.Struct = function(properties, Base) {
       }
     var preconstruct = this._preconstruct;
     if (preconstruct) for (var i = 0, type, constructors = this._constructors; type = preconstruct[i++];) {
-      var constructor = (constructors || (constructors = this._constructors = {}))[type] || this._getConstructor(type);
+      var constructor = constructors[type] || this._getConstructor(type);
       this[type] = new constructor;
       this[type].set('_parent', this);
     }
@@ -43,12 +43,13 @@ LSD.Struct = function(properties, Base) {
     if (object != null) this.mix(object)
     if (this._imports) this._link(this._imports, true);
     if (this._exports) this._link(this._exports, true, true);
-    if (this._initialize) this._initialize.apply(this, arguments);
+    if (this._initialize) return this._initialize.apply(this, arguments);
   }
   var constructor = Base || LSD.Object;
   Struct.prototype = new constructor;
-  Struct.prototype._constructor = constructor;
+  Struct.prototype.constructor = constructor;
   Struct.prototype.__constructor = Struct;
+  Struct.prototype._constructors = {};
   for (var property in LSD.Struct.prototype) 
     Struct.prototype[property] = LSD.Struct.prototype[property];
   if (properties) {
@@ -104,7 +105,7 @@ LSD.Struct.prototype = {
             }
             switch (typeof prop) {
               case 'function':
-                var constructor = prop.prototype && prop.prototype._constructor;
+                var constructor = prop.prototype && prop.prototype._set && prop.prototype.constructor;
                 if (constructor) {
                   if (state && typeof this[key] == 'undefined') this._construct(key, prop, memo)
                 } else {
@@ -113,6 +114,10 @@ LSD.Struct.prototype = {
                 }
                 break;
               case 'string':
+                if (typeof value != 'object') {
+                  if (state) this.set(prop, value, memo);
+                  else this.unset(prop, value, memo);
+                }
             };
           }
       }
@@ -145,9 +150,9 @@ LSD.Struct.prototype = {
     if (prop == null && this.__properties) prop = this.__properties[key];
     if (prop) {
       var proto = prop.prototype;
-      if (proto && proto._constructor) var constructor = prop;
+      if (proto && proto.constructor) var constructor = prop;
     }
-    return (this._constructors[key] = (constructor || this._constructor));
+    return (this._constructors[key] = (constructor || this._constructor || this.constructor));
   },
   _link: function(properties, state, external) {
     for (var name in properties) {
@@ -189,6 +194,7 @@ LSD.Struct.prototype = {
     _linker: true,
     _exports: true,
     _imports: true,
+    _constructors: true,
     __initialize: true,
     __constructor: true
   }, LSD.Object.prototype._skip),

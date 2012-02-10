@@ -19,7 +19,7 @@ provides:
 ...
 */
 
-LSD.Type.Slider = new LSD.Class({
+LSD.Properties.Slider = new LSD.Class({
   Extends: Slider,
   
   imports: {

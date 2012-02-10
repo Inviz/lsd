@@ -23,7 +23,7 @@ LSD.Object = function(object) {
 };
 
 LSD.Object.prototype = {
-  _constructor: LSD.Object,
+  constructor: LSD.Object,
   
   _length: 0,
   
@@ -69,7 +69,7 @@ LSD.Object.prototype = {
         if (hash == null) this[key] = old;
         return;
       }
-      if (value != null && value._constructor && this._children !== false && value._parent == null)
+      if (value != null && value._set && this._children !== false && value._parent == null)
         value._set('_parent', this);
     }
     var watchers = this._watchers;
@@ -116,7 +116,7 @@ LSD.Object.prototype = {
         return false;
       if (this.onChange && (value = this.onChange(key, old, false, undefined, memo, hash)) == null && old != null)
         return false;
-      if (value != null && this._children !== false && value._constructor && value._parent === this) 
+      if (value != null && this._children !== false && value._unset && value._parent === this) 
         value._unset('_parent', this);
       this._length--;
     }
@@ -231,7 +231,7 @@ LSD.Object.prototype = {
             obj.mix(subkey, value, memo, state, merge, prepend);
         }
       } else if (value != null && (typeof value == 'object' && !value.exec && !value.push && !value.nodeType && value.script !== true)
-                               && (!value._constructor || merge)) {
+                               && (!value.mix || merge)) {
         if (this.onStore && typeof this.onStore(key, value, memo, state, prepend) == 'undefined') return;
         var storage = (this._stored || (this._stored = {}));
         var group = storage[key];
@@ -368,7 +368,7 @@ LSD.Object.prototype = {
     if (!constructor) {
       var constructors = this._constructors || (this._constructors = {});
       constructor = (constructors && constructors[name])
-                || (this._getConstructor ? this._getConstructor(name) : value && value.__constructor || this._constructor);
+                || (this._getConstructor ? this._getConstructor(name) : value && value.__constructor || this.constructor);
     }
     var instance = new constructor;
     if (this._delegate && !memo) memo = this;
@@ -506,7 +506,6 @@ LSD.Object.prototype = {
   
   _skip: {
     _skip: true,
-    _constructor: true,
     _constructors: true,
     _watchers: true,
     _children: true,

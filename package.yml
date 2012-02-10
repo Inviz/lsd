@@ -22,11 +22,20 @@ sources:
   - Source/Object/Object.Group.js
   - Source/Object/Struct.js
   - Source/Object/Array.js
-  - Source/Tools/Logger.js
-  - Source/Type/Children.js
-  - Source/Type/States.js
-  - Source/Type/Matches.js
-  - Source/Type/Relations.js
-  - Source/Type/Attributes.js
-  - Source/Type/Events.js
-  - Source/Type/Allocations.js
+  - Source/Object/NodeList.js
+  - Source/Properties/ChildNodes.js
+  - Source/Properties/ClassList.js
+  - Source/Properties/Matches.js
+  - Source/Properties/Elements.js
+  - Source/Properties/Relations.js
+  - Source/Properties/Attributes.js
+  - Source/Properties/Events.js
+  - Source/Properties/Allocations.js
+  - Source/Properties/Resource.js
+  - Source/Script.js
+  - Source/Script/Variable.js
+  - Source/Script/Function.js
+  - Source/Script/Parser.js
+  - Source/Script/Helpers.js
+  - Source/Script/Block.js
+  - Source/Script/Selector.js

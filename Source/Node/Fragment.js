@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Struct.Stack
+  - LSD.Properties.ChildNodes
 
 provides: 
   - LSD.Fragment
@@ -20,7 +21,7 @@ provides:
 
 LSD.Fragment = LSD.Struct({
   initialize: function() {
-    this.childNodes = new LSD.Type.Children.Virtual
+    this.childNodes = new LSD.Properties.ChildNodes.Virtual
   }
 });
 

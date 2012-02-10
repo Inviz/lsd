@@ -1,7 +1,7 @@
 /*
 ---
  
-script: Children.js
+script: ChildNodes.js
  
 description: Makes a DOM tree like structure out of any objects
  
@@ -10,9 +10,8 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Type
+  - LSD.Properties
   - LSD.Array
-  - LSD.Script/*
   - Core/Element
 
 provides: 
@@ -21,13 +20,13 @@ provides:
 ...
 */
 
-LSD.Type.ChildNodes = LSD.Type.Children = LSD.Struct.Array({
+LSD.Properties.ChildNodes = LSD.Struct.Array({
   exports: {
     firstChild: 'first',
     lastChild: 'last'
   }
 });
-LSD.Type.Children.prototype.onSet = function(value, index, state, old) {
+LSD.Properties.ChildNodes.prototype.onSet = function(value, index, state, old) {
   if (!state || this._parent != value.parentNode)
     value[state ? 'set' : 'unset']('parentNode', this._parent || null);
   var previous = this[index - 1] || null;
@@ -45,21 +44,20 @@ LSD.Type.Children.prototype.onSet = function(value, index, state, old) {
   if (index === 0) this.reset('first', state ? value : null);
   if (index === this.length - +state) this.reset('last', this[this.length - 1] || null);
 };
-LSD.Type.Children.prototype.first = null;
-LSD.Type.Children.prototype.last = null;
-LSD.Type.Children.prototype._skip = Object.append({
+LSD.Properties.ChildNodes.prototype.first = null;
+LSD.Properties.ChildNodes.prototype.last = null;
+LSD.Properties.ChildNodes.prototype._skip = Object.append({
   _onShift: true, 
   _prefilter: true
 }, LSD.Object.prototype._skip);
-LSD.Type.Children.prototype._onShift = function(index, offset, args, shift) {
+LSD.Properties.ChildNodes.prototype._onShift = function(index, offset, args, shift) {
   if (shift === -1 || shift === 1) {
     var arg = shift === 1 ? args[0] : this[index], children = arg.childNodes;
     if (children && children.virtual) offset += children.length;
   }
   return offset;
 }
-
-LSD.Type.Children.Virtual = LSD.Struct.Array({
+LSD.Properties.ChildNodes.Virtual = LSD.Struct.Array({
   imports: {
     parentNode: '.parentNode'
   },
@@ -73,8 +71,8 @@ LSD.Type.Children.Virtual = LSD.Struct.Array({
     }
   }
 });
-LSD.Type.Children.Virtual.prototype._onShift = LSD.Type.Children.prototype._onShift;
-LSD.Type.Children.Virtual.prototype.onSet = function(value, index, state, old) {
+LSD.Properties.ChildNodes.Virtual.prototype._onShift = LSD.Properties.ChildNodes.prototype._onShift;
+LSD.Properties.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old) {
   if (old != null) return;
   var parent = this._parent.parentNode;
   if (!parent) return;
@@ -89,4 +87,4 @@ LSD.Type.Children.Virtual.prototype.onSet = function(value, index, state, old) {
     else children.splice(children.indexOf((this[index - 1] || this._parent).nextSibling), 0, value);
   }
 };
-LSD.Type.Children.Virtual.prototype.virtual = true;
+LSD.Properties.ChildNodes.Virtual.prototype.virtual = true;
