@@ -20,29 +20,19 @@ provides:
 */
 
 LSD.Properties.ClassList = LSD.Struct.Stack({
-  skip: {
-    '_name': true
-  },
-  exports: {
-    className: '_name'
-  }
+  _name: '.className'
 });
 LSD.Properties.ClassList.prototype.onChange = function(name, value, state, old, memo) {
+  if (name == '_name') return value || old;
   var ns = this._parent.document || LSD.Document.prototype;
   if ((!memo || memo !== 'states') && ns.states[name]) 
     this._parent[state ? 'set' : 'unset'](name, true, 'classes');
+  var index = (' ' + this._name + ' ').indexOf(' ' + name + ' ');
+  if (state && value && index == -1) this.set('_name', this._name.length ? this._name + ' ' + name : name);
+  if (!state && index > -1) this.set('_name', this._name.substring(0, index - 1) + this._name.substring(name.length));
   var element = this._parent.element;
-  if (element) {
-    if (typeof element.classList == 'undefined') {
-      if (state && value) element.classList.add(value);
-      if (!state || old) element.classList.remove(state ? value : old);
-    } else {
-      var index = (' ' + this._name + ' ').indexOf(' ' + name + ' ');
-      if (state && value && index == -1) this.set('_name', this._name + ' ' + name);
-      if (!state && index > -1) this.set('_name', this._name.substring(0, index - 1) + this._name.substring(name.length));
-    }
-  }  
-  return value;
+  if (element) element.className = this._name
+  return value || old;
 };
 LSD.Properties.ClassList.prototype._name = '';
 LSD.Properties.ClassList.prototype.contains =function(name) {

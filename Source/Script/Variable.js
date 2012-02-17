@@ -50,6 +50,7 @@ provides:
 */
 
 LSD.Script.Variable = function(input, source, output) {
+  LSD.UIDs[this.lsd = ++LSD.UID] = this;
   this.input = input;
   this.output = output;
   this.source = source;
@@ -60,20 +61,20 @@ LSD.Script.Variable.prototype = {
   
   script: true,
   
-  set: function(value, reset) {
+  setValue: function(value, reset) {
     if (this.frozen) return;
     var old = this.value;
     this.value = this.process ? this.process(value) : value;
     if (reset || typeof this.value == 'function' || old !== this.value || (this.invalidator && (this.invalidator())))
-      this.onSet(this.value, null, old);
+      this.onValueSet(this.value, null, old);
   },
   
-  onSet: function(value, output, old) {
+  onValueSet: function(value, output, old) {
     if (value == null && this.placeholder) value = this.placeholder;
     if (this.output && output !== false) this.update(value, old);
     if (this.attached !== false && this.parents)
       for (var i = 0, parent; parent = this.parents[i++];) {
-        if (!parent.translating && parent.attached !== false) parent.set();
+        if (!parent.translating && parent.attached !== false) parent.setValue();
       }
     if (this.wrapper && this.wrapper.wrappee)
       this.wrapper.wrappee.onSuccess(value)
@@ -92,7 +93,7 @@ LSD.Script.Variable.prototype = {
   fetch: function(state, origin) {
     if (this.attached ^ state) {
       this.attached = state;
-      if (!this.setter) this.setter = this.set.bind(this);
+      if (!this.setter) this.setter = this.setValue.bind(this);
       if (this.source != null)
         this[this.source.call ? 'source' : 'request'](this.input, this.setter, this.source, state);
     }

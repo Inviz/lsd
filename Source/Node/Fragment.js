@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Struct.Stack
+  - LSD.Element
   - LSD.Properties.ChildNodes
 
 provides: 
@@ -19,61 +19,31 @@ provides:
 ...
 */
 
-LSD.Fragment = LSD.Struct({
-  initialize: function() {
-    this.childNodes = new LSD.Properties.ChildNodes.Virtual
-  }
-});
-
+LSD.Fragment = function() {
+  this.childNodes = this;
+  if (arguments.length > 0)
+    this.enumerable(arguments);
+};
+LSD.Fragment.prototype = new LSD.Properties.ChildNodes.Virtual;
 LSD.Fragment.prototype.nodeType = 11;
-LSD.Fragment.prototype.node = 
-LSD.Fragment.prototype.element =
-LSD.Fragment.prototype.fragment = 
-LSD.Fragment.prototype.instruction =
-LSD.Fragment.prototype.textnode = function(object, parent, memo) {
+LSD.Fragment.prototype.node = function(object, parent, memo, nodeType) {
   var uid      = object.lsd,
-      widget   = uid && LSD.widgets[uid],
-      nodeType = object.nodeType, 
-      children = nodeType == 1 && object.childNodes;
+      widget   = uid && LSD.UIDs[uid], 
+      children = object.childNodes;
+  if (!nodeType) nodeType = object.nodeType
+  if (!parent) parent = this;
   if (!widget) 
-    widget = parent.document.createNode(nodeType, object);
+    widget = (parent && parent.document || LSD.Document.prototype).createNode(nodeType, object);
   else if (memo && memo.clone) 
-    widget = widget.cloneNode()
+    widget = widget.cloneNode();
   if (widget.parentNode != parent) parent.appendChild(widget, memo);
   if (children)
     for (var i = 0, child, array = this.slice.call(children, 0); child = array[i]; i++)
-      this.node(child, parent, memo);
+      this.node(child, widget, memo);
   return widget;
 };
 LSD.Fragment.prototype.comment = function(object, parent, memo) {
-  this.instruction(object)
-};
-LSD.Fragment.prototype.enumerable = 
-LSD.Fragment.prototype.arguments =
-LSD.Fragment.prototype.collection = 
-LSD.Fragment.prototype.children =
-LSD.Fragment.prototype.array = function(object, parent, memo) {
-  for (var i = 0, length = object.length; i < length; i++)
-    this[this.typeOf(object[i])](object[i], parent, memo)
-};
-LSD.Fragment.prototype.object = function(object, parent, memo) {
-  var skip = object._skip, value, result;
-  for (var selector in object) {
-    if (!object.hasOwnProperty(selector) || (skip && skip[selector])) continue;
-    result = this.instruction(selector, parent, memo) || this.selector(selector, parent, memo);
-    if ((value = object[selector]))
-      this[this.typeOf(value)](value, result, memo);
-  }
-};
-LSD.Fragment.prototype.string = function(object, parent, memo) {
-  var node = parent.document.createTextNode(object);
-  parent.appendChild(node, memo);
-  return node;
-};
-LSD.Fragment.prototype.selector = function(object, parent, memo) {
-  var node = parent.document.createElement(object).setSelector(object);
-  parent.appendChild(node, memo);
-  return node;
+  return this.instruction(object, parent, memo) || this.node(object, parent, memo, 8);
 };
 LSD.Fragment.prototype.instruction = function(object, parent, memo) {
   if (typeof object.nodeType == 'number') {
@@ -86,22 +56,52 @@ LSD.Fragment.prototype.instruction = function(object, parent, memo) {
   }
   if (typeof object == 'string') {
     switch (object.charAt(0)) {
-      case '-': case '=':
-      
+      case '-': case '=': 
+        break;
+      case '!':
+        break;
       default:
         var word = object.match(this.R_WORD);
-        /*if (word || !parent.methods.lookup(word)) 
-          return */
+        //if (word || !parent.methods.lookup(word)) 
+        //  return
+        return false;
         
 
     }
-    var node = parent.document.createInstruction(object);
-    parent.appendChild(node);
-    return node;
+    return this.node(object, parent, memo, 5)
   }
 };
+LSD.Fragment.prototype.enumerable = function(object, parent, memo) {
+  for (var i = 0, length = object.length; i < length; i++)
+    this[this.typeOf(object[i])](object[i], parent, memo)
+};
+LSD.Fragment.prototype.element    = LSD.Fragment.prototype.fragment = 
+LSD.Fragment.prototype.textnode   = LSD.Fragment.prototype.node;
+LSD.Fragment.prototype.arguments  = LSD.Fragment.prototype.collection = 
+LSD.Fragment.prototype.children   = LSD.Fragment.prototype.array 
+                                  = LSD.Fragment.prototype.enumerable;
+LSD.Fragment.prototype.object = function(object, parent, memo) {
+  var skip = object._skip, value, result;
+  for (var selector in object) {
+    if (!object.hasOwnProperty(selector) || (skip && skip[selector])) continue;
+    result = this.instruction(selector, parent, memo) || this.node(selector, parent, memo, 1);
+    if ((value = object[selector])) {
+      var type = this.typeOf(value);
+      if (type === 'string') this.node(value, result, memo, 3);
+      else this[type](value, result, memo);
+    }
+  }
+};
+LSD.Fragment.prototype.string = function(object, parent, memo) {
+  return this.node(object, parent, memo, 3);
+};
+LSD.Fragment.prototype.selector = function(object, parent, memo) {
+  return this.node(object, parent, memo, 1);
+};
 LSD.Fragment.prototype.render = function(object, parent, memo) {
-  return this[this.typeOf(object)](object, parent, memo);
+  var type = this.typeOf(object);
+  if (type === 'string') this.node(object, parent, memo, 3)
+  else return this[type](object, parent, memo);
 };
 LSD.Fragment.prototype.typeOf = function(object, memo) {
   var type = typeof object;
@@ -111,5 +111,10 @@ LSD.Fragment.prototype.typeOf = function(object, memo) {
   }
   return type;
 };
-LSD.Fragment.prototype.slice = Array.prototype.slice;
-LSD.Fragment.prototype.R_WORD = /\w/; 
+LSD.Fragment.prototype.slice        = Array.prototype.slice;
+LSD.Fragment.prototype.appendChild  = LSD.Element.prototype.appendChild;
+LSD.Fragment.prototype.insertBefore = LSD.Element.prototype.insertBefore;
+LSD.Fragment.prototype.removeChild  = LSD.Element.prototype.removeChild;
+LSD.Fragment.prototype.inject       = LSD.Element.prototype.appendChild;
+LSD.Fragment.prototype.grab         = LSD.Element.prototype.grab;
+LSD.Fragment.prototype.R_WORD       = /\w/; 

@@ -28,6 +28,7 @@ LSD.Resource = new LSD.Struct.Array({
     'prefix': '.path',
     'domain': '.domain'
   },
+  urls: Object,
   name: '_name',
   _name: function(value, old) {
     this.reset('path', this.prefix ? value ? this.prefix + '/' + value : this.prefix : value || '');
@@ -44,13 +45,15 @@ LSD.Resource = new LSD.Struct.Array({
     return typeof value == 'undefined' ? old : value;
   },
   domain: function(value, old) {
-    this.reset('url', value + '/' + (this.path || ''))
+    this.reset('url', value + (this.path ? '/' + this.path : ''))
     return typeof value == 'undefined' ? old : value;
   }
 });
 LSD.Properties.Resource = LSD.Resource;
 LSD.Resource.prototype.prefix = '';
 LSD.Resource.prototype.path = '';
+LSD.Resource.prototype.url = '';
+LSD.Resource.prototype.domain = null;
 LSD.Resource.prototype.onChange = function(key, value, state, old, memo) {
   if (value._constructor === LSD.Resource) {
     value[state ? 'set' : 'unset']('name', key);
@@ -75,6 +78,7 @@ LSD.Resource.prototype._initialize = function() {
   this.attributes = Object.append({}, this.attributes);
   var Struct = new LSD.Model(this.attributes);
   Struct.prototype.constructor = Struct;
+  Struct.constructor = LSD.Resource;
   for (var property in this) 
     if (!Struct[property]) 
       Struct[property] = this[property];
@@ -89,7 +93,7 @@ LSD.Resource.prototype.all = function(params) {
   
 };
 LSD.Resource.prototype.where = function(params) {
-  switch (this.implementation.where) {
+  switch (this.implementation && this.implementation.where) {
     
   }
   //if (this.indexOf())
@@ -97,31 +101,56 @@ LSD.Resource.prototype.where = function(params) {
 LSD.Resource.prototype.find = function() {
 
 };
+LSD.Resource.prototype._dictionary = {
+  limit: {per_page: 1, count: 1, limit: 1, number: 1, n : 1},
+  offset: {max_id: 'id', offset: 1, skip: 1, after: 1},
+  page: {p: 1, page: 1},
+  sort: {sort_by: 1, sort_field: 1, sort: 1},
+  order: {order_by: 1, order_direction: 1, sort_direction: 1, order: 1},
+  methods: {post: 1, get: 1, put: 1, 'delete': 1, patch: 1, options: 1}
+}
+LSD.Resource.prototype._params = (function(params) {
+  var proto = LSD.Resource.prototype; 
+  for (var type in proto._dictionary)
+    for (var name in proto._dictionary[type])
+      params[name] = type;
+  return params;
+})({})
+
 LSD.Resource.prototype.limit = function(params) {
-  var limit = params.per_page || params.count || params.limit || params.number || params.n || this._per_page;
-  if (this.implementation.limit) {
-    
-    return this;
+  if (typeof params != 'object') var limit = parseInt(params) 
+  else for (var param in this._dictionary.limit) if (params[param]) {
+    var limit = params[param];
+    break;
   }
-  return limit;
+  if (this.source || (this.implementation && this.implementation.limit)) {
+    collection._set('_limit', number);
+  }
+  return LSD.Array.prototype.limit.call(this, limit || this._per_page, params)
 };
 LSD.Resource.prototype.offset = function(params) {
-  var offset = params.offset || params.skip || params.after;
-  if (this.implementation.offset) {
-    
-    return this;
+  if (typeof params != 'object') var offset = parseInt(params) 
+  else for (var param in this._dictionary.offset) if (params[param]) {
+    var offset = params[param];
+    break;
   }
-  return offset;
+  var collection = this.source || (this.implementation && this.implementation.offset) ? this : new this.constructor;
+  if (collection !== this) collection.origin = this;
+  collection._set('_offset', offset);
+  return collection;
 };
 LSD.Resource.prototype.paginate = function(params) {
   var page = this.page(params);
   if (page !== this) 
-    this.offset(this.limit(params) * page);
+    return this.offset(this.limit(params)._limit * page);
   return this;
 };
 LSD.Resource.prototype.page = function(params) {
-  var page = params.page || params.p || params.page_number || 1;
-  if (this.implementation.page) {
+  for (var param in this._dictionary.page) if (params[param]) {
+      var page = params[param];
+      break;
+    }
+  if (this.implementation && this.implementation.page) {
     return this;
   };
   return page;
@@ -137,7 +166,14 @@ LSD.Resource.prototype.search = function(params) {
 };
 LSD.Resource.prototype.form = function(params) {
   for (var name in this.attributes) {
-    
+    switch (this.attributes[name].type) {
+      case Boolean:
+        
+        break;
+      case String:
+      
+        break;
+    }
   }
 };
 LSD.Resource.prototype.build = function(params) {
@@ -187,34 +223,75 @@ LSD.Resource.prototype.match = function(url, params) {
         break;
       case 'put':
         action = 'update';
+        break;
       case 'patch':
         action = 'patch';
     }
+    
     params.action = action;
     params.resource = parent;
+    var url = parent.urls;
+    if (url && (url = url[action])) {
+      var index = url.indexOf(' ');
+      if (index > -1) {
+        params.method = url.substring(0, index).toLowerCase();
+        url = url.substring(index + 1);
+      }
+    }
+    if (url) {
+      var index = url.indexOf('?');
+      if (index > -1) {
+        var query = url.substring(index + 1);
+        for (var i = -1, j, k, bit, val; ;) {
+          if ((j = query.indexOf('&', i)) == -1) j = undefined;
+          bit = query.substring(i, j);
+          if ((k = bit.indexOf('=')) > -1) {
+            val = bit.substring(k + 1);
+            bit = bit.substring(0, k);
+          }
+          var section = this._params[bit];
+          if (section) {
+            var group = this._dictionary[section]
+            for (var param in group) {
+              if (params[param]) {
+                params[bit] = params[param];
+                break;
+              }
+            }
+          } else {
+            if (i == -1 && val == null) params[bit] = params.id;
+            else switch (val) {
+              case 'string': case 'number': case 'object':
+                if (typeof params.id == val)
+                  params[bit] = params.id
+                break;
+              default:
+                if (val == null) {
+                  console.error(bit)
+                } else params[bit] = val; 
+            }
+          }  
+          if (j == null) break;
+          else i = j + 1;
+        }
+        url = url.substring(0, index);
+      }
+      params.url = url;
+    }
   }
   return params;
 }
-LSD.Resource.prototype.dispatch = function(params) {
-  
-}
-
-/*
-LSD.Resource.Implementation = function() {
+LSD.Resource.prototype.dispatch = function(params, object) {
+  if (typeof params == 'string') params = this.match(params, object);
+  if (!params.resource) return false;
+  return params.url ? params : params.resource.execute(params.action, params);
 };
-LSD.Resource.Implementation.prototype = {
-  limit: false,
-  offset: false,
-  search: false,
-  validate: false,
-  sort: false,
-  update: false,
-  patch: false,
-  destroy: false,
-  show: false,
-  index: false
-}
-*/
+LSD.Resource.prototype.execute = function(name, params) {
+  var method = this._collection[name];
+  if (method.action) {
+    return method.action.call(this, params);
+  }
+};
 
 LSD.Resource.prototype._Properties = {
   urls: function() {
@@ -291,7 +368,7 @@ LSD.Resource.attributes = {
       if (this.validate(params) === false) return 'unprocessable_entity';
     }
   }
-})
+});
 Object.each((LSD.Resource.prototype._member = {
   show: {
     action: function(params) {
@@ -393,7 +470,7 @@ LSD.Resource.prototype._properties.attributes = new LSD.Struct({
 //     },
 //     statuses: {
 //       urls: {
-//         index: '/statuses/user_timeline?screen_name&user_id',
+//         index: '/statuses/user_timeline?screen_name=string&user_id=id',
 //       },
 //       favorite: {
 //         urls: {

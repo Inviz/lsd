@@ -19,17 +19,27 @@ provides:
 */
 
 LSD.Textnode = LSD.Struct({
-  initialize: function(string, options) {
-    
-  },
-  
-  parentNode: function() {
-    
-  },
-  
-  nodeValue: function() {
+  nodeValue: function(value) {
     
   }
 })
+LSD.Textnode.prototype.__initialize = function() {
+  for (var i = 0, args = arguments, j = args.length, arg, string; i < j; i++) {
+    switch (typeof (arg = args[i])) {
+      case "string": case "number":
+        if (string == null) string = arg.toString();
+        else string += arg;
+        break;
+      case "object":
+        if (arg != null) {
+          if (arg.nodeType === 3) string = string ? string + arg : arg
+        } else this.mix(arg);
+    }
+  }
+  if (string != null) this.set('nodeValue', string);
+}
 
 LSD.Textnode.prototype.nodeType = 3;
+LSD.Textnode.prototype.splitNode = function(i) {
+  
+}

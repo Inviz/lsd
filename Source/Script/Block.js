@@ -28,18 +28,20 @@ provides:
 */
 
 LSD.Script.Block = function(input, source, output, locals, origin) {
-  LSD.Script.Function.apply(this, arguments);
+  this._Variable(input, source, output)
+  this.args = Array.prototype.slice.call(input, 0);
   delete this.name;
   this.callback = this.yield.bind(this);
   this.callback.block = this;
   this.value = this.callback;
-  this.block = true;
-  this.locals = locals;
-  if (locals && !this.variables) {
-    this.variables = new LSD.Object.Stack;
-    if (this.source) this.variables.merge(this.source.variables || this.source);
-    this.parentScope = this.source;
-    this.source = this;
+  if (locals != null) {
+    this.locals = locals;
+    if (!this.variables) {
+      this.variables = new LSD.Object.Stack;
+      if (this.source) this.variables.merge(this.source.variables || this.source);
+      this.parentScope = this.source;
+      this.source = this;
+    }
   }
   this.origin = origin;
   
@@ -50,7 +52,7 @@ LSD.Script.Block = function(input, source, output, locals, origin) {
 LSD.Script.Block.prototype = {
   type: 'block',
   
-  yield: function(keyword, args, callback, index, old) {
+  yield: function(keyword, args, callback, index, old, limit) {
     if (args == null) args = [];
     switch (keyword) {
       case 'yield':
@@ -59,10 +61,12 @@ LSD.Script.Block.prototype = {
         if (old == null || old === false) {
           var block = this.yields[index];
         } else {
-          var block = this.yields[index] = this.yields[old];
-          this.values[old] = block.value;
-          delete block.value
-          delete this.yields[old];
+          var yielded = this.yields[old];
+          if (yielded) {
+            var block = this.yields[index] = this.yields[old];
+            this.values[old] = block.value;
+            delete this.yields[old];
+          }
         }
         if (!block) {
           for (var property in this.yields) {
@@ -71,18 +75,37 @@ LSD.Script.Block.prototype = {
             else yielded = null;
           }
         }
-        if (old != null) this.yields[index] = block;
-        if (!block) block = this.yields[index] = new LSD.Script.Block(this.input, this.source, null, this.locals, yielded);
+        if (block) {
+          if (old != null) this.yields[index] = block;
+        }// else if (!limit && this._limit && index <= this._last) return;
+        var oo = this.recycled && this.recycled.length
+        if (!block) block = this.yields[index] = this.recycled && this.recycled.pop() || new LSD.Script.Block(this.input, this.source, null, this.locals, yielded);
+        if (this.recycled && oo > this.recycled.length) console.error('REUSED BLOCK', oo, this.recycled.length, [block.lsd]);
         var invoked = block.invoked;
         block.yielded = true;
         block.yielder = callback;
+        if (limit) {
+          args = args.slice();
+          delete args[3];
+          this._limit = limit;
+        }
         block.invoke(args, true, !!invoked);
         if (invoked && block.locals)
           for (var local, i = 0; local = block.locals[i]; i++)
             block.variables.unset(local.name, invoked[i]);
         if (callback) callback.block = block;
+        //if (block.value && ( this._last < index)) this._last = index;
+        
+        
+        if (this._limit && !block.value) {
+          var recycled = this.recycled;
+          if (!recycled) recycled = this.recycled = [];
+          var i = recycled.indexOf(block);
+          if (i == -1) recycled.push(block);
+          delete this.yields[index];
+        }
         return block;
-      case 'unyield':    
+      case 'unyield':
         var block = this.yields && this.yields[index];
         if (callback) callback.call(this, block ? block.value : this.values ? this.values[index] : null, args[0], args[1], args[2], args[3]);
         if (block) {
@@ -93,6 +116,9 @@ LSD.Script.Block.prototype = {
           if (callback) {
             delete callback.block;
             delete callback.parent;
+          };
+          if (this._limit) {
+            (this.recycled || (this.recycled = [])).include(block);
           }
         }
         break;
@@ -114,10 +140,10 @@ LSD.Script.Block.prototype = {
   },
   
   detach: function(origin) {
-    delete this.value;
     if (this.invoked) {
       this.fetch(false, origin);
     } else {
+      delete this.value;
       if (this.yields)
         for (var property in this.yields) {
           var yield = this.yields[property];
@@ -155,13 +181,13 @@ LSD.Script.Block.prototype = {
     return this.yielded ? this.execute() : this.callback;
   },
   
-  onSet: function(value) {
+  onValueSet: function(value) {
     if (this.output) this.update(value);
     if (this.yielder && this.invoked && this.invoked !== true) {
       this.yielder(value, this.invoked[0], this.invoked[1], this.invoked[2], this.invoked[3]);
       delete this.invoked[3];
     }
-    return LSD.Script.Variable.prototype.onSet.call(this, value, false);
+    return LSD.Script.Variable.prototype.onValueSet.call(this, value, false);
   },
   
   update: function(value) {
@@ -169,14 +195,8 @@ LSD.Script.Block.prototype = {
       for (var i = 0, parent; parent = this.parents[i++];) {
         parent.value = value;
         if (!parent.translating) 
-          LSD.Script.Variable.prototype.onSet.call(parent, null, false);
+          LSD.Script.Variable.prototype.onValueSet.call(parent, null, false);
       }
-  },
-  
-  unuse: function(origin, arg) {
-    //var paths = [];
-    //if (!arg) arg = this;
-    //for (var i = 0, j = this.args.length; i < j;)
   }
 };
 

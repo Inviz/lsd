@@ -70,7 +70,7 @@ LSD.Script = function(input, source, output) {
 LSD.Script.prototype = {
   callback: function(object, value, old) {
     if (object.block) {
-      object.set(value);
+      object.setValue(value);
     } else if (object.call) {
       object(value);
     } else {

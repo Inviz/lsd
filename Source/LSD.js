@@ -24,5 +24,6 @@ var LSD = function() {
   
 };
 LSD.Properties = {};
+LSD.UIDs = {};
 LSD.Slick = this.Slick;
 LSD.UID = 0;

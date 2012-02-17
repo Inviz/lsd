@@ -38,7 +38,8 @@ provides:
 */
 
 LSD.Document = LSD.Struct.Stack({
-  childNodes: 'childNodes',
+  childNodes: LSD.Properties.Children,
+  events: LSD.Properties.Events,
   title: 'origin.title',
   origin: function(document, old) {
     if (!this.onDomReady) this.onDomReady = this.onReady.bind(this);
@@ -69,8 +70,6 @@ LSD.Document.prototype.createNode = function(type, element, options) {
   that can be further customized for each of the widgets.  
 */
 LSD.Document.prototype.mix({
-  roles:       {},
-  layers:      {},
   states:      {
     built:     ['build',      'destroy'],
     hidden:    ['hide',       'show'],
@@ -88,9 +87,6 @@ LSD.Document.prototype.mix({
     placeheld: ['placehold',  'unplacehold'],
     invoked:   ['invoke',     'revoke']
   },
-  styles:      {},
-  relations:   {},
-  properties:  {},
   attributes:  {
     tabindex:  Number,
     width:     Number,
@@ -111,7 +107,7 @@ LSD.Document.prototype.mix({
     radiogroup:'.radiogroup'
   },
   allocations: {
-    lightbox:     'body[type=dialog]',
+    lightbox:     'body[type=lightbox]',
     dialog:       'body[type=dialog]',
     contextmenu:  'menu[type=context]',
     toolbar:      'menu[type=toolbar]',
@@ -119,7 +115,20 @@ LSD.Document.prototype.mix({
     message:      'p.message',
     container:    '.container << :inline',
     submit:       'input[type=submit]'
-  }
+  },
+  layers:      {
+    shadow:     ['size', 'radius', 'shape',  'shadow'],
+    stroke:     [        'radius', 'stroke', 'shape',  'fill'],
+    background: ['size', 'radius', 'stroke', 'offset', 'shape',  'color'],
+    foreground: ['size', 'radius', 'stroke', 'offset', 'shape',  'color'],
+    reflection: ['size', 'radius', 'stroke', 'offset', 'shape',  'color'],
+    icon:       ['size', 'scale',  'color',  'stroke', 'offset', 'shape', 'position', 'shadow'],
+    glyph:      ['size', 'scale',  'color',  'stroke', 'offset', 'shape', 'position', 'shadow']
+  },
+  styles:      {},
+  relations:   {},
+  properties:  {},
+  roles:       {}
 });
 LSD.NodeTypes = {
   1:  'element',

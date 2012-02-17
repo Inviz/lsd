@@ -28,16 +28,16 @@ LSD.Object.prototype = {
   _length: 0,
   
   set: function(key, value, memo, index, hash) {
-    /*
-      The values may be set by keys which types is not string.
-      A special method named `_hash` is called each time and can
-      return either string (a new key for value to be stored with)
-      or anything else (an object, or true). When hash is not string
-      the setter turns into immutable mode and only executes callbacks
-      without changing any keys. A callback may implement its own
-      strategy of storing values, as callbacks recieve result of hashing
-      as the last argument. 
-    */
+/*
+  The values may be set by keys with types other then string.
+  A special method named `_hash` is called each time and can
+  return either string (a new key for value to be stored with)
+  or anything else (an object, or true). When hash is not string
+  the setter turns into immutable mode and only executes callbacks
+  without changing any keys. A callback may implement its own
+  strategy of storing values, as callbacks recieve result of hashing
+  as the last argument. 
+*/
     if (typeof key != 'string') {
       if (typeof hash == 'undefined') hash = this._hash(key);
       if (typeof hash == 'string') {
@@ -47,11 +47,11 @@ LSD.Object.prototype = {
     } else var nonenum = this._skip[key];
     if (hash == null && typeof index != 'number') index = key.indexOf('.');
     if (index > -1) return this.mix(key, value, memo, true, null, null, index);
-    /*
-      `hash` argument may disable all mutation caused by the setter,
-      the value by the key will not be mofified. May be used by subclasses
-      to implement its own mechanism of object mutations. 
-    */
+/*
+  `hash` argument may disable all mutation caused by the setter,
+  the value by the key will not be mofified. May be used by subclasses
+  to implement its own mechanism of object mutations. 
+*/
     if (hash == null) {
       var old = this[key];
       if (old === value) return false;
@@ -59,10 +59,11 @@ LSD.Object.prototype = {
         this._length++;
       this[key] = value;
     }
-    /*
-      Keys that start with `_` underscore do not trigger calls to global
-      object listeners. But they can be watched individually.
-    */
+/*
+  Most of the keys that start with `_` underscore do not trigger calls to global
+  object listeners. But they can be watched individually. A list of the skipped
+  properties is defined in `_skip` object below
+*/
     if (index !== -1 || nonenum !== true) {
       if((this._onChange && typeof (value = this._onChange(key, value, true, old, memo, hash)) == 'undefined')
       || (this.onChange && typeof (value = this.onChange(key, value, true, old, memo, hash)) == 'undefined')) {
@@ -72,6 +73,11 @@ LSD.Object.prototype = {
       if (value != null && value._set && this._children !== false && value._parent == null)
         value._set('_parent', this);
     }
+/*
+  Watchers are listeners that observe every property in an object. 
+  It may be a function (called on change) or another object (change property 
+  will be changed in the watcher object)
+*/
     var watchers = this._watchers;
     if (watchers) for (var i = 0, j = watchers.length, watcher, fn; i < j; i++) {
       if ((watcher = watchers[i]) == null) continue
@@ -89,8 +95,10 @@ LSD.Object.prototype = {
       if (stored && (stored = stored[key]))
         for (var i = 0, item; item = stored[i++];) {
           if (value != null && (!item[2] || !item[2]._delegate || !item[2]._delegate(value, key, item[0], true)))
-            value.mix(item[0], item[1], item[2], true, item[3], item[4]);
-          if (old != null && (!item[2] || !item[2]._delegate || !item[2]._delegate(old, key, item[0], false)))
+            if (value.mix) value.mix(item[0], item[1], item[2], true, item[3], item[4]);
+            else if (typeof value == 'object' && item[1] == null) Object.append(value, item[0])
+            else value[item[0]] = item[1];
+          if (old != null && old.mix && (!item[2] || !item[2]._delegate || !item[2]._delegate(old, key, item[0], false)))
             old.mix(item[0], item[1], item[2], false, item[3], item[4]);
         }
     } 
@@ -112,9 +120,8 @@ LSD.Object.prototype = {
     else var old = this[key];
     if (!hash && vdef && typeof old == 'undefined') return false;
     if (index !== -1 || !this._skip[key]) {
-      if (this._onChange && (value = this._onChange(key, old, false, undefined, memo, hash)) == null && old != null)
-        return false;
-      if (this.onChange && (value = this.onChange(key, old, false, undefined, memo, hash)) == null && old != null)
+      if ((this._onChange && (value = this._onChange(key, old, false, undefined, memo, hash)) == null && old != null)
+      ||  (this.onChange  && (value = this.onChange(key, old, false, undefined, memo, hash)) == null && old != null))
         return false;
       if (value != null && this._children !== false && value._unset && value._parent === this) 
         value._unset('_parent', this);
@@ -168,7 +175,32 @@ LSD.Object.prototype = {
       } else break;
     }
   },
+/*
+  Mixing is a higher level abstraction above simply setting properties.
+  `mix` method accepts both pairs of keys and values and whole objects
+  to set and unset properties.
   
+  Mixed values are stored twice in the object. Once, as the keys and values 
+  processed by setters, and another time is when original arguments are 
+  stored to be used later. For example, when an pair like 
+  `attributes.tabindex`: `1` is mixed into the object, the arguments are
+  stored and then `tabindex` property is applied to `attributes` object.
+  But if `attributes` object change, arguments will be used to clean
+  up the old object, and assign the property to the new object. Similar 
+  thing happens when deep nested objects are merged, it stores values
+  on each level of the original object and can re-apply it to related
+  struct objects when they change.
+  
+  When an observable object is mixed, it can be opted-in for "live" 
+  merging, when updates to the merged object will propagate into 
+  the object it was merged into. By default, all new and updated values 
+  are appended on top, overwriting the previous value. But when truthy 
+  `prepend` argument is given, reverse merging will be used instead, 
+  applying values to the bottom of the stack. That will make merged
+  object never overwrite the values that were there before. Those will
+  only be used when the values that overshadows the merged values will
+  be unset.
+*/
   mix: function(key, value, memo, state, merge, prepend, index) {
     if (!memo && this._delegate) memo = this;
     if (typeof key != 'string') {
@@ -190,13 +222,13 @@ LSD.Object.prototype = {
         if (key.hasOwnProperty(prop) && (unstorable == null || !unstorable[prop]) && (skip == null || !skip[prop]))
           this.mix(prop, key[prop], memo, state, merge, prepend);
     } else {
-      /*
-        A string in the key may contain dots `.` that denote nested
-        objects. The values are passed through to the related objects,
-        but they are also stored in original object, so whenever related
-        object reference is changed, the stored values are removed from 
-        old objects and applied to the new related object. 
-      */
+/*
+  A string in the key may contain dots `.` that denote nested
+  objects. The values are passed through to the related objects,
+  but they are also stored in original object, so whenever related
+  object reference is changed, the stored values are removed from 
+  old objects and applied to the new related object. 
+*/
       if (index == null) index = key.indexOf('.', -1);
       if (index > -1) {
         var name = key.substr(key.lastIndexOf('.', index - 1) + 1, index) || '_parent';
@@ -221,7 +253,7 @@ LSD.Object.prototype = {
             obj = this._construct(name, null, memo, value);
         } else if (obj.push) {
           for (var i = 0, j = obj.length; i < j; i++)
-            obj[i].mix(name, value, memo, state, merge, prepend)
+            obj[i].mix(subkey, value, memo, state, merge, prepend)
         } else {
           var parent = this._children !== false && obj._parent !== false && obj._parent;
           if (state !== false && parent && parent !== this) {
@@ -245,11 +277,27 @@ LSD.Object.prototype = {
           }
         } else {
           group.push([value, null, memo, merge, prepend, index]);
-        }  
+        }
+/*
+  When a deep object is mixed into an object, it construct objects on its
+  path to set the values. The base class for those objects is determined
+  dynamically, if `getConstructor` method is defined, or resorts to
+  `this.constructor` which creates the same kind of object. That object
+  recursion is useful, because it allows to define prototype methods
+  on object prototype, and then be able to call them from any level of the
+  object tree.
+*/
         var obj = this[key];
         if (obj == null) {
           if (state !== false && !this._skip[name]) 
             obj = this._construct(key, null, memo, value);
+/*
+  Objects also support mixing values into the arrays. It mixes the value
+  into each of the value in the array. 
+  
+      // will set tabindex attribute to each of childNodes
+      object.mix('childNodes.attributes.tabindex', -1);
+*/
         } else if (obj.push) {
           for (var i = 0, j = obj.length; i < j; i++)
             if (!memo || !memo._delegate || !memo._delegate(obj[i], key, value, state))
@@ -258,20 +306,55 @@ LSD.Object.prototype = {
           obj.mix(value, null, memo, state, merge, prepend);
         }
       } else {
-        this[memo === 'reset' ? memo : state !== false ? 'set' : 'unset'](key, value, memo, prepend);
+/*
+  Optional memo argument may define the kind of the method that should be called
+  on a respective property.
+*/
+        switch (memo) {
+          case 'reset': case 'set': case 'unset': case '_set': case '_unset':
+            this[memo](key, value, memo, prepend);
+            break;
+          default:
+            this[state !== false ? 'set' : 'unset'](key, value, memo, prepend);
+        }
       }
     }
     return this;
   },
   
+/*
+  Unlike most of the hash table and object implementations out there, LSD.Object can 
+  easily unmix values from the object. The full potential of unmixing objects can be
+  explored with LSD.Object.Stack, that allows objects to be mixed on top or 
+  to the bottom of the stack (some kind of reverse merge known in ruby).
+  
+  Plain LSD.Object is pretty naive about unmixing properties, it just tries to
+  unset the ones that match the given values. LSD.Object.Stack on the other 
+  hand, is pretty strict and never loses a value that was set before, and can 
+  easily reset to other values that were set before by the same key.
+  
+  Different kind of objects often used nested together, so `mix` being a recursive
+  function often helps to pass the commands through a number of objects of different 
+  kinds.
+*/
   unmix: function(key, value, memo, state, merge, prepend, index) {
     return this.mix(key, value, memo, false, merge, prepend, index);
   },
   
+/*
+  Merge method is an alias to mix with some arguments predefined. It does the same as
+  simple mix, but it also tries to subscribe current object to changes in the object
+  that is being mixed in, if it's observable. Changes then propagate back to current 
+  object. `prepend` argument defines if the object should be merged to the bottom 
+  or on top.
+*/
   merge: function(value, prepend, memo) {
     return this.mix(value, null, memo, true, true, prepend)
   },
-  
+/*
+  Unmerge method unmixes the object and unsubscribes current object from changes
+  in the given object.
+*/
   unmerge: function(value, prepend, memo) {
     return this.mix(value, null, memo, false, true, prepend)
   },

@@ -39,8 +39,8 @@ LSD.Properties.Attributes.prototype.onChange = function(name, value, state, old,
   }
   if (name.substr(0, 5) == 'data-') {
     var property = name.substring(5);
-    if (typeof value != 'undefined') this.dataset[state ? 'set' : 'unset'](property, value);
-    if (typeof old != 'undefined') this.dataset.unset(property, old);
+    if (typeof value != 'undefined') this[state ? 'set' : 'unset'](property, value);
+    if (typeof old != 'undefined') this.unset(property, old);
   }
   return value;
 };

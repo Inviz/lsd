@@ -106,7 +106,7 @@ LSD.Script.Selector.prototype = {
   
   reset: function() {
     this.value = this.collection.length ? this.collection : false;
-    this.onSet(this.value);
+    this.onValueSet(this.value);
   }
 };
 

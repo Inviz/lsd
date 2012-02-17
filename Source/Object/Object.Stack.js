@@ -24,6 +24,11 @@ provides:
   Stack object is an object that may have its values set from multiple sources.
   All of `set` and `unset` calls are logged, so when the value gets unset,
   it returns to previous value (that was set before by a different external object).
+  
+  Stack objects are useful in an environment that objects influence each other,
+  some times in a conflicting way, because it provides gentle conflict resolution
+  based on order of execution. The latest change is more important, but it's easy
+  to roll back.
 
   It was designed to be symetric, so every .set is paired with .unset. Originally,
   unset raised exception when it could not find its value set before.
@@ -121,6 +126,16 @@ LSD.Object.Stack.prototype = {
       this.set(key, value, memo);
     } else if (this[key] != null) this.unset(key, this[key], memo);
   },
+/*
+  Reset method first sets the new value, and triggers all callbacks,
+  and then removes old value from the stack without callbacks.
+  
+  The method is useful to alter the state of the object in an 
+  stack-based object and not pollute the stacks with changed
+  values. When objects use .reset() to mutate the state of an object,
+  even in the case of the conflicting change, no values will be lost
+  in the stack, but only the top value on the stack of them will be used.
+*/
   reset: function(key, value, memo) {
     var old = this[key];
     this.set(key, value, memo);

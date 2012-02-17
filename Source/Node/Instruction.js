@@ -18,6 +18,9 @@ provides:
 ...
 */
 
-LSD.Instruction = LSD.Script
+LSD.Instruction = LSD.Script;
 
+LSD.Fragment = function() {
+  this.childNodes = new LSD.Properties.Children.Virtual;
+};
 LSD.Instruction.prototype.nodeType = 5;

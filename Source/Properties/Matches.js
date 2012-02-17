@@ -81,7 +81,7 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, state, 
     Expression may be a string selector, so it gets parsed with Slick
   */
   if (typeof selector == 'string') {
-    selector = Slick.parse(selector);
+    selector = (this._parsed[selector] || (this._parsed[selector] = Slick.parse(selector)));
     if (callback.lsd) selector = selector.expressions[0];
   }
   /*
@@ -191,6 +191,7 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, state, 
     }
   }
 };
+LSD.Properties.Matches.prototype._parsed = {};
 LSD.Properties.Matches.prototype.__watcher = function(call, widget, state) {
   if (call.expressions[call.index] == null) {
     if (typeof call.callback == 'function') call.callback(widget, state);
@@ -198,12 +199,11 @@ LSD.Properties.Matches.prototype.__watcher = function(call, widget, state) {
   } else widget.matches[state ? 'set' : 'unset'](call.expressions, call.callback, call.index)
 };
 LSD.Properties.Matches.prototype._hash = function(expression, value, storage) {
-  if (typeof expression == 'string') expression = Slick.parse(expression).expressions[0][0];
+  if (typeof expression == 'string') 
+    expression = (this._parsed[expression] || (this._parsed[expression] = Slick.parse(expression))).expressions[0][0];
   var tag = expression.tag;
   if (!tag) return false;
-  if (storage == null) storage = value != null && value.lsd
-                               ? this._results || (this._results = {}) 
-                               : this._callbacks || (this._callbacks = {});
+  if (storage == null) storage = value != null && value.lsd ? this._results || (this._results = {}) : this._callbacks || (this._callbacks = {});
   var combinator = expression.combinator || ' ';
   var group = storage[combinator];
   if (group == null) group = storage[combinator] = {};
@@ -211,4 +211,33 @@ LSD.Properties.Matches.prototype._hash = function(expression, value, storage) {
   if (array == null) array = group[tag] = [];
   return array;
 };
+LSD.Properties.Matches.prototype.add = function(combinator, tagName, value, wildcard) {
+  var storage = value.lsd ? this._results || (this._results = {}) : this._callbacks || (this._callbacks = {});
+  var group = storage[combinator];
+  if (group == null) group = storage[combinator] = {};
+  for (var tag = wildcard ? '*' : tagName; tag;) {
+    var array = group[tag];
+    if (array == null) array = group[tag] = [];
+    array.push(value);
+    if (tag === tagName) break;
+    else if (wildcard) tag = tagName;
+  }
+  return true;
+}
+LSD.Properties.Matches.prototype.remove = function(combinator, tagName, value, wildcard) {
+  var storage = value.lsd ? this._results : this._callbacks;
+  if (storage == null) return false;
+  var group = storage[combinator];
+  if (group == null) return false;
+  for (var tag = wildcard ? '*' : tagName; tag;) {
+    var array = group[tag];
+    if (array) {
+      var index = array.indexOf(value);
+      if (index > -1) array.splice(index, 1);
+    }
+    if (tag === tagName) break;
+    else if (wildcard) tag = tagName;
+  }
+  return true;
+}
 LSD.Properties.Matches.prototype._types = ['pseudos', 'classes', 'attributes'];

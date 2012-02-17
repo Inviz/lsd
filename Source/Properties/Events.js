@@ -29,9 +29,7 @@ LSD.Properties.Events = LSD.Struct.Group({
   'document':     '.document',
   'window':       '.document.window',
   'matches':      '.matches',
-  'relations':    '.relations',
-  'allocations':  '.allocations',
-  'expectations': '.expectations'
+  'relations':    '.relations'
 });
 
 LSD.Properties.Events.prototype.fire = function(key, a, b, c, d, e) {

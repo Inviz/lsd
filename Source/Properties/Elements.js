@@ -94,10 +94,10 @@ LSD.Properties.Elements.prototype.onSet = function(value, index, state, old, mem
 };
 LSD.Properties.Elements.prototype._identify = function(call, key, value, old) {
   var object = call.callback;
-  if (value) value.watch('nodeValue', (object._observer || object._observer = {
+  if (value) value.watch('nodeValue', (object._observer || (object._observer = {
     fn: object._observe,
     callback: object
-  }))
+  })))
   if (old) old.unwatch('nodeValue', object);
 };
 LSD.Properties.Elements.prototype._observe = function(call, key, value, old) {

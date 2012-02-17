@@ -30,7 +30,6 @@ sources:
   - Source/Properties/Relations.js
   - Source/Properties/Attributes.js
   - Source/Properties/Events.js
-  - Source/Properties/Allocations.js
   - Source/Properties/Resource.js
   - Source/Script.js
   - Source/Script/Variable.js

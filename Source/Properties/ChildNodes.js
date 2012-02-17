@@ -74,17 +74,18 @@ LSD.Properties.ChildNodes.Virtual = LSD.Struct.Array({
 LSD.Properties.ChildNodes.Virtual.prototype._onShift = LSD.Properties.ChildNodes.prototype._onShift;
 LSD.Properties.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old) {
   if (old != null) return;
-  var parent = this._parent.parentNode;
+  var subject = (this._parent || this)
+  var parent = subject.parentNode;
   if (!parent) return;
   if (value.childNodes && value.childNodes.virtual)
-    value.childNodes[state ? 'set' : 'unset']('parentNode', this._parent) 
+    value.childNodes[state ? 'set' : 'unset']('parentNode', subject) 
   if (parent.insertBefore) {
     if (!state) parent.removeChild(value);
-    else parent.insertBefore(value, (this[index - 1] || this._parent).nextSibling)
+    else parent.insertBefore(value, (this[index - 1] || subject).nextSibling)
   } else {
     var children = parent.childNodes;
     if (!state) children.splice(children.indexOf(value), 1)
-    else children.splice(children.indexOf((this[index - 1] || this._parent).nextSibling), 0, value);
+    else children.splice(children.indexOf((this[index - 1] || subject).nextSibling), 0, value);
   }
 };
 LSD.Properties.ChildNodes.Virtual.prototype.virtual = true;

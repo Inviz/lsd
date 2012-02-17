@@ -18,12 +18,10 @@ provides:
 ...
 */
 
-LSD.Comment = LSD.Struct.Stack({
-  initialize: function(string, options) {
-    
-  }
-})
-
+LSD.Comment = LSD.Struct.Stack({});
+LSD.Comment.prototype.__initialize = function(string, options) {
+  
+}
 LSD.Comment.prototype.nodeType = 8;
 LSD.Comment.prototype.expand = function() {
   var depth = 0;

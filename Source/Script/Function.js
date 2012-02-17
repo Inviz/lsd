@@ -33,7 +33,7 @@ provides:
 */
 
 LSD.Script.Function = function(input, source, output, name) {
-  LSD.Script.Variable.apply(this, arguments)
+  this._Variable(input, source, output);
   this.name = name;
   this.args = Array.prototype.slice.call(input, 0);
 };
@@ -46,7 +46,7 @@ LSD.Script.Function.prototype = {
     this.attached = state;
     var args = this.evaluate(state);
     if (state) {
-      if (args) this.set(args, !state || reset);
+      if (args) this.setValue(args, !state || reset);
     } else {
       if (this.name) this.unexecute()
     }
@@ -70,10 +70,10 @@ LSD.Script.Function.prototype = {
   },
   
   lookup: function(name, arg) {
+    if (arg != null) if (arg[name] != null && arg[name].call) return true;
     for (var scope = this.source; scope; scope = scope.parentScope)
       if ((scope.methods || scope).hasOwnProperty(name)) 
         return (scope.methods || scope)[name];
-    if (arg != null) if (arg[name] != null && arg[name].call) return true;
     return LSD.Script.Helpers[name] || Object[name];
   },
   
@@ -201,13 +201,13 @@ LSD.Script.Function.prototype = {
   
   onSuccess: function(value) {
     this.value = value;
-    this.onSet(this.value);
+    this.onValueSet(this.value);
   },
   
   onFailure: function(value) {
     this.value = new Boolean(false);
     this.value.failure = value;
-    this.onSet(this.value);
+    this.onValueSet(this.value);
   },
   
   process: function(args) {
@@ -241,7 +241,9 @@ LSD.Script.Function.prototype = {
       value.chained = true;
     }
     return value;
-  }
+  },
+  
+  _Variable: LSD.Script.Variable
 };
 
 Object.each(LSD.Script.Variable.prototype, function(value, key) {

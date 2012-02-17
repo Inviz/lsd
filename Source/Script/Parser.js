@@ -298,7 +298,7 @@ var rSquare = "(?:[^\\[\\]]|\\[(?:[^\\[\\]]|\\[(?:[^\\[\\]]|\\[(?:[^\\[\\]]|\\[[
 ;(Parser.fn = x("(?:(\\.)\\s*)?([-_a-zA-Z0-9]*)\\s*\\((" + rRound + "*)\\)"))
 .names = [     'fn_tail',    'fn',                  'fn_arguments']
 
-;(Parser.block = x("\\s*\\{\\s*(?:\\|\\s*([^|]*)\\|\\s*)?\\s*((?:"+rCurly+")*)\\s*\\}"))
+;(Parser.block = x("\\s*\\{\\s*(?:\\|\\s*([^|]*)\\|\\s*)?\\s*((?:" + rCurly + ")*)\\s*\\}"))
 .names = [                'block_arguments',                'block']
 
 ;(Parser.integer = x(/[-+]?\d+/))
