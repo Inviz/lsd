@@ -64,4 +64,6 @@ LSD is an attempt to prove that DOM is a great and thought-out pattern that may 
   * Lots of meaningful specs, with focus on base structs and reusable bits
   * "Reuse or remove" attitude to code and modules, no to ad-hoc solutions
   * Performance is a must
+  * Uses mootools-compatible package.yml format and jsus tool for builds
+  * As compact as it gets
   
