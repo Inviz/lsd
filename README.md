@@ -27,26 +27,27 @@ LSD is an attempt to prove that DOM is a great and thought-out pattern that may 
  
 * Best **widget system**
   * Observable selectors, that fire callbacks when element starts or stops matching the selector
-  * Does not mess up with your markup, can use any elements
-  * All semantic like attributes meaning, tag names and relations syntax can be customed in app
-  * Widgets can change role and appearance in realtime
-  * CSSOM system with extensible grammar
+  * Does not mess up with your markup, agnostic to your choice of tag names and attributes
+  * All semantic like attributes meaning, tag names and relations syntax can be customized
+  * Widgets can change role and appearance in realtime, e.g. select box can turn into menu list
+  * CSSOM system that parses CSS values into handy objects with extensible grammar
   * Uploader, Sorter, Dragger, Resource, Slider and other useful properties are built in
+  * SOON TO RETURN: Vector graphics for widgets defined by customizable css setup
 * Most powerful **templating engine** in the world
   * Observable scripting expressions, changes are updated automatically, no .redraw()
   * Conditional blocks without extra wrapping elements
   * Templates friendly to HTML clients, no invalid markup
   * HTML, HAML and JSON variants of syntax
   * Rails HAML extension
-  * SOON TO RETURN: Vector graphics for widgets defined by customizable css setup
 * Mind blowing **script language**
-  * All variables are observable, values are lazily and efficiently recalculated on the fly
+  * All variables are observed, values are lazily and efficiently recalculated on the fly
   * Asynchronous code is written like synchronous
   * Language handles state and order of execution itself
   * Allows to undo any action automatically
   * Selectors that observe DOM are first class citizens
   * Dynamic methods dispatch, with customizable method_missing logic
   * Great templating engine integration
+  * Plays nice with any javascript objects, parts of it can be used transparently in javascript
 * Mighty **resource manager**
   * Full microdata support, resources may be defined right in HTML
   * Virtual resources and urls defined on clientside with router
