@@ -20,7 +20,7 @@ provides:
 
 LSD.Textnode = LSD.Struct({
   nodeValue: function(value) {
-    
+    return value;
   }
 })
 LSD.Textnode.prototype.__initialize = function() {
@@ -32,7 +32,7 @@ LSD.Textnode.prototype.__initialize = function() {
         break;
       case "object":
         if (arg != null) {
-          if (arg.nodeType === 3) string = string ? string + arg : arg
+          if (arg.nodeType === 3) string = string ? string + arg.nodeValue : arg.nodeValue
         } else this.mix(arg);
     }
   }

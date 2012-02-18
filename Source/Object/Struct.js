@@ -30,6 +30,8 @@ LSD.Struct = function(properties, Base) {
   resemblance to OOP.
 */
   var Struct = function(object) {
+    var proto = this.prototype;
+    if (proto && proto._constructors) return new Struct(object, arguments[1])
 /*
   Inherited properties is an internal concept that allows an instance of a class to 
   recieve its own copy of a private object (used to unlink value stacks in all structs)

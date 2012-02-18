@@ -184,6 +184,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
       arity = args.length;
     }
     var shift = arity - offset;
+    this._shifting = shift;
     var values = [];
 /*
   Splice first tries to insert new values, if given any.
@@ -230,7 +231,8 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
       } else {  
         this.unset(i, this[i], false);
       }
-    }
+    }  
+    delete this._shifting;
     return values;
   },
 
@@ -291,30 +293,28 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   _seeker: function(call, value, index, state, old, limit) {
     var args = this.slice.call(arguments, 1);
     var block = call.block.block;
+    var length = call.memo && call.memo.length;
+    if (state && index > call.invoker._last && length >= call.invoker._limit && (call.memo[length - 1] !== call.memo[length - 1 + this._shifting]))
+      return;
     if (block) {
-      if (state && (call.memo != null && call.memo.length >= (this._limit || Infinity))) {
-        if (old != null && block.yields && block.yields[old]) {
-          block.yields[index] = block.yields[old];
-          delete block.yields[old];
-        }
-        return
-      };
-      return call.block(state ? 'yield' : 'unyield', args, call.callback, index, old, limit);
+      var result = call.block(state ? 'yield' : 'unyield', args, call.callback, index, old, limit);
     } else {
-      return call.callback(call.block.apply(call.block, args), value, index, state, old);
+      var result = call.callback(call.block.apply(call.block, args), value, index, state, old);
     }
+    if (result != null && result.value && (call.invoker._last == null || call.invoker._last < index)) call.invoker._last = index;
+    return result;
   },
   
   seek: function(block, callback, state, memo) {
     var array = this.origin || this;
     if (state !== false && (state = true)) {
-      var watcher = {fn: this._seeker, bind: this, block: block, callback: callback, memo: memo};
+      var watcher = {fn: this._seeker, invoker: this, block: block, callback: callback, memo: memo};
     }
     for (var i = 0, result, j = array.__length >>> 0; i < j; i++) {
       result = array._callback(watcher, array[i], i, state, prev, this._limit);
       prev = null;
       if (this._limit < Infinity) {
-        if (!result.value) var prev = i;
+        if (!result) var prev = i;
         if (state && memo != null && memo.length == this._limit) break;
       }
     }
@@ -342,7 +342,6 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
     var filtered = plain ? [] : new LSD.Array;
     var shifts = [], spliced = 0;
     return this.seek(callback, function(result, value, index, state, old) {
-//      console.info('Arrghs', Array.from(arguments), filtered, shifts.slice())
       for (var i = shifts.length; i <= index + 1; i++) 
         shifts[i] = (shifts[i - 1]) || 0
       var shift = shifts[index];

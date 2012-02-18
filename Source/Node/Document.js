@@ -47,13 +47,26 @@ LSD.Document = LSD.Struct.Stack({
   }
 });
 LSD.Document.prototype._preconstruct = ['childNodes', 'events'];
-LSD.Document.prototype.__initialize = LSD.Element.prototype.__initialize;
+LSD.Document.prototype.__initialize = function() {
+  var doc = this, proto = LSD.Document.prototype;
+  Object.each(LSD.NodeTypes, function(name, type) {
+    var Node = LSD.Document.NodeTypes[type] = LSD[name];
+    var constructor = function() {
+      return Node.apply(doc === this || proto === this ? Node : this, arguments);
+    };
+    constructor.prototype = new Node;
+    constructor.prototype.document = doc;
+    LSD.Document.prototype['create' + name] = LSD.Document.prototype[name] = constructor;
+    if (type === 3)
+      LSD.Document.prototype.createTextNode = LSD.Document.prototype.createText =
+      LSD.Document.prototype.TextNode = LSD.Document.prototype.Text = constructor;
+  });
+  if (!LSD.document) LSD.document = this;
+  return LSD.Element.prototype.__initialize.apply(this, arguments);
+}
 LSD.Document.prototype.onReady = function() {
-  this.fireEvent('domready', this.origin.body);
+  this.events.fire('domready', this.origin.body);
   this.set('body', this.createElement(this.origin.body));
-};
-LSD.Document.prototype.createNode = function(type, element, options) {
-  return new (LSD.Document.NodeTypes[type])(element, options).mix('document', this);
 };
 /*
   The following is a basic set of structures that every
@@ -131,18 +144,13 @@ LSD.Document.prototype.mix({
   roles:       {}
 });
 LSD.NodeTypes = {
-  1:  'element',
-  3:  'textnode',
-  5:  'instruction',
-  8:  'comment',
-  11: 'fragment'
+  1:  'Element',
+  3:  'Textnode',
+  5:  'Instruction',
+  8:  'Comment',
+  11: 'Fragment'
 };
 LSD.Document.NodeTypes = {};
-Object.each(LSD.NodeTypes, function(name, type) {
-  var capitalized = name.capitalize();
-  LSD.Document.NodeTypes[type] = LSD[capitalized];
-  LSD.Document.prototype['create' + capitalized] = function(element, options) {
-    return new LSD.Document.NodeTypes[type](element, options).mix('document', this);
-  }
-});
-LSD.Document.prototype.createTextNode = LSD.Document.prototype.createText = LSD.Document.prototype.createTextnode;
+LSD.Document.prototype.createNode = function(type, element, options) {
+  return new (this[LSD.NodeTypes[type]])(element, options)
+};

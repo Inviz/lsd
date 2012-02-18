@@ -56,63 +56,51 @@ LSD.Script.Variable = function(input, source, output) {
   this.source = source;
 };
 
-LSD.Script.Variable.prototype = {
-  type: 'variable',
-  
-  script: true,
-  
-  setValue: function(value, reset) {
-    if (this.frozen) return;
-    var old = this.value;
-    this.value = this.process ? this.process(value) : value;
-    if (reset || typeof this.value == 'function' || old !== this.value || (this.invalidator && (this.invalidator())))
-      this.onValueSet(this.value, null, old);
-  },
-  
-  onValueSet: function(value, output, old) {
-    if (value == null && this.placeholder) value = this.placeholder;
-    if (this.output && output !== false) this.update(value, old);
-    if (this.attached !== false && this.parents)
-      for (var i = 0, parent; parent = this.parents[i++];) {
-        if (!parent.translating && parent.attached !== false) parent.setValue();
-      }
-    if (this.wrapper && this.wrapper.wrappee)
-      this.wrapper.wrappee.onSuccess(value)
-    return this;
-  },
-  
-  attach: function(origin) {
-    return this.fetch(true, origin);
-  },
-  
-  detach: function(origin) {
-    delete this.value;
-    return this.fetch(false, origin);
-  },
-  
-  fetch: function(state, origin) {
-    if (this.attached ^ state) {
-      this.attached = state;
-      if (!this.setter) this.setter = this.setValue.bind(this);
-      if (this.source != null)
-        this[this.source.call ? 'source' : 'request'](this.input, this.setter, this.source, state);
-    }
-    return this;
-  },
-  
-  request: function(input, callback, source, state) {
-    return (this.source.variables || this.source)[state ? 'watch' : 'unwatch'](input, callback);
-  },
-  
-  getContext: function() {
-    for (var scope = this.source, context; scope; scope = scope.parentScope) {
-      context = (scope.nodeType && scope.nodeType != 11) ? scope : scope.widget;
-      if (context) break;
-    }
-    this.context = context || false;
-    return this.context;
-  } 
+LSD.Script.Variable.prototype = new LSD.Script;
+LSD.Script.Variable.prototype.type = 'variable';
+LSD.Script.Variable.prototype.setValue = function(value, reset) {
+  if (this.frozen) return;
+  var old = this.value;
+  this.value = this.process ? this.process(value) : value;
+  if (reset || typeof this.value == 'function' || old !== this.value || (this.invalidator && (this.invalidator())))
+    this.onValueSet(this.value, null, old);
 };
-Object.each(LSD.Script.prototype, function(value, key) {
-  if (!LSD.Script.Variable.prototype[key]) LSD.Script.Variable.prototype[key] = value;
-});
+LSD.Script.Variable.prototype.onValueSet = function(value, output, old) {
+  if (value == null && this.placeholder) value = this.placeholder;
+  if (this.output && output !== false) this.update(value, old);
+  if (this.attached !== false && this.parents)
+    for (var i = 0, parent; parent = this.parents[i++];) {
+      if (!parent.translating && parent.attached !== false) parent.setValue();
+    }
+  if (this.wrapper && this.wrapper.wrappee)
+    this.wrapper.wrappee.onSuccess(value)
+  return this;
+};
+LSD.Script.Variable.prototype.attach = function(origin) {
+  return this.fetch(true, origin);
+};
+LSD.Script.Variable.prototype.detach = function(origin) {
+  delete this.value;
+  return this.fetch(false, origin);
+};
+LSD.Script.Variable.prototype.fetch = function(state, origin) {
+  if (this.attached ^ state) {
+    if (!state) delete this.value;
+    this.attached = state;
+    if (!this.setter) this.setter = this.setValue.bind(this);
+    if (this.source != null)
+      this[this.source.call ? 'source' : 'request'](this.input, this.setter, this.source, state);
+  }
+  return this;
+};
+LSD.Script.Variable.prototype.request = function(input, callback, source, state) {
+  return (this.source.variables || this.source)[state ? 'watch' : 'unwatch'](input, callback);
+};
+LSD.Script.Variable.prototype.getContext = function() {
+  for (var scope = this.source, context; scope; scope = scope.parentScope) {
+    context = (scope.nodeType && scope.nodeType != 11) ? scope : scope.widget;
+    if (context) break;
+  }
+  this.context = context || false;
+  return this.context;
+};

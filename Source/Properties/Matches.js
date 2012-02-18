@@ -57,7 +57,7 @@ provides:
   
 LSD.Properties.Matches = LSD.Struct.Group();  
 /*
-  Expectation observes single selector expression. 
+  Matches observes selectors in small bites.
   
   Selector expression (e.g. `strong.important`) consists
   of a part that rarely changes in life time of a node
@@ -66,7 +66,7 @@ LSD.Properties.Matches = LSD.Struct.Group();
   a node)
   
   The idea is to split the selector bit to static and dynamic
-  parts. The widget that is *expect*ing the selector, groups
+  parts. The widget that is *match*ing the selector, groups
   his matches by tag name. Every node inserted into
   that element or its children will pick up matches
   related to it, thus matching static part of a selector
@@ -112,7 +112,7 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, state, 
       if (typeof memo != 'number') memo = 0;
       if (state) {
         this.set(expressions[memo], {
-          fn: this.__watcher,
+          fn: this._advancer,
           bind: this,
           index: memo + 1,
           callback: callback,
@@ -191,13 +191,35 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, state, 
     }
   }
 };
-LSD.Properties.Matches.prototype._parsed = {};
-LSD.Properties.Matches.prototype.__watcher = function(call, widget, state) {
+/*
+  Advancer callback is called whenever a widget is matched selector expression.
+  If an expression was a part of the complex selector and there are more 
+  expressions to be matched, it passes the same selector and callback 
+  with a previously incremented index  to the matches object
+  of a found widget. This makes it match widgets by the next expression in 
+  selector. 
+  
+  When an element that matches the last expression in a selector is found, 
+  the callback is called.
+*/
+LSD.Properties.Matches.prototype._advancer = function(call, widget, state) {
   if (call.expressions[call.index] == null) {
     if (typeof call.callback == 'function') call.callback(widget, state);
     else this._callback(call.callback, widget, state)
   } else widget.matches[state ? 'set' : 'unset'](call.expressions, call.callback, call.index)
 };
+/*
+  Hash hook allows Matches object to handle keys with types other than string.
+  
+  It accepts singular parsed expressions, and returns the storage for given
+  value - either callbacks or elements storage with a group dedicated to
+  the combinator/tag pair. 
+  
+  Matches object also handles arrays of expressions, and even arrays of arrays
+  of expression, but results are not stored in the object. Rather it walks
+  the array of expression from left to right and handles each expression separately
+  storing a callback that advances the selector to the next expression. 
+*/
 LSD.Properties.Matches.prototype._hash = function(expression, value, storage) {
   if (typeof expression == 'string') 
     expression = (this._parsed[expression] || (this._parsed[expression] = Slick.parse(expression))).expressions[0][0];
@@ -211,6 +233,28 @@ LSD.Properties.Matches.prototype._hash = function(expression, value, storage) {
   if (array == null) array = group[tag] = [];
   return array;
 };
+/*
+  Matches structure join two different worlds together. It allows
+  to observe widgets and fire `callback` when certain `widget` 
+  matches the `selector`. And when it stops matching, it fires 
+  callback again with different arguments.
+    
+    * It manages observers for callbacks and maintains state in 
+      complex selectors
+    * It registers sibling nodes with simple selectors, so all
+      simple combinator selector queries are precomputed. 
+    
+*/
+
+/*
+  `add` and `remove` pair of functions are used for speedy 
+  widget registering. It avoids selector parsing, because
+  `combinator` and `tagName` are given in arguments.
+  
+  If `wildcard` argument is given, it will also register 
+  the widget with `*` tag by the same combinator.
+*/
+var iiiiii = 0;
 LSD.Properties.Matches.prototype.add = function(combinator, tagName, value, wildcard) {
   var storage = value.lsd ? this._results || (this._results = {}) : this._callbacks || (this._callbacks = {});
   var group = storage[combinator];
@@ -241,3 +285,4 @@ LSD.Properties.Matches.prototype.remove = function(combinator, tagName, value, w
   return true;
 }
 LSD.Properties.Matches.prototype._types = ['pseudos', 'classes', 'attributes'];
+LSD.Properties.Matches.prototype._parsed = {};

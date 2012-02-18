@@ -245,14 +245,8 @@ LSD.Element.prototype.__properties = {
     return value || old;
   },
   previousSibling: function(value, old) {
-    for (var i = 0, node, method; i < 2; i++) {
-      if (i) node = old, method = 'unset';
-      else node = value, method = 'set';
-      for (var element = node; element && element.nodeType != 1;) element = element.previousSibling;
-      this[method]('previousElementSibling', element);
-    }
     if (value) this.reset('sourceIndex', (value.sourceLastIndex || value.sourceIndex || 0) + 1);
-    return value || old;
+    return typeof value == 'undefined' ? old : value;
   },
   previousElementSibling: function(value, old) {
     for (var i = 0, node, method; i < 2; i++) {
@@ -267,18 +261,9 @@ LSD.Element.prototype.__properties = {
         }
       }
     }
-  },
-  nextSibling: function(value, old) {
-    for (var i = 0, node, method; i < 2; i++) {
-      if (i) node = old, method = 'unset';
-      else node = value, method = 'set';
-      for (var element = node; element && element.nodeType != 1;) element = element.nextSibling;
-      this[method]('nextElementSibling', element);
-    }
-    return value || old;
+    return typeof value == 'undefined' ? old : value;
   },
   nextElementSibling: function(value, old) {
-    if (value && !value.mix) debugger
     for (var i = 0, node, method; i < 2; i++) {
       if (i) node = old, method = 'remove';
       else node = value, method = 'add';
@@ -291,6 +276,7 @@ LSD.Element.prototype.__properties = {
         }
       }
     }
+    return typeof value == 'undefined' ? old : value;
   },
   parentNode: function(value, old) {
     if (!value) this.unset('sourceIndex', this.sourceIndex);
@@ -432,15 +418,12 @@ LSD.Element.prototype.replaceChild = function(child, old) {
   if (index > -1) this.childNodes.splice(index, 1, child);
   return this;
 };
-LSD.Element.prototype.cloneNode = function(children, options) {
-  var clone = (this.document || LSD.Document.prototype).createElement({
+LSD.Element.prototype.cloneNode = function(children) {
+  return (this.document || LSD.Document.prototype).createElement({
     origin: this.element,
     tag: this.tagName,
-    traverse: !!children,
     clone: true
   });
-  if (options) clone.mix(options)
-  return clone;
 };
 LSD.Element.prototype.inject = function(node, where) {
   return this.inserters[where || 'bottom'](this, node);

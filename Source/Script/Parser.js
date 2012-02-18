@@ -16,13 +16,11 @@ requires:
 provides:
   - LSD.Script.Parser
   - LSD.Script.parse
-  - LSD.Script.compile
-  
 ...
 */
 !function(exports) {
 var Parser = LSD.Script.Parser = function() {};
-Parser.prototype.parse = LSD.Script.parse = function(value) {
+Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = function(value) {
   if (value.indexOf('\n') > -1) return LSD.Script.Parser.multiline(value);
   if (LSD.Script.parsed) {
   //  var cached = LSD.Script.parsed[value];
@@ -259,31 +257,6 @@ Parser.multiline = function(source) {
   }
   return results;
 };
-
-Parser.prototype.compile = LSD.Script.compile = function(object, source, output, parse) {
-  if (parse !== false && typeof object == 'string') object = LSD.Script.parse(object)
-  var variable = LSD.Script.materialize(object, source, output);
-  if (object.local) variable.local = true;
-  return variable;
-};
-
-Parser.prototype.materialize = LSD.Script.materialize = function(object, source, output) {
-  switch (object.type) {
-    case 'variable':
-      return new LSD.Script.Variable(object.name, source, output);
-    case 'function':
-      return new LSD.Script.Function(object.value, source, output, object.name);
-    case 'block':
-      return new LSD.Script.Block(object.value, source, output, object.locals);
-    case 'selector':
-      return new LSD.Script.Selector(object.value, source, output);
-    default:
-      if (object.push)
-        return new LSD.Script.Function(object, source, output, ',')
-      else
-        return object;
-  }
-}
 
 Parser.rVariable = /^[a-z0-9][a-z_\-0-9.\[\]]*$/ig;
 Parser.Combinators = {'+': 1, '>': 1, '!+': 1, '++': 1, '!~': 1, '~~': 1, '&': 1, '&&': 1, '$': 1, '$$': 1};

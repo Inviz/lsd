@@ -19,10 +19,14 @@ provides:
 ...
 */
 
-LSD.Fragment = function() {
-  this.childNodes = this;
-  if (arguments.length > 0)
-    this.enumerable(arguments);
+LSD.Fragment = function(argument, parent) {
+  if (this.nodeType) this.childNodes = this;
+  var length = arguments.length;
+  if (!length) return;
+  if (length === 1 || (parent == null || parent.lsd))
+    if (argument.nodeType === 11 && !argument.lsd) this.enumerable(argument.childNodes)
+    else this[typeof argument == 'string' ? 'html' : this.typeOf(argument)](argument);
+  else this.enumerable(arguments);
 };
 LSD.Fragment.prototype = new LSD.Properties.ChildNodes.Virtual;
 LSD.Fragment.prototype.nodeType = 11;
@@ -62,9 +66,8 @@ LSD.Fragment.prototype.instruction = function(object, parent, memo) {
         break;
       default:
         var word = object.match(this.R_WORD);
-        //if (word || !parent.methods.lookup(word)) 
-        //  return
-        return false;
+        if (!word || !(word = word[0]) || !LSD.Script.prototype.lookup(word, null, parent))
+          return false;
         
 
     }
@@ -95,6 +98,16 @@ LSD.Fragment.prototype.object = function(object, parent, memo) {
 LSD.Fragment.prototype.string = function(object, parent, memo) {
   return this.node(object, parent, memo, 3);
 };
+LSD.Fragment.prototype.html = function(object, parent, memo) {
+  if (!this._dummy) {
+    this._dummy = document.createElement('div');
+		/*@cc_on this._dummy.style.display = 'none';@*/
+	}
+	/*@cc_on document.body.appendChild(this._dummy);@*/
+	this._dummy.innerHTML = object.toString();
+	/*@cc_on document.body.removeChild(this._dummy);@*/
+  return this.enumerable(this.slice.call(this._dummy.childNodes), parent, memo);
+};
 LSD.Fragment.prototype.selector = function(object, parent, memo) {
   return this.node(object, parent, memo, 1);
 };
@@ -112,9 +125,7 @@ LSD.Fragment.prototype.typeOf = function(object, memo) {
   return type;
 };
 LSD.Fragment.prototype.slice        = Array.prototype.slice;
-LSD.Fragment.prototype.appendChild  = LSD.Element.prototype.appendChild;
-LSD.Fragment.prototype.insertBefore = LSD.Element.prototype.insertBefore;
-LSD.Fragment.prototype.removeChild  = LSD.Element.prototype.removeChild;
-LSD.Fragment.prototype.inject       = LSD.Element.prototype.appendChild;
-LSD.Fragment.prototype.grab         = LSD.Element.prototype.grab;
-LSD.Fragment.prototype.R_WORD       = /\w/; 
+['appendChild', 'insertBefore', 'removeChild', 'inject', 'grab'].each(function(method) {
+  LSD.Fragment.prototype[method] = LSD.Element.prototype[method];
+});
+LSD.Fragment.prototype.R_WORD       = /\w+/; 

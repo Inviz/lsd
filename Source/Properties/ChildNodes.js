@@ -31,15 +31,33 @@ LSD.Properties.ChildNodes.prototype.onSet = function(value, index, state, old) {
     value[state ? 'set' : 'unset']('parentNode', this._parent || null);
   var previous = this[index - 1] || null;
   var next = this[index + 1] || null;
-  if (previous != value) {
+  if (previous !== value) {
     if (previous) previous.reset('nextSibling', state ? value : next);
     if (state || old === false) value.reset('previousSibling', previous);
     else if (value.previousSibling == previous) value.unset('previousSibling', previous);
   }
-  if (next != value) {
+  if (next !== value) {
     if (next) next.reset('previousSibling', state ? value : previous);
     if (state || old === false) value.reset('nextSibling', next);
     else if (value.nextSibling == next) value.unset('nextSibling', next);
+  }
+  if (this._elements !== false && value.nodeType === 1) {
+    for (var i = index, node; node = this[--i];) {
+      if (node === value) continue;
+      if (state || old === false) node.reset('nextElementSibling', value);
+      else if (node.nextElementSibling === value) node.unset('nextElementSibling', value);
+      if (node.nodeType === 1) break;
+    }
+    for (var i = index, node; node = this[++i];) {
+      if (node === value) continue;
+      if (state || old === false) node.reset('previousElementSibling', value);
+      else if (node.previousElementSibling === value) node.unset('previousElementSibling', value);
+      if (node.nodeType === 1) break;
+    }
+  }
+  if (!state || old === false) {
+    value.unset('previousElementSibling', value.previousElementSibling);
+    value.unset('nextElementSibling', value.nextElementSibling);
   }
   if (index === 0) this.reset('first', state ? value : null);
   if (index === this.length - +state) this.reset('last', this[this.length - 1] || null);

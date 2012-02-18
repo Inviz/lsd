@@ -65,7 +65,7 @@ provides:
 
 
 LSD.Script.Selector = function(input, source, output) {
-  LSD.Script.Variable.apply(this, arguments)
+  LSD.UIDs[this.lsd = ++LSD.UID] = this;
   this.input = input.replace(LSD.Script.Selector.rElementContext, function(whole, match) {
     switch (match) {
       case "$": 
@@ -76,42 +76,34 @@ LSD.Script.Selector = function(input, source, output) {
         return '';
     }
   }.bind(this));
-  this.collection = new LSD.Array;
+  this.output = output;
   this.source = this.getContext();
+  this.collection = new LSD.Array;
   if (!this.source) throw "Selector should be applied on widgets";
 };
 
-LSD.Script.Selector.prototype = {
-  type: 'selector',
-  
-  request: function(input, callback, source, state) {
-    if (this.element) {
-      LSD.Slick.search(this.element, input).each(callback);
-    } else {
-      this.source[state ? 'watch' : 'unwatch'](input, callback);
-    }
-    if (typeof this.value == 'undefined') this.reset()
-  },
-  
-  set: function(node, state) {
-    if (this.filter && !this.filter(node)) return;
-    if (state) {
-      this.collection.push(node);
-    } else {
-      var index = this.collection.indexOf(node);
-      if (index > -1) this.collection.splice(index, 1);
-    }
-    this.reset();
-  },
-  
-  reset: function() {
-    this.value = this.collection.length ? this.collection : false;
-    this.onValueSet(this.value);
+LSD.Script.Selector.prototype = new LSD.Script.Variable;
+LSD.Script.Selector.prototype.type = 'selector',
+LSD.Script.Selector.prototype.request = function(input, callback, source, state) {
+  if (this.element) {
+    LSD.Slick.search(this.element, input).each(callback);
+  } else {
+    this.source[state ? 'watch' : 'unwatch'](input, callback);
   }
+  if (typeof this.value == 'undefined') this.reset()
 };
-
-Object.each(LSD.Script.Variable.prototype, function(value, key) {
-  if (!LSD.Script.Selector.prototype[key]) LSD.Script.Selector.prototype[key] = value;
-});
-
+LSD.Script.Selector.prototype.set = function(node, state) {
+  if (this.filter && !this.filter(node)) return;
+  if (state) {
+    this.collection.push(node);
+  } else {
+    var index = this.collection.indexOf(node);
+    if (index > -1) this.collection.splice(index, 1);
+  }
+  this.reset();
+};
+LSD.Script.Selector.prototype.reset = function() {
+  this.value = this.collection.length ? this.collection : false;
+  this.onValueSet(this.value);
+};
 LSD.Script.Selector.rElementContext = /^\s*([$]+)\s*/;
