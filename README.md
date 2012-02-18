@@ -21,7 +21,7 @@
          ▀                               ░▓░
                                       ▀
 
-LSD is an ongoing development around the idea if a framework that resembles DOM API, where every property is observable. A reactive environment where new elements receive their styles, behaviors from the context and update on the fly. Most of the framework is based on top of lightweight observable structs that handle state and references. LSD has its own script language called LSD.Script, that operates over observable variables and structures and enables sophisticated concepts like coroutines, declarative computation, reactive scripting and undoing actions.
+LSD is an ongoing development around the idea if a framework that resembles DOM API, where every property is observable is useful. A reactive environment where new elements receive their styles, behaviors from the context and update on the fly. Most of the framework is based on top of lightweight observable structs that handle state and references. LSD has its own script language called LSD.Script, that operates over observable variables and structures and enables sophisticated concepts like coroutines, declarative computation, reactive scripting and undoing actions.
 
 LSD is an attempt to prove that DOM is a great and thought-out pattern that may be used and modified to meet the ever growing expectations of usability in base library. With this framework I dare you to try to realize that most of the web application frontends don't need a single line of code. Wait, are we talking about using the framework, but not actually writing any code? A magic wand? You don't believe it's possible? We are in a successful industry of software developments, where the projects never end and demand for people who can put a few half-baked libraries together and make something that cashes out some money. There's no time for a developer to re-think his process and tools, because he participates in an epic marathon of mindless iterations, CRUDs and cool-kid tech fares selling them just another web-scale solution. Good abstractions is what they actually need, but that's a hard part. There're tons of ActiveRecord, Rack, and Rails reimplementations in modern development, because those are recognized patters that make lifes easier. But none of those really changed life in javascript, not even node.js. There's still no culture or vision related to UI/UX development and hell, that's where I pop in.
  
@@ -62,4 +62,5 @@ LSD is an attempt to prove that DOM is a great and thought-out pattern that may 
 * Serious **coding standarts**
   * Lots of meaningful specs, with focus on base structs and reusable bits
   * "Reuse or remove" attitude to code and modules, no to ad-hoc solutions
+  * Performance is a must
   
