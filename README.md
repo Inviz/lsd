@@ -1,26 +1,5 @@
-    
-      ▀ ▄▄     ▄▀
-     ▄▄█████▄██▀      ▄▄▄▄▄▄▄▄   ▄██
-       ▀██████     ▄████▀▀▀███ ▀███████▄▄
-        ▄█████▄   ████▀  ░ █▄█    ▀ ▀▀▀███▄
-         █████   ██▓█▌ ░  ▄█▀  ▄███▄▀   ████ 
-         ██▓▒█ ░ █▓▒█ ░░ ▀     █████  ░  ████ 
-         █▓▒░█ ░ ▀▒░█   ▄▄▄▄   ████▓ ░░░ ██▓█ 
-         █▒░ █ ░  ▀▓█ ▄▀▀▀▀███▄ ▀██▒ ░░░ █▓▒█ 
-      ░  █░ ░█ ░ ▀  ▀▄   ░  █▓██ ██░ ░░░ █▒░█ ░ 
-      ▒  █ ░▒█ ░ █     ░░░░ █▒▓█ ██  ░░░ █░ █ ▒ 
-     ░▓  █░▒▓█ ░ ██  ░░░░░░ █░▒█ ██ ░░░░ █ ░█ ▓░ 
-     ▒█  █▒▓██   ███   ░░░  █▒░█ ██   ░░ █░▒█ █▒   
-    ░▓██ █████▄ ▀████▀     ██▓▄▀ ██ ▀▄   █▒▓█ █▓
-     ▀███▄▀█████████  ▀██████▀ ▄███ ▀█████▓█▀ ██░
-      ▄▀▀▓▀  ▀▀▀▀▀▀  ▀▀▀▀▀▀   ▀▀▀▀    ▀▀▀▀▀ ▄██▀
-         ▒                          ▀  ▀▀▓█▀ ▀▄ 
-         ░  Lovely Scalable Drawings      ▒
-         ▒                                ░
-        ░▓░         ( •_•)                ▒
-         ▀          (﻿•_•)>⌐■-■          ░▓░
-                    (⌐■_■) BRB, rewrite   ▀
-
+LSD - Lovely Scalable Drawings
+===
 
 LSD is an ongoing development around the idea if a framework that resembles DOM API, where every property is observable is useful. A reactive environment where new elements receive their styles, behaviors from the context and update on the fly. Most of the framework is based on top of lightweight observable structs that handle state and references. LSD has its own script language called LSD.Script, that operates over observable variables and structures and enables sophisticated concepts like coroutines, declarative computation, reactive scripting and undoing actions.
 
