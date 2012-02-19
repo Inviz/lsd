@@ -254,7 +254,6 @@ LSD.Properties.Matches.prototype._hash = function(expression, value, storage) {
   If `wildcard` argument is given, it will also register 
   the widget with `*` tag by the same combinator.
 */
-var iiiiii = 0;
 LSD.Properties.Matches.prototype.add = function(combinator, tagName, value, wildcard) {
   var storage = value.lsd ? this._results || (this._results = {}) : this._callbacks || (this._callbacks = {});
   var group = storage[combinator];

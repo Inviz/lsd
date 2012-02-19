@@ -21,6 +21,17 @@ provides:
 ...
 */
 
+/*
+  Resources are beautiful abstractions over access to data storages. 
+  It leaves all work of building and matching urls to convenient
+  defaults of RESTful resource structure. LSD resources are 
+  self-sufficent and can do all of the typical resource operations
+  in memory. Having resources on client side comes in handy when 
+  the back end application also supports resources. But even if
+  it doesn't, resources can be defined with each action mapped
+  to a custom url.
+*/
+
 LSD.Resource = new LSD.Struct.Array({
   //Extends: LSD.Properties.Request,
   
