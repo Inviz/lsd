@@ -291,31 +291,36 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   },
   
   _seeker: function(call, value, index, state, old, limit) {
-    var args = this.slice.call(arguments, 1);
-    var block = call.block.block;
-    var length = call.memo && call.memo.length;
-    if (state && index > call.invoker._last && length >= call.invoker._limit && (call.memo[length - 1] !== call.memo[length - 1 + this._shifting]))
+    var args = this.slice.call(arguments, 1), block = call.block, invoker = call.invoker, array = call.memo, length = array && array.length;
+    if (state && index > invoker._last && length >= invoker._limit && (array[length - 1] !== array[length - 1 + this._shifting]))
       return;
-    if (block) {
-      var result = call.block(state ? 'yield' : 'unyield', args, call.callback, index, old, limit);
+    if (block.block) {
+      var result = block(state ? 'yield' : 'unyield', args, call.callback, index, old, limit);
     } else {
-      var result = call.callback(call.block.apply(call.block, args), value, index, state, old);
+      var result = call.callback(block.apply(block, args), value, index, state, old);
     }
-    if (result != null && result.value && (call.invoker._last == null || call.invoker._last < index)) call.invoker._last = index;
+    if (result != null && result.value && (invoker._last == null || invoker._last < index)) invoker._last = index;
     return result;
   },
   
   seek: function(block, callback, state, memo) {
-    var array = this.origin || this;
+    var array = this._origin || this, limit = this._limit, offset = this._offset;
     if (state !== false && (state = true)) {
       var watcher = {fn: this._seeker, invoker: this, block: block, callback: callback, memo: memo};
     }
-    for (var i = 0, result, j = array.__length >>> 0; i < j; i++) {
-      result = array._callback(watcher, array[i], i, state, prev, this._limit);
-      prev = null;
-      if (this._limit < Infinity) {
-        if (!result) var prev = i;
-        if (state && memo != null && memo.length == this._limit) break;
+    for (var i = 0, result, fn, j = array.__length >>> 0; i < j; i++) {
+      if (offset > 0 && (!this._skipped || this._skipped < offset)) {
+        if (fn == null) fn = block.block ? block.block.build() : block;
+        this._skipped = (this._skipped || 0) + +!!fn(array[i], i, state, prev);
+        result = undefined;
+      } else {
+        console.error(this._skipped, array.__length, this, this.__length)
+        result = array._callback(watcher, array[i], i, state, prev, this._limit);
+        prev = null;
+        if (limit) {
+          if (!result) var prev = i;
+          if (state && memo != null && memo.length == limit) break;
+        }
       }
     }
     var watchers = array.__watchers;
@@ -402,17 +407,11 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   },
   
   limit: function(number) {
-    var collection = new this.constructor;
-    collection.origin = this;
-    collection._set('_limit', number);
-    return collection;
+    return (this._origin ? this : (new this.constructor).mix('_origin', this)).mix('_limit', number);
   },
   
   offset: function(number) {
-    var collection = this.source || (this.implementation && this.implementation.limit) ? this : new this.constructor;
-    if (collection !== this) collection.origin = this;
-    collection._set('_limit', number);
-    return collection;
+    return (this._origin ? this : (new this.constructor).mix('_origin', this)).mix('_offset', number);
   },
   
   every: function(callback) {

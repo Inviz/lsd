@@ -27,10 +27,10 @@ provides:
   in regular javascript functions as a callback.
 */
 
-LSD.Script.Block = function(input, source, output, locals, origin) {
+LSD.Script.Block = function(input, scope, output, locals, origin) {
   this.input = input;
   this.output = output;
-  this.source = source;
+  this.scope = scope;
   this.args = Array.prototype.slice.call(input, 0);
   delete this.name;
   this.callback = this.yield.bind(this);
@@ -40,9 +40,9 @@ LSD.Script.Block = function(input, source, output, locals, origin) {
     this.locals = locals;
     if (!this.variables) {
       this.variables = new LSD.Object.Stack;
-      if (this.source) this.variables.merge(this.source.variables || this.source);
-      this.parentScope = this.source;
-      this.source = this;
+      if (this.scope) this.variables.merge(this.scope.variables || this.scope);
+      this.parentScope = this.scope;
+      this.scope = this;
     }
   }
   this.origin = origin;
@@ -75,7 +75,7 @@ LSD.Script.Block.prototype.yield = function(keyword, args, callback, index, old,
           else yielded = null;
         }
       } else if (old != null) this.yields[index] = block;
-      if (!block) block = this.yields[index] = this.recycled && this.recycled.pop() || new LSD.Script.Block(this.input, this.source, null, this.locals, yielded);
+      if (!block) block = this.yields[index] = this.recycled && this.recycled.pop() || new LSD.Script.Block(this.input, this.scope, null, this.locals, yielded);
       var invoked = block.invoked;
       block.yielded = true;
       block.yielder = callback;
@@ -218,21 +218,21 @@ LSD.Script.Block.prototype.findLocals = function(locals) {
     var fn = LSD.Function('key', 'value', 'return key % 2 ? value + 1 : value - 1)
     fn(2, 5); // 6
     
-  The first object argument will be treated as a source for variable values.
+  The first object argument will be treated as a scope for variable values.
 */
 LSD.Function = function() {
   var args = Array.prototype.slice.call(arguments, 0);
-  for (var i = 0, j = args.length, source, output; i < j; i++) {
+  for (var i = 0, j = args.length, scope, output; i < j; i++) {
     if (typeof args[i] != 'string') {
       var object = args.splice(i--, 1)[0];
-      if (source == null) source = object;
+      if (scope == null) scope = object;
       else output = object;
       j--;
     }
   }
   var body = LSD.Script.parse(args.pop());
   if (!body.push) body = [body];
-  return new LSD.Script.Block(body, source, output, args.map(function(arg) {
+  return LSD.Script.compile({type: 'block', value: body, locals: args.map(function(arg) {
     return {type: 'variable', name: arg}
-  })).value;
+  })}, scope, output).value;
 };

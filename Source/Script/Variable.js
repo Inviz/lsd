@@ -22,12 +22,12 @@ provides:
   Variables are the core of LSD.Script. A variable attaches to a widget and 
   notifies it that there's a named variable that needs to populate its value.
   
-  A widget may have muptiple sources of data for variables. The only source
+  A widget may have muptiple scopes of data for variables. The only scope
   that is enabled by default is microdata and dataset, so a HTML written the 
   right way provides values for variables. Microdata and dataset objects, 
   just like other other store objects used are LSD.Object-compatible. 
   These objects provide `.watch()` interface that allows to observe changes
-  in object values. Any object may be used as the source for data to populate
+  in object values. Any object may be used as the scope for data to populate
   variables with values.
   
   Each variable has a name, which is used as the key to fetch values.
@@ -49,11 +49,11 @@ provides:
   `output` the same way.
 */
 
-LSD.Script.Variable = function(input, source, output) {
+LSD.Script.Variable = function(input, scope, output) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
   this.input = input;
   this.output = output;
-  this.source = source;
+  this.scope = scope;
 };
 
 LSD.Script.Variable.prototype = new LSD.Script;
@@ -88,19 +88,11 @@ LSD.Script.Variable.prototype.fetch = function(state, origin) {
     if (!state) delete this.value;
     this.attached = state;
     if (!this.setter) this.setter = this.setValue.bind(this);
-    if (this.source != null)
-      this[this.source.call ? 'source' : 'request'](this.input, this.setter, this.source, state);
+    if (this.scope != null)
+      this[this.scope.call ? 'scope' : 'request'](this.input, this.setter, this.scope, state);
   }
   return this;
 };
-LSD.Script.Variable.prototype.request = function(input, callback, source, state) {
-  return (this.source.variables || this.source)[state ? 'watch' : 'unwatch'](input, callback);
-};
-LSD.Script.Variable.prototype.getContext = function() {
-  for (var scope = this.source, context; scope; scope = scope.parentScope) {
-    context = (scope.nodeType && scope.nodeType != 11) ? scope : scope.widget;
-    if (context) break;
-  }
-  this.context = context || false;
-  return this.context;
+LSD.Script.Variable.prototype.request = function(input, callback, scope, state) {
+  return (this.scope.variables || this.scope)[state ? 'watch' : 'unwatch'](input, callback);
 };

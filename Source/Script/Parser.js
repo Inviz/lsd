@@ -3,7 +3,7 @@
  
 script: Script.js
  
-description: Tokenize, translate and compile LSD.Script source into javascript functions
+description: Tokenize, translate and compile LSD.Script scope into javascript functions
  
 license: Public domain (http://unlicense.org).
 
@@ -20,7 +20,7 @@ provides:
 */
 !function(exports) {
 var Parser = LSD.Script.Parser = function() {};
-Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = function(value) {
+Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = function(value, memo) {
   if (value.indexOf('\n') > -1) return LSD.Script.Parser.multiline(value);
   if (LSD.Script.parsed) {
   //  var cached = LSD.Script.parsed[value];
@@ -32,7 +32,7 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
   while (found = regexp.exec(value)) matched.push(found);
   for (var i = 0, last = matched.length - 1; found = matched[i]; i++) {
     if ((text = found[names.fn_arguments]) != null) {
-      var args = LSD.Script.parse(text);
+      var args = LSD.Script.parse(text, memo);
       if (args.push)
         for (var j = 0, bit; bit = args[j]; j++) if (bit && bit.length == 1) args[j] = bit[0];
       if (found[names.fn_tail]) {
@@ -59,18 +59,28 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
         if (token.tail) var parenttoken = scope.pop();
         if (bits.length) {
           if (parenttoken) parenttoke.name += bits.join('.');
-          else parenttoken = {type: 'variable', name: bits.join('.')}
+          else parenttoken = {type: 'variable', name: bits.join('.')};
+          if (token.local) parenttoken.local = token.local;
         }
         if (parenttoken) args.unshift(parenttoken);
         scope.push({type: 'function', name: method, value: args})
-      } 
-      var body = LSD.Script.parse(text);
+      }
+      if ((fn = found[names.block_arguments])) {
+        var locals = LSD.Script.parse(fn);
+        if (!locals.push) locals = [locals];
+        if (!memo) memo = {};
+        if (!memo.locals) memo.locals = {}
+        for (var j = 0, k = locals.length, local; j < k; j++)
+          if ((local = locals[j]) && local.name) memo.locals[local.name] = (memo.locals[local.name] || 0) + 1;
+      }
+      var body = LSD.Script.parse(text, memo);
       if (body.push)
         for (var j = 0, bit; bit = body[j]; j++) if (bit && bit.length == 1) body[j] = bit[0];
       var block = {type: 'block', value: body.push ? body : [body]}
-      if ((text = found[names.block_arguments])) {
-        block.locals = LSD.Script.parse(text);
-        if (!block.locals.push) block.locals = [block.locals];
+      if (locals) {
+        block.locals = locals;
+        for (var j = 0, k = locals.length, local; j < k; j++)
+          if ((local = locals[j]) && local.name) memo.locals[local.name]--;
       }
       (args || scope).push(block);
     } else if ((text = found[names.index])) {
@@ -80,7 +90,7 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
       } else {
         var left = scope.pop();
         if (typeof left == 'undefined') throw "[] object index should come after an object"
-        var body = LSD.Script.parse(text);
+        var body = LSD.Script.parse(text, memo);
         if (!body.push) body = [body];
         body.unshift(left)
         scope.push({type: 'function', name: '[]', value: body});
@@ -159,6 +169,7 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
           default:
             if (!tail || !token) {
               token = {type: 'variable', name: text};
+              if (memo && memo.locals && memo.locals[text]) token.local = true;
               if (tail) token.tail = true;
               scope.push(token);
             } else {
@@ -195,10 +206,10 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
   return (LSD.Script.parsed[value] = (result.length == 1 ? result[0] : result));
 };
 
-Parser.multiline = function(source) {
-  for (var match, lines = [], regex = LSD.Script.Parser.rLine; match = regex.exec(source);) 
+Parser.multiline = function(scope) {
+  for (var match, lines = [], regex = LSD.Script.Parser.rLine; match = regex.exec(scope);) 
     if (match[2] !== "") lines.push(match.splice(1));
-  var args, baseline, blocks = [], indent, level = 0;
+  var args, baseline, blocks = [], indent, level = 0, memo = {};
   for (var k = 0, line, results = [], previous, i = 0; line = lines[k]; k++) {
     if (baseline) {
       if (line[0].substr(0, baseline.length) != baseline) {
@@ -244,14 +255,14 @@ Parser.multiline = function(source) {
       }
       level = i;
     } else baseline = line[0];
-    previous = LSD.Script.parse(line[1]);
+    previous = LSD.Script.parse(line[1], memo);
     if (blocks.length) {
       blocks[blocks.length - 1].value.push(previous)
     } else {
       results.push(previous);
     }
     if (line[2]) {
-      args = LSD.Script.parse(line[2]);
+      args = LSD.Script.parse(line[2], memo);
       if (!args.push) args = [args];
     } else args = null;
   }

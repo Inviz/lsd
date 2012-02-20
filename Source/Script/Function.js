@@ -32,11 +32,11 @@ provides:
   arguments is changed.
 */
 
-LSD.Script.Function = function(input, source, output, name) {
+LSD.Script.Function = function(input, scope, output, name) {
   if (!input) return;
   this.input = input;
   this.output = output;
-  this.source = source;
+  this.scope = scope;
   this.name = name;
   this.args = Array.prototype.slice.call(input, 0);
 };
@@ -151,7 +151,7 @@ LSD.Script.Function.prototype.augment = function(args, name) {
   return args;
 };
 LSD.Script.Function.prototype.translate = function(arg, state, i, piped, origin) {
-  if (!arg.script && state) arg = LSD.Script.compile(arg, this.source, null, false);
+  if (!arg.script && state) arg = LSD.Script.compile(arg, this.scope, null, false);
   if (!arg.parents) arg.parents = [];
   if (origin && !origin.local && origin.script) {
     var arg = origin;

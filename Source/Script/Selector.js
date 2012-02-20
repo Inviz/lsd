@@ -64,31 +64,31 @@ provides:
 */
 
 
-LSD.Script.Selector = function(input, source, output) {
+LSD.Script.Selector = function(input, scope, output) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
   this.input = input.replace(LSD.Script.Selector.rElementContext, function(whole, match) {
     switch (match) {
       case "$": 
-        this.element = this.source.toElement();
+        this.element = this.scope.toElement();
         return '';
       case "$$":
-        this.element = this.source.toElement().ownerDocument.body;
+        this.element = this.scope.toElement().ownerDocument.body;
         return '';
     }
   }.bind(this));
   this.output = output;
-  this.source = this.getContext();
+  this.scope = this.getContext();
   this.collection = new LSD.Array;
-  if (!this.source) throw "Selector should be applied on widgets";
+  if (!this.scope) throw "Selector should be applied on widgets";
 };
 
 LSD.Script.Selector.prototype = new LSD.Script.Variable;
 LSD.Script.Selector.prototype.type = 'selector',
-LSD.Script.Selector.prototype.request = function(input, callback, source, state) {
+LSD.Script.Selector.prototype.request = function(input, callback, scope, state) {
   if (this.element) {
     LSD.Slick.search(this.element, input).each(callback);
   } else {
-    this.source[state ? 'watch' : 'unwatch'](input, callback);
+    this.scope[state ? 'watch' : 'unwatch'](input, callback);
   }
   if (typeof this.value == 'undefined') this.reset()
 };

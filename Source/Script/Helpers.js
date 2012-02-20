@@ -157,11 +157,11 @@ Object.each(LSD.Script.Operators, function(value, operator) {
   local scope and will be undefined if expression will be unrolled
 */
 LSD.Script.Helpers['='] = LSD.Script.Helpers['define'] = function(name, value) {
-  (this.source.variables || this.source).set(name, value);
+  (this.scope.variables || this.scope).set(name, value);
   return value;
 };
 LSD.Script.Helpers['undefine'] = function(name, value) {
-  (this.source.variables || this.source).unset(name, value);
+  (this.scope.variables || this.scope).unset(name, value);
   return value;
 }
 
