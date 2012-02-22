@@ -1,7 +1,7 @@
 /*
 ---
 
-script: Object.Struct.js
+script: Struct.js
 
 description: An observable object with setters
 
@@ -26,16 +26,14 @@ provides:
 LSD.Struct = function(properties, Base) {
 /*
   `new LSD.Struct` creates a constructor, that can be used to
-  instantiate instances of that struct, which bears close 
+  construct instances of that structure, which bears close 
   resemblance to OOP.
 */
   var Struct = function(object) {
-    var proto = this.prototype;
-    if (proto && proto._constructors) return new Struct(object, arguments[1])
+    if (this.Variable) return new Struct(object, arguments[1])
 /*
   Inherited properties is an internal concept that allows an instance of a class to 
-  recieve its own copy of a private object (used to unlink value stacks in all structs)
-  without recursive cloning. 
+  recieve its own copy of a private object from prototype without recursive cloning. 
 */
     for (var i = 0, obj = this._inherited, inherited, group, cloned, value; obj && (inherited = obj[i++]);)
       if ((group = this[inherited])) {
@@ -76,8 +74,9 @@ LSD.Struct = function(properties, Base) {
     for (var name in properties) {
       var mutator = LSD.Struct.Mutators[name];
       if (typeof properties[name] != 'undefined' && mutator) {
-        if (typeof mutator == 'function') LSD.Struct.Mutators[name].call(Struct, properties[name]);
-        else Struct.prototype[mutator === true ? 'set' : mutator]('_' + name, properties[name]);
+        if (typeof mutator == 'function') {
+          LSD.Struct.Mutators[name].call(Struct, properties[name]);
+        } else Struct.prototype[mutator === true ? 'set' : mutator]('_' + name, properties[name]);
       }
     }
   }

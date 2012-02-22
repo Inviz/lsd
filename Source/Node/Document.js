@@ -48,19 +48,6 @@ LSD.Document = LSD.Struct.Stack({
 });
 LSD.Document.prototype._preconstruct = ['childNodes', 'events'];
 LSD.Document.prototype.__initialize = function() {
-  var doc = this, proto = LSD.Document.prototype;
-  Object.each(LSD.NodeTypes, function(name, type) {
-    var Node = LSD.Document.NodeTypes[type] = LSD[name];
-    var constructor = function() {
-      return Node.apply(doc === this || proto === this ? Node : this, arguments);
-    };
-    constructor.prototype = new Node;
-    constructor.prototype.document = doc;
-    LSD.Document.prototype['create' + name] = LSD.Document.prototype[name] = constructor;
-    if (type === 3)
-      LSD.Document.prototype.createTextNode = LSD.Document.prototype.createText =
-      LSD.Document.prototype.TextNode = LSD.Document.prototype.Text = constructor;
-  });
   if (!LSD.document) LSD.document = this;
   return LSD.Element.prototype.__initialize.apply(this, arguments);
 }
@@ -143,6 +130,7 @@ LSD.Document.prototype.mix({
   properties:  {},
   roles:       {}
 });
+LSD.Document.NodeTypes = {};
 LSD.NodeTypes = {
   1:  'Element',
   3:  'Textnode',
@@ -150,7 +138,37 @@ LSD.NodeTypes = {
   8:  'Comment',
   11: 'Fragment'
 };
-LSD.Document.NodeTypes = {};
 LSD.Document.prototype.createNode = function(type, element, options) {
-  return new (this[LSD.NodeTypes[type]])(element, options)
+  var node = new (LSD[LSD.NodeTypes[type]])(element, options);
+  //node.ownerDocument = this;
+  return node;
 };
+LSD.Document.prototype.createElement = function(element, options) {
+  var node = new LSD.Element(element, options);
+  node.ownerDocument = this;
+  return node;
+};
+LSD.Document.prototype.createTextNode = function(element, options) {
+  var node = new LSD.Textnode(element, options);
+  node.ownerDocument = this;
+  return node;
+};
+LSD.Document.prototype.createInstruction = function(element, options) {
+  var node = new LSD.Instruction(element, options);
+  node.ownerDocument = this;
+  return node;
+};
+LSD.Document.prototype.createComment = function(element, options) {
+  var node = new LSD.Comment(element, options);
+  node.ownerDocument = this;
+  return node;
+};
+LSD.Document.prototype.createFragment = function(element, options) {
+  var node = new LSD.Fragment(element, options);
+  node.ownerDocument = this;
+  return node;
+};
+
+Object.each(LSD, function(value, key) {
+  if (typeof value == 'function') value.displayName = 'LSD.' + key;
+})

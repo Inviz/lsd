@@ -11,7 +11,6 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Script
-  - LSD.Script.Variable
   - LSD.Script.Helpers
   
 provides:
@@ -41,8 +40,8 @@ LSD.Script.Function = function(input, scope, output, name) {
   this.args = Array.prototype.slice.call(input, 0);
 };
 
-LSD.Script.Function.prototype = new LSD.Script.Variable;
-LSD.Script.Function.prototype.type = 'function',
+LSD.Script.Function.prototype = new LSD.Script;
+LSD.Script.Function.prototype.type = 'function';
 LSD.Script.Function.prototype.fetch = function(state, origin, reset) {
   if (origin) this.origin = origin;
   this.attached = state;

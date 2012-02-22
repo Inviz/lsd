@@ -36,9 +36,13 @@ LSD.Fragment.prototype.node = function(object, parent, memo, nodeType) {
       children = object.childNodes;
   if (!nodeType) nodeType = object.nodeType
   if (!parent) parent = this;
-  if (!widget) 
-    widget = (parent && parent.document || LSD.Document.prototype).createNode(nodeType, object);
-  else if (memo && memo.clone) 
+  if (!widget) switch (nodeType) {
+    case 8: case 3:
+      if ((widget = this.instruction(object, parent, memo)))
+        break;
+    default:
+      widget = (parent && parent.document || LSD.Document.prototype).createNode(nodeType, object);
+  } else if (memo && memo.clone) 
     widget = widget.cloneNode();
   if (widget.parentNode != parent) parent.appendChild(widget, memo);
   if (children)
@@ -46,10 +50,7 @@ LSD.Fragment.prototype.node = function(object, parent, memo, nodeType) {
       this.node(child, widget, memo);
   return widget;
 };
-LSD.Fragment.prototype.comment = function(object, parent, memo) {
-  return this.instruction(object, parent, memo) || this.node(object, parent, memo, 8);
-};
-LSD.Fragment.prototype.instruction = function(object, parent, memo) {
+LSD.Fragment.prototype.instruction = function(object, parent, memo, keep) {
   if (typeof object.nodeType == 'number') {
     var element = object;
     object = element.nodeValue;
@@ -71,18 +72,13 @@ LSD.Fragment.prototype.instruction = function(object, parent, memo) {
         
 
     }
-    return this.node(object, parent, memo, 5)
+    return keep ? object : this.node(object, parent, memo, 5)
   }
 };
 LSD.Fragment.prototype.enumerable = function(object, parent, memo) {
   for (var i = 0, length = object.length; i < length; i++)
     this[this.typeOf(object[i])](object[i], parent, memo)
 };
-LSD.Fragment.prototype.element    = LSD.Fragment.prototype.fragment = 
-LSD.Fragment.prototype.textnode   = LSD.Fragment.prototype.node;
-LSD.Fragment.prototype.arguments  = LSD.Fragment.prototype.collection = 
-LSD.Fragment.prototype.children   = LSD.Fragment.prototype.array 
-                                  = LSD.Fragment.prototype.enumerable;
 LSD.Fragment.prototype.object = function(object, parent, memo) {
   var skip = object._skip, value, result;
   for (var selector in object) {
@@ -101,11 +97,11 @@ LSD.Fragment.prototype.string = function(object, parent, memo) {
 LSD.Fragment.prototype.html = function(object, parent, memo) {
   if (!this._dummy) {
     this._dummy = document.createElement('div');
-		/*@cc_on this._dummy.style.display = 'none';@*/
-	}
-	/*@cc_on document.body.appendChild(this._dummy);@*/
-	this._dummy.innerHTML = object.toString();
-	/*@cc_on document.body.removeChild(this._dummy);@*/
+    /*@cc_on this._dummy.style.display = 'none';@*/
+  }
+  /*@cc_on document.body.appendChild(this._dummy);@*/
+  this._dummy.innerHTML = object.toString();
+  /*@cc_on document.body.removeChild(this._dummy);@*/
   return this.enumerable(this.slice.call(this._dummy.childNodes), parent, memo);
 };
 LSD.Fragment.prototype.selector = function(object, parent, memo) {
@@ -124,7 +120,7 @@ LSD.Fragment.prototype.typeOf = function(object, memo) {
   }
   return type;
 };
-LSD.Fragment.prototype.slice        = Array.prototype.slice;
+LSD.Fragment.prototype.slice = Array.prototype.slice;
 ['appendChild', 'insertBefore', 'removeChild', 'inject', 'grab'].each(function(method) {
   LSD.Fragment.prototype[method] = LSD.Element.prototype[method];
 });

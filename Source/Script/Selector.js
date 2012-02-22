@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Script.Variable
+  - LSD.Script
   
 provides:
   - LSD.Script.Selector
@@ -82,7 +82,7 @@ LSD.Script.Selector = function(input, scope, output) {
   if (!this.scope) throw "Selector should be applied on widgets";
 };
 
-LSD.Script.Selector.prototype = new LSD.Script.Variable;
+LSD.Script.Selector.prototype = new LSD.Script;
 LSD.Script.Selector.prototype.type = 'selector',
 LSD.Script.Selector.prototype.request = function(input, callback, scope, state) {
   if (this.element) {

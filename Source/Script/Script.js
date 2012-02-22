@@ -10,7 +10,8 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires: 
-  - LSD/LSD
+  - LSD
+  - LSD.Struct
   
 provides:
   - LSD.Script
@@ -44,39 +45,146 @@ provides:
 */
 
 LSD.Script = function(input, scope, output) {
-  if (typeof input == 'undefined') return;
-  if (arguments.length == 1 && input && typeof input == 'object') {
-    var options = input;
-    input = options.input;
-    output = options.output;
-    scope = options.scope;
-  }
-  var Script = this.Script || LSD.Script;
-  if (input.script) {
-    var result = input;
-    if (output) result.output = output;
-    if (scope) result.scope = scope;
-  } else var result = Script.compile(input, scope, output);
-  if (result.script) {
-    if (options) {
-      if (options.placeholder) result.placeholder = options.placeholder;
-      if (options.local) result.local = true;
-    }
-    if (scope) result.attach();
+  var regex = this._regexp;
+  if (regex && (!input || (typeof input == 'string' && regex.test(input)))) {
+    if (input)  this.input  = input;
+    if (scope)  this.scope  = scope;
+    if (output) this.output = output;
+    return;
+  } else if (input.script) {
+    if (output) input.output = output;
+    if (scope) input.scope = scope;
+    return input;
   } else {
-    if (output) Script.callback(output, result);
+    var Script = (this.Script || LSD.Script), result = Script.compile(input, scope, output);
+    if (result.script) {
+      if (scope) result.attach();
+    } else if (output) Script.callback(output, result);
+    return result;
   }
-  return result;
 };
-LSD.Script.Script = LSD.Script;
+/*
+  Variables are the core of LSD.Script. A variable attaches to a widget and 
+  notifies it that there's a named variable that needs to populate its value.
 
+  A widget may have muptiple scopes of data for variables. The only scope
+  that is enabled by default is microdata and dataset, so a HTML written the 
+  right way provides values for variables. Microdata and dataset objects, 
+  just like other other store objects used are LSD.Object-compatible. 
+  These objects provide `.watch()` interface that allows to observe changes
+  in object values. Any object may be used as the scope for data to populate
+  variables with values.
+
+  Each variable has a name, which is used as the key to fetch values.
+  LSD.Object provides support for nested keys as in `post.author.name` that
+  sets up a chain of observers and whenever any of the parts are changed,
+  the variable is set a new value.
+
+  A value may have a placeholder - default value to be used when the value
+  was not found in widget.
+
+  A variable may have a parent object, a function that has that variable 
+  as argument. Whenever variable changes, it only calls parent function
+  to update, and that function cascades up updating all the parents. That 
+  makes values recompule lazily.
+
+  A variable accepts `output` as a second parameter. It may be function,
+  text node, a layout branch or widget. Variable class is also a base
+  class for Function and Selector classes, so they are all handle
+  `output` the same way.
+*/
+LSD.Script.Struct = new LSD.Struct({
+  input: function() {
+
+  },
+  output: function() {
+
+  },
+  scope: function() {
+
+  },
+  placeholder: function() {
+
+  },
+  value: function() {
+    if (value == null && this.placeholder) {
+      value = this.placeholder;
+      this.placeheld = true;
+    } else if (this.placeheld) delete this.placeheld;
+    if (this.output && output !== false) this.update(value, old);
+    if (this.attached !== false && this.parents)
+      for (var i = 0, parent; parent = this.parents[i++];) {
+        if (!parent.translating && parent.attached !== false) parent.setValue();
+      }
+    if (this.wrapper && this.wrapper.wrappee)
+      this.wrapper.wrappee.onSuccess(value)
+    return this;
+  },
+  attached: function(value, old) {
+    if (!value) this.unset('value', this.value);
+    if (!this.setter) this.setter = this.setValue.bind(this);
+    if (this.scope != null)
+      this[this.scope.call ? 'scope' : 'request'](this.input, this.setter, this.scope, !!value);
+    return !!value;
+  },
+  wrapper: function() {
+
+  },
+  wrapped: function() {
+
+  }
+});
+LSD.Script.prototype = new LSD.Script.Struct;
+LSD.Script.prototype.Script = LSD.Script.Script = LSD.Script;
+LSD.Script.prototype.type = 'variable';
+LSD.Script.prototype.request = function(input, callback, scope, state) {
+  return (this.scope.variables || this.scope)[state ? 'watch' : 'unwatch'](input, callback);
+};
+LSD.Script.prototype.setValue = function(value, reset) {
+  if (this.frozen) return;
+  var old = this.value;
+  this.value = this.process ? this.process(value) : value;
+  if (reset || typeof this.value == 'function' || old !== this.value || (this.invalidator && (this.invalidator())))
+    this.onValueSet(this.value, null, old);
+};
+LSD.Script.prototype.onValueSet = function(value, output, old) {
+  if (value == null && this.placeholder) value = this.placeholder;
+  if (this.output && output !== false) this.update(value, old);
+  if (this.attached !== false && this.parents)
+    for (var i = 0, parent; parent = this.parents[i++];) {
+      if (!parent.translating && parent.attached !== false) parent.setValue();
+    }
+  if (this.wrapper && this.wrapper.wrappee)
+    this.wrapper.wrappee.onSuccess(value)
+  return this;
+};
+LSD.Script.prototype.attach = function(origin) {
+  return this.fetch(true, origin);
+};
+LSD.Script.prototype.detach = function(origin) {
+  delete this.value;
+  return this.fetch(false, origin);
+};
+LSD.Script.prototype.fetch = function(state, origin) {
+  if (this.attached ^ state) {
+    if (!state) delete this.value;
+    this.attached = state;
+    if (!this.setter) this.setter = this.setValue.bind(this);
+    if (this.scope != null)
+      this[this.scope.call ? 'scope' : 'request'](this.input, this.setter, this.scope, state);
+  }
+  return this;
+};
+LSD.Script.prototype.request = function(input, callback, scope, state) {
+  return (this.scope.variables || this.scope)[state ? 'watch' : 'unwatch'](input, callback);
+};
 LSD.Script.prototype.compile = function(object, scope, output, parse) {
   if (parse !== false && typeof object == 'string') object = this.parse(object);
   if (object.push && object.length === 1) object = object[0];
   var Script = this.Script || LSD.Script
   switch (object.type) {
     case 'variable':
-      var script = new Script.Variable(object.name, scope, output);
+      var script = new Script(object.name, scope, output);
       break;
     case 'function':
       var script = new Script.Function(object.value, scope, output, object.name);
@@ -101,9 +209,9 @@ LSD.Script.prototype.compile = function(object, scope, output, parse) {
 };
 
 /*
-  LSD is about compiling code into asynchronous objects that observe properties.
+  LSD is all about compiling code into asynchronous objects that observe properties.
   But sometimes there needs to be a javascript function compiled that can be used
-  in a hot code and not observe any variables with as few function calls as possible.
+  on a hot code and not observe any variables with as few function calls as possible.
 */
 LSD.Script.prototype.toJS = function(options) {
   var source = this.source || this.input;
@@ -115,7 +223,6 @@ LSD.Script.prototype.toJS = function(options) {
   var get = options && options.get || this._compiled_get;
   var call = options && options.call || this._compiled_call;
   var op = options && options.op || this._compiled_op;
-  var ret = options && options.ret || this._compiled_ret;
   var context = options && options.context || (this._compiled_context && this);
   switch (typeof source) {
     case 'string': return '"' + source + '"';
@@ -241,7 +348,7 @@ LSD.Script.prototype.lookup = function(name, arg, scope) {
   of overloading a method, it overloads a single expression.
   
     var wrappee = LSD.Script('submit()');
-    var wrapper = LSD.Script('prepare(), yield() || error(), after())
+    var wrapper = LSD.Script('prepare(), yield() || error(), after()')
     wrapper.wrap(wrappee).execute();
     
   In example above, `prepare()` method may return data that will be
@@ -278,6 +385,6 @@ LSD.Script.prototype.getContext = function() {
 LSD.Script.prototype.Script = LSD.Script;
 LSD.Script.prototype.script = true;
 LSD.Script.prototype._compiled_call = 'dispatch';
-LSD.Script.prototype._compiled_ret = 'return';
+LSD.Script.prototype._regexp = /^[-_a-zA-Z0-9.]+$/;
 LSD.Script.compile = LSD.Script.prototype.compile;
 LSD.Script.toJS = LSD.Script.prototype.toJS;

@@ -27,12 +27,12 @@ provides:
   in regular javascript functions as a callback.
 */
 
+
 LSD.Script.Block = function(input, scope, output, locals, origin) {
   this.input = input;
   this.output = output;
   this.scope = scope;
   this.args = Array.prototype.slice.call(input, 0);
-  delete this.name;
   this.callback = this.yield.bind(this);
   this.callback.block = this;
   this.value = this.callback;
@@ -50,7 +50,30 @@ LSD.Script.Block = function(input, scope, output, locals, origin) {
   if (!origin && locals) this.findLocals(locals);
 }
 
-LSD.Script.Block.prototype = new LSD.Script.Function;
+LSD.Script.Block.Struct = new LSD.Struct({
+  Extends: LSD.Script.Function,
+  
+  origin: function() {
+    
+  },
+  attached: function(value) {
+    if (value) {
+      if (this.invoked) {
+        this.fetch(value, origin);
+      } else {
+        if (this.yields)
+          for (var property in this.yields) {
+            var yield = this.yields[property];
+            if (yield) {
+              if (value) yield.attach();
+              else this.yield('unyield', null, null, property);
+            }
+          }
+      }
+    }
+  }
+})
+LSD.Script.Block.prototype = new LSD.Script.Block.Struct;
 LSD.Script.Block.prototype.type = 'block',
 LSD.Script.Block.prototype.yield = function(keyword, args, callback, index, old, limit) {
   if (args == null) args = [];
@@ -176,13 +199,13 @@ LSD.Script.Block.prototype.onValueSet = function(value) {
     this.yielder(value, this.invoked[0], this.invoked[1], this.invoked[2], this.invoked[3]);
     delete this.invoked[3];
   }
-  return LSD.Script.Variable.prototype.onValueSet.call(this, value, false);
+  return LSD.Script.prototype.onValueSet.call(this, value, false);
 };
 LSD.Script.Block.prototype.update = function(value) {
   if (this.parents) for (var i = 0, parent; parent = this.parents[i++];) {
     parent.value = value;
     if (!parent.translating) 
-      LSD.Script.Variable.prototype.onValueSet.call(parent, null, false);
+      LSD.Script.prototype.onValueSet.call(parent, null, false);
   }
 };
 LSD.Script.Block.prototype.findLocals = function(locals) {

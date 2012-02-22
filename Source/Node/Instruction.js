@@ -34,7 +34,6 @@ provides:
 
 LSD.Instruction = function(input) {
   var script = new LSD.Script(input)
-  script.output = script;
   script.nodeType = 5;
   script.childNodes = new LSD.Properties.ChildNodes.Virtual;
   return script;

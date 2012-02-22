@@ -31,8 +31,7 @@ sources:
   - Source/Properties/Attributes.js
   - Source/Properties/Events.js
   - Source/Properties/Resource.js
-  - Source/Script.js
-  - Source/Script/Variable.js
+  - Source/Script/Script.js
   - Source/Script/Function.js
   - Source/Script/Parser.js
   - Source/Script/Helpers.js
