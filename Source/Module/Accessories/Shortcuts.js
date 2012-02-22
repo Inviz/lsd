@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - Ext/Shortcuts
+  - Ext/Element.Events.keypress
   - LSD.Module
   - LSD.Module.Events
   
