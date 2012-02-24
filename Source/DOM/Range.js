@@ -1,3 +1,22 @@
+/*
+---
+ 
+script: Range.js
+ 
+description: A DOM-compatible range from node to node
+ 
+license: Public domain (http://unlicense.org).
+
+authors: Yaroslaff Fedin
+ 
+requires:
+  - LSD.Struct.Array
+  
+provides: 
+  - LSD.Range
+...
+*/
+
 LSD.Range = new LSD.Struct.Array({
   endContainer: function() {
     

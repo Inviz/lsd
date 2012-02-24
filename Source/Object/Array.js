@@ -314,7 +314,6 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
         this._skipped = (this._skipped || 0) + +!!fn(array[i], i, state, prev);
         result = undefined;
       } else {
-        console.error(this._skipped, array.__length, this, this.__length)
         result = array._callback(watcher, array[i], i, state, prev, this._limit);
         prev = null;
         if (limit) {

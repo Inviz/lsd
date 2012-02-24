@@ -15,7 +15,7 @@ requires:
   - Core/Element
 
 provides: 
-  - LSD.Mixin.Draggable
+  - LSD.Properties.ChildNodes
  
 ...
 */
@@ -89,6 +89,7 @@ LSD.Properties.ChildNodes.Virtual = LSD.Struct.Array({
     }
   }
 });
+LSD.Properties.ChildNodes.Virtual.prototype.virtual = true;
 LSD.Properties.ChildNodes.Virtual.prototype._onShift = LSD.Properties.ChildNodes.prototype._onShift;
 LSD.Properties.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old) {
   if (old != null) return;
@@ -106,4 +107,3 @@ LSD.Properties.ChildNodes.Virtual.prototype.onSet = function(value, index, state
     else children.splice(children.indexOf((this[index - 1] || subject).nextSibling), 0, value);
   }
 };
-LSD.Properties.ChildNodes.Virtual.prototype.virtual = true;
