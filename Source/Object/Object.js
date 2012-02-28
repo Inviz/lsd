@@ -65,11 +65,17 @@ LSD.Object.prototype = {
   properties is defined in `_skip` object below
 */
     if (index !== -1 || nonenum !== true) {
-      if((this._onChange && typeof (value = this._onChange(key, value, true, old, memo, hash)) == 'undefined')
-      || (this.onChange && typeof (value = this.onChange(key, value, true, old, memo, hash)) == 'undefined')) {
-        if (hash == null) this[key] = old;
-        return;
-      }
+      var changed;
+      if (this._onChange && typeof (changed = this._onChange(key, value, true, old, memo, hash)) != 'undefined')
+        if (changed === this._skip) {
+          if (hash == null) this[key] = old;
+          return;
+        } else value = changed;
+      if (this.onChange && typeof (changed = this.onChange(key, value, true, old, memo, hash)) != 'undefined')
+        if (changed === this._skip) {
+          if (hash == null) this[key] = old;
+          return;
+        } else value = changed;
       if (value != null && value._set && this._children !== false && value._parent == null)
         value._set('_parent', this);
     }
@@ -80,7 +86,7 @@ LSD.Object.prototype = {
 */
     var watchers = this._watchers;
     if (watchers) for (var i = 0, j = watchers.length, watcher, fn; i < j; i++) {
-      if ((watcher = watchers[i]) == null) continue
+      if ((watcher = watchers[i]) == null) continue;
       if (typeof watcher == 'function') watcher.call(this, key, value, true, old, memo, hash);
       else this._callback(watcher, key, value, true, old, memo, hash);
     }
@@ -98,7 +104,7 @@ LSD.Object.prototype = {
             if (value.mix) value.mix(item[0], item[1], item[2], true, item[3], item[4]);
             else if (typeof value == 'object' && item[1] == null) Object.append(value, item[0])
             else value[item[0]] = item[1];
-          if (old != null && old.mix && (!item[2] || !item[2]._delegate || !item[2]._delegate(old, key, item[0], false)))
+          if (old != null && (!item[2] || !item[2]._delegate || !item[2]._delegate(old, key, item[0], false)))
             old.mix(item[0], item[1], item[2], false, item[3], item[4]);
         }
     } 
@@ -119,10 +125,15 @@ LSD.Object.prototype = {
     if (vdef) old = value;
     else var old = this[key];
     if (!hash && vdef && typeof old == 'undefined') return false;
+    if (hash == null) delete this[key];
     if (index !== -1 || !this._skip[key]) {
-      if ((this._onChange && (value = this._onChange(key, old, false, undefined, memo, hash)) == null && old != null)
-      ||  (this.onChange  && (value = this.onChange(key, old, false, undefined, memo, hash)) == null && old != null))
-        return false;
+      var changed;
+      if (this._onChange && typeof (changed = this._onChange(key, old, false, undefined, memo, hash)) != 'undefined')
+        if (changed === this._skip) return;
+        else value = changed;
+      if (this.onChange && typeof (changed = this.onChange(key, old, false, undefined, memo, hash)) != 'undefined')
+        if (changed === this._skip) return;
+        else value = changed;
       if (value != null && this._children !== false && value._unset && value._parent === this) 
         value._unset('_parent', this);
       this._length--;
@@ -139,7 +150,6 @@ LSD.Object.prototype = {
         for (var i = 0, fn; fn = watched[i++];)
           if (fn.call) fn.call(this, undefined, old);
           else this._callback(fn, key, undefined, old, memo);
-      if (hash == null) delete this[key];
       var stored = this._stored && this._stored[key];
       if (stored != null && value != null) {
         for (var i = 0, item; item = stored[i++];) {

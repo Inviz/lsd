@@ -269,8 +269,9 @@ LSD.Struct.prototype = {
     (this._scripted || (this._scripted = {}))[key] = LSD.Script(expression, this, key);
   },
   _unscript: function(key, value) {
-    this._scripted[key].onValueSet(undefined, null, this._scripted[key].value)
-    this._scripted[key].detach();
+    var script = this._scripted[key];
+    script.unset('attached', script.attached);
+    script.unset('value', script.value)
     delete this._scripted[key]
   },
   _linker: function(call, key, value, old, memo) {

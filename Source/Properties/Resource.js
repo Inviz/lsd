@@ -45,19 +45,15 @@ LSD.Resource = new LSD.Struct.Array({
     this.reset('path', this.prefix ? value ? this.prefix + '/' + value : this.prefix : value || '');
     this.reset('singular', value ? value.singularize() : value);
     this.reset('foreign_key', this.singular + '_id')
-    return typeof value == 'undefined' ? old : value;
   },
   prefix: function(value, old) {
     this.reset('path', this._name ? value ? value + '/' + this._name : this._name  : value || '');
-    return typeof value == 'undefined' ? old : value;
   },
   path: function(value, old) {
     this.reset('url', this.domain ? value ? this.domain + '/' + value : this.domain : value || '');
-    return typeof value == 'undefined' ? old : value;
   },
   domain: function(value, old) {
     this.reset('url', value + (this.path ? '/' + this.path : ''))
-    return typeof value == 'undefined' ? old : value;
   }
 });
 LSD.Properties.Resource = LSD.Resource;
@@ -66,7 +62,7 @@ LSD.Resource.prototype.path = '';
 LSD.Resource.prototype.url = '';
 LSD.Resource.prototype.domain = null;
 LSD.Resource.prototype.onChange = function(key, value, state, old, memo) {
-  if (value._constructor === LSD.Resource) {
+  if (value != null && value._constructor === LSD.Resource) {
     value[state ? 'set' : 'unset']('name', key);
   }
   return value;

@@ -198,7 +198,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
         // remove original value
         values.push(this[i + index]);
         this.unset(i + index, this[i + index], false);
-      } else {    
+      } else {
 /*
   If there is more values to be inserted (#2) then to be removed,
   splice shifts the array to the right by iterating from end 
@@ -310,7 +310,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
     }
     for (var i = 0, result, fn, j = array.__length >>> 0; i < j; i++) {
       if (offset > 0 && (!this._skipped || this._skipped < offset)) {
-        if (fn == null) fn = block.block ? block.block.build() : block;
+        if (fn == null) fn = block.block ? block.block.eval() : block;
         this._skipped = (this._skipped || 0) + +!!fn(array[i], i, state, prev);
         result = undefined;
       } else {

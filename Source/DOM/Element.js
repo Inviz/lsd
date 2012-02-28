@@ -111,7 +111,6 @@ LSD.Element.prototype.__properties = {
         if (old) sibling.matches.remove(' ', old, this);
       }
     }
-    return value;
   },
   localName: function(value, old) {
     return value;
@@ -140,7 +139,6 @@ LSD.Element.prototype.__properties = {
   element: function(element, old) {
     if (element) element.lsd = this.lsd;
     if (old) delete old.lsd;
-    return element || old;
   },
   origin: function(value, old, memo) {
     var extracted = this.extracted;
@@ -196,7 +194,7 @@ LSD.Element.prototype.__properties = {
         if (script || exp == null)
           (extracted.attributes || (extracted.attributes = {}))[name || attribute.name] = script 
             ? script.length > 1 
-              ? new LSD.Script.Function(script, this, null, 'concat') 
+              ? new LSD.Script({name: 'concat', input: script, type: 'function'}) 
               : script[0]
             : attribute.value;
         if (script) {
@@ -226,7 +224,6 @@ LSD.Element.prototype.__properties = {
       }
       delete this.extracted;
     }
-    return value || old;
   },
   sourceIndex: function(value, old, memo) {
     if (memo !== false) for (var node = this, next, nodes, i = 0; node; node = next) {
@@ -242,11 +239,9 @@ LSD.Element.prototype.__properties = {
   firstChild: function(value, old) {
     if (value)
       value.reset('sourceIndex', (this.sourceIndex || 0) + 1);
-    return value || old;
   },
   previousSibling: function(value, old) {
     if (value) this.reset('sourceIndex', (value.sourceLastIndex || value.sourceIndex || 0) + 1);
-    return typeof value == 'undefined' ? old : value;
   },
   previousElementSibling: function(value, old) {
     for (var i = 0, node, method; i < 2; i++) {
@@ -261,7 +256,6 @@ LSD.Element.prototype.__properties = {
         }
       }
     }
-    return typeof value == 'undefined' ? old : value;
   },
   nextElementSibling: function(value, old) {
     for (var i = 0, node, method; i < 2; i++) {
@@ -276,7 +270,6 @@ LSD.Element.prototype.__properties = {
         }
       }
     }
-    return typeof value == 'undefined' ? old : value;
   },
   parentNode: function(value, old) {
     if (!value) this.unset('sourceIndex', this.sourceIndex);
@@ -292,7 +285,6 @@ LSD.Element.prototype.__properties = {
         }
       }
     }
-    return value || old;
   },
   built: function(value, old) {
     if (old) {
@@ -322,33 +314,27 @@ LSD.Element.prototype.__properties = {
     }
     if (value) this.mix('childNodes.built', value);
     if (old) this.mix('childNodes.built', old, null, false);
-    return typeof value == 'undefined' ? old : value;
   },
   className: 'classList._name',
   focused: function(value, old) {
     if (value) this.mix('parentNode.focused', value);
     if (old) this.mix('parentNode.focused', old, null, false);
-    return value;
   },
   rendered: function(value, old) {
     if (value) this.mix('childNodes.rendered', value);
     if (old) this.mix('childNodes.rendered', old, null, false);
-    return value;
   },
   disabled: function(value, old) {
     if (value) this.mix('childNodes.disabled', value);
     if (old) this.mix('childNodes.disabled', old, null, false);
-    return value;
   },
   document: function(value, old) {
     if (value) this.mix('childNodes.document', value);
     if (old) this.mix('childNodes.document', old, null, false);
-    return value;
   },
   root: function(value, old) {
     if (value) this.mix('childNodes.root', value);
     if (old) this.mix('childNodes.root', old, null, false);
-    return value;
   },
   multiple: function(value, old) {
     if (value) {

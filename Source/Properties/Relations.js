@@ -66,6 +66,7 @@ LSD.Properties.Relations.prototype.onChange = function(key, value, state, old) {
     if (property != null) {
     }
   }
+  return this._skip;
 };
 LSD.Properties.Relations.prototype.onGroup = function(key, value, state) {
   if (state !== false) {

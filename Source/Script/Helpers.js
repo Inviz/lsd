@@ -82,7 +82,10 @@ LSD.Script.Helpers['yield'] = function(value) {
     if (fn.wrapped) {
       fn.wrappee = this;
       fn.wrapped.prepiped = fn.wrapped.piped = value;
-      fn.wrapped.attach()
+      delete fn.wrapped.executed;
+      delete fn.wrapped.attached;
+      delete fn.wrapped.value;
+      fn.wrapped.set('attached', true);
       return fn.wrapped.value;
     }
   }

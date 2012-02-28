@@ -135,5 +135,4 @@ LSD.Fragment.prototype.typeOf = function(object, memo) {
 ['appendChild', 'insertBefore', 'removeChild', 'inject', 'grab'].each(function(method) {
   LSD.Fragment.prototype[method] = LSD.Element.prototype[method];
 });
-LSD.Fragment.prototype.slice = Array.prototype.slice;
 LSD.Fragment.prototype.R_WORD       = /\w+/; 

@@ -38,6 +38,9 @@ LSD.Instruction = function(input) {
   script.childNodes = new LSD.Properties.ChildNodes.Virtual;
   return script;
 };
+LSD.Script.prototype._properties.alternative = function(script) {
+  
+};
 ['appendChild', 'insertBefore', 'removeChild', 'inject', 'grab'].each(function(method) {
   LSD.Script.prototype[method] = LSD.Element.prototype[method];
 });

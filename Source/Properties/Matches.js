@@ -123,7 +123,7 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, state, 
       }
       if (j == 1 || expressions == expression) break;
     }
-    if (j > 1 || l > 1) return;
+    if (j > 1 || l > 1) return this._skip;
   }
   /* 
     Expression may be a state selector, that expects current node
@@ -190,6 +190,7 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, state, 
       }
     }
   }
+  return this._skip;
 };
 /*
   Advancer callback is called whenever a widget is matched selector expression.

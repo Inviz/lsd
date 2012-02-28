@@ -20,19 +20,56 @@ provides:
 */
 !function(exports) {
 var Parser = LSD.Script.Parser = function() {};
-Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = function(value, memo) {
+Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = function(value, memo, bypass) {
   if (value.indexOf('\n') > -1) return LSD.Script.Parser.multiline(value);
   if (LSD.Script.parsed) {
-  //  var cached = LSD.Script.parsed[value];
-  //  if (cached) return cached;
+    var cached = LSD.Script.parsed[value];
+    if (cached && !bypass) return cached;
   } else LSD.Script.parsed = {};
   var found, result = [], matched = [], scope = result, text, stack = [], operator, selector, block, token, fn;
   var regexp = LSD.Script.Parser.tokenize;
   var names = regexp.names;
   while (found = regexp.exec(value)) matched.push(found);
   for (var i = 0, last = matched.length - 1; found = matched[i]; i++) {
-    if ((text = found[names.fn_arguments]) != null) {
-      var args = LSD.Script.parse(text, memo);
+    if ((text = found[names.token])) {
+      var tail = found[names.token_tail], replacement;
+      if (!selector && text.match(Parser.rVariable)) {
+        /*
+          If a token starts with the dot, it should be added
+          to previous token.
+        */
+        replacement = Parser.Tokens[text];
+        if (typeof replacement != 'undefined' || text == 'undefined') {
+          scope.push(replacement);
+        } else if (!tail || !token) {
+          if (token) {
+            var functioned = token;
+            token.type = 'function';
+            scope = token.value = []
+          }
+          token = {type: 'variable', name: text};
+          if (memo && memo.locals && memo.locals[text]) token.local = true;
+          if (tail) token.tail = true;
+          scope.push(token);
+        } else {
+          token.name += '.' + text;
+        }
+      } else {
+        /*
+          Compose a selector from various tokens
+        */
+        if (tail) text = '.' + text;
+        if (!selector) {
+          selector = {type: 'selector', value: text};
+          scope.push(selector);
+        } else {
+          selector.value += ((!whitespaced && tail) ? '' : ' ') + text;
+          text = null;
+        }
+      }
+      whitespaced = null;
+    } else if ((text = found[names.fn_arguments]) != null) {
+      var args = LSD.Script.parse(text, memo, true);
       if (args.push)
         for (var j = 0, bit; bit = args[j]; j++) if (bit && bit.length == 1) args[j] = bit[0];
       if (found[names.fn_tail]) {
@@ -46,43 +83,6 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
         fn = args;
       }
       scope.push(fn);
-    } else if ((text = found[names.block])) {
-      /* 
-        if a block is met after the token, make token a function call
-        function calls dont need to have parenthesis when given a block
-      */
-      if (token && !args) {
-        scope.pop();
-        args = []
-        var bits = token.name.split('.');
-        var method = bits.pop();
-        if (token.tail) var parenttoken = scope.pop();
-        if (bits.length) {
-          if (parenttoken) parenttoke.name += bits.join('.');
-          else parenttoken = {type: 'variable', name: bits.join('.')};
-          if (token.local) parenttoken.local = token.local;
-        }
-        if (parenttoken) args.unshift(parenttoken);
-        scope.push({type: 'function', name: method, value: args})
-      }
-      if ((fn = found[names.block_arguments])) {
-        var locals = LSD.Script.parse(fn);
-        if (!locals.push) locals = [locals];
-        if (!memo) memo = {};
-        if (!memo.locals) memo.locals = {}
-        for (var j = 0, k = locals.length, local; j < k; j++)
-          if ((local = locals[j]) && local.name) memo.locals[local.name] = (memo.locals[local.name] || 0) + 1;
-      }
-      var body = LSD.Script.parse(text, memo);
-      if (body.push)
-        for (var j = 0, bit; bit = body[j]; j++) if (bit && bit.length == 1) body[j] = bit[0];
-      var block = {type: 'block', value: body.push ? body : [body]}
-      if (locals) {
-        block.locals = locals;
-        for (var j = 0, k = locals.length, local; j < k; j++)
-          if ((local = locals[j]) && local.name) memo.locals[local.name]--;
-      }
-      (args || scope).push(block);
     } else if ((text = found[names.index])) {
       if (selector) {
         selector.value += found[0];
@@ -90,25 +90,21 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
       } else {
         var left = scope.pop();
         if (typeof left == 'undefined') throw "[] object index should come after an object"
-        var body = LSD.Script.parse(text, memo);
+        var body = LSD.Script.parse(text, memo, true);
         if (!body.push) body = [body];
         body.unshift(left)
         scope.push({type: 'function', name: '[]', value: body});
       }
-    } else if ((text = (found[names.dstring] != null ? found[names.dstring] : found[names.sstring])) != null) {
-      scope.push(text);
-    } else if ((text = (found[names.number]))) {
-      scope.push(parseFloat(text));
     } else if ((text = found[names.operator])) {
       if (!selector) {
         var operators = LSD.Script.Operators;
         previous = stack[stack.length - 1];
         if (left) left = null;
         if (previous) {
-          operator = {type: 'function', name: text, index: i, scope: scope, precedence: operators && operators[text]};
+          operator = {type: 'function', name: text, index: i, stack: scope, precedence: operators && operators[text]};
           stack.push(operator);
           if (previous.precedence > operator.precedence) {
-            scope = previous.scope;
+            scope = previous.stack;
             var left = scope[scope.length - 1];
             if (left.value) {
               if (left.value[1] != null) {
@@ -130,7 +126,7 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
               scope.push(selector);
             } else throw "Left part is missing for " + text + " operator";
           } else {
-            var operator = {type: 'function', name: text, index: i, scope: scope, precedence: operators && operators[text]};
+            var operator = {type: 'function', name: text, index: i, stack: scope, precedence: operators && operators[text]};
             operator.value = [left];
             stack.push(operator);
             scope.push(operator);
@@ -141,52 +137,49 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
         selector.value += ' ' + text;
         text = null;
       }
-    } else if ((text = found[names.token])) {
-      var tail = found[names.token_tail];
-      if (!selector && text.match(LSD.Script.Parser.rVariable)) {
-        /*
-          If a token starts with the dot, it should be added
-          to previous token.
-        */
-        switch (text) {
-          case 'null':
-            scope.push(null);
-            break;
-          case 'false':
-            scope.push(false);
-            break;
-          case 'true':
-            scope.push(true);
-            break;
-          case 'undefined':
-            scope.push(undefined);
-            break;
-          case 'if': case 'unless': case 'else':
-            args = []
-            fn = {type: 'function', name: text, value: args};
-            scope.push(fn);
-            break;
-          default:
-            if (!tail || !token) {
-              token = {type: 'variable', name: text};
-              if (memo && memo.locals && memo.locals[text]) token.local = true;
-              if (tail) token.tail = true;
-              scope.push(token);
-            } else {
-              token.name += '.' + text;
-            }
-        };
-      } else {
-        /*
-          Compose a selector from various tokens
-        */
-        if (tail) text = '.' + text;
-        if (!selector) {
-          selector = {type: 'selector', value: text};
-          scope.push(selector);
-        } else {
-          selector.value += ((!whitespaced && tail) ? '' : ' ') + text;
-          text = null;
+      token = null;
+    } else {
+      var whitespaced = !!found[names.whitespace];
+      if (!whitespaced && !found[names.comma]) {
+        if (token && !functioned) {
+          scope.pop();
+          args = []
+          var bits = token.name.split('.');
+          var method = bits.pop();
+          if (token.tail) var parenttoken = scope.pop();
+          if (bits.length) {
+            if (parenttoken) parenttoken.name += bits.join('.');
+            else parenttoken = {type: 'variable', name: bits.join('.')};
+            if (token.local) parenttoken.local = token.local;
+          }  
+          if (parenttoken) args.unshift(parenttoken);
+          scope.push({type: 'function', name: method, value: args})
+          scope = args
+          var functioned = token;
+        }
+        if ((text = (found[names.dstring] != null ? found[names.dstring] : found[names.sstring])) != null) {
+          scope.push(text);
+        } else if ((text = (found[names.number]))) {
+          scope.push(parseFloat(text));
+        } else if ((text = found[names.block])) {
+          if ((fn = found[names.block_arguments])) {
+            var locals = LSD.Script.parse(fn, null, true);
+            if (!locals.push) locals = [locals];
+            if (!memo) memo = {};
+            if (!memo.locals) memo.locals = {}
+            for (var j = 0, k = locals.length, local; j < k; j++)
+              if ((local = locals[j]) && local.name) memo.locals[local.name] = (memo.locals[local.name] || 0) + 1;
+          }
+          var body = LSD.Script.parse(text, memo, true);
+          if (body.push)
+            for (var j = 0, bit; bit = body[j]; j++) if (bit && bit.length == 1) body[j] = bit[0];
+          var block = {type: 'block', value: body.push ? body : [body]}
+          if (locals) {
+            block.locals = locals;
+            for (var j = 0, k = locals.length, local; j < k; j++)
+              if ((local = locals[j]) && local.name) memo.locals[local.name]--;
+          }
+          (args || scope).push(block);
         }
       }
     }
@@ -194,15 +187,13 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
       if (fn) fn = null;
       else args = null;
     }
-    if (token && scope[scope.length - 1] != token && !tail) token = null;
+    if (found[names.comma] || (token && scope[scope.length - 1] != token && !tail)) token = null;
     if (!operator && text && stack.length) {
       var pop = stack[stack.length - 1]
-      if (pop && pop.scope) scope = pop.scope;
+      if (pop && pop.stack) scope = pop.stack;
     }
-    
-    var whitespaced = !!found[names.whitespace];
-    operator = null;
-  };
+    block = operator = null;
+  }
   return (LSD.Script.parsed[value] = (result.length == 1 ? result[0] : result));
 };
 
@@ -240,12 +231,15 @@ Parser.multiline = function(scope) {
         throw "Incorrect indentation: A line is " + (i - level) + " levels deeper then previous line";
       if (diff > 0) {
         var block = {type: 'block', value: []};
-        if (args) block.locals = args;
+        if (args) {
+          if (!memo.locals) memo.locals = {}
+          for (var j = 0, l = args.length, local; j < l; j++)
+            if ((local = args[j]) && local.name) memo.locals[local.name] = (memo.locals[local.name] || 0) + 1;
+          block.locals = args;
+        }
         var object = previous;
         if (object.push) object = object[object.length - 1];
-        if (object.type == 'function') {
-          object.value.push(block);
-        }
+        if (object.type == 'function') object.value.push(block);
         blocks.push(block);
       } else {
         if (diff < 0) {
@@ -255,20 +249,21 @@ Parser.multiline = function(scope) {
       }
       level = i;
     } else baseline = line[0];
-    previous = LSD.Script.parse(line[1], memo);
+    previous = LSD.Script.parse(line[1], memo, true);
     if (blocks.length) {
       blocks[blocks.length - 1].value.push(previous)
     } else {
       results.push(previous);
     }
     if (line[2]) {
-      args = LSD.Script.parse(line[2], memo);
+      args = LSD.Script.parse(line[2], memo, true);
       if (!args.push) args = [args];
     } else args = null;
   }
   return results;
 };
 
+Parser.Tokens = {'null': null, true: 'true', false: 'false', 'undefined': Parser.undefined};
 Parser.rVariable = /^[a-z0-9][a-z_\-0-9.\[\]]*$/ig;
 Parser.Combinators = {'+': 1, '>': 1, '!+': 1, '++': 1, '!~': 1, '~~': 1, '&': 1, '&&': 1, '$': 1, '$$': 1};
 Parser.rLine = /^([ \t]*)([^\n]*?)\s*(?:\|([^|]*?)\|\s*)?(?:\n|$)/gm
