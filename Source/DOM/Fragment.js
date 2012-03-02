@@ -20,7 +20,10 @@ provides:
 */
 
 LSD.Fragment = function(argument, parent) {
-  if (this.nodeType) this.childNodes = this;
+  if (this.nodeType) {
+    this.childNodes = this;
+    this.variables = new LSD.Object.Stack;
+  }
   var length = arguments.length;
   if (!length) return;
   if (length === 1 || (parent == null || parent.lsd))
@@ -46,11 +49,11 @@ LSD.Fragment.prototype.node = function(object, parent, memo, nodeType, array, in
     widget = widget.cloneNode();
   if (widget.parentNode != parent) parent.appendChild(widget, memo);
   if (children)
-    for (var i = 0, child, array = this.slice.call(children, 0); child = array[i]; i++)
-      this.node(child, widget, memo, null, array, i);
+    for (var i = 0, child, array = this.slice.call(children, 0), previous; child = array[i]; i++)
+      previous = this.node(child, widget, memo, null, previous);
   return widget;
 };
-LSD.Fragment.prototype.instruction = function(object, parent, memo, keep, array, index) {
+LSD.Fragment.prototype.instruction = function(object, parent, memo, keep, previous) {
   if (typeof object.nodeType == 'number') {
     var element = object;
     object = element.nodeValue;
@@ -68,27 +71,32 @@ LSD.Fragment.prototype.instruction = function(object, parent, memo, keep, array,
         break;
       default:
         chr = null;
-        switch (word) {
-          case "end": case "else": case "elsif":
-            if (array == null) return false;
-            if (index == null) index = array.length;
-            for (var i = index, node; node = array[--i];)
-              if (node.nodeType === 5) break;
-            if (!node) return false;
-        }
         var word = object.match(this.R_WORD);
-        if (!word || !(word = word[0]) || !LSD.Script.prototype.lookup(word, null, parent)) return false;
+        if (word && (word = word[0])) {
+          switch (word) {
+            case "end": case "else": case "elsif":
+              if (array == null) return false;
+              if (index == null) index = array.length;
+              for (var i = index, node; node = array[--i];)
+                if (node.nodeType === 5) break;
+              if (!node) return false;
+          }
+          if (!LSD.Script.prototype.lookup.call(parent, word)) return false;
+        }
+
     }
     if (keep) return object;
     var instruction = this.node(object, parent, memo, 5);
-    if (node) instruction.set('origin', this);
+    console.log(node, object)
+    if (node) instruction.set('origin', node);
     if (chr) instruction.set('mode', chr);
     return instruction;
   }
 };
 LSD.Fragment.prototype.enumerable = function(object, parent, memo) {
-  for (var i = 0, length = object.length; i < length; i++)
-    this[this.typeOf(object[i])](object[i], parent, memo, null, object, i)
+  for (var i = 0, length = object.length, previous; i < length; i++) {
+    previous = this[this.typeOf(object[i])](object[i], parent, memo, null, previous)
+  }
 };
 LSD.Fragment.prototype.object = function(object, parent, memo) {
   var skip = object._skip, value, result, array;
@@ -135,4 +143,4 @@ LSD.Fragment.prototype.typeOf = function(object, memo) {
 ['appendChild', 'insertBefore', 'removeChild', 'inject', 'grab'].each(function(method) {
   LSD.Fragment.prototype[method] = LSD.Element.prototype[method];
 });
-LSD.Fragment.prototype.R_WORD       = /\w+/; 
+LSD.Fragment.prototype.R_WORD = /\w+/; 

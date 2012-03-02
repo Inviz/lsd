@@ -45,6 +45,13 @@ LSD.Object.prototype = {
         hash = null;
       }
     } else var nonenum = this._skip[key];
+/*
+  Object setters accept nested keys, instantiates objects in the 
+  path (e.g. setting post.title will create a post object), and 
+  observes changes in the path (post object may be changed
+  and title property will be unset from the previous object and
+  set to the new object)
+*/
     if (hash == null && typeof index != 'number') index = key.indexOf('.');
     if (index > -1) return this.mix(key, value, memo, true, null, null, index);
 /*
@@ -80,6 +87,16 @@ LSD.Object.prototype = {
         value._set('_parent', this);
     }
 /*
+  Objects accept special kind of values, compile LSD.Script
+  expressions. They may use other keys in the object as
+  observable variables, call functions and iterate data,
+  and the computed value will be used for the property
+  that was given the script object as a value.
+*/
+    if (nonenum !== true && this._script && value != null && value.script && value.Script && (!this._literal || !this._literal[key])) {
+      return this._script(key, value);
+    }
+/*
   Watchers are listeners that observe every property in an object. 
   It may be a function (called on change) or another object (change property 
   will be changed in the watcher object)
@@ -91,12 +108,26 @@ LSD.Object.prototype = {
       else this._callback(watcher, key, value, true, old, memo, hash);
     }
     if (index === -1) {
+/*
+  An alternative to listening for all properties, is to watch
+  a specific property. Callback observers recieve new and old
+  value each time value changes.
+*/
       if (hash == null && this[key] !== value) this[key] = value;
       var watched = this._watched;
       if (watched && (watched = watched[key]))
         for (var i = 0, fn; fn = watched[i++];)
           if (fn.call) fn.call(this, value, old);
           else this._callback(fn, key, value, old, memo, hash);
+/*
+  When an LSD.Object is mixed with a nested object, it builds
+  missing objects to apply nested values. But it also observes
+  those object for changes, so if it changes it could re-apply
+  the specific sub-tree of original nested object. Observing
+  happens passively by storing links to sub-trees for each
+  property that has nested object. When an object changes,
+  it looks if it has any values stored for it to apply. 
+*/
       var stored = this._stored;
       if (stored && (stored = stored[key]))
         for (var i = 0, item; item = stored[i++];) {
@@ -118,7 +149,7 @@ LSD.Object.prototype = {
         key = hash;
         hash = null;
       }
-    }
+    } else var nonenum = this._skip[key];
     if (hash == null && typeof index != 'number') index = key.indexOf('.');
     if (index > -1) return this.mix(key, value, memo, false, null, null, index);
     var vdef = typeof value != 'undefined';
@@ -138,6 +169,8 @@ LSD.Object.prototype = {
         value._unset('_parent', this);
       this._length--;
     }
+    if (nonenum !== true && this._unscript && value != null && value.script && (!this._literal || !this._literal[key]))
+      return this._unscript(key, value);
     var watchers = this._watchers;
     if (watchers) for (var i = 0, j = watchers.length, watcher, fn; i < j; i++) {
       if ((watcher = watchers[i]) == null) continue
@@ -269,8 +302,21 @@ LSD.Object.prototype = {
           if (state !== false && parent && parent !== this) {
             this[name] = null;
             obj = this._construct(name, null, memo, value)
-          } else if (typeof obj.mix == 'function')
+          } else if (typeof obj.mix == 'function') {
             obj.mix(subkey, value, memo, state, merge, prepend);
+          } else {
+            for (var previous, k, object = obj; (subindex = subkey.indexOf('.', previous)) > -1;) {
+              k = subkey.substring(previous || 0, subindex)
+              if (previous > -1 && typeof object.mix == 'function') {
+                object.mix(subkey.substring(subindex), value, memo, state, merge, prepend)
+              } else if (object[k] != null) object = object[k];
+              previous = subindex + 1;
+            }
+            k = subkey.substring(previous);
+            if (typeof object.mix == 'function')
+              object[state ? 'set' : 'unset'](k, value, memo)
+            else object[k] = value;
+          }
         }
       } else if (value != null && (typeof value == 'object' && !value.exec && !value.push && !value.nodeType && value.script !== true)
                                && (!value.mix || merge)) {

@@ -18,20 +18,19 @@ provides:
 */
 
 LSD.Range = new LSD.Struct.Array({
+  startContainer: function() {
+  
+  },
+  startOffset: function() {
+  
+  },
   endContainer: function() {
     
   },
   endOffset: function() {
     
   },
-  startContainer: function() {
-    
-  },
-  startOffset: function() {
-    
-  },
-  selection: function() {
-    
+  selection: function(value, old) {
   }
   // commonAncestorContainer
   // collapsed

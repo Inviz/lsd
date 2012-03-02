@@ -32,8 +32,8 @@ provides:
   comments in all modern browsers.
 */
 
-LSD.Instruction = function(input) {
-  var script = new LSD.Script(input)
+LSD.Instruction = function() {
+  var script = LSD.Script.apply(LSD.Script, arguments)
   script.nodeType = 5;
   script.childNodes = new LSD.Properties.ChildNodes.Virtual;
   return script;

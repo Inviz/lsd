@@ -138,6 +138,9 @@ LSD.Script.Struct = new LSD.Struct({
     
   },
   scope: function(value, old) {
+    if (this.attached) this.unset('attached', this.attached)
+    if (value) this.set('attached', true);
+    console.log(this.scope, value, this)
   },
   placeholder: function(value, old) {
     if (this.placeheld) this.reset('value', value);
@@ -209,7 +212,7 @@ LSD.Script.Struct = new LSD.Struct({
           if (typeof value == 'undefined') return self.unset('value', old);
           else return self.reset('value', value)
         };
-        (this.scope.variables || this.scope)[value ? 'watch' : 'unwatch'](this.name, this.setter);
+        (this.scope.variables || this.scope)[value ? 'watch' : 'unwatch'](this.name || this.input, this.setter);
       } else this.scope(this.input, this, this.scope, !!value);  
       if (typeof this.value == 'undefined' && !this.input) this.reset('executed', value);
     }
@@ -239,7 +242,6 @@ LSD.Script.Struct = new LSD.Struct({
         if (!arg.type || arg.type != 'variable') throw "Unexpected token, argument must be a variable name";
         result = arg.name;
       } else {  
-        if (arg.name == 'every') debugger
         if (arg && (arg.script || arg.type)) {
           if (this.origin) origin = this.origin.args[i];
           if (origin && !origin.local && origin.script) {
@@ -270,6 +272,7 @@ LSD.Script.Struct = new LSD.Struct({
                 if (!attachment) arg.parents.push(this);
                 if (arg.type == 'block' ? this.yielded : !arg.attached || pipable) {
                   delete arg.value;
+                  if (this.scope && !arg.scope) arg.set('scope', this.scope);
                   arg.set('attached', true);
                 }
               }
@@ -514,28 +517,31 @@ LSD.Script.prototype.eval = function() {
 LSD.Script.prototype.callback = function(value, old) {
   var object = this.output;
   if (!object) return;
-  if (object.call) {
-    object(value);
-  } else {
-    switch (object.nodeType) {
-      case 1:
-        if (object.lsd) object.write(value)
-        else object.innerHTML = value;
-        break;
-      case 3:
-        object.nodeValue = value;
-        break;
-      case 5:
-        object.set('value', value);
-        break;
-      case 8:
-        break;
-      default:
-        if (typeof object == 'string') {
+  switch (object.nodeType) {
+    case 1:
+      if (object.lsd) object.write(value)
+      else object.innerHTML = value;
+      break;
+    case 3:
+      object.nodeValue = value;
+      break;
+    case 5:
+      object.set('value', value);
+      break;
+    case 8:
+      break;
+    default:
+      switch (typeof object) {
+        case 'string':
           if (typeof value == 'undefined' && typeof old != 'undefined') this.scope.unset(object, old)
-          else this.scope[typeof old != 'undefined' ? 'reset' : 'set'](object, value)
-        }
-    }
+          else this.scope[typeof old != 'undefined' ? 'reset' : 'set'](object, value);
+          break;
+        case 'function':
+          object(value);
+          break;
+        default:
+          this._callback(object, null, value);
+      }
   }
 };
 LSD.Script.prototype.update = function(value) {
@@ -563,7 +569,7 @@ LSD.Script.prototype.lookup = function(name, arg, scope) {
       var method = (scope.methods && scope.methods[name]) || scope[name] || (scope.variables && scope.variables[name]);
       if (typeof method == 'function') return method;
     }
-  return this.Script.Helpers[name] || Object[name];
+  return (this.Script || LSD.Script).Helpers[name] || Object[name];
 };
 LSD.Script.prototype.getContext = function() {
   for (var scope = this.scope, context; scope; scope = scope.parentScope) {
@@ -575,6 +581,7 @@ LSD.Script.prototype.getContext = function() {
 };
 LSD.Script.prototype.Script = LSD.Script;
 LSD.Script.prototype.script = true;
+LSD.Script.prototype._literal = LSD.Script.prototype._properties;
 LSD.Script.prototype._compiled_call = 'dispatch';
 LSD.Script.prototype._regexp = /^[-_a-zA-Z0-9.]+$/;
 LSD.Script.compile = LSD.Script.prototype.compile;

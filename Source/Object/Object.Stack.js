@@ -70,8 +70,11 @@ LSD.Object.Stack.prototype = {
         if (length > 1) value = group[length - 1];
       } else group.push(value);
     }
-    if (value !== this[key] || typeof value === 'undefined')
-      return this._set(key, value, memo, index, hash);
+    if (value !== this[key] && !this._set(key, value, memo, index, hash)) {
+      prepend ? group.shift() : group.pop();
+      return false;
+    }
+    return true
   },
   unset: function(key, value, memo, prepend, hash) {
     if (typeof key != 'string') {

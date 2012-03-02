@@ -245,7 +245,8 @@ LSD.Struct.prototype = {
     }
   },
 /*
-  Dynamic properties are the ones that are calculated based on other properties
+  Dynamic properties may be calculated in run time using on other properties
+  values.
   
   var Struct = new LSD.Struct({
     imports: {
@@ -266,7 +267,14 @@ LSD.Struct.prototype = {
   calculated and assigned to `total` property.
 */
   _script: function(key, expression) {
-    (this._scripted || (this._scripted = {}))[key] = LSD.Script(expression, this, key);
+    if (this.nodeType) {
+      var script = LSD.Script(expression, null, [this, key]);;
+      this.watch('variables', '_scripted.' + key + '.scope')
+    } else {
+      var script = LSD.Script(expression, this, [this, key]);;
+    }
+    (this._scripted || (this._scripted = {}))[key] = script;
+    return this._skip;
   },
   _unscript: function(key, value) {
     var script = this._scripted[key];
