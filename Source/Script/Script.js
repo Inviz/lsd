@@ -49,15 +49,24 @@ LSD.Script = function(input, scope, output) {
   if (regex) {
     if (scope) this.scope = scope;
     if (output) this.output = output;
-    if (input.push && regex) {
-      this.input = input;
-      this.type = 'function'
-      this.name = ',';
-    } else if (type == 'object') {
-      for (var property in input) 
-        this[property == 'value' ? 'input' : property] = input[property];
-      this.source = input;
-    } else if (regex && (!input || (type == 'string' && regex.test(input)))) {
+    if (this.initialize) this.initialize()
+    switch (type) {
+      default:
+        if (input.push) {
+          this.input = input;
+          this.type = 'function'
+          this.name = ',';
+        } else {
+          for (var property in input) 
+            this[property == 'value' ? 'input' : property] = input[property];
+          this.source = input;
+        }
+        break;
+      case 'string':
+        if (!input.match(regex)) return new (this.Script)(this.input = input
+    } else if (!input) {
+      return;
+    } else if (type == 'string')
       if (input) this.input = input;
       return;
     }
@@ -82,7 +91,7 @@ LSD.Script = function(input, scope, output) {
       return input;
     } else {
       var Script = (this.Script || LSD.Script)
-      var result = new Script(type == 'string' ? Script.parse(input) : input, scope, output);
+      var result = new Script(typeof type == 'string' ? Script.parse(input) : input, scope, output);
       if (result.script) {
         if (scope || input.scope) result.set('attached', true);
       } else if (output) Script.callback(output, result);
@@ -195,7 +204,7 @@ LSD.Script.Struct = new LSD.Struct({
       this.wrapper.wrappee.onSuccess(value)
   },
   attached: function(value, old) {
-    if (!value) this.unset('value', this.value);
+    if (!value && typeof this.value != 'undefined') this.unset('value', this.value);
     if (this.yielded || this.type == 'function') {
       this.reset('executed', !!value);
     } else if (this.yields) {
@@ -725,7 +734,7 @@ LSD.Script.prototype.findLocals = function(locals) {
   LSD.Function constructor and function is a Function compatible
   API to produce a javascript function that calls LSD.Script
   
-    var fn = LSD.Function('key', 'value', 'return key % 2 ? value + 1 : value - 1)
+    var fn = LSD.Function('key', 'value', 'return key % 2 ? value + 1 : value - 1')
     fn(2, 5); // 6
     
   The first object argument will be treated as a scope for variable values.

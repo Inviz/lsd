@@ -64,11 +64,11 @@ LSD.Struct = function(properties, Base) {
   var constructor = Base || LSD.Object;
   Struct.struct = true;
   Struct.prototype = new constructor;
+  Struct.implement = LSD.Struct.implement;
+  Struct.implement(LSD.Struct.prototype);
   Struct.prototype.constructor = constructor;
   Struct.prototype.__constructor = Struct;
   Struct.prototype._constructors = {};
-  for (var property in LSD.Struct.prototype) 
-    Struct.prototype[property] = LSD.Struct.prototype[property];
   if (properties) {
     Struct.prototype._properties = properties;
     for (var name in properties) {
@@ -82,6 +82,10 @@ LSD.Struct = function(properties, Base) {
   }
   return Struct;
 };
+LSD.Struct.implement = function(object) {
+  for (var property in object) this.prototype[property] = object[property];
+  return this;
+}
 /*
   Every property defined in a class properties object will be treated like a property,
   unless it is defined in the Mutators object. Mutators are a hooks that allow some 

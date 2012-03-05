@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Script
-  - LSD.Element
+  - LSD.Fragment
 
 provides: 
   - LSD.Instruction
@@ -30,17 +30,23 @@ provides:
   Good news is that there is a node type reserved for such
   use - instructions nodes, that are interpreted as 
   comments in all modern browsers.
+  
+  Instruction subclasses the whole LSD.Script, reuses 
+  its parser and base object, but on top of that it 
+  includes features of fragment that itself is a
+  transparent node collection proxy.
 */
-
 LSD.Instruction = function() {
-  var script = LSD.Script.apply(LSD.Script, arguments)
-  script.nodeType = 5;
-  script.childNodes = new LSD.Properties.ChildNodes.Virtual;
-  return script;
+  return LSD.Script.apply(this === LSD ? LSD.Instruction : this, arguments);
 };
-LSD.Script.prototype._properties.alternative = function(script) {
+LSD.Instruction.prototype.initialize = function() {
+  this.childNodes = this;
+}
+LSD.Instruction.parse = LSD.Script.parse;
+LSD.Instruction.Script = LSD.Instruction.prototype.Script = LSD.Instruction;
+LSD.Struct.implement.call(LSD.Instruction, LSD.Script.prototype);
+LSD.Struct.implement.call(LSD.Instruction, LSD.Fragment.prototype);
+LSD.Instruction.prototype.nodeType = 5;
+LSD.Instruction.prototype._properties.alternative = function(script) {
   
 };
-['appendChild', 'insertBefore', 'removeChild', 'inject', 'grab'].each(function(method) {
-  LSD.Script.prototype[method] = LSD.Element.prototype[method];
-});

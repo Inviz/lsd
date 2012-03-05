@@ -10,6 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
+  - LSD.Node
   - LSD.Struct.Stack
 
 provides: 
@@ -36,7 +37,7 @@ LSD.Textnode = LSD.Struct({
     if (value) this.set('variables', value.variables);
     if (old) this.unset('variables', old.variables)
   }
-})
+}).implement(LSD.Node.prototype);
 LSD.Textnode.prototype.__initialize = function() {
   for (var i = 0, args = arguments, j = args.length, arg, string; i < j; i++) {
     switch (typeof (arg = args[i])) {

@@ -10,11 +10,12 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
 
 requires:
+  - LSD.Node
   - LSD.Element
-  - LSD.Fragment
   - LSD.Textnode
-  - LSD.Instruction
   - LSD.Comment
+  - LSD.Fragment
+  - LSD.Instruction
   - Core/DomReady
 
 provides:
@@ -45,7 +46,8 @@ LSD.Document = LSD.Struct.Stack({
     if (!this.onDomReady) this.onDomReady = this.onReady.bind(this);
     Element[document ? 'addEvent' : 'removeEvent']((document || old), 'domready', this.onDomReady);
   }
-});
+})
+LSD.Document.implement(LSD.Node.prototype);
 LSD.Document.prototype._preconstruct = ['childNodes', 'events'];
 LSD.Document.prototype.__initialize = function() {
   if (!LSD.document) LSD.document = this;

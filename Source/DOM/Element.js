@@ -11,13 +11,14 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Struct.Stack
+  - LSD.Node
   
 provides: 
   - LSD.Element
 ...
 */
 
-LSD.Element = new LSD.Struct.Stack(LSD.Properties);
+LSD.Element = new LSD.Struct.Stack(LSD.Properties)
 LSD.Element.prototype.onChange = function(key, value, state, old, memo) {
   var ns         = this.document || LSD.Document.prototype,
       states     = ns.states,
@@ -359,6 +360,7 @@ LSD.Element.prototype.__properties = {
 
   }
 };
+LSD.Element.implement(LSD.Node.prototype)
 LSD.Element.prototype.localName = 'div';
 LSD.Element.prototype.tagName = null;
 LSD.Element.prototype.className = '';
@@ -367,6 +369,9 @@ LSD.Element.prototype._parent = false;
 LSD.Element.prototype._preconstruct = ['allocations', 'childNodes', 'variables', 'attributes', 'classList', 'events', 'matches', 'proxies', 'relations'];
 LSD.Element.prototype.__initialize = function(/* options, element, selector */) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
+  /*
+    Adds default states to the prototype first time element is created
+  */
   if (this.built == null) LSD.Element.prototype.mix({
     built: false,
     hidden: false,
@@ -383,52 +388,6 @@ LSD.Element.prototype.__initialize = function(/* options, element, selector */) 
     }
   }
   return options;
-};
-LSD.Element.prototype.appendChild = function(child) {
-  this.childNodes.push(child)
-  return this;
-};
-LSD.Element.prototype.insertBefore = function(child, before) {
-  var index = this.childNodes.indexOf(before);
-  if (index == -1) index = this.childNodes.length;
-  this.childNodes.splice(index, 0, child);
-  return this;
-};
-LSD.Element.prototype.removeChild = function(child) {
-  var index = this.childNodes.indexOf(before);
-  if (index > -1) this.childNodes.splice(index, 1);
-  return this;
-};
-LSD.Element.prototype.replaceChild = function(child, old) {
-  var index = this.childNodes.indexOf(old);
-  if (index > -1) this.childNodes.splice(index, 1, child);
-  return this;
-};
-LSD.Element.prototype.cloneNode = function(children) {
-  return (this.document || LSD.Document.prototype).createElement({
-    origin: this.element,
-    tag: this.tagName,
-    clone: true
-  });
-};
-LSD.Element.prototype.inject = function(node, where) {
-  return this.inserters[where || 'bottom'](this, node);
-};
-LSD.Element.prototype.grab = function(node, where){
-  return this.inserters[where || 'bottom'](node, this);
-};
-LSD.Element.prototype.replaces = function(el) {
-  this.inject(el, 'after');
-  el.dispose();
-  return this;
-};
-LSD.Element.prototype.dispose = function() {
-  var parent = this.parentNode;
-  if (!parent) return;
-  this.fireEvent('beforeDispose', parent);
-  parent.removeChild(this);
-  this.fireEvent('dispose', parent);
-  return this;
 };
 LSD.Element.prototype.click = function() {
   switch (this.type) {
@@ -574,25 +533,6 @@ LSD.Element.prototype.getChildren = function() {
 LSD.Element.prototype.toElement = function(){
   if (!this.built) this.build();
   return this.element;
-};
-LSD.Element.prototype.$family = function() {
-  return 'widget';
-};
-LSD.Element.prototype.inserters = {
-  before: function(context, element){
-    var parent = element.parentNode;
-    if (parent) parent.insertBefore(context, element);
-  },
-  after: function(context, element){
-    var parent = element.parentNode;
-    if (parent) parent.insertBefore(context, element.nextSibling);
-  },
-  bottom: function(context, element){
-    element.appendChild(context);
-  },
-  top: function(context, element){
-    element.insertBefore(context, element.firstChild);
-  }
 };
 LSD.Element.compileState = function(key, definition) {
   var obj = {};

@@ -15,18 +15,18 @@ requires:
   - Core/Element
 
 provides: 
-  - LSD.Properties.ChildNodes
+  - LSD.ChildNodes
  
 ...
 */
 
-LSD.Properties.ChildNodes = LSD.Struct.Array({
+LSD.ChildNodes = LSD.Struct.Array({
   exports: {
     firstChild: 'first',
     lastChild: 'last'
   }
 });
-LSD.Properties.ChildNodes.prototype.onSet = function(value, index, state, old) {
+LSD.ChildNodes.prototype.onSet = function(value, index, state, old) {
   if (!state || this._parent != value.parentNode)
     value[state ? 'set' : 'unset']('parentNode', this._parent || null);
   var previous = this[index - 1] || null;
@@ -62,20 +62,20 @@ LSD.Properties.ChildNodes.prototype.onSet = function(value, index, state, old) {
   if (index === 0) this.reset('first', state ? value : null);
   if (index === this.length - +state) this.reset('last', this[this.length - 1] || null);
 };
-LSD.Properties.ChildNodes.prototype.first = null;
-LSD.Properties.ChildNodes.prototype.last = null;
-LSD.Properties.ChildNodes.prototype._skip = Object.append({
+LSD.ChildNodes.prototype.first = null;
+LSD.ChildNodes.prototype.last = null;
+LSD.ChildNodes.prototype._skip = Object.append({
   _onShift: true, 
   _prefilter: true
 }, LSD.Object.prototype._skip);
-LSD.Properties.ChildNodes.prototype._onShift = function(index, offset, args, shift) {
+LSD.ChildNodes.prototype._onShift = function(index, offset, args, shift) {
   if (shift === -1 || shift === 1) {
     var arg = shift === 1 ? args[0] : this[index], children = arg.childNodes;
     if (children && children.virtual) offset += children.length;
   }
   return offset;
 }
-LSD.Properties.ChildNodes.Virtual = LSD.Struct.Array({
+LSD.ChildNodes.Virtual = LSD.Struct.Array({
   imports: {
     parentNode: '.parentNode'
   },
@@ -89,9 +89,9 @@ LSD.Properties.ChildNodes.Virtual = LSD.Struct.Array({
     }
   }
 });
-LSD.Properties.ChildNodes.Virtual.prototype.virtual = true;
-LSD.Properties.ChildNodes.Virtual.prototype._onShift = LSD.Properties.ChildNodes.prototype._onShift;
-LSD.Properties.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old) {
+LSD.ChildNodes.Virtual.prototype.virtual = true;
+LSD.ChildNodes.Virtual.prototype._onShift = LSD.ChildNodes.prototype._onShift;
+LSD.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old) {
   if (old != null) return;
   var subject = (this._parent || this)
   var parent = subject.parentNode;
@@ -107,3 +107,4 @@ LSD.Properties.ChildNodes.Virtual.prototype.onSet = function(value, index, state
     else children.splice(children.indexOf((this[index - 1] || subject).nextSibling), 0, value);
   }
 };
+LSD.Properties.ChildNodes = LSD.ChildNodes;

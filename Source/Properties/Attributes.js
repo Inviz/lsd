@@ -25,10 +25,6 @@ provides:
 
 LSD.Properties.Attributes = LSD.Struct.Stack(LSD.attributes);
 LSD.Properties.Attributes.prototype.onChange = function(name, value, state, old, memo) {
-  if (value != null && value.script) {
-    this[state ? '_script' : '_unscript'](name, value);
-    return this._skip;
-  };
   var ns = this._parent.document || LSD.Document.prototype;
   if ((!memo || memo !== 'states') && ns.states[name])
     this._parent[state ? 'set' : 'unset'](name, true, 'attributes');

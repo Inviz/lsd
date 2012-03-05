@@ -87,15 +87,17 @@ LSD.Object.prototype = {
         value._set('_parent', this);
     }
 /*
-  Objects accept special kind of values, compile LSD.Script
+  Objects accept special kind of values, compiled LSD.Script
   expressions. They may use other keys in the object as
-  observable variables, call functions and iterate data,
-  and the computed value will be used for the property
-  that was given the script object as a value.
+  observable variables, call functions and iterate data.
+  Script updates value for the key when it computes
+  its value asynchronously. The value stays undefined, 
+  while the script doesn't have enough data to compute.
 */
-    if (nonenum !== true && this._script && value != null && value.script && value.Script && (!this._literal || !this._literal[key])) {
-      return this._script(key, value);
-    }
+  if (nonenum !== true && this._script && value != null && value.script && value.Script && (!this._literal || !this._literal[key])) {
+    if (hash == null) this[key] = old;
+    return this._script(key, value);
+  }
 /*
   Watchers are listeners that observe every property in an object. 
   It may be a function (called on change) or another object (change property 
@@ -643,6 +645,10 @@ LSD.Object.prototype = {
     return object || obj;
   },
   
+  /*
+    A dictionary of internal keys that get skipped
+    when iterating over all keys of object.
+  */
   _skip: {
     _skip: true,
     _constructors: true,

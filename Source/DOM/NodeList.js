@@ -25,7 +25,7 @@ provides:
 
 LSD.NodeList = function() {
   if (this === LSD) {
-    var collection = new LSD.NodeList;
+    var collection = LSD.NodeList;
     collection.push.apply(collection, arguments);
     return collection;
   } else {
