@@ -50,25 +50,15 @@ LSD.Script = function(input, scope, output) {
     if (scope) this.scope = scope;
     if (output) this.output = output;
     if (this.initialize) this.initialize()
-    switch (type) {
-      default:
-        if (input.push) {
-          this.input = input;
-          this.type = 'function'
-          this.name = ',';
-        } else {
-          for (var property in input) 
-            this[property == 'value' ? 'input' : property] = input[property];
-          this.source = input;
-        }
-        break;
-      case 'string':
-        if (!input.match(regex)) return new (this.Script)(this.input = input
-    } else if (!input) {
-      return;
-    } else if (type == 'string')
-      if (input) this.input = input;
-      return;
+    if (typeof input == 'string') input = this.Script.parsed && this.Script.parsed[input] || this.Script.parse(input);
+    if (typeof input != 'object') return input;
+    if (input.push) {
+      this.input = input;
+      this.type = 'function'
+      this.name = ',';
+    } else {
+      for (var property in input) this[property == 'value' ? 'input' : property] = input[property];
+      this.source = input;
     }
     if (this.input && this.input.push) this.args = this.input.slice();
     if (this.type === 'block') {
@@ -149,7 +139,6 @@ LSD.Script.Struct = new LSD.Struct({
   scope: function(value, old) {
     if (this.attached) this.unset('attached', this.attached)
     if (value) this.set('attached', true);
-    console.log(this.scope, value, this)
   },
   placeholder: function(value, old) {
     if (this.placeheld) this.reset('value', value);
