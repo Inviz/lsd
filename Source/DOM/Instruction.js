@@ -47,6 +47,10 @@ LSD.Instruction.Script = LSD.Instruction.prototype.Script = LSD.Instruction;
 LSD.Struct.implement.call(LSD.Instruction, LSD.Script.prototype);
 LSD.Struct.implement.call(LSD.Instruction, LSD.Fragment.prototype);
 LSD.Instruction.prototype.nodeType = 5;
-LSD.Instruction.prototype._properties.alternative = function(script) {
+LSD.Instruction.prototype._literal = LSD.Instruction.prototype._properties;
+LSD.Instruction.prototype._properties.next = function(script) {
+  
+};
+LSD.Instruction.prototype._properties.previous = function(script) {
   
 };

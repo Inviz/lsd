@@ -66,17 +66,21 @@ LSD.Script.Helpers['if'] = function(condition, block) {
   if (typeof result == 'undefined') result = null;
   return result;
 };
+LSD.Script.Helpers['else'] = function(condition, block) {
+  var result = block.call(block, condition ? 'yield' : 'unyield')
+  if (typeof result == 'undefined') result = null;
+  return result;
+};
 LSD.Script.Helpers['unless'] = function(condition, block) {
   var result = block.call(block, condition ? 'unyield' : 'yield')
   if (typeof result == 'undefined') result = null;
   return result;
 };
-  
-  /*
-    Yield function simply returns the value. It wouldn't do anything special by itself,
-    but when one script wraps another, it makes the latter be called when yield happens
-    by setting the wrapped script as one of the parents of yield() function call
-  */
+/*
+  Yield function simply returns the value. It wouldn't do anything special by itself,
+  but when one script wraps another, it makes the latter be called when yield happens
+  by setting the wrapped script as one of the parents of yield() function call
+*/
 LSD.Script.Helpers['yield'] = function(value) {
   for (var fn = this; fn = fn.parents && fn.parents[0];) {
     if (fn.wrapped) {
@@ -91,6 +95,7 @@ LSD.Script.Helpers['yield'] = function(value) {
   }
   return value;
 };
+LSD.Script.Boundaries = {'end': true, 'else': true, 'elseif': true, 'elsif': true};
 LSD.Script.Helpers['[]'] = function(object, property) {
 }
 LSD.Script.Helpers['un[]'] = function(object, property) {
@@ -140,10 +145,6 @@ LSD.Script.Evaluators = {
   '&&': function(expression) {
     return !!expression;
   }
-};
-
-LSD.Script.Keywords = {
-  'if': true
 };
 
 /*

@@ -263,7 +263,7 @@ Parser.multiline = function(scope) {
   return results;
 };
 
-Parser.Tokens = {'null': null, true: 'true', false: 'false', 'undefined': Parser.undefined};
+Parser.Tokens = {'null': null, 'true': true, 'false': false, 'undefined': Parser.undefined};
 Parser.rVariable = /^[a-z0-9][a-z_\-0-9.\[\]]*$/ig;
 Parser.Combinators = {'+': 1, '>': 1, '!+': 1, '++': 1, '!~': 1, '~~': 1, '&': 1, '&&': 1, '$': 1, '$$': 1};
 Parser.rLine = /^([ \t]*)([^\n]*?)\s*(?:\|([^|]*?)\|\s*)?(?:\n|$)/gm

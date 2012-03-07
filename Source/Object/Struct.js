@@ -83,7 +83,7 @@ LSD.Struct = function(properties, Base) {
   return Struct;
 };
 LSD.Struct.implement = function(object) {
-  for (var property in object) this.prototype[property] = object[property];
+  Object.merge(this.prototype, object);
   return this;
 }
 /*

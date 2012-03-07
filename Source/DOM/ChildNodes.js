@@ -95,16 +95,25 @@ LSD.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old) {
   if (old != null) return;
   var subject = (this._parent || this)
   var parent = subject.parentNode;
-  if (!parent) return;
+  if (!parent) {
+    if (value.virtual) 
+      if (state) value.set('parentNode', subject);
+      else if (value.parentNode == subject) value.unset('parentNode', subject);
+    return
+  };
   if (value.childNodes && value.childNodes.virtual)
-    value.childNodes[state ? 'set' : 'unset']('parentNode', subject) 
+    value.childNodes[state ? 'set' : 'unset']('parentNode', subject);
   if (parent.insertBefore) {
-    if (!state) parent.removeChild(value);
-    else parent.insertBefore(value, (this[index - 1] || subject).nextSibling)
+    if (!state) 
+      parent.removeChild(value);
+    else if (parent.childNodes.indexOf(value) == -1) 
+      parent.insertBefore(value, (this[index - 1] || subject).nextSibling)
   } else {
     var children = parent.childNodes;
-    if (!state) children.splice(children.indexOf(value), 1)
-    else children.splice(children.indexOf((this[index - 1] || subject).nextSibling), 0, value);
+    if (!state) 
+      children.splice(children.indexOf(value), 1)
+    else if (children.indexOf(value) == -1)
+      children.splice(children.indexOf((this[index - 1] || subject).nextSibling), 0, value);
   }
 };
 LSD.Properties.ChildNodes = LSD.ChildNodes;

@@ -318,7 +318,7 @@ LSD.Script.Struct = new LSD.Struct({
             }
             break loop;
         }
-      } else if (arg != null && value && arg.script && typeof result == 'undefined' && !LSD.Script.Keywords[name]) {
+      } else if (arg != null && value && arg.script && typeof result == 'undefined') {
         if (this.hasOwnProperty('value')) this.unset('value', this.value)
         return;
       }
