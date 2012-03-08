@@ -102,7 +102,7 @@ LSD.Fragment.prototype.instruction = function(object, parent, memo, connect) {
 */
 LSD.Fragment.prototype.connect = function(instruction, write) {
   if (instruction.parentNode == this || instruction.parentNode == this.parentNode) {
-    for (var l = this.__length, j = l - 1, node; k == null && (--j > -1);)
+    for (var l = this._length, j = l - 1, node; k == null && (--j > -1);)
       if ((node = this[j]).nodeType == 5 && !node.next && !node.closed)
         if (write !== false) 
           for (var k = j + 1; k < l - 1; k++)

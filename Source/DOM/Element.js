@@ -27,7 +27,16 @@ LSD.Element.prototype.onChange = function(key, value, state, old, memo) {
   if (!definition) return value;
   if (state && (!stack || stack.length === 1) && typeof this[definition[0]] != 'function') {    
     var compiled = states._compiled || (states._compiled = {});
-    var methods = compiled[key] || (compiled[key] = LSD.Element.compileState(key, definition, ns));
+    var methods = compiled[key];
+    if (!methods) {
+      compiled[key] = methods = {};
+      methods[definition[0]] = function() {
+        return this.reset(key, true);
+      };
+      methods[definition[1]] = function() {
+        return this.reset(key, false);
+      };
+    }
     for (var method in methods) this._set(method, methods[method]);
   }
   if (value || old) {
@@ -366,7 +375,7 @@ LSD.Element.prototype.tagName = null;
 LSD.Element.prototype.className = '';
 LSD.Element.prototype.nodeType = 1;
 LSD.Element.prototype._parent = false;
-LSD.Element.prototype._preconstruct = ['allocations', 'childNodes', 'variables', 'attributes', 'classList', 'events', 'matches', 'proxies', 'relations'];
+LSD.Element.prototype._preconstruct = ['childNodes', 'variables', 'attributes', 'classList', 'events', 'matches', 'proxies', 'relations'];
 LSD.Element.prototype.__initialize = function(/* options, element, selector */) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
   /*
@@ -533,14 +542,4 @@ LSD.Element.prototype.getChildren = function() {
 LSD.Element.prototype.toElement = function(){
   if (!this.built) this.build();
   return this.element;
-};
-LSD.Element.compileState = function(key, definition) {
-  var obj = {};
-  obj[definition[0]] = function() {
-    return this.reset(key, true);
-  };
-  obj[definition[1]] = function() {
-    return this.reset(key, false);
-  };
-  return obj;
 };

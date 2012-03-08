@@ -25,8 +25,6 @@ LSD.Object = function(object) {
 LSD.Object.prototype = {
   constructor: LSD.Object,
   
-  _length: 0,
-  
   set: function(key, value, memo, index, hash) {
 /*
   The values may be set by keys with types other then string.
@@ -37,14 +35,9 @@ LSD.Object.prototype = {
   without changing any keys. A callback may implement its own
   strategy of storing values, as callbacks recieve result of hashing
   as the last argument. 
-*/
-    if (typeof key != 'string') {
-      if (typeof hash == 'undefined') hash = this._hash(key);
-      if (typeof hash == 'string') {
-        key = hash;
-        hash = null;
-      }
-    } else var nonenum = this._skip[key];
+*/  
+  if (this._hash && hash == null && typeof (hash = this._hash(key, value)) == 'string' && (key = hash)) hash = null;
+  else if (typeof key == 'string') var nonenum = this._skip[key];
 /*
   Object setters accept nested keys, instantiates objects in the 
   path (e.g. setting post.title will create a post object), and 
@@ -62,14 +55,13 @@ LSD.Object.prototype = {
     if (hash == null) {
       var old = this[key];
       if (old === value) return false;
-      if (typeof old == 'undefined')
-        this._length++;
       this[key] = value;
     }
 /*
   Most of the keys that start with `_` underscore do not trigger calls to global
   object listeners. But they can be watched individually. A list of the skipped
-  properties is defined in `_skip` object below
+  properties is defined in `_skip` object below. Builtin listeners may reject
+  or transform value.
 */
     if (index !== -1 || nonenum !== true) {
       var changed;
@@ -83,6 +75,14 @@ LSD.Object.prototype = {
           if (hash == null) this[key] = old;
           return;
         } else value = changed;
+/*
+  When objects link to other objects they write a link back to
+  remote object. A linked object can access object that linked it
+  with a private observable `_parent` property. Both linkee
+  and linker objects may decide to avoid writing a link 
+  (e.g. Arrays dont write a link to its object values, and DOM
+  elements dont let any objects write a link either).
+*/
       if (value != null && value._set && this._children !== false && value._parent == null)
         value._set('_parent', this);
     }
@@ -144,14 +144,14 @@ LSD.Object.prototype = {
     return true;
   },
   
+/*
+  Unset method clean object key resetting its value to undefined.
+  It does all things that .set do in the same order: hashes its key, 
+  transforms values, notifies observers and fires callbacks. 
+*/
   unset: function(key, value, memo, index, hash) {
-    if (typeof key != 'string') {
-      if (typeof hash == 'undefined') hash = this._hash(key);
-      if (typeof hash == 'string') {
-        key = hash;
-        hash = null;
-      }
-    } else var nonenum = this._skip[key];
+    if (this._hash && hash == null && typeof (hash = this._hash(key, value)) == 'string' && (key = hash)) hash = null;
+    else if (typeof key == 'string') var nonenum = this._skip[key];
     if (hash == null && typeof index != 'number') index = key.indexOf('.');
     if (index > -1) return this.mix(key, value, memo, false, null, null, index);
     var vdef = typeof value != 'undefined';
@@ -169,7 +169,6 @@ LSD.Object.prototype = {
         else value = changed;
       if (value != null && this._children !== false && value._unset && value._parent === this) 
         value._unset('_parent', this);
-      this._length--;
     }
     if (nonenum !== true && this._unscript && value != null && value.script && (!this._literal || !this._literal[key]))
       return this._unscript(key, value);
@@ -195,7 +194,11 @@ LSD.Object.prototype = {
     }
     return true;
   },
-  
+/*
+  Get method fetches a value by a simple or dot-separated keys.
+  If an optional construct argument is given, it creates objects
+  in place of missing values.
+*/  
   get: function(key, construct) {
     if (construct == null) construct = this._eager;
     if (typeof key != 'string') {
@@ -243,7 +246,7 @@ LSD.Object.prototype = {
   `prepend` argument is given, reverse merging will be used instead, 
   applying values to the bottom of the stack. That will make merged
   object never overwrite the values that were there before. Those will
-  only be used when the values that overshadows the merged values will
+  only be used when the values that shadows the merged values will
   be unset.
 */
   mix: function(key, value, memo, state, merge, prepend, index) {
@@ -517,10 +520,6 @@ LSD.Object.prototype = {
     return instance;
   },
   
-  _hash: function() {
-    throw "The key for the value is not a string. Define _hash method for the object and implement the indexing strategy"
-  },
-  
   _watcher: function(call, key, value, old, memo) {
     var object = value == null ? old : value, key = call.key;
     if (typeof object._watch == 'function') {
@@ -647,19 +646,33 @@ LSD.Object.prototype = {
   
   /*
     A dictionary of internal keys that get skipped
-    when iterating over all keys of object.
+    when iterating over all keys of object. Some 
+    of these properties are skipped naturally by
+    using a hasOwnProperty function that filters
+    out all properties that come from the prototype 
+    of the object. But with this skip map, properties
+    may be assigned to the object itself and still
+    not be used.
   */
   _skip: {
-    _skip: true,
+    // Map of resolved constructors for properties
     _constructors: true,
+    // Global value observers
     _watchers: true,
+    // A flag to disable object "adoption"
     _children: true,
+    // Individual property value observers
     _watched: true,
+    // A link to an object "adopter"
     _parent: true,
+    // Stored raw mixed values
     _stored: true,
-    _length: true,
+    // A live merge worker callback
     _merger: true,
+    // A key mutator function
     _hash: true,
+    // Skip list itself
+    _skip: true
   }
 };
 

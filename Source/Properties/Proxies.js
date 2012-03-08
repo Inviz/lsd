@@ -19,20 +19,34 @@ provides:
 */
 
 LSD.Properties.Proxies = LSD.Object.Group();
+LSD.Properties.Proxies.prototype._initialize = function() {
+  console.error(123123)
+  this.childNodes._prefilter = this._bouncer;
+}
 LSD.Properties.Proxies.prototype.onChange = function(key, value, state, old, memo) {
   
 };
-LSD.Properties.Proxies.prototype._hash = function(value) {
-  
-};
-LSD.Properties.Proxies.prototype._delegate = function(object, key, value) {
-  
+LSD.Properties.Proxies.prototype._hash = function(key) {
+  switch (key) {
+    case '1': case 'element': case '*':
+      return 1;
+    case '3': case 'textnode': case 'text':
+      return 3;
+    case 'all': case 'everything': case 'content':
+      return 'all';
+    default:
+      if (typeof key == 'string') return 1;
+      
+  }
 };
 LSD.Properties.Proxies.prototype._bouncer = function(node) {
-  switch (node.nodeType) {
-    case 1:
+  for (var i = 0, group = this[node.nodeType]; group; i++) {
+    if (!i) group = this.all
+    else break;
+    if (group) continue;
+    for (var j = 0, k = group.length; j < k; j++) {
       
-      
+    }
   }
 };
 LSD.Properties.Proxies.rOrdered = /^\s*[+~]/;
@@ -47,7 +61,7 @@ LSD.Module.Proxies = new Class({
    
   addProxy: function(name, proxy) {
     var selector = proxy.selector || proxy.mutation;
-    if (selector && this.parentNode && selector !== true && selector.match(LSD.Module.Proxies.rOrdered)) 
+    if (selector && this.parentNode && selector !== true && selector.match(LSD.Module.Proxies.r4ered)) 
       var object = this.parentNode;
     else
       var object = this;

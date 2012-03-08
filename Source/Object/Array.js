@@ -63,10 +63,10 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
     Public array-like length property. Although in javascript,
     some objects like functions have their own length property
     which can not be overwritten, thus is not reliable. So internally
-    __length property is checked
+    _length property is checked
   */
   length: 0,
-  __length: 0,
+  _length: 0,
   _offset: 0,
   /*
     Children option set to false disallows LSD.Array to adopt 
@@ -77,18 +77,18 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   push: function() {
     for (var i = 0, j = arguments.length, filter = this._prefilter; i < j; i++) {
       if (!filter || filter(arguments[i]))
-        this.set(this.__length, arguments[i]);
+        this.set(this._length, arguments[i]);
     }
-    return this.__length;
+    return this._length;
   },
   
   set: function(key, value, old, memo) {
     var index = parseInt(key);
-    if (index != index) { //NaN
+    if (index != index) {
       return this._set(key, value, memo);
     } else {
       this[index] = value;
-      if (index + 1 > this.__length) this._set('length', (this.__length = index + 1));
+      if (index + 1 > this._length) this._set('length', (this._length = index + 1));
       var watchers = this.__watchers;
       if (watchers) for (var i = 0, j = watchers.length, fn; i < j; i++) {
         if (!(fn = watchers[i])) continue;
@@ -103,11 +103,11 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   
   unset: function(key, value, old, memo) {
     var index = parseInt(key);
-    if (index != index) { //NaN
+    if (index != index) {
       return this._unset(key, value, memo);
     } else {
       delete this[index];
-      if (index + 1 == this.__length) this._set('length', (this.__length = index));
+      if (index + 1 == this._length) this._set('length', (this._length = index));
       var watchers = this.__watchers;
       if (watchers) for (var i = 0, j = watchers.length, fn; i < j; i++) {
         if (!(fn = watchers[i])) continue;
@@ -122,7 +122,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   
   indexOf: function(object, from) {
     var hash = typeof object == 'object' && this._hash ? this._hash(object) : object;
-    var length = this.__length >>> 0;
+    var length = this._length >>> 0;
     for (var i = (from < 0) ? Math.max(0, length + from) : from || 0; i < length; i++) {
       var value = this[i];
       if (value === object || (this._hash && hash != null && value != null && this._hash(value) == hash)) return i;
@@ -169,7 +169,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
     var args = Array.prototype.slice.call(arguments, 2), 
         filter = this._prefilter, 
         arity = args.length, 
-        length = this.__length
+        length = this._length
     if (filter) for (var j = arity; j--;)
       if (!filter(args[j])) {
         args.splice(j--, 1);
@@ -223,8 +223,8 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
         }
         this.set(i + shift, this[i], i);
       }
-    this.set('length', (this.__length = length + shift));
-    for (var i = this.__length; i < length; i++) {
+    this.set('length', (this._length = length + shift));
+    for (var i = this._length; i < length; i++) {
       if (values.length < - shift) {
         values.push(this[i])
         this.unset(i, this[i]);
@@ -265,12 +265,12 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   
   unshift: function() {
     this.splice.apply(this, [0, 0].concat(Array.prototype.slice.call(arguments, 0)))
-    return this.__length;
+    return this._length;
   },
   
   watch: function(callback, fn, memo) {
     if (typeof fn != 'undefined') return this._watch(callback, fn);
-    for (var i = 0, j = this.__length >>> 0; i < j; i++) {
+    for (var i = 0, j = this._length >>> 0; i < j; i++) {
       if (callback.call) callback.call(this, this[i], i, true);
       else this._callback(callback, this[i], i, true);
     }
@@ -281,7 +281,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   
   unwatch: function(callback, fn, memo) {
     if (typeof fn != 'undefined') return this._watch(callback, fn);
-    for (var i = 0, j = this.__length >>> 0; i < j; i++) {
+    for (var i = 0, j = this._length >>> 0; i < j; i++) {
       if (callback.call) callback.call(this, this[i], i, false);
       else this._callback(callback, this[i], i, false);
     }
@@ -308,7 +308,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
     if (state !== false && (state = true)) {
       var watcher = {fn: this._seeker, invoker: this, block: block, callback: callback, memo: memo};
     }
-    for (var i = 0, result, fn, j = array.__length >>> 0; i < j; i++) {
+    for (var i = 0, result, fn, j = array._length >>> 0; i < j; i++) {
       if (offset > 0 && (!this._skipped || this._skipped < offset)) {
         if (fn == null) fn = block.block ? block.block.eval() : block;
         this._skipped = (this._skipped || 0) + +!!fn(array[i], i, state, prev);
@@ -382,7 +382,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
     var map = [];
     this.watch(function(value, index, state, old) {
       if (state) {
-        for (var i = sorted.__length || sorted.length; i > 0; i--)
+        for (var i = sorted._length || sorted.length; i > 0; i--)
           if (callback(sorted[i - 1], value) < 0) break;
         if (old == null) {
           sorted.splice(i, 0, value);
@@ -428,7 +428,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
       }
       if (callback.block) callback.block.update(count === 0);
     });
-    return this.__length === 0 || count === 0;
+    return this._length === 0 || count === 0;
   },
   
   some: function(callback) {
@@ -464,11 +464,10 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   },
   
   toObject: function(normalize, serializer) {
-    for (var result = [], i = 0; i < this.__length; i++) {
+    for (var result = [], i = 0; i < this._length; i++) {
       var value = this[i];
       if (value != null) value = LSD.toObject(this[i], normalize, serializer);
-      if ((!normalize || typeof value != 'undefined') && (typeof value._length == 'undefined' || value._length > 0))
-       result.push(value);
+      if (!normalize || typeof value != 'undefined') result.push(value);
     }
     return result;
   },
@@ -483,7 +482,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   
   clone: function() {
     var clone = new this.constructor;
-    for (var i = 0; i < this.__length; i++) clone.push(this[i]);
+    for (var i = 0; i < this._length; i++) clone.push(this[i]);
     return clone;
   }
 });

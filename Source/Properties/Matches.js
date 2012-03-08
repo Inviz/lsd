@@ -222,8 +222,10 @@ LSD.Properties.Matches.prototype._advancer = function(call, widget, state) {
   storing a callback that advances the selector to the next expression. 
 */
 LSD.Properties.Matches.prototype._hash = function(expression, value, storage) {
-  if (typeof expression == 'string') 
-    expression = (this._parsed[expression] || (this._parsed[expression] = Slick.parse(expression))).expressions[0][0];
+  if (typeof expression == 'string') {
+    if (this._skip[expression]) return;
+    expression = (this._parsed[expression] || (this._parsed[expression] = Slick.parse(expression))).expressions[0][0]
+  }
   var tag = expression.tag;
   if (!tag) return false;
   if (storage == null) storage = value != null && value.lsd ? this._results || (this._results = {}) : this._callbacks || (this._callbacks = {});

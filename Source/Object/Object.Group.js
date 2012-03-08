@@ -33,16 +33,8 @@ LSD.Object.Group.prototype = {
   constructor: LSD.Object.Stack,
   
   set: function(key, value, memo, prepend, hash) {
-    if (typeof key === 'string' && hash !== true) {
-      var index = key.indexOf('.');
-    } else {
-      if (hash == null || hash === true) hash = this._hash(key, value);
-      if (typeof hash == 'string') {
-        key = hash;
-        hash = null;
-        var index = key.indexOf('.');
-      }
-    }
+    if (this._hash && hash == null && typeof (hash = this._hash(key, value)) == 'string' && (key = hash)) hash = null;
+    if (typeof key == 'string') var index = key.indexOf('.');
     if (index === -1 && hash == null && key.charAt(0) != '_' && !(this._properties && this._properties[key])) {
       hash = this[key];
       if (hash == null) {
@@ -57,18 +49,8 @@ LSD.Object.Group.prototype = {
   },
   
   unset: function(key, value, memo, prepend, hash) {
-    if (typeof key === 'string' && hash !== true) {
-      var index = key.indexOf('.');
-    } else {
-      if (hash == null || hash === true) hash = this._hash(key, value);
-      if (typeof hash == 'string') {
-        key = hash;
-        hash = null;
-        var index = key.indexOf('.');
-      } else {  
-        if (hash == null) return;
-      }
-    }
+    if (this._hash && hash == null && typeof (hash = this._hash(key, value)) == 'string' && (key = hash)) hash = null;
+    if (typeof key == 'string') var index = key.indexOf('.');
     if (index === -1 && hash == null && key.charAt(0) != '_' && !(this._properties && this._properties[key]))
       hash = this[key];
     if (hash == null) return;
