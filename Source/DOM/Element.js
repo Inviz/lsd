@@ -11,6 +11,8 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Struct.Stack
+  - LSD.Properties.Events
+  - LSD.Properties.Proxies
   - LSD.Node
   
 provides: 
@@ -30,11 +32,11 @@ LSD.Element.prototype.onChange = function(key, value, state, old, memo) {
     var methods = compiled[key];
     if (!methods) {
       compiled[key] = methods = {};
-      methods[definition[0]] = function() {
-        return this.reset(key, true);
+      methods[definition[0]] = function(memo) {
+        return this.reset(key, true, memo);
       };
-      methods[definition[1]] = function() {
-        return this.reset(key, false);
+      methods[definition[1]] = function(memo) {
+        return this.reset(key, false, memo);
       };
     }
     for (var method in methods) this._set(method, methods[method]);
@@ -122,12 +124,25 @@ LSD.Element.prototype.__properties = {
       }
     }
   },
+  /*
+    Each widget builds its own element, and it's good when 
+    tag name of a widget matches tag name of element. But
+    in some situations like in custom form fields implementations
+    standart elements dont provide the desired level of customization, 
+    so one may need an element with a simplier tag name and use
+    `localName` property to do it.
+  */
   localName: function(value, old) {
     return value;
   },
+  /*
+    `inline` property is a shortcut that lets to reset
+    element tag name to neutral `span` or `div` element
+    (true and false values respectively).
+  */
   inline: function(value, old) {
-    if (typeof value != 'undefined') this.set('localName', value ? 'span' : 'div', null, true);
-    if (typeof old != 'undefined') this.unset('localName', old ? 'span' : 'div', null, true);
+    if (typeof value != 'undefined') this.set('localName', value ? 'span' : 'div', null, this.tagName != this.localName);
+    if (typeof old != 'undefined') this.unset('localName', old ? 'span' : 'div', null, this.tagName != this.localName);
   },
   source: function(value, old) {
     if (typeof value != 'undefined') this.set('role', role);
@@ -153,63 +168,70 @@ LSD.Element.prototype.__properties = {
   origin: function(value, old, memo) {
     var extracted = this.extracted;
     if (value && !extracted) {
-      var tag = value.tagName.toLowerCase();
-      extracted = this.extracted = {
-        tagName: tag,
-        localName: tag
-      };  
-      for (var i = 0, start, end, attribute, bit, exp, len, attributes = value.attributes, name, script; attribute = attributes[i++];) {
-        loop: for (var j = 0; j < 2; j++) {
-          start = end = undefined;
-          bit = j ? attribute.value : attribute.name;
-          len = bit.length;
-          /*
-            Finds various kind of interpolations in attributes.
-            
-            So far these are all valid interpolations:
-            
-            * <button title="Delete ${person.title}" />
-            * <section ${itemscope(person), person.staff && class("staff")}></section>
-            * <input type="range" value=${video.time} />
-            
-          */
-          while (start != -1) {
-            if (exp == null && (start = bit.indexOf('${', start + 1)) > -1) {
-              if (script == null) script = []
-              if (start > 0) script.push(bit.substring(end, start));
-            }
-            if (exp != null || start > -1) {
-              if ((end = bit.indexOf('}', start + 1)) == -1) {
-                exp = (exp || '') + (start == null ? ' ' + bit : bit.substr(start + 2, len - 2));
-                start = undefined;
-                continue loop;
-              } else {
-                exp = (exp || '') + bit.substring(start == null ? 0 : start + 2, end);
-                start = undefined;
+      extracted = this.extracted = {};
+      if (value.tagName) var tag = extracted.tagName = extracted.localName = value.tagName.toLowerCase();
+      if (value.lsd) {
+        var attributes = value.attributes, skip = attributes._skip;
+        for (var attribute in attributes) {
+          if (attributes.hasOwnProperty(attribute) && !skip[attribute]) {
+            if (!extracted.attributes) extracted.attributes = {};
+            extracted.attributes[attribute] = attributes[attribute];
+          }
+        }
+      } else {
+        for (var i = 0, start, end, attribute, bit, exp, len, attributes = value.attributes, name, script; attribute = attributes[i++];) {
+          loop: for (var j = 0; j < 2; j++) {
+            start = end = undefined;
+            bit = j ? attribute.value : attribute.name;
+            len = bit.length;
+            /*
+              Finds various kind of interpolations in attributes.
+
+              So far these are all valid interpolations:
+
+              * <button title="Delete ${person.title}" />
+              * <section ${itemscope(person), person.staff && class("staff")}></section>
+              * <input type="range" value=${video.time} />
+
+            */
+            while (start != -1) {
+              if (exp == null && (start = bit.indexOf('${', start + 1)) > -1) {
+                if (script == null) script = []
+                if (start > 0) script.push(bit.substring(end, start));
+              }
+              if (exp != null || start > -1) {
+                if ((end = bit.indexOf('}', start + 1)) == -1) {
+                  exp = (exp || '') + (start == null ? ' ' + bit : bit.substr(start + 2, len - 2));
+                  start = undefined;
+                  continue loop;
+                } else {
+                  exp = (exp || '') + bit.substring(start == null ? 0 : start + 2, end);
+                  start = undefined;
+                }
+              }
+              if (exp != null) {
+                script.push(LSD.Script(exp, this));
+                if (start == null) start = -1
               }
             }
             if (exp != null) {
-              script.push(LSD.Script(exp, this));
-              if (start == null) start = -1
+              if (len != end + 1) {
+                script.push(bit.substring(end + 1))
+                exp = null;
+              } else exp += ' ' + bit.substring(end + 1)
             }
           }
-          if (exp != null) {
-            if (len != end + 1) {
-              script.push(bit.substring(end + 1))
-              exp = null;
-            } else exp += ' ' + bit.substring(end + 1)
+          if (j === 0 && start === -1 && name == null) name = bit;
+          if (script || exp == null)
+            (extracted.attributes || (extracted.attributes = {}))[name || attribute.name] = script 
+              ? script.length > 1 
+                ? new LSD.Script({name: 'concat', input: script, type: 'function'}) 
+                : script[0]
+              : attribute.value;
+          if (script) {
+            name = null;
+            script = null;
           }
-        }
-        if (j === 0 && start === -1 && name == null) name = bit;
-        if (script || exp == null)
-          (extracted.attributes || (extracted.attributes = {}))[name || attribute.name] = script 
-            ? script.length > 1 
-              ? new LSD.Script({name: 'concat', input: script, type: 'function'}) 
-              : script[0]
-            : attribute.value;
-        if (script) {
-          name = null;
-          script = null;
         }
       }
       for (var i = 0, clses = value.className.split(' '), cls; cls = clses[i++];)
@@ -235,6 +257,66 @@ LSD.Element.prototype.__properties = {
       delete this.extracted;
     }
   },
+  built: function(value, old) {
+    if (old) {
+      this.fireEvent('beforeDestroy');
+      if (this.parentNode) this.dispose();
+      var element = this.element;
+      if (element) element.destroy();
+    }
+    if (value) {
+      if (this.origin && !this.clone) {
+        var element = this.origin;
+      } else {
+        var element = document.createElement(this.localName);
+        var attributes = this.attributes, classes = this.classList;
+        var skip = attributes._skip; 
+        for (var name in attributes) {
+          if (this.attributes.hasOwnProperty(name) && (skip == null || !skip[name])) {
+            var val = attributes[name];
+            element.setAttribute(name, val);
+            if (val === true) element[name] = true;
+          }
+        }
+        if (classes && classes.className != element.className) 
+          element.className = classes.className;
+      }
+      this.set('element', element)
+    }
+    if (value) this.mix('childNodes.built', value);
+    if (old) this.mix('childNodes.built', old, null, false);
+  },
+  focused: function(value, old) {
+    if (value) this.mix('parentNode.focused', value);
+    if (old) this.mix('parentNode.focused', old, null, false);
+  },
+  rendered: function(value, old) {
+    if (value) this.mix('childNodes.rendered', value);
+    if (old) this.mix('childNodes.rendered', old, null, false);
+  },
+  disabled: function(value, old) {
+    if (value) this.mix('childNodes.disabled', value);
+    if (old) this.mix('childNodes.disabled', old, null, false);
+  },
+  document: function(value, old) {
+    if (value) this.mix('childNodes.document', value);
+    if (old) this.mix('childNodes.document', old, null, false);
+  },
+  root: function(value, old) {
+    if (value) this.mix('childNodes.root', value);
+    if (old) this.mix('childNodes.root', old, null, false);
+  },
+  /*
+    Good DOM collections are sorted so nodes in collection
+    are in the order of appearance in DOM. When an element
+    is removed from DOM, it is removed from collection as
+    well. In order to pull this off, each node should know
+    it's position in document. That's why LSD.Element is
+    made to maintain a `sourceIndex` property that is a
+    number. Each time something happens to the DOM, 
+    numbers are updated, callbacks are fired and collections
+    get gently resorted with swaps.
+  */
   sourceIndex: function(value, old, memo) {
     if (memo !== false) for (var node = this, next, nodes, i = 0; node; node = next) {
       next = node.firstChild || node.nextSibling;
@@ -296,56 +378,6 @@ LSD.Element.prototype.__properties = {
       }
     }
   },
-  built: function(value, old) {
-    if (old) {
-      this.fireEvent('beforeDestroy');
-      if (this.parentNode) this.dispose();
-      var element = this.element;
-      if (element) element.destroy();
-    }
-    if (value) {
-      if (this.origin && !this.clone) {
-        var element = this.origin;
-      } else {
-        var element = document.createElement(this.localName);
-        var attributes = this.attributes, classes = this.classList;
-        var skip = attributes._skip; 
-        for (var name in attributes) {
-          if (this.attributes.hasOwnProperty(name) && (skip == null || !skip[name])) {
-            var val = attributes[name];
-            element.setAttribute(name, val);
-            if (val === true) element[name] = true;
-          }
-        }
-        if (classes && classes.className != element.className) 
-          element.className = classes.className;
-      }
-      this.set('element', element)
-    }
-    if (value) this.mix('childNodes.built', value);
-    if (old) this.mix('childNodes.built', old, null, false);
-  },
-  className: 'classList._name',
-  focused: function(value, old) {
-    if (value) this.mix('parentNode.focused', value);
-    if (old) this.mix('parentNode.focused', old, null, false);
-  },
-  rendered: function(value, old) {
-    if (value) this.mix('childNodes.rendered', value);
-    if (old) this.mix('childNodes.rendered', old, null, false);
-  },
-  disabled: function(value, old) {
-    if (value) this.mix('childNodes.disabled', value);
-    if (old) this.mix('childNodes.disabled', old, null, false);
-  },
-  document: function(value, old) {
-    if (value) this.mix('childNodes.document', value);
-    if (old) this.mix('childNodes.document', old, null, false);
-  },
-  root: function(value, old) {
-    if (value) this.mix('childNodes.root', value);
-    if (old) this.mix('childNodes.root', old, null, false);
-  },
   multiple: function(value, old) {
     if (value) {
       if (!this.values) this.set('values', new LSD.Array);
@@ -375,7 +407,7 @@ LSD.Element.prototype.tagName = null;
 LSD.Element.prototype.className = '';
 LSD.Element.prototype.nodeType = 1;
 LSD.Element.prototype._parent = false;
-LSD.Element.prototype._preconstruct = ['childNodes', 'variables', 'attributes', 'classList', 'events', 'matches', 'proxies', 'relations'];
+LSD.Element.prototype._preconstruct = ['childNodes', 'proxies', 'variables', 'attributes', 'classList', 'events', 'matches', 'relations'];
 LSD.Element.prototype.__initialize = function(/* options, element, selector */) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
   /*
@@ -386,6 +418,10 @@ LSD.Element.prototype.__initialize = function(/* options, element, selector */) 
     hidden: false,
     disabled: false
   }, null, '_set');
+  if (this.classList) {
+    this.classes = this.classList;
+    this.childNodes._prefilter = this.proxies._bouncer
+  }
   for (var i = 0, args = arguments, j = args.length, arg; i < j; i++) {
     if (!(arg = args[i])) continue;
     if (typeof arg == 'string') {
@@ -445,11 +481,13 @@ LSD.Element.prototype.hasClass = function(name) {
 LSD.Element.prototype.fireEvent = function() {
   return this.events.fire.apply(this.events, arguments);
 };
-LSD.Element.prototype.addEvent = function(name, fn, memo) {
-  return this.events.add(name, fn, memo);
+LSD.Element.prototype.addEvents = LSD.Element.prototype.addEvent = function(name, fn, memo) {
+  this.events.mix(name, fn, memo);
+  return this;
 };
 LSD.Element.prototype.removeEvent = function(name, fn, memo) {
-  return this.events.remove(name, fn, memo);
+  this.events.mix(name, fn, memo, false);
+  return this;
 };
 LSD.Element.prototype.store = function(name, value) {
   this.storage[name] = value;

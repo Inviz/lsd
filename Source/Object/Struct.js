@@ -51,8 +51,9 @@ LSD.Struct = function(properties, Base) {
     if (preconstruct) for (var i = 0, type, constructors = this._constructors; type = preconstruct[i++];) {
       var constructor = constructors[type] || this._getConstructor(type);
       var obj = this[type] = new constructor;
-      if (obj._register) obj._set('_parent', this);
-      else obj._parent = this;
+      obj._parent = this;
+      var properties = obj._properties;
+      if (properties && properties._parent) properties._parent.call(obj, this)
     }
     if (this.__initialize) object = this.__initialize.apply(this, arguments);
     if (object != null) this.mix(object);

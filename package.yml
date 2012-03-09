@@ -33,6 +33,7 @@ sources:
   - Source/Properties/Attributes.js
   - Source/Properties/Events.js
   - Source/Properties/Resource.js
+  - Source/Properties/Proxies.js
   - Source/Script/Script.js
   - Source/Script/Parser.js
   - Source/Script/Helpers.js

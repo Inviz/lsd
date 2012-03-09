@@ -75,8 +75,8 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   _children: false,
   
   push: function() {
-    for (var i = 0, j = arguments.length, filter = this._prefilter; i < j; i++) {
-      if (!filter || filter(arguments[i]))
+    for (var i = 0, j = arguments.length; i < j; i++) {
+      if (!this._prefilter || this._prefilter(arguments[i]))
         this.set(this._length, arguments[i]);
     }
     return this._length;
@@ -167,11 +167,10 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   be filtered out by an optional `_prefilter` function hook.
 */
     var args = Array.prototype.slice.call(arguments, 2), 
-        filter = this._prefilter, 
         arity = args.length, 
         length = this._length
-    if (filter) for (var j = arity; j--;)
-      if (!filter(args[j])) {
+    if (this._prefilter) for (var j = arity; j--;)
+      if (!this._prefilter(args[j])) {
         args.splice(j--, 1);
         arity--;
       }

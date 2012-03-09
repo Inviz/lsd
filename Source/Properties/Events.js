@@ -67,7 +67,7 @@ LSD.Properties.Bound.prototype.get = function(name) {
   if (this[name]) return this[name];
   var that = this;
   return (this[name] = function() {
-    if (that._widget[name])
-      return that._widget.apply(that._widget, arguments);
+    if (that._parent[name])
+      return that._parent.apply(that._parent, arguments);
   });
 };

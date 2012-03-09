@@ -1,4 +1,4 @@
- /*
+/*
 ---
  
 script: Proxies.js
@@ -10,137 +10,61 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
   
 requires:
-  - LSD.Module
+  - LSD
  
 provides: 
-  - LSD.Module.Proxies
+  - LSD.Properties.Proxies
  
 ...
 */
 
-LSD.Properties.Proxies = LSD.Object.Group();
-LSD.Properties.Proxies.prototype._initialize = function() {
-  console.error(123123)
-  this.childNodes._prefilter = this._bouncer;
-}
-LSD.Properties.Proxies.prototype.onChange = function(key, value, state, old, memo) {
-  
-};
+LSD.Properties.Proxies = LSD.Struct.Group();
 LSD.Properties.Proxies.prototype._hash = function(key) {
   switch (key) {
-    case '1': case 'element': case '*':
-      return 1;
-    case '3': case 'textnode': case 'text':
-      return 3;
-    case 'all': case 'everything': case 'content':
-      return 'all';
-    default:
-      if (typeof key == 'string') return 1;
-      
+    case '3': case 'textnode': case 'textnodes': case 'text':
+      return this[3] || (this[3] = []);
+    case '1': case 'element': case 'elements': case '*':
+      return this[1] || (this[1] = []);
+    case 'all': case 'everything':
+      return this.all || (this.all = [])
+    // case 'content': case 'unrelated':
+    // return this.content || this.content 
+    default:  
+      if (typeof key == 'string') {
+        var object = this._selectors || (this._selectors = {});
+      } else if (key && key.exec) {
+        var object = this._wildcards || (this._wildcards = {});
+        var regexes = this._regexes || (this._regexes = {});
+        if (!regexes[key]) regexes[key] = key;
+      }  
+      return object[key] || (object[key] = []);
   }
 };
 LSD.Properties.Proxies.prototype._bouncer = function(node) {
-  for (var i = 0, group = this[node.nodeType]; group; i++) {
-    if (!i) group = this.all
-    else break;
-    if (group) continue;
-    for (var j = 0, k = group.length; j < k; j++) {
-      
-    }
-  }
+  var type = node.nodeType, origin = this._parent.proxies, proxy;
+  switch (type) {
+    case 1:
+      var group = origin._selectors;
+      if (group) for (var selector in group) {
+        var proxies = group[selector];
+        if (proxies.length > 0 && node.test(selector) && (proxy = proxies[0]))
+          break;
+      }
+      break;
+    case 3:
+      var group = origin._wildcards;
+      if (group) for (var wildcard in group) {
+        var proxies = group[wildcard];
+        var value = node.nodeValue;
+        if (proxies.length > 0 && value.test(origin._regexes[wildcard]) && (proxy = proxies[0])) 
+          break;
+      }
+  };
+  if (!proxy) proxy = origin[type] && origin[type][0];
+  if (!proxy) proxy = origin.all && origin.all[0];
+  if (proxy) {
+    if (proxy.appendChild) proxy.appendChild(node)
+    else if (proxy.before) proxy.before.parentNode.insertBefore(node, proxy.before);
+    return false;
+  } else return true;
 };
-LSD.Properties.Proxies.rOrdered = /^\s*[+~]/;
-LSD.Properties.Proxies
-
-LSD.Module.Proxies = new Class({
-  constructors: {
-    proxies: function() {
-      this.proxies = [];
-    }
-  },
-   
-  addProxy: function(name, proxy) {
-    var selector = proxy.selector || proxy.mutation;
-    if (selector && this.parentNode && selector !== true && selector.match(LSD.Module.Proxies.r4ered)) 
-      var object = this.parentNode;
-    else
-      var object = this;
-    for (var i = 0, other; (other = object.proxies[i]) && ((proxy.priority || 0) < (other.priority || 0)); i++);
-    object.proxies.splice(i, 0, proxy);
-  },
-   
-  removeProxy: function(name, proxy) {
-    var selector = proxy.selector || proxy.mutation;
-    if (selector && this.parentNode && selector !== true && selector.match(LSD.Module.Proxies.rOrdered)) 
-      var object = this.parentNode;
-    else
-      var object = this;
-    var index = object.proxies.indexOf(proxy);
-    if (index > -1) object.proxies.splice(index, 1);
-  }
-});
- 
- 
-Object.append(LSD.Module.Proxies, {
-  match: function(node, proxy, parent) {
-    if (node.lsd) {
-      if (!node.element) node.toElement();
-      if (proxy.selector) return proxy.selector === true || Slick.matchNode(node, proxy.selector, parent || proxy.widget);
-    } else {
-      if (proxy.mutation) return proxy.mutation === true || (node.nodeType == 1 && Slick.matchNode(node, proxy.mutation, parent || proxy.element));
-      if (proxy.text) return node.nodeType == 3 && (!proxy.regexp || node.nodeValue.match(proxy.regexp));
-    }
-  },
-   
-  invoke: function(parent, child, proxy) {
-    if (proxy.callback) proxy.callback.call(parent, child, proxy);
-    var container = proxy.container && proxy.container.call ? proxy.container.call(parent, child, proxy) : proxy.container;
-    if (container === false) {
-      if (!proxy.queued) proxy.queued = [];
-      proxy.queued.push(child);
-      return false;
-    }
-    var result = {};
-    if (container && container !== true) {
-      if (container.lsd) {
-        result.widget = container;
-        result.element = container.element || container.toElement()
-      } else if (container.nodeType) {
-        result.element = container;
-        if (proxy.rewrite === false) result.widget = parent[0] || parent;
-      } else {
-        result.widget = parent[0] || parent;
-        result.element = container;
-      }
-      if (container === child) return false;
-    }
-    if (proxy.before) {
-      result.before = proxy.before.call ? proxy.before.call(parent, child, proxy) : proxy.before;
-    } else if (proxy.after) {
-      var after = (proxy.after.call ? proxy.after.call(parent, child, proxy) : proxy.after);
-      if (after) result.before = after.nextSibling;
-    }
-    return result;
-  },
-   
-  perform: function(widget, child, bypass) {
-    var element = widget.element || widget.toElement();
-    for (var node = widget, proxies; node; node = node.parentNode)
-      if ((proxies = node.proxies))
-        for (var j = 0, proxy; proxy = proxies[j++];)
-          if (((node == widget) || proxy.deep) && (!proxy.type || proxy.type != bypass))
-            if (LSD.Module.Proxies.match(child, proxy, proxy.selector ? widget : proxy.element))
-              return LSD.Module.Proxies.invoke(child.lsd ? widget : element, child, proxy);
-  },
-   
-  realize: function(node, origin, proxy) {
-    proxy.container = node;
-    if (proxy.queued) {
-      if (node.lsd) var element = node.element || node.toElement(), widget = node;
-      else var element = node, widget = origin;
-      for (var i = 0, child; child = proxy.queued[i++];) {
-        origin.document.layout.appendChild([widget, element], child, false, child.lsd ? element : null, element);
-      }
-    }
-  }
-});

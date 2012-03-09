@@ -40,11 +40,7 @@ LSD.Node.prototype.replaceChild = function(child, old) {
   return this;
 };
 LSD.Node.prototype.cloneNode = function(children) {
-  return (this.document || LSD.Document.prototype).createElement({
-    origin: this.element,
-    tag: this.tagName,
-    clone: true
-  });
+  return (this.document || LSD.Document.prototype).createNode(this.nodeType, this);
 };
 LSD.Node.prototype.inject = function(node, where) {
   return this.inserters[where || 'bottom'](this, node);

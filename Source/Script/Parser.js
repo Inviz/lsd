@@ -18,6 +18,21 @@ provides:
   - LSD.Script.parse
 ...
 */
+
+/*
+  LSD.Script.Parser is a regex-aided one-pass parser.
+  
+  Features:
+    * Ruby-like blocks {|a| a + 1} syntax
+    * Optional [] getter syntax with expressions
+    * Local variables finder
+    * Units and selectors are parsed correctly
+    * Operators precedence fixed at parse time
+    * Optional parenthesis-free method call
+    - No array or hash literal syntax yet
+*/
+
+
 !function(exports) {
 var Parser = LSD.Script.Parser = function() {};
 Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = function(value, memo, bypass) {
@@ -42,18 +57,39 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
         if (typeof replacement != 'undefined' || text == 'undefined') {
           scope.push(replacement);
         } else if (!tail || !token) {
+          // something variable
           if (token) {
             var functioned = token;
             token.type = 'function';
-            scope = token.value = []
+            token.value = scope = [];
+          // something[key] variable
+          } else if (getter && whitespaced) {
+            var bits = getter.value[1].split('.');
+            var method = bits.pop();
+            if (bits.length) {
+              getter.value[1] = bits.join('.');
+              fn = {type: 'function', name: method, value: [getterscope.pop()]}
+            } else {
+              fn = {type: 'function', name: method, value: [getterscope.pop().value[0]]}
+            }  
+            getterscope.push(fn);
+            scope = fn.value;
           }
-          token = {type: 'variable', name: text};
-          if (memo && memo.locals && memo.locals[text]) token.local = true;
-          if (tail) token.tail = true;
-          scope.push(token);
-        } else {
-          token.name += '.' + text;
-        }
+          if (!token && tail) {
+            if (!getter) {
+              var getter = {type: 'function', name: '[]', value: [scope.pop(), text]}, getterscope = scope;
+              scope.push(getter);
+              scope = getter.value;
+            } else {
+              getter.value[1] += '.' + text;
+            }
+          } else {
+            token = {type: 'variable', name: text};
+            if (memo && memo.locals && memo.locals[text]) token.local = true;
+            if (tail) token.tail = true;
+            scope.push(token);
+          }
+        } else token.name += '.' + text;
       } else {
         /*
           Compose a selector from various tokens
@@ -72,7 +108,8 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
       var args = LSD.Script.parse(text, memo, true);
       if (args.push)
         for (var j = 0, bit; bit = args[j]; j++) if (bit && bit.length == 1) args[j] = bit[0];
-      if (found[names.fn_tail]) {
+      if (found[names.fn_tail]) {  
+        if (getterscope) scope = getterscope;
         if (args.push) args.unshift(scope.pop());
         else args = [scope.pop(), args];
       }
@@ -133,26 +170,37 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
             scope = operator.value;
           }
         }
-      } else {
-        selector.value += ' ' + text;
-        text = null;
-      }
+      } else selector.value += ' ' + text;
       token = null;
     } else {
-      var whitespaced = !!found[names.whitespace];
+      var whitespaced = found[names.whitespace];
       if (!whitespaced && !found[names.comma]) {
-        if (token && !functioned) {
-          scope.pop();
-          args = []
-          var bits = token.name.split('.');
-          var method = bits.pop();
-          if (token.tail) var parenttoken = scope.pop();
-          if (bits.length) {
-            if (parenttoken) parenttoken.name += bits.join('.');
-            else parenttoken = {type: 'variable', name: bits.join('.')};
-            if (token.local) parenttoken.local = token.local;
+        if (!functioned && (token || getter)) {
+          // something[key].method 123
+          if (!token) {
+            var bits = getter.value[1].split('.');
+            var method = bits.pop();
+            if (bits.length) {
+              getter.value[1] = bits.join('.');
+              args = [getterscope.pop()]
+            } else {
+              args = [getterscope.pop().value[0]]
+            }
+            scope = getterscope;
+          // something.method 123
+          } else {
+            scope.pop();
+            args = []
+            var bits = token.name.split('.');
+            var method = bits.pop();
+            if (token.tail) var parent = scope.pop();
+            if (bits.length) {
+              if (parent) parent.name += bits.join('.');
+              else parent = {type: 'variable', name: bits.join('.')};
+              if (token.local) parent.local = token.local;
+            }  
+            if (parent) args.unshift(parent);
           }  
-          if (parenttoken) args.unshift(parenttoken);
           scope.push({type: 'function', name: method, value: args})
           scope = args
           var functioned = token;
@@ -187,12 +235,13 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
       if (fn) fn = null;
       else args = null;
     }
-    if (found[names.comma] || (token && scope[scope.length - 1] != token && !tail)) token = null;
+    if (!whitespaced && getter && !tail) getter = null
+    if (found[names.comma] || found[name.semicolon] || (token && scope[scope.length - 1] != token && !tail)) token = null;
     if (!operator && text && stack.length) {
       var pop = stack[stack.length - 1]
       if (pop && pop.stack) scope = pop.stack;
     }
-    block = operator = null;
+    tail = block = operator = null;
   }
   return (LSD.Script.parsed[value] = (result.length == 1 ? result[0] : result));
 };
@@ -264,10 +313,9 @@ Parser.multiline = function(scope) {
 };
 
 Parser.Tokens = {'null': null, 'true': true, 'false': false, 'undefined': Parser.undefined};
-Parser.rVariable = /^[a-z0-9][a-z_\-0-9.\[\]]*$/ig;
+Parser.rVariable = /^[a-z][a-z_\-0-9.\[\]]*$/ig;
 Parser.Combinators = {'+': 1, '>': 1, '!+': 1, '++': 1, '!~': 1, '~~': 1, '&': 1, '&&': 1, '$': 1, '$$': 1};
 Parser.rLine = /^([ \t]*)([^\n]*?)\s*(?:\|([^|]*?)\|\s*)?(?:\n|$)/gm
-
 var x = exports.combineRegExp
 var OR = '|'
 var rRound = "(?:[^()]|\\((?:[^()]|\\((?:[^()]|\\((?:[^()]|\\([^()]*\\))*\\))*\\))*\\))";
@@ -276,19 +324,16 @@ var rSquare = "(?:[^\\[\\]]|\\[(?:[^\\[\\]]|\\[(?:[^\\[\\]]|\\[(?:[^\\[\\]]|\\[[
 
 ;(Parser.fn = x("(?:(\\.)\\s*)?([-_a-zA-Z0-9]*)\\s*\\((" + rRound + "*)\\)"))
 .names = [     'fn_tail',    'fn',                  'fn_arguments']
-
 ;(Parser.block = x("\\s*\\{\\s*(?:\\|\\s*([^|]*)\\|\\s*)?\\s*((?:" + rCurly + ")*)\\s*\\}"))
 .names = [                'block_arguments',                'block']
-
 ;(Parser.integer = x(/[-+]?\d+/))
 ;(Parser._float = x(/[-+]?(?:\d+\.\d*|\d*\.\d+)/))
 ;(Parser._length = x(['(', Parser._float,  OR, Parser.integer, ')', '(em|px|pt|%|fr|deg|(?=$|[^a-zA-Z0-9.]))']))
 .names = [            'number',                                     'unit']
-
 ;(Parser.comma = x(/\s*,\s*/, 'comma'))
+;(Parser.semicolon = x(/\s*;\s*/, 'semicolon'))
 ;(Parser.whitespace = x(/\s+/, 'whitespace'))
 ;(Parser.operator = x(/[-+]|[\/%^~=><*\^!|&$]+/, 'operator'))
-
 ;(Parser.index = x("\\[\\s*((?:" + rSquare + ")*)\\s*\\]")).names = ['index']
 ;(Parser.stringDouble = x(/"((?:[^"]|\\")*)"/)).names = ['dstring']
 ;(Parser.stringSingle = x(/'((?:[^']|\\')*)'/)).names = ['sstring']
@@ -302,6 +347,8 @@ Parser.tokenize = x
   , x(Parser.block)
   , OR
   , x(Parser.index)
+  , OR
+  , x(Parser.semicolon)
   , OR
   , x(Parser.comma)
   , OR
