@@ -81,7 +81,7 @@ LSD.ChildNodes.Virtual = LSD.Struct.Array({
   },
   parentNode: function(node, old) {
     var children = (node || old).childNodes;
-    var index = children.indexOf(this._parent);
+    var index = children.indexOf(this._parent || this);
     if (node) {
       var args = [index + 1, 0];
       for (var i = 0, child; child = this[i++];) args.push(child)

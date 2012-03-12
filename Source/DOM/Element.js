@@ -20,6 +20,40 @@ provides:
 ...
 */
 
+/*
+  Element in HTML are pretty powerful, although 
+  implementations of browser DOM are not consistent
+  between browsers, and it often needs another
+  layer of abstraction with reliable API. Be it 
+  god object a la jQuery, or wrappers like in 
+  mootools, they only go so far in empowering
+  standart elements, because they still rely
+  on DOM features that are not customizible enough.
+  
+  LSD has a different approach of building a 
+  "perfect DOM" by reimplementing all element
+  features in objects that are under full control
+  of a programmer. When most of the Element features
+  are implemented in a compatible way, the code
+  that works with regular elements may work with
+  those that are implemented in javascript.
+  
+  Simple re-implementation of browser DOM is nothing
+  new, projects like jsdom do it with moderate 
+  success. What makes LSD different is that every
+  property in every object is observable, 
+  objects are customizable, and there's 
+  an infrastructure for observing selectors, 
+  assigning and dispatching values,
+  scripting language and compued properties,
+  and a built in set of various plugins.
+  
+  LSD builds a tree of elements identical
+  to tree of regular elements and gets powerful
+  observing and introspection capabilities
+  almost for free.
+*/
+
 LSD.Element = new LSD.Struct.Stack(LSD.Properties)
 LSD.Element.prototype.onChange = function(key, value, state, old, memo) {
   var ns         = this.document || LSD.Document.prototype,
@@ -197,7 +231,7 @@ LSD.Element.prototype.__properties = {
             while (start != -1) {
               if (exp == null && (start = bit.indexOf('${', start + 1)) > -1) {
                 if (script == null) script = []
-                if (start > 0) script.push(bit.substring(end, start));
+                if (start > 0) script.push(bit.substring(end + 1, start));
               }
               if (exp != null || start > -1) {
                 if ((end = bit.indexOf('}', start + 1)) == -1) {
@@ -206,13 +240,12 @@ LSD.Element.prototype.__properties = {
                   continue loop;
                 } else {
                   exp = (exp || '') + bit.substring(start == null ? 0 : start + 2, end);
-                  start = undefined;
                 }
               }
-              if (exp != null) {
-                script.push(LSD.Script(exp, this));
-                if (start == null) start = -1
-              }
+              if (exp != null) script.push(LSD.Script(exp, this));
+              if (start == null || (start > -1 && bit.indexOf('${', start + 1) == -1)) {
+                start = -1;
+              } else exp = null;
             }
             if (exp != null) {
               if (len != end + 1) {
@@ -243,6 +276,11 @@ LSD.Element.prototype.__properties = {
           for (var subkey in val) 
             this[key].set(subkey, val[subkey], memo, true);
         else this.set(key, val, memo, true);
+      }
+      if (!this.fragment && value.childNodes.length) {
+        var fragment = new LSD.Fragment;
+        fragment.enumerable(value.childNodes, this)
+        this.set('fragment', fragment)
       }
     }
     if (old && extracted) {
@@ -365,6 +403,8 @@ LSD.Element.prototype.__properties = {
   },
   parentNode: function(value, old) {
     if (!value) this.unset('sourceIndex', this.sourceIndex);
+    if (value) this.variables.merge(value.variables);
+    if (old) this.variables.unmerge(value.variables);
     for (var i = 0, node, method; i < 2; i++) {
       if (i) node = old, method = 'remove';
       else node = value, method = 'add';
@@ -422,14 +462,22 @@ LSD.Element.prototype.__initialize = function(/* options, element, selector */) 
     this.classes = this.classList;
     this.childNodes._prefilter = this.proxies._bouncer
   }
-  for (var i = 0, args = arguments, j = args.length, arg; i < j; i++) {
+  for (var args = arguments, i = args.length; --i > -1;) {
     if (!(arg = args[i])) continue;
-    if (typeof arg == 'string') {
-      this.setSelector(arg);
-    } else if (arg.nodeType) {
-      this.set('origin', arg);
-    } else {
-      var options = arg;
+    switch (typeof arg) {
+      case 'string':
+        return this.setSelector(arg);
+      case 'object':
+        if (arg) switch (arg.nodeType) {
+          case 1:
+            this.set('origin', arg);
+            break;
+          case 11:
+            this.fragment = arg;
+            break;
+          default:
+            var options = arg;
+        }
     }
   }
   return options;
@@ -460,7 +508,7 @@ LSD.Element.prototype.getAttributeNode = function(name) {
   }
 };
 LSD.Element.prototype.setAttribute = function(name, value) {
-  this.attributes.set(name, value);
+  this.attributes.reset(name, value);
   return this;
 };
 LSD.Element.prototype.removeAttribute = function(name) {

@@ -30,7 +30,7 @@ LSD.Node.prototype.insertBefore = function(child, before) {
   return this;
 };
 LSD.Node.prototype.removeChild = function(child) {
-  var index = this.childNodes.indexOf(before);
+  var index = this.childNodes.indexOf(child);
   if (index > -1) this.childNodes.splice(index, 1);
   return this;
 };

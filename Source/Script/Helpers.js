@@ -30,6 +30,12 @@ LSD.Script.Helpers.count = function(elements) {
   return elements.push ? elements.length : +!!elements
 };
 
+LSD.Script.Helpers.concat = function() {
+  return Array.prototype.join.call(arguments, '')
+},
+
+
+
 /*
   Pluralize is a three functions in one:
   
@@ -192,4 +198,11 @@ LSD.Script.Revertable = {
   '=': 'undefine',
   'define': 'undefine',
   'undefine': 'define'
+};
+
+LSD.Script.Keywords = {
+  'if': true, 
+  'else': true, 
+  'elsif': true, 
+  'unless': true
 };

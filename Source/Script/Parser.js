@@ -313,7 +313,7 @@ Parser.multiline = function(scope) {
 };
 
 Parser.Tokens = {'null': null, 'true': true, 'false': false, 'undefined': Parser.undefined};
-Parser.rVariable = /^[a-z][a-z_\-0-9.\[\]]*$/ig;
+Parser.rVariable = /^[a-zA-Z][a-zA-Z_\-0-9.\[\]]*$/;
 Parser.Combinators = {'+': 1, '>': 1, '!+': 1, '++': 1, '!~': 1, '~~': 1, '&': 1, '&&': 1, '$': 1, '$$': 1};
 Parser.rLine = /^([ \t]*)([^\n]*?)\s*(?:\|([^|]*?)\|\s*)?(?:\n|$)/gm
 var x = exports.combineRegExp

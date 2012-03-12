@@ -42,6 +42,9 @@ LSD.Instruction = function() {
 LSD.Instruction.prototype.initialize = function() {
   this.childNodes = this;
 }
+LSD.Instruction.prototype.onValueChange = function(value, old) {
+  
+}
 LSD.Instruction.parse = LSD.Script.parse;
 LSD.Instruction.Script = LSD.Instruction.prototype.Script = LSD.Instruction;
 LSD.Struct.implement.call(LSD.Instruction, LSD.Script.prototype);

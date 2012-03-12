@@ -20,18 +20,22 @@ provides:
 */
 
 LSD.Textnode = LSD.Struct({
-  nodeValue: function(value) {
-    for (var previous = -1, start, end, bits; (start = value.indexOf('${', previous + 1)) > -1;) {
-      if ((end = value.indexOf('}', start)) == -1) continue;
-      if (!bits) bits = [];
-      if (start > 0 && previous != start) bits.push(value.substring(previous || 0, start));
-      bits.push(new LSD.Script(value.substring(start + 2, end)));
-      previous = end;
+  nodeValue: function(value, old, memo) {
+    if (!memo || !(memo.push || memo.script)) {
+      for (var previous = -1, start, end, bits, substr; (start = value.indexOf('${', previous + 1)) > -1;) {
+        if ((end = value.indexOf('}', start)) == -1) continue;
+        if (!bits) bits = [];
+        if (start > 0 && previous + 1 != start) bits.push(value.substring(previous ? previous + 1 : 0, start));
+        bits.push(new LSD.Script({input: value.substring(start + 2, end), placeholder: value.substring(start, end + 1)}));
+        previous = end;
+      }
     }
-    if (bits) {
-      if (end + 1 < value.length) bits.push(value.substring(end + 1));
-      return new LSD.Script({type: 'function', name: 'concat', input: bits});
-    } else return value;
+    if (!bits) {
+      if (this.origin) this.origin.textContent = typeof value == 'undefined' ? '' : value;
+      return value;
+    } else if (bits.length == 1) return bits[0];
+    if (end + 1 < value.length) bits.push(value.substring(end + 1));
+    return new LSD.Script({type: 'function', name: 'concat', input: bits, pipable: false});
   },
   parentNode: function(value, old) {
     if (value) this.set('variables', value.variables);
@@ -47,7 +51,10 @@ LSD.Textnode.prototype.__initialize = function() {
         break;
       case "object":
         if (arg != null) {
-          if (arg.nodeType === 3) string = string ? string + arg.nodeValue : arg.nodeValue
+          if (arg.nodeType === 3) {
+            this.origin = arg;
+            string = string ? string + arg.nodeValue : arg.nodeValue
+          }
         } else this.mix(arg);
     }
   }

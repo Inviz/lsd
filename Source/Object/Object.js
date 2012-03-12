@@ -548,11 +548,11 @@ LSD.Object.prototype = {
     if (this._stack && (!state || old != null)) this.mix(name, state ? old : value, call, false, true, call.prepend);
   },
   
-  _callback: function(callback, key, value, old, memo, obj) {
+  _callback: function(callback, key, value, old, memo, obj, other) {
     if (callback.substr) 
       var subject = this, property = callback;
     else if (typeof callback.fn == 'function')
-      return (callback.fn || (callback.bind || this)[callback.method]).call(callback.bind || this, callback, key, value, old, memo, obj);
+      return (callback.fn || (callback.bind || this)[callback.method]).call(callback.bind || this, callback, key, value, old, memo, obj, other);
     else if (callback.watch && callback.set) 
       var subject = callback, property = key;
     else if (callback.push) 
@@ -573,11 +573,19 @@ LSD.Object.prototype = {
   
   _toString: Object.prototype.toString,
   
-  toString: function() {
+  toString: function(objects) {
     var string = '{';
-    for (var property in this)
-      if (this.has(property) && typeof this[property] != 'function')
-        string += (string.length > 1 ? ', ' : '') + (property + ': ' + this[property]);
+    if (!objects) objects = [];
+    for (var property in this) {
+      var type = typeof this[property];
+      if (type == 'object' && type) {
+        if (objects.indexOf(type) > -1) return;
+        objects.push(type);
+      }
+      if (this.has(property) && typeof this[property] != 'function') {
+        string += (string.length > 1 ? ', ' : '') + (property + ': ' + this[property].toString(objects));
+      }
+    }
     return string + '}'
   },
 

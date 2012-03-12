@@ -272,9 +272,10 @@ LSD.Struct.prototype = {
   calculated and assigned to `total` property.
 */
   _script: function(key, expression) {
+    var node = this.nodeType && this || (this._global && this._parent);
     if (this.nodeType) {
       var script = LSD.Script(expression, null, [this, key]);;
-      this.watch('variables', '_scripted.' + key + '.scope')
+      node.watch('variables', '_scripted.' + key + '.scope')
     } else {
       var script = LSD.Script(expression, this, [this, key]);;
     }

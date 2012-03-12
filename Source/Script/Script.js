@@ -50,15 +50,32 @@ LSD.Script = function(input, scope, output) {
     if (scope) this.scope = scope;
     if (output) this.output = output;
     if (this.initialize) this.initialize()
-    if (typeof input == 'string') input = this.Script.parsed && this.Script.parsed[input] || this.Script.parse(input);
-    if (typeof input != 'object') return input;
-    if (input.push) {
-      this.input = input;
-      this.type = 'function'
-      this.name = ',';
-    } else {
-      for (var property in input) this[property == 'value' ? 'input' : property] = input[property];
-      this.source = input;
+    if (typeof input == 'string') 
+      input = this.Script.parsed && this.Script.parsed[input] || this.Script.parse(input);
+    switch (typeof input) {
+      case 'object':
+        if (input.push) {
+          this.input = input;
+          this.type = 'function'
+          this.name = ',';
+        } else {
+          for (var property in input) {
+            if (property == 'input' || property == 'value') {
+              var parsed = typeof input[property] == 'string' 
+                ? this.Script.parsed && this.Script.parsed[input[property]] || this.Script.parse(input[property])
+                : input[property];
+              if (typeof parsed == 'object' && !parsed.push)
+                for (var prop in parsed) this[prop == 'value' ? 'input' : prop] = parsed[prop]
+              else this.input = parsed;
+            } else this[property] = input[property]
+          }
+        }
+        break;
+      case 'string':
+        this.source = input;
+        break;
+      default:
+        return input;
     }
     if (this.input && this.input.push) this.args = this.input.slice();
     if (this.type === 'block') {
@@ -81,7 +98,7 @@ LSD.Script = function(input, scope, output) {
       return input;
     } else {
       var Script = (this.Script || LSD.Script)
-      var result = new Script(typeof type == 'string' ? Script.parse(input) : input, scope, output);
+      var result = new Script(input, scope, output);
       if (result.script) {
         if (scope || input.scope) result.set('attached', true);
       } else if (output) Script.callback(output, result);
@@ -191,6 +208,7 @@ LSD.Script.Struct = new LSD.Struct({
       }
     if (this.wrapper && this.wrapper.wrappee)
       this.wrapper.wrappee.onSuccess(value)
+    if (this.onValueChange) this.onValueChange(vaue, old)
   },
   attached: function(value, old) {
     if (!value && typeof this.value != 'undefined') this.unset('value', this.value);
@@ -200,7 +218,7 @@ LSD.Script.Struct = new LSD.Struct({
       for (var property in this.yields) {
         var yield = this.yields[property];
         if (yield) {
-          if (value) yield.attach();
+          if (value) yield.set('attached', true);
           else this.yield('unyield', null, null, property);
         }
       }
@@ -286,7 +304,7 @@ LSD.Script.Struct = new LSD.Struct({
             }
           }
           this.args[i] = arg
-          result = arg.type == 'block' ? arg._yieldback : arg.value
+          if (typeof (result = (arg.type == 'block' ? arg._yieldback : arg.value)) == 'undefined') result = arg.placeholder;
         } else result = arg;
         if (result && result.chain && result.callChain) {
           args = [];
@@ -294,7 +312,7 @@ LSD.Script.Struct = new LSD.Struct({
         }
       }
       args.push(result);
-      piped = result;
+      piped = this.pipable === false ? null : result
       if (this.evaluator) {
         var evaluated = this.evaluator.call(this, result, i == j - 1);
         switch (evaluated) {
@@ -318,7 +336,7 @@ LSD.Script.Struct = new LSD.Struct({
             }
             break loop;
         }
-      } else if (arg != null && value && arg.script && typeof result == 'undefined') {
+      } else if (arg != null && value && arg.script && typeof result == 'undefined' && !LSD.Script.Keywords[name]) {
         if (this.hasOwnProperty('value')) this.unset('value', this.value)
         return;
       }
@@ -411,8 +429,8 @@ LSD.Script.Struct = new LSD.Struct({
   by the name Aspects in "objective reality". Although instead
   of overloading a method, it overloads a single expression.
 
-    var wrappee = LSD.Script('submit()');
-    var wrapper = LSD.Script('prepare(), yield() || error(), after()')
+    var wrappee = LSD.Script('submit');
+    var wrapper = LSD.Script('prepare, yield || error, finalize')
     wrapper.wrap(wrappee).execute();
 
   In example above, `prepare()` method may return data that will be
@@ -538,7 +556,7 @@ LSD.Script.prototype.callback = function(value, old) {
           object(value);
           break;
         default:
-          this._callback(object, null, value);
+          this._callback(object, null, value, old);
       }
   }
 };
@@ -567,7 +585,9 @@ LSD.Script.prototype.lookup = function(name, arg, scope) {
       var method = (scope.methods && scope.methods[name]) || scope[name] || (scope.variables && scope.variables[name]);
       if (typeof method == 'function') return method;
     }
-  return (this.Script || LSD.Script).Helpers[name] || Object[name];
+  var method = (this.Script || LSD.Script).Helpers[name];
+  if (!method && typeof Object[name] == 'function') method = Object[name];
+  return method;
 };
 LSD.Script.prototype.getContext = function() {
   for (var scope = this.scope, context; scope; scope = scope.parentScope) {
@@ -581,7 +601,7 @@ LSD.Script.prototype.Script = LSD.Script;
 LSD.Script.prototype.script = true;
 LSD.Script.prototype._literal = LSD.Script.prototype._properties;
 LSD.Script.prototype._compiled_call = 'dispatch';
-LSD.Script.prototype._regexp = /^[-_a-zA-Z0-9.]+$/;
+LSD.Script.prototype._regexp = /^[a-zA-Z0-9-_.]+$/;
 LSD.Script.compile = LSD.Script.prototype.compile;
 LSD.Script.toJS = LSD.Script.prototype.toJS;
 LSD.Script.prototype.onSuccess = function(value) {
@@ -592,7 +612,7 @@ LSD.Script.prototype.onFailure = function(value) {
   object.failure = value;
   this.reset('value', object);
 };
-LSD.Script.prototype.yield = function(keyword, args, callback, index, old, limit) {
+LSD.Script.prototype.yield = function(keyword, args, callback, index, old, limit, offset) {
   if (args == null) args = [];
   switch (keyword) {
     case 'yield':
@@ -620,17 +640,18 @@ LSD.Script.prototype.yield = function(keyword, args, callback, index, old, limit
       var invoked = block.invoked;
       block.yielded = true;
       block.yielder = callback;
-      if (limit) {
+      if (limit || offset) {
         args = args.slice();
         delete args[3];
         this._limit = limit;
+        this._offset = offset;
       }
       block.invoke(args, true, !!invoked);
       if (invoked && block.locals)
         for (var local, i = 0; local = block.locals[i]; i++)
           block.variables.unset(local.name, invoked[i]);
       if (callback) callback.block = block;
-      if (this._limit && !block.value) {
+      if ((this._limit || this._offset) && !block.value) {
         var recycled = this.recycled;
         if (!recycled) recycled = this.recycled = [];
         var i = recycled.indexOf(block);

@@ -289,12 +289,13 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
     watchers.splice(index, 1);
   },
   
-  _seeker: function(call, value, index, state, old, limit) {
+  _seeker: function(call, value, index, state, old, limit, offset) {
     var args = this.slice.call(arguments, 1), block = call.block, invoker = call.invoker, array = call.memo, length = array && array.length;
     if (state && index > invoker._last && length >= invoker._limit && (array[length - 1] !== array[length - 1 + this._shifting]))
       return;
+    if (index < invoker._position) return;
     if (block.block) {
-      var result = block(state ? 'yield' : 'unyield', args, call.callback, index, old, limit);
+      var result = block(state ? 'yield' : 'unyield', args, call.callback, index, old, limit, offset);
     } else {
       var result = call.callback(block.apply(block, args), value, index, state, old);
     }
@@ -307,13 +308,15 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
     if (state !== false && (state = true)) {
       var watcher = {fn: this._seeker, invoker: this, block: block, callback: callback, memo: memo};
     }
+    this._position = 0;
     for (var i = 0, result, fn, j = array._length >>> 0; i < j; i++) {
       if (offset > 0 && (!this._skipped || this._skipped < offset)) {
         if (fn == null) fn = block.block ? block.block.eval() : block;
         this._skipped = (this._skipped || 0) + +!!fn(array[i], i, state, prev);
+        this._position++;
         result = undefined;
       } else {
-        result = array._callback(watcher, array[i], i, state, prev, this._limit);
+        result = array._callback(watcher, array[i], i, state, prev, this._limit, this._offset);
         prev = null;
         if (limit) {
           if (!result) var prev = i;
@@ -343,8 +346,9 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   
   filter: function(callback, plain) {
     var filtered = plain ? [] : new LSD.Array;
-    var shifts = [], spliced = 0;
+    var shifts = [], spliced = 0, origin = this;
     return this.seek(callback, function(result, value, index, state, old) {
+      if (origin._position) index -= origin._position - (origin._origin && origin._origin._shifting || 0)
       for (var i = shifts.length; i <= index + 1; i++) 
         shifts[i] = (shifts[i - 1]) || 0
       var shift = shifts[index];
@@ -358,7 +362,9 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
           shifts[i] += k;
       if (result && state) {
         var current = filtered[index - shift];
-        if (old !== false && !diff && ((!spliced || index - shift > 0 || (filtered[index - shift] != value && old > index)))) {
+        if (index < 0 && old) {
+          filtered.set ? filtered.unset(old, value) : delete filtered[old];
+        } else if (old !== false && !diff && ((!spliced || index - shift > 0 || (filtered[index - shift] != value && old > index)))) {
           filtered.set ? filtered.set(index - shift, value) : filtered[index - shift] = value;
         } else {
           filtered.splice(index - shift, 0, value);

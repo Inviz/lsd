@@ -3,7 +3,7 @@
  
 script: Attributes.js
  
-description: Base objects for accessories holders - attributes, classes, dataset
+description: Base object for attributes dispatch
  
 license: Public domain (http://unlicense.org).
 
@@ -35,11 +35,11 @@ LSD.Properties.Attributes.prototype.onChange = function(name, value, state, old,
   }
   if (name.substr(0, 5) == 'data-') {
     var property = name.substring(5);
-    if (typeof value != 'undefined') this[state ? 'set' : 'unset'](property, value);
-    if (typeof old != 'undefined') this.unset(property, old);
+    if (typeof value != 'undefined') this._parent.variables[state ? 'set' : 'unset'](property, value);
+    if (typeof old != 'undefined') this._parent.variables.unset(property, old);
   }
   return value;
 };
-
+LSD.Properties.Attributes.prototype._global = true;
 LSD.Properties.Dataset = LSD.Struct.Stack();
 LSD.Properties.Variables = LSD.Struct.Stack();
