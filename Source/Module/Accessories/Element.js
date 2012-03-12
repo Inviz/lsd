@@ -233,6 +233,7 @@ Object.append(LSD.Module.Element, {
   events: {
     prepare: function(options, element) {
       if (!element) return;
+      this.origin = element
       if (this.options.extract !== false || this.options.clone) {
         this.extracted = LSD.Module.Element.extract(element, this);
         this.setOptions(this.extracted);
