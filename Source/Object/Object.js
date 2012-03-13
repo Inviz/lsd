@@ -36,8 +36,8 @@ LSD.Object.prototype = {
   strategy of storing values, as callbacks recieve result of hashing
   as the last argument. 
 */  
-  if (this._hash && hash == null && typeof (hash = this._hash(key, value)) == 'string' && (key = hash)) hash = null;
-  else if (typeof key == 'string') var nonenum = this._skip[key];
+    if (this._hash && hash == null && typeof (hash = this._hash(key, value)) == 'string' && (key = hash)) hash = null;
+    else if (typeof key == 'string') var nonenum = this._skip[key];
 /*
   Object setters accept nested keys, instantiates objects in the 
   path (e.g. setting post.title will create a post object), and 
@@ -94,17 +94,17 @@ LSD.Object.prototype = {
   its value asynchronously. The value stays undefined, 
   while the script doesn't have enough data to compute.
 */
-  if (nonenum !== true && this._script && value != null && value.script && value.Script && (!this._literal || !this._literal[key])) {
-    if (hash == null) this[key] = old;
-    return this._script(key, value);
-  }
+    if (nonenum !== true && this._script && value != null && value.script && value.Script && (!this._literal || !this._literal[key])) {
+      if (hash == null) this[key] = old;
+      return this._script(key, value);
+    }
 /*
   Watchers are listeners that observe every property in an object. 
   It may be a function (called on change) or another object (change property 
   will be changed in the watcher object)
 */
     var watchers = this._watchers;
-    if (watchers) for (var i = 0, j = watchers.length, watcher, fn; i < j; i++) {
+    if (watchers && nonenum !== true) for (var i = 0, j = watchers.length, watcher, fn; i < j; i++) {
       if ((watcher = watchers[i]) == null) continue;
       if (typeof watcher == 'function') watcher.call(this, key, value, true, old, memo, hash);
       else this._callback(watcher, key, value, true, old, memo, hash);
@@ -173,7 +173,7 @@ LSD.Object.prototype = {
     if (nonenum !== true && this._unscript && value != null && value.script && (!this._literal || !this._literal[key]))
       return this._unscript(key, value);
     var watchers = this._watchers;
-    if (watchers) for (var i = 0, j = watchers.length, watcher, fn; i < j; i++) {
+    if (watchers && nonenum !== true) for (var i = 0, j = watchers.length, watcher, fn; i < j; i++) {
       if ((watcher = watchers[i]) == null) continue
       if (typeof watcher == 'function') watcher.call(this, key, old, false, undefined, memo, hash);
       else this._callback(watcher, key, old, false, undefined, memo, hash);
