@@ -30,7 +30,7 @@ LSD.Properties.Attributes.prototype.onChange = function(name, value, state, old,
     this._parent[state ? 'set' : 'unset'](name, true, 'attributes');
   if (this._parent.element && (name != 'type' || LSD.toLowerCase(this._parent.element.tagName) != 'input')) {  
     if (value === true) this._parent.element[name] = state;
-    if (state) this._parent.element.setAttribute(name, value === true ? name : value);
+    if (state && !value.script) this._parent.element.setAttribute(name, value === true ? name : value);
     else this._parent.element.removeAttribute(name);
   }
   if (name.substr(0, 5) == 'data-') {
