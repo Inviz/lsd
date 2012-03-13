@@ -62,14 +62,14 @@ LSD.Object.prototype = {
   object listeners. But they can be watched individually. A list of the skipped
   properties is defined in `_skip` object below. Builtin listeners may reject
   or transform value.
-*/
+*/  
+    var changed;
+    if (this._onChange && typeof (changed = this._onChange(key, value, true, old, memo, hash)) != 'undefined')
+      if (changed === this._skip) {
+        if (hash == null) this[key] = old;
+        return;
+      } else value = changed;
     if (index !== -1 || nonenum !== true) {
-      var changed;
-      if (this._onChange && typeof (changed = this._onChange(key, value, true, old, memo, hash)) != 'undefined')
-        if (changed === this._skip) {
-          if (hash == null) this[key] = old;
-          return;
-        } else value = changed;
       if (this.onChange && typeof (changed = this.onChange(key, value, true, old, memo, hash)) != 'undefined')
         if (changed === this._skip) {
           if (hash == null) this[key] = old;
@@ -159,11 +159,11 @@ LSD.Object.prototype = {
     else var old = this[key];
     if (!hash && vdef && typeof old == 'undefined') return false;
     if (hash == null) delete this[key];
+    var changed;
+    if (this._onChange && typeof (changed = this._onChange(key, old, false, undefined, memo, hash)) != 'undefined')
+      if (changed === this._skip) return;
+      else value = changed;
     if (index !== -1 || !this._skip[key]) {
-      var changed;
-      if (this._onChange && typeof (changed = this._onChange(key, old, false, undefined, memo, hash)) != 'undefined')
-        if (changed === this._skip) return;
-        else value = changed;
       if (this.onChange && typeof (changed = this.onChange(key, old, false, undefined, memo, hash)) != 'undefined')
         if (changed === this._skip) return;
         else value = changed;

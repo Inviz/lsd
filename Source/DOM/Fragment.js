@@ -181,7 +181,7 @@ LSD.Fragment.prototype.object = function(object, parent, memo) {
       result = this.node(selector, parent, memo, 1);
     if ((value = object[selector])) {  
       var type = this.typeOf(value);
-      if (type === 'string') this.node(value, result, memo, 3);
+      if (type == 'string') this.node(value, result, memo, 3);
       else this[type](value, result, memo);
       if (result.nodeType == 5 && LSD.Script.Boundaries[result.name]) result.closed = true;
     }
@@ -218,7 +218,7 @@ LSD.Fragment.prototype.html = function(object, parent, memo) {
 LSD.Fragment.prototype.typeOf = function(object) {
   if (object) {
     if (typeof object.nodeType == 'number') return 'node';
-    if (typeof object.item == 'function' && typeof object.length == 'number') return 'enumerable';
+    if ((typeof object.item == 'function' || object.push) && typeof object.length == 'number') return 'enumerable';
   }
   return typeof object;
 };
@@ -251,4 +251,4 @@ LSD.Fragment.prototype.connect = function(instruction, write) {
   node.closed = true;
   return node;
 }
-LSD.Fragment.prototype.R_WORD = /\w+/; 
+LSD.Fragment.prototype.R_WORD = /[a-zA-Z][a-zA-Z0-9]*/; 

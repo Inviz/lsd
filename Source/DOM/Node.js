@@ -79,3 +79,7 @@ LSD.Node.prototype.inserters = {
     element.insertBefore(context, element.firstChild);
   }
 };
+LSD.Node.prototype.nextSibling = null;
+LSD.Node.prototype.previousSibling = null;
+LSD.Node.prototype.firstChild = null;
+LSD.Node.prototype.lastChild = null;

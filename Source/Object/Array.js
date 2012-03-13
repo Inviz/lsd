@@ -121,7 +121,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   },
   
   indexOf: function(object, from) {
-    var hash = typeof object == 'object' && this._hash ? this._hash(object) : object;
+    var hash = this._hash && typeof object == 'object' && object != null ? this._hash(object) : object;
     var length = this._length >>> 0;
     for (var i = (from < 0) ? Math.max(0, length + from) : from || 0; i < length; i++) {
       var value = this[i];
@@ -196,19 +196,19 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
       if (i < offset) {
         // remove original value
         values.push(this[i + index]);
-        this.unset(i + index, this[i + index], false);
+        this.unset(i + index, this[i + index], false, 'splice');
       } else {
 /*
-  If there is more values to be inserted (#2) then to be removed,
+  If there is more values to be inserted (#2) than to be removed,
   splice shifts the array to the right by iterating from end 
   to the beginning, ensuring that values are always written in an 
   unoccupied spot.
 */
         if (i == offset)
           for (var j = length, k = index + arity - shift; --j >= k;)
-            this.set(j + shift, this[j], j)
+            this.set(j + shift, this[j], j, 'expand')
       }
-      this.set(i + index, args[i], i < offset ? false : null);
+      this.set(i + index, args[i], i < offset ? false : null, i < offset ? 'overwrite' : 'expand');
     }
 /*
   Otherwise, if there are more to be removed, then to inserted (#3),
@@ -216,19 +216,20 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
 */
     if (shift < 0 && index < length)
       for (var i = index + arity - shift, old; i < length; i++) {
-        if (i + shift <= index - shift) {
-          if (i + shift < index - shift) values.push(this[i + shift])
-          this.unset(i + shift, this[i + shift]);
+        var d = (index - shift) - (i + shift);
+        if (d > -1) {
+          if (d) values.push(this[i + shift])
+          this.unset(i + shift, this[i + shift], null, d ? 'overwrite' : 'collapse');
         }
-        this.set(i + shift, this[i], i);
+        this.set(i + shift, this[i], i, 'collapse');
       }
     this.set('length', (this._length = length + shift));
     for (var i = this._length; i < length; i++) {
       if (values.length < - shift) {
         values.push(this[i])
-        this.unset(i, this[i]);
+        this.unset(i, this[i], null, 'splice');
       } else {  
-        this.unset(i, this[i], false);
+        this.unset(i, this[i], false, 'collapse');
       }
     }  
     delete this._shifting;
@@ -289,15 +290,16 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
     watchers.splice(index, 1);
   },
   
-  _seeker: function(call, value, index, state, old, limit, offset) {
+  _seeker: function(call, value, index, state, old, memo) {
+    
     var args = this.slice.call(arguments, 1), block = call.block, invoker = call.invoker, array = call.memo, length = array && array.length;
     if (state && index > invoker._last && length >= invoker._limit && (array[length - 1] !== array[length - 1 + this._shifting]))
       return;
     if (index < invoker._position) return;
     if (block.block) {
-      var result = block(state ? 'yield' : 'unyield', args, call.callback, index, old, limit, offset);
+      var result = block(state ? 'yield' : 'unyield', args, call.callback, index, old, memo);
     } else {
-      var result = call.callback(block.apply(block, args), value, index, state, old);
+      var result = call.callback(block.apply(block, args), value, index, state, old, memo);
     }
     if (result != null && result.value && (invoker._last == null || invoker._last < index)) invoker._last = index;
     return result;
@@ -316,7 +318,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
         this._position++;
         result = undefined;
       } else {
-        result = array._callback(watcher, array[i], i, state, prev, this._limit, this._offset);
+        result = array._callback(watcher, array[i], i, state, prev, {limit: this._limit, offset: this._offset});
         prev = null;
         if (limit) {
           if (!result) var prev = i;

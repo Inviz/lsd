@@ -356,22 +356,21 @@ LSD.Element.prototype.__properties = {
     get gently resorted with swaps.
   */
   sourceIndex: function(value, old, memo) {
+    var index = value == null ? old - 1 : value;
     if (memo !== false) for (var node = this, next, nodes, i = 0; node; node = next) {
-      next = node.firstChild || node.nextSibling;
-      while (!next && (node = node.parentNode)) {
-        if (value) node.sourceLastIndex = value + i;
-        next = node.nextSibling;
+      for (next = node.firstChild || node.nextSibling; !next && (node = node.parentNode); next = node.nextSibling)
+        if (value) node.sourceLastIndex = index + i;
+      if (next) {
+        next.reset('sourceIndex', index + ++i, false)
       }
-      if (next) next.reset('sourceIndex', value + ++i, false)
     }
-    return value || old;
   },
   firstChild: function(value, old) {
     if (value)
       value.reset('sourceIndex', (this.sourceIndex || 0) + 1);
   },
-  previousSibling: function(value, old) {
-    if (value) this.reset('sourceIndex', (value.sourceLastIndex || value.sourceIndex || 0) + 1);
+  previousSibling: function(value, old, memo) {
+    if (value) this.reset('sourceIndex', (value.sourceLastIndex || value.sourceIndex || 0) + 1, memo);
   },
   previousElementSibling: function(value, old) {
     for (var i = 0, node, method; i < 2; i++) {
@@ -401,10 +400,11 @@ LSD.Element.prototype.__properties = {
       }
     }
   },
-  parentNode: function(value, old) {
-    if (!value) this.unset('sourceIndex', this.sourceIndex);
-    if (value) this.variables.merge(value.variables);
-    if (old) this.variables.unmerge(value.variables);
+  parentNode: function(value, old, memo) {
+    if (!value) {
+      if (memo !== 'overwrite' && memo !== 'collapse') this.unset('sourceIndex', this.sourceIndex, memo);
+    } else this.variables.merge(value.variables);
+    if (old) this.variables.unmerge(old.variables);
     for (var i = 0, node, method; i < 2; i++) {
       if (i) node = old, method = 'remove';
       else node = value, method = 'add';

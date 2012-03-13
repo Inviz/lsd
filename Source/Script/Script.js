@@ -612,7 +612,7 @@ LSD.Script.prototype.onFailure = function(value) {
   object.failure = value;
   this.reset('value', object);
 };
-LSD.Script.prototype.yield = function(keyword, args, callback, index, old, limit, offset) {
+LSD.Script.prototype.yield = function(keyword, args, callback, index, old, memo) {
   if (args == null) args = [];
   switch (keyword) {
     case 'yield':
@@ -640,11 +640,11 @@ LSD.Script.prototype.yield = function(keyword, args, callback, index, old, limit
       var invoked = block.invoked;
       block.yielded = true;
       block.yielder = callback;
-      if (limit || offset) {
+      if (memo && (memo.limit || memo.offset)) {
         args = args.slice();
         delete args[3];
-        this._limit = limit;
-        this._offset = offset;
+        this._limit = memo.limit;
+        this._offset = memo.offset;
       }
       block.invoke(args, true, !!invoked);
       if (invoked && block.locals)

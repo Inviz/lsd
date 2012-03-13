@@ -21,37 +21,39 @@ provides:
 */
 
 LSD.ChildNodes = LSD.Struct.Array({
-  exports: {
-    firstChild: 'first',
-    lastChild: 'last'
+  _parent: function(value, old) {
+    if (old && this._length) {
+      old.unset('firstChild', this[0]);
+      old.unset('lastChild', this[this.length - 1]);
+    }
   }
 });
-LSD.ChildNodes.prototype.onSet = function(value, index, state, old) {
+LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
   if (!state || this._parent != value.parentNode)
-    value[state ? 'set' : 'unset']('parentNode', this._parent || null);
+    value[state ? 'set' : 'unset']('parentNode', this._parent || null, memo);
   var previous = this[index - 1] || null;
   var next = this[index + 1] || null;
-  if (previous !== value) {
-    if (previous) previous.reset('nextSibling', state ? value : next);
-    if (state || old === false) value.reset('previousSibling', previous);
-    else if (value.previousSibling == previous) value.unset('previousSibling', previous);
+  if (previous !== value && memo !== 'collapse') {
+    if (previous && (memo !== 'splice' || (!state && !next))) previous.reset('nextSibling', state ? value : next, memo);
+    if ((state || old === false)) value.reset('previousSibling', previous, memo);
+    else if (value.previousSibling == previous) value.unset('previousSibling', previous, memo);
   }
-  if (next !== value) {
-    if (next) next.reset('previousSibling', state ? value : previous);
-    if (state || old === false) value.reset('nextSibling', next);
-    else if (value.nextSibling == next) value.unset('nextSibling', next);
+  if (next !== value && memo !== 'collapse') {
+    if (next && (memo !== 'splice' || (!state && !previous))) next.reset('previousSibling', state ? value : previous, memo);
+    if ((state || old === false)) value.reset('nextSibling', next, memo);
+    else if (value.nextSibling == next) value.unset('nextSibling', next, memo);
   }
   if (this._elements !== false && value.nodeType === 1) {
     for (var i = index, node; node = this[--i];) {
       if (node === value) continue;
-      if (state || old === false) node.reset('nextElementSibling', value);
-      else if (node.nextElementSibling === value) node.unset('nextElementSibling', value);
+      if (state || old === false) node.reset('nextElementSibling', value, memo);
+      else if (node.nextElementSibling === value) node.unset('nextElementSibling', value, memo);
       if (node.nodeType === 1) break;
     }
     for (var i = index, node; node = this[++i];) {
       if (node === value) continue;
-      if (state || old === false) node.reset('previousElementSibling', value);
-      else if (node.previousElementSibling === value) node.unset('previousElementSibling', value);
+      if (state || old === false) node.reset('previousElementSibling', value, memo);
+      else if (node.previousElementSibling === value) node.unset('previousElementSibling', value, memo);
       if (node.nodeType === 1) break;
     }
   }
@@ -59,11 +61,18 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old) {
     value.unset('previousElementSibling', value.previousElementSibling);
     value.unset('nextElementSibling', value.nextElementSibling);
   }
-  if (index === 0) this.reset('first', state ? value : null);
-  if (index === this.length - +state) this.reset('last', this[this.length - 1] || null);
+  if (this._parent) {
+    if (index === 0) {
+      if (state) this._parent.reset('firstChild', value);
+      else this._parent.unset('firstChild', this._parent.firstChild);
+    }
+    var last = this.length - +state;
+    if (index === last && memo !== 'collapse') {
+      if (state || last) this._parent.reset('lastChild', state ? value : this[last - 1]);
+      else this._parent.unset('lastChild', this._parent.lastChild);
+    }
+  }
 };
-LSD.ChildNodes.prototype.first = null;
-LSD.ChildNodes.prototype.last = null;
 LSD.ChildNodes.prototype._skip = Object.append({
   _onShift: true, 
   _prefilter: true
