@@ -214,7 +214,7 @@ LSD.Object.prototype = {
       if (object === this) {
         result = this[subkey];
       } else {
-        result = typeof object.get == 'function' ? object.get(subkey, construct) : object[subkey];
+        result = typeof object._get == 'function' ? object._get(subkey, construct) : object[subkey];
       }  
       if (typeof result == 'undefined' && construct && !object._skip[subkey]) result = object._construct(subkey)
       if (typeof result != 'undefined') {
@@ -233,8 +233,8 @@ LSD.Object.prototype = {
   stored to be used later. For example, when an pair like 
   `attributes.tabindex`: `1` is mixed into the object, the arguments are
   stored and then `tabindex` property is applied to `attributes` object.
-  But if `attributes` object change, arguments will be used to clean
-  up the old object, and assign the property to the new object. Similar 
+  When `attributes` object changes, arguments are used to clean
+  up the old object, and assign properties to the new object. Similar 
   thing happens when deep nested objects are merged, it stores values
   on each level of the original object and can re-apply it to related
   struct objects when they change.
@@ -242,14 +242,14 @@ LSD.Object.prototype = {
   When an observable object is mixed, it can be opted-in for "live" 
   merging, when updates to the merged object will propagate into 
   the object it was merged into. By default, all new and updated values 
-  are appended on top, overwriting the previous value. But when truthy 
-  `prepend` argument is given, reverse merging will be used instead, 
+  are appended on top, overwriting values that were set previously. 
+  When `prepend` argument is given, reverse merging will be used instead, 
   applying values to the bottom of the stack. That will make merged
   object never overwrite the values that were there before. Those will
   only be used when the values that shadows the merged values will
   be unset.
 */
-  mix: function(key, value, memo, state, merge, prepend, index) {
+  mix: function(key, value, memo, state, merge, prepend, index, lazy) {
     if (!memo && this._delegate) memo = this;
     if (typeof key != 'string') {
       if (merge && typeof key._unwatch == 'function') {
@@ -297,7 +297,7 @@ LSD.Object.prototype = {
         }
         var obj = this[name];
         if (obj == null) {
-          if (state !== false && !this._skip[name])
+          if (state !== false && !this._skip[name] && !lazy)
             obj = this._construct(name, null, memo, value);
         } else if (obj.push) {
           for (var i = 0, j = obj.length; i < j; i++)
@@ -353,8 +353,8 @@ LSD.Object.prototype = {
           if (state !== false && !this._skip[name]) 
             obj = this._construct(key, null, memo, value);
 /*
-  Objects also support mixing values into the arrays. It mixes the value
-  into each of the value in the array. 
+  Objects also support mixing values into arrays. They mix values
+  into each value of the array. 
   
       // will set tabindex attribute to each of childNodes
       object.mix('childNodes.attributes.tabindex', -1);
@@ -371,12 +371,10 @@ LSD.Object.prototype = {
   Optional memo argument may define the kind of the method that should be called
   on a respective property.
 */
-        switch (memo) {
-          case 'reset': case 'set': case 'unset': case '_set': case '_unset':
-            this[memo](key, value, memo, prepend);
-            break;
-          default:
-            this[state !== false ? 'set' : 'unset'](key, value, memo, prepend);
+        if (typeof memo == 'string' && typeof this[memo] == 'function') {
+          this[memo](key, value, memo, prepend);
+        } else {
+          this[state !== false ? 'set' : 'unset'](key, value, memo, prepend);
         }
       }
     }
@@ -445,7 +443,7 @@ LSD.Object.prototype = {
           lazy: lazy
         }, lazy)
       } else {  
-        var value = this.get(key, lazy === false);
+        var value = this._get(key, lazy === false);
         var watched = (this._watched || (this._watched = {}));
         (watched[key] || (watched[key] = [])).push(callback);
         if (!lazy && typeof value != 'undefined') {
@@ -529,7 +527,7 @@ LSD.Object.prototype = {
         start = (dot || call.index) + 1;
         dot = key.indexOf('.', start)
         var subkey = call.key.substring(start, dot == -1 ? key.length : dot);
-        var result = object.get ? object.get(subkey, lazy === false) : object[subkey];
+        var result = object._get ? object._get(subkey, lazy === false) : object[subkey];
         if (result != null) {
           if (dot != -1) {
             if (typeof object._watch == 'function') {
@@ -685,7 +683,7 @@ LSD.Object.prototype = {
 };
 
 LSD.toObject = LSD.Object.toObject = LSD.Object.prototype.toObject;
-['set', 'unset', 'watch', 'unwatch'].each(function(method) {
+['set', 'unset', 'watch', 'unwatch', 'get'].each(function(method) {
   LSD.Object.prototype['_' + method] = LSD.Object.prototype[method];
 });
 LSD.Object.prototype.reset = LSD.Object.prototype.set;
