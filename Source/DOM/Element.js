@@ -21,7 +21,7 @@ provides:
 */
 
 /*
-  Element in HTML are pretty powerful, although 
+  Elements in HTML are pretty powerful, although 
   implementations of browser DOM are not consistent
   between browsers, and it often needs another
   layer of abstraction with reliable API. Be it 
@@ -36,7 +36,7 @@ provides:
   of a programmer. When most of the Element features
   are implemented in a compatible way, the code
   that works with regular elements may work with
-  those that are implemented in javascript.
+  elements implemented in javascript.
   
   Simple re-implementation of browser DOM is nothing
   new, projects like jsdom do it with moderate 
@@ -92,14 +92,40 @@ LSD.Element.prototype.onChange = function(key, value, state, old, memo) {
   return value;
 };
 LSD.Element.prototype.__properties = {
-  context: function(value, old) {
+  /*
+    Role is an object that defines the widget behavior. Roles, unlike mixins
+    are exclusive, so element can have only one role at time. An element
+    finds the role if it was given a string and mix in the found object. 
+    If a role object is an observable object, it subscribes the element for
+    changes in it. When a role is changed from one to another, stack objects
+    perform all manipulations on state and only the properties that are 
+    different between two roles will trigger observer callbacks.
     
+    Role may be a string, to be used as "search terms" for role lookup.
+    LSD provides a handy mechanism of finding the right class for
+    an element. It takes tag name, `type` and `kind` attributes into
+    account. It tries to find the role by tag name, then in looks
+    for a sub-role based on `type` attribute, and finally checks
+    if there's a customized sub-role by the name that goes in `kind`
+    attribute. If it doesn't find the sub-role, it uses the generic
+    role. It powers up form controls widget, where datepicker tries 
+    to find `input.date` role. And if it's not there, it tries `input` 
+    which in terms of html is a text input. `input.datetime-local`
+  */
+  role: function(value, old, memo) {
+    var roles = (this.document || LSD.Document.prototype).roles;
+    if (typeof value == 'string') 
+      value = typeof roles[value] == 'undefined' ? roles.get(value) : roles[value];
+    if (value) this.mix(value, null, memo, true, true, true);
+    if (typeof old == 'string') old = roles[old];
+    if (old) this.mix(old, null, memo, false, true, true);
   },
-  tagName: function(value, old) {
-    if (!this.source && this.prepared) {
-      if (value) this.set('source', value)
-      if (old) this.unset('source', old);
-    }
+/*
+  Tag name is an element role category. Most of the categories have only
+  one role, but some have a family of sub-roles like `input` or `menu`.
+  Sub roles are accessible by specifying `type` and `kind` attributes.
+*/
+  tagName: function(value, old, memo) {
     if (value) {
       this.set('nodeName', value, null);
       this.set('localName', value, null, true);
@@ -108,6 +134,26 @@ LSD.Element.prototype.__properties = {
       if (old) this.unset('nodeName', old, null);
       if (old) this.unset('localName', old, null, true);
     }
+/*
+  LSD.Element figures out its tag name before it is placed
+  in DOM, so following code doesn't run initially. It
+  only runs if an element was in DOM and its tag name was
+  changed, so selectors that matched that element before
+  dont match it anymore, and maybe there're some other
+  selectors that match the element with the new tag name.
+  
+  LSD supports all CSS3 combinators and also ones that 
+  were added in Slick, reverse combinator and its friends.
+  Instead of matching lots of selectors against lots of
+  elements many times per second, LSD stores callbacks
+  in a specific way, and allows elements register
+  themselves in other elements by applicable combinators
+  and run callbacks if such a combinator/tag pair was
+  expected. So a few loops below do exactly that, 
+  register new tag name and unregister old tag name in
+  surroinding elements. Observable selectors are 
+  built on top of these simple setters.
+*/
     var previous = this.previousElementSibling, next = this.nextElementSibling, parent = this.parentNode;
     if (previous) {
       if (value) {
@@ -163,8 +209,8 @@ LSD.Element.prototype.__properties = {
     tag name of a widget matches tag name of element. But
     in some situations like in custom form fields implementations
     standart elements dont provide the desired level of customization, 
-    so one may need an element with a simplier tag name and use
-    `localName` property to do it.
+    so one may need an element with no strings attached and they use
+    `localName` property to specify a desired tag name in DOM.
   */
   localName: function(value, old) {
     return value;
@@ -172,33 +218,32 @@ LSD.Element.prototype.__properties = {
   /*
     `inline` property is a shortcut that lets to reset
     element tag name to neutral `span` or `div` element
-    (true and false values respectively).
+    (true and false values respectively). It's only used
+    when no localName is given.
   */
   inline: function(value, old) {
-    if (typeof value != 'undefined') this.set('localName', value ? 'span' : 'div', null, this.tagName != this.localName);
-    if (typeof old != 'undefined') this.unset('localName', old ? 'span' : 'div', null, this.tagName != this.localName);
+    if (typeof value != 'undefined') 
+      this.set('localName', value ? 'span' : 'div', null, this.tagName != this.localName);
+    if (typeof old != 'undefined') 
+      this.unset('localName', old ? 'span' : 'div', null, this.tagName != this.localName);
   },
-  source: function(value, old) {
-    if (typeof value != 'undefined') this.set('role', role);
-    if (typeof old != 'undefined') this.unset('role', this.role);
-  },
-  role: function(value, old) {
-    if (value) {
-      if (role == null) role = this.getRole(this)
-      if (role) this.mixin(role);
-      return role;
-    } else {
-      this.unmix(role);
-    }
-  },
-  scope: function(value, old) {
-    if (value) LSD.Script.Scope.setScope(this, value)
-    if (old) LSD.Script.Scope.unsetScope(this, old);
-  },
+/*
+  LSD.Element writes a single property into a real element
+  that helps to tell if a node has related LSD.Element
+  instantiated or not.
+*/
   element: function(element, old) {
     if (element) element.lsd = this.lsd;
     if (old) delete old.lsd;
   },
+/*
+  LSD.Element can be assigned an origin, a real DOM element
+  that should be used as a source of a tag name and attributes.
+  When a `clone` property is set to true, the origin will not
+  be used or altered. LSD.Element will create its own copy 
+  of an origin to use as its element. If `clone` is not set, origin 
+  will be used as an element.
+*/
   origin: function(value, old, memo) {
     var extracted = this.extracted;
     if (value && !extracted) {
@@ -213,21 +258,22 @@ LSD.Element.prototype.__properties = {
           }
         }
       } else {
-        for (var i = 0, start, end, attribute, bit, exp, len, attributes = value.attributes, name, script; attribute = attributes[i++];) {
+        var start, end, bit, exp, len, name, script;
+        for (var i = 0, attribute, attributes = value.attributes; attribute = attributes[i++];) {
           loop: for (var j = 0; j < 2; j++) {
             start = end = undefined;
             bit = j ? attribute.value : attribute.name;
             len = bit.length;
-            /*
-              Finds various kind of interpolations in attributes.
+/*
+  Finds various kind of interpolations in attributes.
 
-              So far these are all valid interpolations:
+  So far these are all valid interpolations:
 
-              * <button title="Delete ${person.title}" />
-              * <section ${itemscope(person), person.staff && class("staff")}></section>
-              * <input type="range" value=${video.time} />
+  * <button title="Delete ${person.title}" />
+  * <section ${itemscope(person), person.staff && class("staff")}></section>
+  * <input type="range" value=${video.time} />
 
-            */
+*/
             while (start != -1) {
               if (exp == null && (start = bit.indexOf('${', start + 1)) > -1) {
                 if (script == null) script = []
@@ -295,6 +341,31 @@ LSD.Element.prototype.__properties = {
       delete this.extracted;
     }
   },
+/*
+  LSD.Element may use an element given as `origin`, when
+  `clone` option is not set to true. When it decides that 
+  it needs to build a new element, it tries its best to 
+  do it right, because its `tagName` (and often `type` attribute,
+  and sometimes even `name` attribute) can't be easily changed
+  later in all browsers. There's a whole section in HTML5 spec
+  dedicated to how to store previous names of form elements,
+  before they had their name changed, so it's kind of a big
+  deal. 
+  
+  LSD tries to abstract away element's tagName,
+  name and type attributes. LSD does not use element names
+  directly, because it submits forms virtually and has the power
+  to alias names (which is useful when dealing with nested attributes
+  and arrays). But having different tag name for an element
+  in DOM and in LSD means that there may be selectors that
+  either only match LSD.Element, or DOM element, but not both.
+  That is a problem when dealing with CSS stylesheets 
+  (e.g. they target for `input[type=text]`, but in fact operate with
+  a `span` element that tries hard to look as a text input).
+  LSD Stylesheet can compensate for mismatch by observing selectors
+  and finding where rules did not match and assigning styles 
+  explicitly.
+*/
   built: function(value, old) {
     if (old) {
       this.fireEvent('beforeDestroy');
@@ -324,50 +395,82 @@ LSD.Element.prototype.__properties = {
     if (value) this.mix('childNodes.built', value);
     if (old) this.mix('childNodes.built', old, null, false);
   },
-  focused: function(value, old) {
-    if (value) this.mix('parentNode.focused', value);
-    if (old) this.mix('parentNode.focused', old, null, false);
+/*
+  Javascript DOM is known for its unfriendly implementation
+  of accessibility features and specificially focus control.
+  There're many ways to lose focus, but hard to track in
+  all browsers, and it makes developers invent dirty hacks
+  for older browsers. 
+  
+  Unlike DOM elements, any LSD.Element may be focused,
+  but not every element may be `activeElement` in document.
+  When a person presses `tab` key on his keyboard, LSD looks
+  for a closest element that may become `activeElement`,
+  a form control or a link (in less restrictive environments
+  like Windows) and focuses it and all its parents. Each of the
+  parent recieve an optional `memo` with an element that 
+  become `activeElement`. 
+  
+  What's different between LSD focus stack and DOM focus, 
+  is that when focus changes between controls of a single
+  form, the form itself never loses focus so it can be
+  styled and animated consistently. Focus observers
+  based on DOM events often have race conditions that
+  are hidden behind delayed callbacks. LSD can 
+  synchronously focus the specific subtree and blur
+  previously focused subtree without affecting focused
+  state of common ancestors.
+  
+  Focusing a subtree instead of a single node is useful
+  for nested interfaces like dialog overlays, slide-out
+  panels, multi-window environments, in focus-driven 
+  navigation and lots of other applications. 
+*/
+  focused: function(value, old, memo) {
+    if (memo === this) return;
+    if (value) this.mix('parentNode.focused', value, memo || this, null, null, null, null, true);
+    if (value && !memo && this.ownerDocument) this.ownerDocument.reset('activeElement', this, false);
+    if (old) this.mix('parentNode.focused', old, memo || this, false, null, null, null, true);
   },
   rendered: function(value, old) {
-    if (value) this.mix('childNodes.rendered', value);
-    if (old) this.mix('childNodes.rendered', old, null, false);
   },
   disabled: function(value, old) {
-    if (value) this.mix('childNodes.disabled', value);
-    if (old) this.mix('childNodes.disabled', old, null, false);
-  },
-  document: function(value, old) {
-    if (value) this.mix('childNodes.document', value);
-    if (old) this.mix('childNodes.document', old, null, false);
   },
   root: function(value, old) {
-    if (value) this.mix('childNodes.root', value);
-    if (old) this.mix('childNodes.root', old, null, false);
   },
-  /*
-    Good DOM collections are sorted so nodes in collection
-    are in the order of appearance in DOM. When an element
-    is removed from DOM, it is removed from collection as
-    well. In order to pull this off, each node should know
-    it's position in document. That's why LSD.Element is
-    made to maintain a `sourceIndex` property that is a
-    number. Each time something happens to the DOM, 
-    numbers are updated, callbacks are fired and collections
-    get gently resorted with swaps.
-  */
+/*
+  Good DOM collections are sorted so nodes in collection
+  are in the order of appearance in DOM. When an element
+  is removed from DOM, it is removed from collection as
+  well. In order to pull this off, each node should know
+  it's position in document. That's why LSD.Element is
+  made to maintain a `sourceIndex` property that is a
+  number. Each time something happens to the DOM, 
+  numbers are updated, callbacks are fired and collections
+  get gently resorted with swaps.
+*/
   sourceIndex: function(value, old, memo) {
     var index = value == null ? old - 1 : value;
     if (memo !== false) for (var node = this, next, nodes, i = 0; node; node = next) {
       for (next = node.firstChild || node.nextSibling; !next && (node = node.parentNode); next = node.nextSibling)
         if (value) node.sourceLastIndex = index + i;
-      if (next) {
-        next.reset('sourceIndex', index + ++i, false)
-      }
+      if (next) next.reset('sourceIndex', index + ++i, false)
     }
   },
+/*
+  LSD.Element uses LSD.ChildNodes primitive that 
+  creates a special observable collection that
+  links objects in the collection together with
+  links from DOM1 (`previousSibling`, `nextSibling`)
+  and from DOM2 (`previousElementSibling`, 
+  `nextElementSibling`). LSD.Element uses both kinds
+  of links to register the node in surrounding nodes
+  to match possible observing selectors and remap
+  the indecies of nodes to trigger LSD.NodeList
+  collections resorts.
+*/
   firstChild: function(value, old) {
-    if (value)
-      value.reset('sourceIndex', (this.sourceIndex || 0) + 1);
+    if (value) value.reset('sourceIndex', (this.sourceIndex || 0) + 1);
   },
   previousSibling: function(value, old, memo) {
     if (value) this.reset('sourceIndex', (value.sourceLastIndex || value.sourceIndex || 0) + 1, memo);
@@ -405,6 +508,10 @@ LSD.Element.prototype.__properties = {
       if (memo !== 'overwrite' && memo !== 'collapse') this.unset('sourceIndex', this.sourceIndex, memo);
     } else this.variables.merge(value.variables);
     if (old) this.variables.unmerge(old.variables);
+    for (var i = 0, property; property = this._inherited[i++];) {
+      if (value && value[property] !== this[property]) this.set(property, value[property]);
+      if (old && old[property] !== this[property]) this.unset(property, old[property]);
+    }
     for (var i = 0, node, method; i < 2; i++) {
       if (i) node = old, method = 'remove';
       else node = value, method = 'add';
@@ -430,15 +537,6 @@ LSD.Element.prototype.__properties = {
   value: function(value, old, memo) {
     if (this.checked === true || typeof this.checked == 'undefined')
       this.reset('nodeValue', value);
-  },
-  name: function(value, old) {
-    
-  },
-  type: function(value, old) {
-
-  },
-  radiogroup: function(value, old) {
-
   }
 };
 LSD.Element.implement(LSD.Node.prototype)
@@ -447,8 +545,9 @@ LSD.Element.prototype.tagName = null;
 LSD.Element.prototype.className = '';
 LSD.Element.prototype.nodeType = 1;
 LSD.Element.prototype._parent = false;
+LSD.Element.prototype._inherited = ['drawn', 'built', 'hidden', 'disabled', 'root'];
 LSD.Element.prototype._preconstruct = ['childNodes', 'proxies', 'variables', 'attributes', 'classList', 'events', 'matches', 'relations'];
-LSD.Element.prototype.__initialize = function(/* options, element, selector */) {
+LSD.Element.prototype.__initialize = function(/* options, element, selector, document */) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
   /*
     Adds default states to the prototype first time element is created
@@ -456,21 +555,24 @@ LSD.Element.prototype.__initialize = function(/* options, element, selector */) 
   if (this.built == null) LSD.Element.prototype.mix({
     built: false,
     hidden: false,
-    disabled: false
+    disabled: false,
+    focused: false
   }, null, '_set');
   if (this.classList) {
     this.classes = this.classList;
     this.childNodes._prefilter = this.proxies._bouncer
   }
-  for (var args = arguments, i = args.length; --i > -1;) {
-    if (!(arg = args[i])) continue;
-    switch (typeof arg) {
+  for (var i = arguments.length; --i > -1;) {
+    if ((arg = arguments[i])) switch (typeof arg) {
       case 'string':
         return this.setSelector(arg);
       case 'object':
-        if (arg) switch (arg.nodeType) {
+        switch (arg.nodeType) {
           case 1:
             this.set('origin', arg);
+            break;
+          case 9:
+            this.document = arg;
             break;
           case 11:
             this.fragment = arg;
