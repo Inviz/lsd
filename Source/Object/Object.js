@@ -371,10 +371,12 @@ LSD.Object.prototype = {
   Optional memo argument may define the kind of the method that should be called
   on a respective property.
 */
-        if (typeof memo == 'string' && typeof this[memo] == 'function') {
-          this[memo](key, value, memo, prepend);
-        } else {
-          this[state !== false ? 'set' : 'unset'](key, value, memo, prepend);
+        switch (memo) {
+          case 'set': case '_set': case 'unset': case '_unset': case 'reset': case 'mix':
+            this[memo](key, value, memo, prepend);
+            break;
+          default:
+            this[state !== false ? 'set' : 'unset'](key, value, memo, prepend);
         }
       }
     }

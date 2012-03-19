@@ -35,7 +35,7 @@ LSD.Struct = function(properties, Base) {
   Inherited properties is an internal concept that allows an instance of a class to 
   recieve its own copy of a private object from prototype without recursive cloning. 
 */
-    for (var i = 0, obj = this._inherited, inherited, group, cloned, value; obj && (inherited = obj[i++]);)
+    for (var i = 0, obj = this._unlinked, inherited, group, cloned, value; obj && (inherited = obj[i++]);)
       if ((group = this[inherited])) {
         var cloned = this[inherited] = {};
         for (var property in group) {
@@ -130,7 +130,9 @@ LSD.Struct.Mutators = {
 */  
   _initialize: true,
   initialize: true,
+  construct: true,
   imports: true,
+  get: true,
   exports: true
 };
 /*
@@ -216,7 +218,7 @@ LSD.Struct.prototype = {
         this.watch(property, this._observed[key], false)
       }
       var value = this[key];
-      if (typeof value == 'undefined') this.set('key', this.get(property, true));
+      if (typeof value == 'undefined') this.set('key', this._get(property, true));
       return this[key];
     }
     if (this._delegate && !memo) memo = this;
@@ -294,7 +296,7 @@ LSD.Struct.prototype = {
     if (old != null && (this._stack || typeof value == 'undefined'))
       this.mix(call.key, old, memo, false);
   },
-  _inherited: ['_stack', '_stored'],
+  _unlinked: ['_stack', '_stored'],
   _skip: Object.append({
     initialize: true,
     _initialize: true,

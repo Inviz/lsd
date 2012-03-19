@@ -326,7 +326,7 @@ LSD.Element.prototype.__properties = {
       if (!this.fragment && value.childNodes.length) {
         var fragment = new LSD.Fragment;
         fragment.enumerable(value.childNodes, this)
-        this.set('fragment', fragment)
+        this.fragment = fragment;
       }
     }
     if (old && extracted) {
@@ -565,14 +565,15 @@ LSD.Element.prototype.__initialize = function(/* options, element, selector, doc
   for (var i = arguments.length; --i > -1;) {
     if ((arg = arguments[i])) switch (typeof arg) {
       case 'string':
-        return this.setSelector(arg);
+        this.setSelector(arg);
+        break;
       case 'object':
         switch (arg.nodeType) {
           case 1:
             this.set('origin', arg);
             break;
           case 9:
-            this.document = arg;
+            this.document = this.ownerDocument = arg;
             break;
           case 11:
             this.fragment = arg;

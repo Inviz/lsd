@@ -21,8 +21,9 @@ provides:
 
 LSD.Comment = LSD.Struct()
 LSD.Comment.implement(LSD.Node.prototype);
-LSD.Comment.prototype.__initialize = function(string, options) {
+LSD.Comment.prototype.__initialize = function(string, options, document) {
   this.nodeValue = string;
+  if (document) this.document = this.ownerDocument = document;
 };
 LSD.Comment.prototype.cloneNode = function() {
   return new (this.constructor)(this.nodeValue);

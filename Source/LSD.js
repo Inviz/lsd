@@ -23,7 +23,7 @@ provides:
 var LSD = function() {
   
 };
+LSD.Slick = this.Slick;
 LSD.Properties = {};
 LSD.UIDs = {};
-LSD.Slick = this.Slick;
 LSD.UID = 0;

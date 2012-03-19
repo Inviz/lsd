@@ -45,8 +45,20 @@ LSD.Document = LSD.Struct.Stack({
   origin: function(document, old) {
     if (!this.onDomReady) this.onDomReady = this.onReady.bind(this);
     Element[document ? 'addEvent' : 'removeEvent']((document || old), 'domready', this.onDomReady);
-  }
+  },
+  activeElement: function(element, old, memo) {
+    if (element && memo !== false && !element.set('focused', true)) {
+      // If a focusing element is a parent of currently focused element, blur all focused children
+      if (old) for (; old != element; old = old.parentNode) old.unset('focused', true, element)
+    } else if (old) old.unset('focused', true)
+  },
+  roles: LSD.Struct.Stack({
+    get: function(name) {
+      console.error(Array.from(arguments))
+    }
+  })
 })
+LSD.Document.prototype.nodeType = 9;
 LSD.Document.implement(LSD.Node.prototype);
 LSD.Document.prototype._preconstruct = ['childNodes', 'events'];
 LSD.Document.prototype.__initialize = function() {
@@ -101,21 +113,33 @@ LSD.Document.prototype.mix({
     multiple:  Boolean,
     id:        '.id',
     name:      '.name',
+    type:      '.type',
     title:     '.title',
     accesskey: '.accesskey',
     action:    '.action',
     href:      '.href',
+    radiogroup:'.radiogroup',
+    itemscope: '.itemscope',
     itemtype:  '.itemtype',
-    radiogroup:'.radiogroup'
+    itemprop:  '.itemprop',
+    itemid:    '.itemid',
   },
-  allocations: {
-    lightbox:     'body[type=lightbox]',
-    dialog:       'body[type=dialog]',
+  appearances: {
+    textfield:    'input[type=text]',
+    checkbox:     'input[type=checkbox]',
+    radio:        'input[type=radio]',
+    searchfield:  'input[type=search]',
+    slider:       'input[type=range]',
+    scrollbar:    'input[type=range][kind=scrollbar]',
+    listbox:      'menu[type=list]',
+    menulist:     'menu[type=list]',
     contextmenu:  'menu[type=context]',
     toolbar:      'menu[type=toolbar]',
-    scrollbar:    'input[type=range][kind=scrollbar]',
+    lightbox:     'body[type=lightbox]',
+    dialog:       'body[type=dialog]',
+    listitem:     'li',
     message:      'p.message',
-    container:    '.container << :inline',
+    container:    '.container',
     submit:       'input[type=submit]'
   },
   layers:      {
@@ -141,36 +165,13 @@ LSD.NodeTypes = {
   11: 'Fragment'
 };
 LSD.Document.prototype.createNode = function(type, element, options) {
-  var node = new (LSD[LSD.NodeTypes[type]])(element, options);
-  //node.ownerDocument = this;
-  return node;
+  return new (LSD[LSD.NodeTypes[type]])(element, options, this);
 };
-LSD.Document.prototype.createElement = function(element, options) {
-  var node = new LSD.Element(element, options);
-  node.ownerDocument = this;
-  return node;
-};
-LSD.Document.prototype.createTextNode = function(element, options) {
-  var node = new LSD.Textnode(element, options);
-  node.ownerDocument = this;
-  return node;
-};
-LSD.Document.prototype.createInstruction = function(element, options) {
-  var node = new LSD.Instruction(element, options);
-  node.ownerDocument = this;
-  return node;
-};
-LSD.Document.prototype.createComment = function(element, options) {
-  var node = new LSD.Comment(element, options);
-  node.ownerDocument = this;
-  return node;
-};
-LSD.Document.prototype.createFragment = function(element, options) {
-  var node = new LSD.Fragment(element, options);
-  node.ownerDocument = this;
-  return node;
-};
-
+Object.each(LSD.NodeTypes, function(value, key) {
+  LSD.Document.prototype['create' + value] = function(element, options) {
+    return new LSD[value](element, options, this)
+  }
+})
 Object.each(LSD, function(value, key) {
   if (typeof value == 'function') value.displayName = 'LSD.' + key;
 })

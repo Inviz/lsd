@@ -48,7 +48,9 @@ LSD.Script = function(input, scope, output) {
   var regex = this._regexp, type = typeof input;
   if (regex) {
     if (scope) this.scope = scope;
-    if (output) this.output = output;
+    if (output) 
+      if (output.nodeType == 9) this.document = output;
+      else this.output = output;
     if (this.initialize) this.initialize()
     if (typeof input == 'string') 
       input = this.Script.parsed && this.Script.parsed[input] || this.Script.parse(input);

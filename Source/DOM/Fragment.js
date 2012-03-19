@@ -29,19 +29,24 @@ provides:
   nodes just as if it was a single node. 
 */
 
-LSD.Fragment = function(argument) {
+LSD.Fragment = function(object, parent, document) {
   if (!this.render) return LSD.Fragment.apply(new LSD.Fragment, arguments)
   if (this.nodeType) {
     this.childNodes = this;
     this.variables = new LSD.Object.Stack;
   }
-  var length = arguments.length;
-  if (!length) return;
-  if (length === 1)
-    if (argument.nodeType === 11 && !argument.lsd) this.enumerable(argument.childNodes)
-    else this[typeof argument == 'string' ? 'html' : this.typeOf(argument)](argument);
-  else this.enumerable(arguments);
-  return this;
+  switch (arguments.length) {
+    case 0: break;
+    case 1:
+      if (object.nodeType === 11 && !object.lsd) this.enumerable(object.childNodes)
+      else this[typeof object == 'string' ? 'html' : this.typeOf(object)](object);
+      break;
+    default:
+      if (document && document.nodeType == 9) {
+        this.document = document;
+        this.enumerable(object, parent, document);
+      } else this.enumerable(arguments);
+  }
 }
 LSD.Fragment.prototype = new LSD.ChildNodes.Virtual;
 LSD.Struct.implement.call(LSD.Fragment, LSD.Node.prototype);
@@ -74,11 +79,12 @@ LSD.Fragment.prototype.node = function(object, parent, memo, nodeType) {
       if ((widget = this.instruction(object, parent, memo)))
         return widget;
     default:
-      widget = (parent && parent.document || LSD.Document.prototype).createNode(nodeType, object, this);
+      var document = this.document || (parent && parent.document) || LSD.Document.prototype;
+      widget = document.createNode(nodeType, object);
   } else if (memo && memo.clone) 
     widget = widget.cloneNode();
   if (widget.parentNode != parent) parent.appendChild(widget, memo);
-  if (children)
+  if (children && children.length)
     for (var i = 0, child, array = this.slice.call(children, 0), previous; child = array[i]; i++)
       this.node(child, widget, memo);
   return widget;

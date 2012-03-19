@@ -50,12 +50,19 @@ LSD.Textnode.prototype.__initialize = function() {
         else string += arg;
         break;
       case "object":
-        if (arg != null) {
-          if (arg.nodeType === 3) {
+        if (arg != null) switch (arg.nodeType) {
+          case 3:
             this.origin = arg;
             string = string ? string + arg.nodeValue : arg.nodeValue
-          }
-        } else this.mix(arg);
+            break;
+          case 9:
+            this.document = this.ownerDocument = arg;
+            break;
+          case 1:
+            break;
+          default:
+            this.mix(arg);
+        }
     }
   }
   if (string != null) this.set('nodeValue', string);
