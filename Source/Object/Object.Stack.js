@@ -70,11 +70,12 @@ LSD.Object.Stack.prototype = {
         if (length > 1) value = group[length - 1];
       } else group.push(value);
     }
-    if (value !== this[key] && !this._set(key, value, memo, index, hash)) {
+    var eql = value === this[key];
+    if (!eql && !this._set(key, value, memo, index, hash)) {
       prepend ? group.shift() : group.pop();
       return false;
     }
-    return true
+    return !eql
   },
   unset: function(key, value, memo, prepend, hash) {
     if (typeof key != 'string') {
@@ -122,6 +123,7 @@ LSD.Object.Stack.prototype = {
     }
     if (method !== '_set' || value != this[key])
       return this[method || '_unset'](key, value, memo, index, hash);
+    else return false;
   },
   write: function(key, value, memo) {
     if (value != null) {
