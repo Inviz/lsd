@@ -101,7 +101,7 @@ LSD.Properties.Elements.prototype._identify = function(call, key, value, old) {
   if (old) old.unwatch('nodeValue', object);
 };
 LSD.Properties.Elements.prototype._observe = function(call, key, value, old) {
-  call.callback.values.reset(this.attributes.name, value);
+  call.callback.values.change(this.attributes.name, value);
 };
 LSD.Properties.Elements.prototype._get = LSD.Properties.Fields.prototype.get;
 LSD.Properties.Elements.prototype._set = LSD.Properties.Fields.prototype.set;

@@ -1,10 +1,42 @@
-LSD.Properties.Roles = LSD.Struct.Stack({
-  get: function(name) {
+/*
+---
+ 
+script: Roles.js
+ 
+description: A library of widget presets
+ 
+license: Public domain (http://unlicense.org).
+ 
+requires:
+  - LSD.Document
+  - LSD.Properties
+
+provides: 
+  - LSD.Roles
+ 
+...
+*/
+
+/*
+  Roles object allows finding specific roles by a composite
+  string key where key bits are separated with dashes.
+*/
+LSD.Properties.Roles = LSD.Roles = LSD.Struct.Stack({
+  get: function(key) {
+    for (var i, previous = 0, role = this, obj; i !== -1;) {
+      i = key.indexOf('-', i != null ? i + 1 : i);
+      bit = key.substring(previous, i > -1 ? i : undefined);
+      obj = role[bit];
+      if (i == null || obj == null || typeof obj !== 'object') break;
+      else role = obj;
+      previous = i + 1;
+    }
+    if (role === this) role = null;
+    this[key] = role;
+    return role;
   }
 })
-LSD.Roles = LSD.Properties.Roles;
-
-LSD.Document.prototype.mix('roles', {
+LSD.Document.prototype.set('roles', new LSD.Roles({
   input: {
     localName: 'input',
     checkbox: {
@@ -28,7 +60,7 @@ LSD.Document.prototype.mix('roles', {
 
     },
     date: {
-      'button.opener[onclick=open]': 'Open date picker'
+      'button.opener[onclick=open]': 'Open date picker',
       'if &[open]': {
         '::dialog': {
           'button[onclick=increment]': 'Previous month',
@@ -41,7 +73,7 @@ LSD.Document.prototype.mix('roles', {
     },
     datetime: {
       local: {
-        
+        timezone: 'local'
       }
     },
     file: {
@@ -56,26 +88,26 @@ LSD.Document.prototype.mix('roles', {
           'if &[multiple]': "Select files to upload",
           'else': "Select file to upload"
         }
-      }
+      },
       list: {
-        extends: 'menu-list'
+        base: 'menu-list'
       },
       item: {
-        extends: 'li'
+        role: 'li'
       },
       message: {
-        extends: 'li'
+        role: 'li'
       }
     },
     submit: {
       custom: {
-        extends: 'button'
+        role: 'button'
       },
       onclick: 'submit'
     },
     reset: {
       custom: {
-        extends: 'button'
+        role: 'button'
       },
       onclick: 'reset'
     },
@@ -86,8 +118,8 @@ LSD.Document.prototype.mix('roles', {
           
         },
         thumb: {
-          extends: 'button'
-        }
+          archrole: 'button'
+        },
         slider: true
       }
     },
@@ -98,10 +130,10 @@ LSD.Document.prototype.mix('roles', {
   select: {
     collection: 'options',
     option: {
-      extends: 'option'
+      role: 'option'
     },
     menu: {
-      extends: 'menu-context'
+      role: 'menu-context'
     }
   },
   
@@ -129,7 +161,8 @@ LSD.Document.prototype.mix('roles', {
   },
   
   a: {
-    request: 'href'
+    request: 'href',
+    nodeValueAttribute: 'href'
   },
   
   link: {
@@ -152,7 +185,7 @@ LSD.Document.prototype.mix('roles', {
       
     },
     item: {
-      extends: 'li'
+      role: 'li'
     }
   },
   
@@ -182,4 +215,4 @@ LSD.Document.prototype.mix('roles', {
   submit:       'input[type=submit]',
   calendar:     'table[type=calendar]',
   clock:        'table[type=clock]',
-});
+}));

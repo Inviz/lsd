@@ -73,10 +73,10 @@ LSD.Element.prototype.onChange = function(key, value, state, old, memo) {
     if (!methods) {
       compiled[key] = methods = {};
       methods[definition[0]] = function(memo) {
-        return this.reset(key, true, memo);
+        return this.change(key, true, memo);
       };
       methods[definition[1]] = function(memo) {
-        return this.reset(key, false, memo);
+        return this.change(key, false, memo);
       };
     }
     for (var method in methods) this._set(method, methods[method]);
@@ -109,23 +109,39 @@ LSD.Element.prototype.__properties = {
     
     Role may be a string, to be used as "search terms" for role lookup.
     LSD provides a handy mechanism of finding the right class for
-    an element. It takes tag name, `type` and `kind` attributes into
+    an element. It takes tag name, `type`, `kind` and `id` attributes into
     account. It tries to find the role by tag name, then in looks
-    for a sub-role based on `type` attribute, and finally checks
+    for a sub-role based on `type` attribute, then it checks
     if there's a customized sub-role by the name that goes in `kind`
-    attribute. If it doesn't find the sub-role, it uses the generic
-    role. It powers up form controls widget, where datepicker tries 
+    attribute, and finally tries to find a subclass by `id` attribute.
+    If it doesn't find the sub-role, it uses matching role it could find. 
+    
+    It powers up form controls widget, where datepicker tries 
     to find `input.date` role. And if it's not there, it tries `input` 
-    which in terms of html is a text input. `input.datetime-local`
+    which in terms of html is a text input. `input.datetime-local`.
   */
   role: function(value, old, memo) {
     var roles = (this.document || LSD.Document.prototype).roles
     if (!roles) return;
     if (typeof value == 'string') 
       value = typeof roles[value] == 'undefined' ? roles._get(value) : roles[value];
-    if (value) this.mix(value, null, memo, true, true, true);
+    if (value) {
+      var skip = value._skip;
+      for (var property in value) {
+        if (!value.hasOwnProperty(property) || (skip && skip[property]) 
+        || (typeof value[property] == 'object' && !this._properties[property])) continue;
+        this.set(property, value[property], memo, true);
+      }
+    }
     if (typeof old == 'string') old = roles[old];
-    if (old) this.mix(old, null, memo, false, true, true);
+    if (old) {
+      var skip = old._skip;
+      for (var property in old) {
+        if (!old.hasOwnProperty(property) || (skip && skip[property]) 
+        || (typeof old[property] == 'object' && !this._properties[property])) continue;
+        this.unset(property, old[property], memo, true);
+      }
+    }
   },
   
   type: function(value, old, memo) {
@@ -134,6 +150,10 @@ LSD.Element.prototype.__properties = {
   
   kind: function(value, old, memo) {
     this.setRoleBit(2, value);
+  },
+  
+  id: function(value, old, memo) {
+    this.setRoleBit(3, value);
   },
 /*
   Tag name is an element role category. Most of the categories have only
@@ -445,7 +465,7 @@ LSD.Element.prototype.__properties = {
   focused: function(value, old, memo) {
     if (memo === this) return;
     if (value) this.mix('parentNode.focused', value, memo || this, null, null, null, null, true);
-    if (value && !memo && this.ownerDocument) this.ownerDocument.reset('activeElement', this, false);
+    if (value && !memo && this.ownerDocument) this.ownerDocument.change('activeElement', this, false);
     if (old) this.mix('parentNode.focused', old, memo || this, false, null, null, null, true);
   },
   rendered: function(value, old) {
@@ -470,7 +490,7 @@ LSD.Element.prototype.__properties = {
     if (memo !== false) for (var node = this, next, nodes, i = 0; node; node = next) {
       for (next = node.firstChild || node.nextSibling; !next && (node = node.parentNode); next = node.nextSibling)
         if (value) node.sourceLastIndex = index + i;
-      if (next) next.reset('sourceIndex', index + ++i, false)
+      if (next) next.change('sourceIndex', index + ++i, false)
     }
   },
 /*
@@ -486,10 +506,10 @@ LSD.Element.prototype.__properties = {
   collections resorts.
 */
   firstChild: function(value, old) {
-    if (value) value.reset('sourceIndex', (this.sourceIndex || 0) + 1);
+    if (value) value.change('sourceIndex', (this.sourceIndex || 0) + 1);
   },
   previousSibling: function(value, old, memo) {
-    if (value) this.reset('sourceIndex', (value.sourceLastIndex || value.sourceIndex || 0) + 1, memo);
+    if (value) this.change('sourceIndex', (value.sourceLastIndex || value.sourceIndex || 0) + 1, memo);
   },
   previousElementSibling: function(value, old) {
     for (var i = 0, node, method; i < 2; i++) {
@@ -552,7 +572,7 @@ LSD.Element.prototype.__properties = {
   date: Date,
   value: function(value, old, memo) {
     if (this.checked === true || typeof this.checked == 'undefined')
-      this.reset('nodeValue', value);
+      this.change('nodeValue', value);
   },
   textContent: function(value, old, memo) {
     for (var node = this; node = node.parentNode;) {
@@ -588,15 +608,18 @@ LSD.Element.prototype.__properties = {
       microdata._shared = true;
       this.set('nodeValue', microdata);
       this.set('microdata', microdata);
+      this.mix('parentNode.microdata', microdata, 'itemscope', true, null, true, null, true);
       if (this.itemprop && memo !== 'itemprop') 
         this.mix('parentNode.microdata.' + this.itemprop, value, 'itemscope', true, null, null, null, true);
     }
     if (old) {
       this.unset('nodeValue', this.microdata);
       this.unset('microdata', this.microdata);
+      this.mix('parentNode.microdata', value, 'itemscope', false, null, true, null, true);
       if (this.itemprop && memo !== 'itemprop') 
         this.mix('parentNode.microdata.' + this.itemprop, old, 'itemscope', false, null, null, null, true);
     }
+    return microdata;
   },
   itemprop: function(value, old, memo) {
     if (value) {
@@ -667,7 +690,7 @@ LSD.Element.prototype.__initialize = function(/* options, element, selector, doc
 LSD.Element.prototype.setRoleBit = function(key, value) {
   var bits = (this.roleBits || (this.roleBits = {})), autorole = this.autorole;
   bits[key] = value;
-  for (var i = 0, role; i < 3; i++)
+  for (var i = 0, role; i < 4; i++)
     if (bits[i]) role = (role ? role + '-' : '') + bits[i];
   this.set('role', role)
   if (autorole != null) this.unset('role', autorole)
@@ -698,7 +721,7 @@ LSD.Element.prototype.getAttributeNode = function(name) {
   }
 };
 LSD.Element.prototype.setAttribute = function(name, value) {
-  this.attributes.reset(name, value);
+  this.attributes.change(name, value);
   return this;
 };
 LSD.Element.prototype.removeAttribute = function(name) {

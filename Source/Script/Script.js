@@ -160,7 +160,7 @@ LSD.Script.Struct = new LSD.Struct({
     if (value) this.set('attached', true);
   },
   placeholder: function(value, old) {
-    if (this.placeheld) this.reset('value', value);
+    if (this.placeheld) this.change('value', value);
   },
   value: function(value, old, memo) {
     if (this.frozen) return;
@@ -215,7 +215,7 @@ LSD.Script.Struct = new LSD.Struct({
   attached: function(value, old) {
     if (!value && typeof this.value != 'undefined') this.unset('value', this.value);
     if (this.yielded || this.type == 'function') {
-      this.reset('executed', !!value);
+      this.change('executed', !!value);
     } else if (this.yields) {
       for (var property in this.yields) {
         var yield = this.yields[property];
@@ -228,11 +228,11 @@ LSD.Script.Struct = new LSD.Struct({
       if (typeof this.scope != 'function') {
         if (!this.setter) var self = this, setter = this.setter = function(value, old) {
           if (typeof value == 'undefined') return self.unset('value', old);
-          else return self.reset('value', value)
+          else return self.change('value', value)
         };
         (this.scope.variables || this.scope)[value ? 'watch' : 'unwatch'](this.name || this.input, this.setter);
       } else this.scope(this.input, this, this.scope, !!value);  
-      if (typeof this.value == 'undefined' && !this.input) this.reset('executed', value);
+      if (typeof this.value == 'undefined' && !this.input) this.change('executed', value);
     }
   },
 /*
@@ -362,7 +362,7 @@ LSD.Script.Struct = new LSD.Struct({
       }
     }
     if (args == null || !args.push) {
-      this.reset('value', args)
+      this.change('value', args)
       return args;
     }
     if (name) {
@@ -370,7 +370,7 @@ LSD.Script.Struct = new LSD.Struct({
       if (method === true) val = args[0][name].apply(args[0], Array.prototype.slice.call(args, 1));
       else if (method) val = method.apply(this, args);
     } else val = args[0];
-    this.reset('value', val, memo);
+    this.change('value', val, memo);
   },
   
 /*
@@ -552,7 +552,7 @@ LSD.Script.prototype.callback = function(value, old) {
       switch (typeof object) {
         case 'string':
           if (typeof value == 'undefined' && typeof old != 'undefined') this.scope.unset(object, old)
-          else this.scope[typeof old != 'undefined' ? 'reset' : 'set'](object, value);
+          else this.scope[typeof old != 'undefined' ? 'change' : 'set'](object, value);
           break;
         case 'function':
           object(value);
@@ -607,12 +607,12 @@ LSD.Script.prototype._regexp = /^[a-zA-Z0-9-_.]+$/;
 LSD.Script.compile = LSD.Script.prototype.compile;
 LSD.Script.toJS = LSD.Script.prototype.toJS;
 LSD.Script.prototype.onSuccess = function(value) {
-  this.reset('value', value);
+  this.change('value', value);
 };
 LSD.Script.prototype.onFailure = function(value) {
   var object = new Boolean(false);
   object.failure = value;
-  this.reset('value', object);
+  this.change('value', object);
 };
 LSD.Script.prototype.yield = function(keyword, args, callback, index, old, memo) {
   if (args == null) args = [];

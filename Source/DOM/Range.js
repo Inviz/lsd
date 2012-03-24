@@ -37,13 +37,13 @@ LSD.Range = new LSD.Struct.Array({
 });
 // Sets the start position of a Range
 LSD.Range.prototype.setStart = function(startContainer, startOffset) {
-  this.reset('startContainer', startContainer);
-  this.reset('startOffset', startOffset || 0);
+  this.change('startContainer', startContainer);
+  this.change('startOffset', startOffset || 0);
 };
 // Sets the end position of a Range
 LSD.Range.prototype.setEnd = function(endContainer, endOffset) {
-  this.reset('endContainer', endContainer);
-  this.reset('endOffset', endOffset || 0);
+  this.change('endContainer', endContainer);
+  this.change('endOffset', endOffset || 0);
 };
 // Sets the start position of a Range relative to another Node
 LSD.Range.prototype.setStartBefore = function(node) {

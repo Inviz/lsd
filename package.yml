@@ -34,6 +34,7 @@ sources:
   - Source/Properties/Events.js
   - Source/Properties/Resource.js
   - Source/Properties/Proxies.js
+  - Source/Properties/Roles.js
   - Source/Script/Script.js
   - Source/Script/Parser.js
   - Source/Script/Helpers.js

@@ -132,16 +132,16 @@ LSD.Object.Stack.prototype = {
     } else if (this[key] != null) this.unset(key, this[key], memo);
   },
 /*
-  Reset method first sets the new value, and triggers all callbacks,
-  and then removes old value from the stack without callbacks.
+  Change method first sets the new value, and triggers all callbacks,
+  and then removes old value from the stack without calling callbacks.
   
   The method is useful to alter the state of the object in an 
   stack-based object and not pollute the stacks with changed
-  values. When objects use .reset() to mutate the state of an object,
+  values. When objects use .change() to mutate the state of an object,
   even in the case of the conflicting change, no values will be lost
   in the stack, but only the top value on the stack of them will be used.
 */
-  reset: function(key, value, memo) {
+  change: function(key, value, memo) {
     var old = this[key];
     this.set(key, value, memo);
     if (typeof old != 'undefined') this.unset(key, old, memo)

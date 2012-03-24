@@ -43,18 +43,18 @@ LSD.Resource = new LSD.Struct.Array({
   urls: Object,
   name: '_name',
   _name: function(value, old) {
-    this.reset('path', this.prefix ? value ? this.prefix + '/' + value : this.prefix : value || '');
-    this.reset('singular', value ? value.singularize() : value);
-    this.reset('foreign_key', this.singular + '_id')
+    this.change('path', this.prefix ? value ? this.prefix + '/' + value : this.prefix : value || '');
+    this.change('singular', value ? value.singularize() : value);
+    this.change('foreign_key', this.singular + '_id')
   },
   prefix: function(value, old) {
-    this.reset('path', this._name ? value ? value + '/' + this._name : this._name  : value || '');
+    this.change('path', this._name ? value ? value + '/' + this._name : this._name  : value || '');
   },
   path: function(value, old) {
-    this.reset('url', this.domain ? value ? this.domain + '/' + value : this.domain : value || '');
+    this.change('url', this.domain ? value ? this.domain + '/' + value : this.domain : value || '');
   },
   domain: function(value, old) {
-    this.reset('url', value + (this.path ? '/' + this.path : ''))
+    this.change('url', value + (this.path ? '/' + this.path : ''))
   }
 });
 LSD.Properties.Resource = LSD.Resource;
@@ -322,7 +322,7 @@ LSD.Resource.prototype.validate = function(params) {
 };
 LSD.Resource.attributes = {
   _id: function(value) {
-    this.reset('url', this.constructor.url + '/' + value);
+    this.change('url', this.constructor.url + '/' + value);
   },
   'id': '_id'
 };

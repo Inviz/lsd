@@ -34,25 +34,25 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
   var previous = this[index - 1] || null;
   var next = this[index + 1] || null;
   if (previous !== value && memo !== 'collapse') {
-    if (previous && (memo !== 'splice' || (!state && !next))) previous.reset('nextSibling', state ? value : next, memo);
-    if ((state || old === false)) value.reset('previousSibling', previous, memo);
+    if (previous && (memo !== 'splice' || (!state && !next))) previous.change('nextSibling', state ? value : next, memo);
+    if ((state || old === false)) value.change('previousSibling', previous, memo);
     else if (value.previousSibling == previous) value.unset('previousSibling', previous, memo);
   }
   if (next !== value && memo !== 'collapse') {
-    if (next && (memo !== 'splice' || (!state && !previous))) next.reset('previousSibling', state ? value : previous, memo);
-    if ((state || old === false)) value.reset('nextSibling', next, memo);
+    if (next && (memo !== 'splice' || (!state && !previous))) next.change('previousSibling', state ? value : previous, memo);
+    if ((state || old === false)) value.change('nextSibling', next, memo);
     else if (value.nextSibling == next) value.unset('nextSibling', next, memo);
   }
   if (this._elements !== false && value.nodeType === 1) {
     for (var i = index, node; node = this[--i];) {
       if (node === value) continue;
-      if (state || old === false) node.reset('nextElementSibling', value, memo);
+      if (state || old === false) node.change('nextElementSibling', value, memo);
       else if (node.nextElementSibling === value) node.unset('nextElementSibling', value, memo);
       if (node.nodeType === 1) break;
     }
     for (var i = index, node; node = this[++i];) {
       if (node === value) continue;
-      if (state || old === false) node.reset('previousElementSibling', value, memo);
+      if (state || old === false) node.change('previousElementSibling', value, memo);
       else if (node.previousElementSibling === value) node.unset('previousElementSibling', value, memo);
       if (node.nodeType === 1) break;
     }
@@ -63,12 +63,12 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
   }
   if (this._parent) {
     if (index === 0) {
-      if (state) this._parent.reset('firstChild', value);
+      if (state) this._parent.change('firstChild', value);
       else this._parent.unset('firstChild', this._parent.firstChild);
     }
     var last = this.length - +state;
     if (index === last && memo !== 'collapse') {
-      if (state || last) this._parent.reset('lastChild', state ? value : this[last - 1]);
+      if (state || last) this._parent.change('lastChild', state ? value : this[last - 1]);
       else this._parent.unset('lastChild', this._parent.lastChild);
     }
     if (this._parent.onChildSet) this._parent.onChildSet.apply(this._parent, arguments);

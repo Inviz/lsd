@@ -193,9 +193,9 @@ LSD.Struct.prototype = {
   _getConstructor: function(key) {
     if (this._properties) {
       var prop = this._properties[key];
-      if (prop == null) {
+      if (typeof prop == 'undefined') {
         var Key = key.charAt(0).toUpperCase() + key.substring(1);
-        var prop = this._properties[Key]; 
+        if (typeof (prop = this._properties[Key]) != 'undefined') this._properties[key] = prop;
       }
     }
     if (prop == null && this.__properties) prop = this.__properties[key];

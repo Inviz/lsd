@@ -375,7 +375,7 @@ LSD.Object.prototype = {
   on a respective property.
 */
         switch (memo) {
-          case 'set': case '_set': case 'unset': case '_unset': case 'reset': case 'mix':
+          case 'set': case '_set': case 'unset': case '_unset': case 'change': case 'mix':
             this[memo](key, value, memo, prepend);
             break;
           default:
@@ -693,4 +693,4 @@ LSD.toObject = LSD.Object.toObject = LSD.Object.prototype.toObject;
 ['set', 'unset', 'watch', 'unwatch', 'get'].each(function(method) {
   LSD.Object.prototype['_' + method] = LSD.Object.prototype[method];
 });
-LSD.Object.prototype.reset = LSD.Object.prototype.set;
+LSD.Object.prototype.change = LSD.Object.prototype.set;

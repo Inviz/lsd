@@ -49,7 +49,7 @@ LSD.Properties.Attributes.prototype.onChange = function(key, value, state, old, 
     if (vdef) this._parent.variables[state ? 'set' : 'unset'](property, value);
     if (odef) this._parent.variables.unset(property, old);
   }
-  if (this._parent._properties[key]) {
+  if (this._parent.__properties[key]) {
     if (vdef) this._parent.set(key, value);
     if (odef) this._parent.unset(key, old);
   }
