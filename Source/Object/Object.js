@@ -267,8 +267,11 @@ LSD.Object.prototype = {
       var unstorable = memo && memo._unstorable;
       var skip = key._skip; 
       for (var prop in key) 
-        if (key.hasOwnProperty(prop) && (unstorable == null || !unstorable[prop]) && (skip == null || !skip[prop]))
-          this.mix(prop, key[prop], memo, state, merge, prepend);
+        if (key.hasOwnProperty(prop) && (unstorable == null || !unstorable[prop]) && (skip == null || !skip[prop])) {
+          var val = key[prop];
+          if (val == null || val._shared !== true) this.mix(prop, key[prop], memo, state, merge, prepend);
+          else this[state ? 'set' : 'unset'](prop, key[prop], memo, prepend)
+        }
     } else {
 /*
   A string in the key may contain dots `.` that denote nested
@@ -304,7 +307,7 @@ LSD.Object.prototype = {
             obj[i].mix(subkey, value, memo, state, merge, prepend)
         } else {
           var parent = this._children !== false && obj._parent !== false && obj._parent;
-          if (state !== false && parent && parent !== this) {
+          if (state !== false && parent && parent !== this && obj._shared !== true) {
             this[name] = null;
             obj = this._construct(name, null, memo, value)
           } else if (typeof obj.mix == 'function') {
@@ -675,6 +678,8 @@ LSD.Object.prototype = {
     _parent: true,
     // Stored raw mixed values
     _stored: true,
+    // A flag to avoid copying the object
+    _shared: true,
     // A live merge worker callback
     _merger: true,
     // A key mutator function

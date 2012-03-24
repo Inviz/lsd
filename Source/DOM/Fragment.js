@@ -80,7 +80,7 @@ LSD.Fragment.prototype.node = function(object, parent, memo, nodeType) {
         return widget;
     default:
       var document = this.document || (parent && parent.document) || LSD.Document.prototype;
-      widget = document.createNode(nodeType, object);
+      widget = document.createNode(nodeType, object, this);
   } else if (memo && memo.clone) 
     widget = widget.cloneNode();
   if (widget.parentNode != parent) parent.appendChild(widget, memo);
@@ -135,7 +135,7 @@ LSD.Fragment.prototype.instruction = function(object, parent, memo, connect) {
         if (!word || !(word = word[0]) || (!LSD.Script.Boundaries[word] && !LSD.Script.prototype.lookup.call(parent, word)))
           return false;
     }
-    var instruction = this.node(object, parent, memo, 5), node;
+    var instruction = this.node(object, parent, memo, 7), node;
     if (origin) instruction.set('origin', origin);
     if (chr) instruction.set('mode', chr);
     if (word === 'end') instruction.closed = true;
@@ -189,7 +189,7 @@ LSD.Fragment.prototype.object = function(object, parent, memo) {
       var type = this.typeOf(value);
       if (type == 'string') this.node(value, result, memo, 3);
       else this[type](value, result, memo);
-      if (result.nodeType == 5 && LSD.Script.Boundaries[result.name]) result.closed = true;
+      if (result.nodeType == 7 && LSD.Script.Boundaries[result.name]) result.closed = true;
     }
   }
 };
@@ -240,14 +240,14 @@ LSD.Fragment.prototype.typeOf = function(object) {
 LSD.Fragment.prototype.connect = function(instruction, write) {
   if (instruction.parentNode == this || instruction.parentNode == this.parentNode) {
     for (var l = this._length, j = l - 1, node; k == null && (--j > -1);)
-      if ((node = this[j]).nodeType == 5 && !node.next && !node.closed)
+      if ((node = this[j]).nodeType == 7 && !node.next && !node.closed)
         if (write !== false) 
           for (var k = j + 1; k < l - 1; k++)
             node.set(k - j - 1, this[k]);
         else break;
   } else {
     for (var node = instruction; node = node.previousSibling;) 
-      if (node.nodeType == 5 && !node.next)
+      if (node.nodeType == 7 && !node.next)
         if (write !== false) 
           for (var child = node; (child = child.nextSibling) && child != instruction;)
             node.push(child);

@@ -14,6 +14,7 @@ requires:
   - LSD.Properties.Events
   - LSD.Properties.Proxies
   - LSD.Node
+  - LSD.Document
   
 provides: 
   - LSD.Element
@@ -60,6 +61,11 @@ LSD.Element.prototype.onChange = function(key, value, state, old, memo) {
       states     = ns.states,
       definition = states[key],
       stack      = this._stack && this._stack[key];
+  if (this._inherited[key] && this.childNodes) 
+    for (var i = 0, child; child = this.childNodes[i++];) {
+      child.set(key, value, memo, true);
+      if (typeof old != 'undefined') child.unset(key, old, memo, true);
+    }
   if (!definition) return value;
   if (state && (!stack || stack.length === 1) && typeof this[definition[0]] != 'function') {    
     var compiled = states._compiled || (states._compiled = {});
@@ -113,12 +119,21 @@ LSD.Element.prototype.__properties = {
     which in terms of html is a text input. `input.datetime-local`
   */
   role: function(value, old, memo) {
-    var roles = (this.document || LSD.Document.prototype).roles;
+    var roles = (this.document || LSD.Document.prototype).roles
+    if (!roles) return;
     if (typeof value == 'string') 
-      value = typeof roles[value] == 'undefined' ? roles.get(value) : roles[value];
+      value = typeof roles[value] == 'undefined' ? roles._get(value) : roles[value];
     if (value) this.mix(value, null, memo, true, true, true);
     if (typeof old == 'string') old = roles[old];
     if (old) this.mix(old, null, memo, false, true, true);
+  },
+  
+  type: function(value, old, memo) {
+    this.setRoleBit(1, value);
+  },
+  
+  kind: function(value, old, memo) {
+    this.setRoleBit(2, value);
   },
 /*
   Tag name is an element role category. Most of the categories have only
@@ -203,6 +218,7 @@ LSD.Element.prototype.__properties = {
         if (old) sibling.matches.remove(' ', old, this);
       }
     }
+    this.setRoleBit(0, value);
   },
   /*
     Each widget builds its own element, and it's good when 
@@ -325,7 +341,7 @@ LSD.Element.prototype.__properties = {
       }
       if (!this.fragment && value.childNodes.length) {
         var fragment = new LSD.Fragment;
-        fragment.enumerable(value.childNodes, this)
+        fragment.enumerable(Array.prototype.slice.call(value.childNodes), this)
         this.fragment = fragment;
       }
     }
@@ -508,9 +524,9 @@ LSD.Element.prototype.__properties = {
       if (memo !== 'overwrite' && memo !== 'collapse') this.unset('sourceIndex', this.sourceIndex, memo);
     } else this.variables.merge(value.variables);
     if (old) this.variables.unmerge(old.variables);
-    for (var i = 0, property; property = this._inherited[i++];) {
-      if (value && value[property] !== this[property]) this.set(property, value[property]);
-      if (old && old[property] !== this[property]) this.unset(property, old[property]);
+    for (var property in this._inherited) {
+      if (value && value[property]) this.set(property, value[property], memo, true);
+      if (old && old[property]) this.unset(property, old[property], memo, true);
     }
     for (var i = 0, node, method; i < 2; i++) {
       if (i) node = old, method = 'remove';
@@ -537,6 +553,68 @@ LSD.Element.prototype.__properties = {
   value: function(value, old, memo) {
     if (this.checked === true || typeof this.checked == 'undefined')
       this.reset('nodeValue', value);
+  },
+  textContent: function(value, old, memo) {
+    for (var node = this; node = node.parentNode;) {
+      var children = node.childNodes;
+      var content = children.textContent;
+      if (content != null) {
+        for (var text = '', child, i = 0; child = children[i++];)
+          if (child.textContent != null) text += child.textContent;
+        node.set('textContent', text);
+        node.unset('textContent', content);
+        children.textContent = text;
+      }
+    }
+    if (typeof value != 'undefined') this.set('nodeValue', value, memo, true);
+    if (typeof old != 'undefined') this.unset('nodeValue', old, memo, true);
+  },
+  /*
+    Microdata object is one of inheritable values. When
+    a child node defines its own microdata object by using
+    `itemscope` property, the widget will hold links to both
+    object coming from parent node and own object, but only
+    use the latter. If a widget loses the `itemscope` attribute,
+    it'll lose its own microdata object and fall back to an object
+    inherited from parent element.
+  */
+  microdata: function(value, old) {
+    if (value) this.variables.merge(value);
+    if (old) this.variables.unmerge(old);
+  },
+  itemscope: function(value, old, memo) {
+    if (value) {
+      var microdata = new LSD.Object.Stack;
+      microdata._shared = true;
+      this.set('nodeValue', microdata);
+      this.set('microdata', microdata);
+      if (this.itemprop && memo !== 'itemprop') 
+        this.mix('parentNode.microdata.' + this.itemprop, value, 'itemscope', true, null, null, null, true);
+    }
+    if (old) {
+      this.unset('nodeValue', this.microdata);
+      this.unset('microdata', this.microdata);
+      if (this.itemprop && memo !== 'itemprop') 
+        this.mix('parentNode.microdata.' + this.itemprop, old, 'itemscope', false, null, null, null, true);
+    }
+  },
+  itemprop: function(value, old, memo) {
+    if (value) {
+      this.watch('nodeValue', 'microdata.' + value);
+      if (this.itemscope && memo !== 'itemscope') 
+        this.mix('parentNode.microdata.' + value, this.microdata, 'itemprop', true, null, null, null, true);
+    }
+    if (old) {
+      this.unwatch('nodeValue', 'microdata.' + old);
+      if (this.itemscope && memo !== 'itemscope') 
+        this.mix('parentNode.microdata.' + old, this.microdata, 'itemprop', false, null, null, null, true);
+    }
+  },
+  itemtype: function(value, old) {
+    
+  },
+  itemid: function(value, old) {
+    
   }
 };
 LSD.Element.implement(LSD.Node.prototype)
@@ -545,12 +623,12 @@ LSD.Element.prototype.tagName = null;
 LSD.Element.prototype.className = '';
 LSD.Element.prototype.nodeType = 1;
 LSD.Element.prototype._parent = false;
-LSD.Element.prototype._inherited = ['drawn', 'built', 'hidden', 'disabled', 'root'];
+LSD.Element.prototype._inherited = {'drawn': true, 'built': true, 'hidden': true, 'disabled': true, 'root': true, 'microdata': true};
 LSD.Element.prototype._preconstruct = ['childNodes', 'proxies', 'variables', 'attributes', 'classList', 'events', 'matches', 'relations'];
 LSD.Element.prototype.__initialize = function(/* options, element, selector, document */) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
   /*
-    Adds default states to the prototype first time element is created
+    Adds default states to the prototype first time element/document is created
   */
   if (this.built == null) LSD.Element.prototype.mix({
     built: false,
@@ -570,7 +648,7 @@ LSD.Element.prototype.__initialize = function(/* options, element, selector, doc
       case 'object':
         switch (arg.nodeType) {
           case 1:
-            this.set('origin', arg);
+            var origin = arg;
             break;
           case 9:
             this.document = this.ownerDocument = arg;
@@ -583,7 +661,16 @@ LSD.Element.prototype.__initialize = function(/* options, element, selector, doc
         }
     }
   }
+  if (origin) this.set('origin', origin);
   return options;
+};
+LSD.Element.prototype.setRoleBit = function(key, value) {
+  var bits = (this.roleBits || (this.roleBits = {})), autorole = this.autorole;
+  bits[key] = value;
+  for (var i = 0, role; i < 3; i++)
+    if (bits[i]) role = (role ? role + '-' : '') + bits[i];
+  this.set('role', role)
+  if (autorole != null) this.unset('role', autorole)
 };
 LSD.Element.prototype.click = function() {
   switch (this.type) {
@@ -732,3 +819,28 @@ LSD.Element.prototype.toElement = function(){
   if (!this.built) this.build();
   return this.element;
 };
+LSD.Element.prototype.onChildSet = function(value, index, state, old, memo) {
+  for (var children = this.childNodes, text = '', child, i = 0; child = children[i++];)
+    if (child.textContent != null) text += child.textContent;
+  this.set('textContent', text);
+  if (children.textContent != null) this.unset('textContent', children.textContent);
+  children.textContent = text;
+};
+
+LSD.Document.prototype.mix('states', {
+  built:     ['build',      'destroy'],
+  hidden:    ['hide',       'show'],
+  disabled:  ['disable',    'enable'],
+  active:    ['activate',   'deactivate'],
+  focused:   ['focus',      'blur'],     
+  selected:  ['select',     'unselect'], 
+  chosen:    ['choose',     'forget'],
+  checked:   ['check',      'uncheck'],
+  open:      ['collapse',   'expand'],
+  started:   ['start',      'finish'],
+  empty:     ['unfill',     'fill'],
+  invalid:   ['invalidate', 'validate'],
+  editing:   ['edit',       'save'],
+  placeheld: ['placehold',  'unplacehold'],
+  invoked:   ['invoke',     'revoke']
+})

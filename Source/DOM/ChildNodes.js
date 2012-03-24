@@ -71,6 +71,7 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
       if (state || last) this._parent.reset('lastChild', state ? value : this[last - 1]);
       else this._parent.unset('lastChild', this._parent.lastChild);
     }
+    if (this._parent.onChildSet) this._parent.onChildSet.apply(this._parent, arguments);
   }
 };
 LSD.ChildNodes.prototype._skip = Object.append({

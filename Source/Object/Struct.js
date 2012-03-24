@@ -277,6 +277,7 @@ LSD.Struct.prototype = {
     var node = this.nodeType && this || (this._global && this._parent);
     if (this.nodeType) {
       var script = LSD.Script(expression, null, [this, key]);;
+      if (!this._scripted) this._scripted = {};
       node.watch('variables', '_scripted.' + key + '.scope')
     } else {
       var script = LSD.Script(expression, this, [this, key]);;

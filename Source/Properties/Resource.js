@@ -13,6 +13,7 @@ requires:
   - LSD.Properties
   - LSD.Struct.Group.Array
   - LSD.Document
+  - LSD.Element
   - String.Inflections/String.singularize
 
 provides: 
@@ -57,10 +58,6 @@ LSD.Resource = new LSD.Struct.Array({
   }
 });
 LSD.Properties.Resource = LSD.Resource;
-LSD.Resource.prototype.prefix = '';
-LSD.Resource.prototype.path = '';
-LSD.Resource.prototype.url = '';
-LSD.Resource.prototype.domain = null;
 LSD.Resource.prototype.onChange = function(key, value, state, old, memo) {
   if (value != null && value._constructor === LSD.Resource) {
     value[state ? 'set' : 'unset']('name', key);
@@ -79,7 +76,6 @@ LSD.Resource.prototype.onStore = function(key, value, memo, state, name) {
   }
   return true;
 };
-LSD.Resource.prototype._per_page = 20;
 LSD.Resource.prototype._constructor = LSD.Resource;
 LSD.Resource.prototype._initialize = function() {
   this.attributes = Object.append({}, this.attributes);
@@ -96,6 +92,135 @@ LSD.Resource.prototype._initialize = function() {
   delete Struct._children;
   return Struct;
 };
+/*
+  A simple resource router that can transform parameters
+  to what resource really understand. E.g. it can 
+  handle requests with `page` parameter, when resource
+  only supports `offset` param. It may also rename
+  parameters, e.g. if a resource accept `p` param,
+  feeding it `param` will work just as well.
+  
+  Backend resources may or may not follow naming conventions
+  on clientside. If naming backend things is out of control,
+  e.g. when using 3d party APIs, one could map real URLs
+  on virtual resources and use the mapped schema. 
+*/
+LSD.Resource.prototype.match = function(url, params) {
+  if (!params) params = {};
+  if (!params.method) params.method = 'get';
+  for (var i = 0, j, k = url.length, bit, id, prev, action, parent = this, resource; (j = url.indexOf('/', i)) > -1 || (j = k); i = j + 1) {
+    if ((bit = url.substring(i, j)).length === 0) continue;
+    if (j == k && parent._collection[bit] || (id != null && parent._member[bit])) {
+      action = bit;
+    } else {
+      if ((resource = parent.get(bit))) parent = resource;
+      if (id != null) {
+        params[parent._parent.foreign_key] = id;
+        id = null;
+      }
+      if (!resource) {
+        id = parseInt(bit);
+        if (id != bit) id = bit;
+      }
+    }
+    if (j == k) break;
+  }
+  if (parent) {
+    if (id && !resource) params.id = id;
+    if (!action) switch(params.method) {
+      case 'post':
+        action = 'create';
+        break;
+      case 'get':
+        action = params.id ? 'show' : 'index';
+        break;
+      case 'delete':
+        action = 'destroy';
+        break;
+      case 'put':
+        action = 'update';
+        break;
+      case 'patch':
+        action = 'patch';
+    }
+    params.action = action;
+    params.resource = parent;
+    var url = parent.urls;
+    if (url && (url = url[action])) {
+      var index = url.indexOf(' ');
+      if (index > -1) {
+        params.method = url.substring(0, index).toLowerCase();
+        url = url.substring(index + 1);
+      }
+    }
+    if (url) {
+      var index = url.indexOf('?');
+      if (index > -1) {
+        var query = url.substring(index + 1);
+        for (var i = -1, j, k, bit, val; ;) {
+          if ((j = query.indexOf('&', i)) == -1) j = undefined;
+          bit = query.substring(i, j);
+          if ((k = bit.indexOf('=')) > -1) {
+            val = bit.substring(k + 1);
+            bit = bit.substring(0, k);
+          }
+          var section = this._params[bit];
+          if (section) {
+            var group = this._dictionary[section]
+            for (var param in group) {
+              if (params[param]) {
+                params[bit] = params[param];
+                break;
+              }
+            }
+          } else {
+            if (i == -1 && val == null) params[bit] = params.id;
+            else switch (val) {
+              case 'string': case 'number': case 'object':
+                if (typeof params.id == val)
+                  params[bit] = params.id
+                break;
+              default:
+                if (val == null) {
+                  console.error(bit)
+                } else params[bit] = val; 
+            }
+          }  
+          if (j == null) break;
+          else i = j + 1;
+        }
+        url = url.substring(0, index);
+      }
+      params.url = url;
+    }
+  }
+  return params;
+};
+LSD.Resource.prototype.dispatch = function(params, object) {
+  if (typeof params == 'string') params = this.match(params, object);
+  if (!params.resource) return false;
+  return params.url ? params : params.resource.execute(params.action, params);
+};
+LSD.Resource.prototype.execute = function(name, params) {
+  var method = this._collection[name];
+  if (method.action) {
+    return method.action.call(this, params);
+  }
+};
+LSD.Resource.prototype._Properties = {
+  urls: function() {
+    
+  },
+  actions: function() {
+    
+  },
+  collection: function() {
+    
+  },
+  member: function() {
+    
+  }
+};
 LSD.Resource.prototype.all = function(params) {
   
 };
@@ -103,7 +228,6 @@ LSD.Resource.prototype.where = function(params) {
   switch (this.implementation && this.implementation.where) {
     
   }
-  //if (this.indexOf())
 };
 LSD.Resource.prototype.find = function() {
 
@@ -111,11 +235,11 @@ LSD.Resource.prototype.find = function() {
 LSD.Resource.prototype._dictionary = {
   limit: {per_page: 1, count: 1, limit: 1, number: 1, n : 1},
   offset: {max_id: 'id', offset: 1, skip: 1, after: 1},
-  page: {p: 1, page: 1},
+  page: {p: 1, page: 1, page_no: 1},
   sort: {sort_by: 1, sort_field: 1, sort: 1},
   order: {order_by: 1, order_direction: 1, sort_direction: 1, order: 1},
   methods: {post: 1, get: 1, put: 1, 'delete': 1, patch: 1, options: 1}
-}
+};
 LSD.Resource.prototype._params = (function(params) {
   var proto = LSD.Resource.prototype; 
   for (var type in proto._dictionary)
@@ -196,124 +320,18 @@ LSD.Resource.prototype.destroy = function(params) {
 LSD.Resource.prototype.validate = function(params) {
   return true;
 };
-LSD.Resource.prototype.match = function(url, params) {
-  if (!params) params = {};
-  if (!params.method) params.method = 'get';
-  for (var i = 0, j, k = url.length, bit, id, prev, action, parent = this, resource; (j = url.indexOf('/', i)) > -1 || (j = k); i = j + 1) {
-    if ((bit = url.substring(i, j)).length === 0) continue;
-    if (j == k && parent._collection[bit] || (id != null && parent._member[bit])) {
-      action = bit;
-    } else {
-      if ((resource = parent.get(bit))) parent = resource;
-      if (id != null) {
-        params[parent._parent.foreign_key] = id;
-        id = null;
-      }
-      if (!resource) {
-        id = parseInt(bit);
-        if (id != bit) id = bit;
-      }
-    }
-    if (j == k) break;
-  }
-  if (parent) {
-    if (id && !resource) params.id = id;
-    if (!action) switch(params.method) {
-      case 'post':
-        action = 'create';
-        break;
-      case 'get':
-        action = params.id ? 'show' : 'index';
-        break;
-      case 'delete':
-        action = 'destroy';
-        break;
-      case 'put':
-        action = 'update';
-        break;
-      case 'patch':
-        action = 'patch';
-    }
-    
-    params.action = action;
-    params.resource = parent;
-    var url = parent.urls;
-    if (url && (url = url[action])) {
-      var index = url.indexOf(' ');
-      if (index > -1) {
-        params.method = url.substring(0, index).toLowerCase();
-        url = url.substring(index + 1);
-      }
-    }
-    if (url) {
-      var index = url.indexOf('?');
-      if (index > -1) {
-        var query = url.substring(index + 1);
-        for (var i = -1, j, k, bit, val; ;) {
-          if ((j = query.indexOf('&', i)) == -1) j = undefined;
-          bit = query.substring(i, j);
-          if ((k = bit.indexOf('=')) > -1) {
-            val = bit.substring(k + 1);
-            bit = bit.substring(0, k);
-          }
-          var section = this._params[bit];
-          if (section) {
-            var group = this._dictionary[section]
-            for (var param in group) {
-              if (params[param]) {
-                params[bit] = params[param];
-                break;
-              }
-            }
-          } else {
-            if (i == -1 && val == null) params[bit] = params.id;
-            else switch (val) {
-              case 'string': case 'number': case 'object':
-                if (typeof params.id == val)
-                  params[bit] = params.id
-                break;
-              default:
-                if (val == null) {
-                  console.error(bit)
-                } else params[bit] = val; 
-            }
-          }  
-          if (j == null) break;
-          else i = j + 1;
-        }
-        url = url.substring(0, index);
-      }
-      params.url = url;
-    }
-  }
-  return params;
-}
-LSD.Resource.prototype.dispatch = function(params, object) {
-  if (typeof params == 'string') params = this.match(params, object);
-  if (!params.resource) return false;
-  return params.url ? params : params.resource.execute(params.action, params);
-};
-LSD.Resource.prototype.execute = function(name, params) {
-  var method = this._collection[name];
-  if (method.action) {
-    return method.action.call(this, params);
-  }
+LSD.Resource.attributes = {
+  _id: function(value) {
+    this.reset('url', this.constructor.url + '/' + value);
+  },
+  'id': '_id'
 };
 
-LSD.Resource.prototype._Properties = {
-  urls: function() {
-    
-  },
-  actions: function() {
-    
-  },
-  collection: function() {
-    
-  },
-  member: function() {
-    
-  }
-};
+/*
+  Instance object base structure. Resources are
+  initialized on top of constructors made by
+  this struct.
+*/
 
 LSD.Model = function() {
   return LSD.Struct.apply(this, arguments);
@@ -328,17 +346,14 @@ LSD.Model.prototype.reload = function() {
 LSD.Model.prototype.save = function() {
   return this.dispatch(this._id ? 'update' : 'create', arguments);
 };
-LSD.Resource.attributes = {
-  _id: function(value) {
-    this.set('url', this.constructor.url + '/' + value);
-  },
-  'id': '_id'
-};
-
 
 /*
   Universal perfect world REST scaffolder. Can be overriden
   to do actions on back end, or emulate them locally.
+  
+  It's more actions than in usual REST implementations,
+  but a developer may stick to regular CRUD and leave
+  those extra methods until he needs it.
 */
 (LSD.Resource.prototype._collection = {
   index: {
@@ -420,13 +435,11 @@ Object.each((LSD.Resource.prototype._member = {
   };
 });
 
-
-
-LSD.Resource.Attributes = 
-LSD.Resource.prototype._properties.attributes = new LSD.Struct({
-  
-});
-
+LSD.Resource.prototype.prefix = '';
+LSD.Resource.prototype.path = '';
+LSD.Resource.prototype.url = '';
+LSD.Resource.prototype.domain = null;
+LSD.Resource.prototype._per_page = 20;
 
 // var Customer = new LSD.Resource('customers', {
 //   domains: {

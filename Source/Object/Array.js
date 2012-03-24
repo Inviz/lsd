@@ -208,7 +208,7 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
           for (var j = length, k = index + arity - shift; --j >= k;)
             this.set(j + shift, this[j], j, 'expand')
       }
-      this.set(i + index, args[i], i < offset ? false : null, i < offset ? 'overwrite' : 'expand');
+      this.set(i + index, args[i], i < offset ? false : null, i < offset ? 'overwrite' : null);
     }
 /*
   Otherwise, if there are more to be removed, then to inserted (#3),
@@ -421,21 +421,25 @@ LSD.Array.prototype = Object.append(new LSD.Object, {
   },
   
   every: function(callback) {
-    var values = [], that = this, count = 0
+    if (callback.result != null) return callback.result === 0;
+    var values = [];
+    var that = this;
     this.seek(callback, function(result, value, index, state, old) {
+      if (callback.result == null) callback.result = 0;
       if (state) {
         var previous = values[index];
         values[index] = result || false;
         if (previous != result) 
-          count += (state && result ? previous == null ? 0 : -1 : 1);
+          callback.result += (state && result ? previous == null ? 0 : -1 : 1);
         if (old != null && old !== false) delete values[old];
       } else {
-        if (!result) count--
+        if (!result) callback.result--
         values.splice(index, 1);
       }
-      if (callback.block) callback.block.update(count === 0);
+      if (callback.block) callback.block.update(callback.result === 0);
+      return callback.result === 0;
     });
-    return this._length === 0 || count === 0;
+    return this._length === 0 || callback.result === 0;
   },
   
   some: function(callback) {

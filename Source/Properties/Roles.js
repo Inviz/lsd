@@ -1,4 +1,10 @@
-LSD.Roles.Desktop = new LSD.Object.Stack({
+LSD.Properties.Roles = LSD.Struct.Stack({
+  get: function(name) {
+  }
+})
+LSD.Roles = LSD.Properties.Roles;
+
+LSD.Document.prototype.mix('roles', {
   input: {
     localName: 'input',
     checkbox: {
@@ -155,5 +161,25 @@ LSD.Roles.Desktop = new LSD.Object.Stack({
       elements: true,
       open: false
     }
-  }
-})
+  },
+  
+  
+  textfield:    'input[type=text]',
+  checkbox:     'input[type=checkbox]',
+  radio:        'input[type=radio]',
+  searchfield:  'input[type=search]',
+  slider:       'input[type=range]',
+  scrollbar:    'input[type=range][kind=scrollbar]',
+  listbox:      'menu[type=list]',
+  menulist:     'menu[type=list]',
+  contextmenu:  'menu[type=context]',
+  toolbar:      'menu[type=toolbar]',
+  lightbox:     'body[type=lightbox]',
+  dialog:       'body[type=dialog]',
+  listitem:     'li',
+  message:      'p.message',
+  container:    '.container',
+  submit:       'input[type=submit]',
+  calendar:     'table[type=calendar]',
+  clock:        'table[type=clock]',
+});

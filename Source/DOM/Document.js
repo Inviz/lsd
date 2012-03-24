@@ -11,11 +11,6 @@ authors: Yaroslaff Fedin
 
 requires:
   - LSD.Node
-  - LSD.Element
-  - LSD.Textnode
-  - LSD.Comment
-  - LSD.Fragment
-  - LSD.Instruction
   - Core/DomReady
 
 provides:
@@ -51,12 +46,7 @@ LSD.Document = LSD.Struct.Stack({
       // If a focusing element is a parent of currently focused element, blur all focused children
       if (old) for (; old != element; old = old.parentNode) old.unset('focused', true, element)
     } else if (old) old.unset('focused', true)
-  },
-  roles: LSD.Struct.Stack({
-    get: function(name) {
-      console.error(Array.from(arguments))
-    }
-  })
+  }
 })
 LSD.Document.prototype.nodeType = 9;
 LSD.Document.implement(LSD.Node.prototype);
@@ -69,107 +59,21 @@ LSD.Document.prototype.onReady = function() {
   this.events.fire('domready', this.origin.body);
   this.set('body', this.createElement(this.origin.body));
 };
-/*
-  The following is a basic set of structures that every
-  LSD namespace implements. Those are global objects
-  that customize the behavior of widgets by providing 
-  reusable pieces of configuration and defining various
-  possible collections.
-  
-  For example LSD.attributes contains functions that are
-  called whenever a widget in that namespaces recieves
-  by that name. 
-  
-  LSD.relations provides a set of preconfigured relations 
-  that can be further customized for each of the widgets.  
-*/
-LSD.Document.prototype.mix({
-  states:      {
-    built:     ['build',      'destroy'],
-    hidden:    ['hide',       'show'],
-    disabled:  ['disable',    'enable'],
-    active:    ['activate',   'deactivate'],
-    focused:   ['focus',      'blur'],     
-    selected:  ['select',     'unselect'], 
-    chosen:    ['choose',     'forget'],
-    checked:   ['check',      'uncheck'],
-    open:      ['collapse',   'expand'],
-    started:   ['start',      'finish'],
-    empty:     ['unfill',     'fill'],
-    invalid:   ['invalidate', 'validate'],
-    editing:   ['edit',       'save'],
-    placeheld: ['placehold',  'unplacehold'],
-    invoked:   ['invoke',     'revoke']
-  },
-  attributes:  {
-    tabindex:  Number,
-    width:     Number,
-    height:    Number,
-    readonly:  Boolean,
-    disabled:  Boolean,
-    hidden:    Boolean,
-    open:      Boolean,
-    checked:   Boolean,
-    multiple:  Boolean,
-    id:        '.id',
-    name:      '.name',
-    type:      '.type',
-    title:     '.title',
-    accesskey: '.accesskey',
-    action:    '.action',
-    href:      '.href',
-    radiogroup:'.radiogroup',
-    itemscope: '.itemscope',
-    itemtype:  '.itemtype',
-    itemprop:  '.itemprop',
-    itemid:    '.itemid',
-  },
-  appearances: {
-    textfield:    'input[type=text]',
-    checkbox:     'input[type=checkbox]',
-    radio:        'input[type=radio]',
-    searchfield:  'input[type=search]',
-    slider:       'input[type=range]',
-    scrollbar:    'input[type=range][kind=scrollbar]',
-    listbox:      'menu[type=list]',
-    menulist:     'menu[type=list]',
-    contextmenu:  'menu[type=context]',
-    toolbar:      'menu[type=toolbar]',
-    lightbox:     'body[type=lightbox]',
-    dialog:       'body[type=dialog]',
-    listitem:     'li',
-    message:      'p.message',
-    container:    '.container',
-    submit:       'input[type=submit]'
-  },
-  layers:      {
-    shadow:     ['size', 'radius', 'shape',  'shadow'],
-    stroke:     [        'radius', 'stroke', 'shape',  'fill'],
-    background: ['size', 'radius', 'stroke', 'offset', 'shape',  'color'],
-    foreground: ['size', 'radius', 'stroke', 'offset', 'shape',  'color'],
-    reflection: ['size', 'radius', 'stroke', 'offset', 'shape',  'color'],
-    icon:       ['size', 'scale',  'color',  'stroke', 'offset', 'shape', 'position', 'shadow'],
-    glyph:      ['size', 'scale',  'color',  'stroke', 'offset', 'shape', 'position', 'shadow']
-  },
-  styles:      {},
-  relations:   {},
-  properties:  {},
-  roles:       {}
-});
 LSD.Document.NodeTypes = {};
 LSD.NodeTypes = {
   1:  'Element',
   3:  'Textnode',
-  5:  'Instruction',
+  7:  'Instruction',
   8:  'Comment',
+  9:  'Document',
   11: 'Fragment'
 };
-LSD.Document.prototype.createNode = function(type, element, options) {
-  return new (LSD[LSD.NodeTypes[type]])(element, options, this);
+LSD.Document.prototype.createNode = function(type, element, options, fragment) {
+  return new (LSD[LSD.NodeTypes[type]])(element, options, this, fragment);
 };
 Object.each(LSD.NodeTypes, function(value, key) {
-  LSD.Document.prototype['create' + value] = function(element, options) {
-    return new LSD[value](element, options, this)
+  LSD.Document.prototype['create' + value] = function(element, options, fragment) {
+    return new LSD[value](element, options, this, fragment)
   }
 })
 Object.each(LSD, function(value, key) {

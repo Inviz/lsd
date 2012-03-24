@@ -339,8 +339,8 @@ LSD.Script.Struct = new LSD.Struct({
             break loop;
         }
       } else if (arg != null && value && arg.script && typeof result == 'undefined' && !LSD.Script.Keywords[name]) {
-        if (this.hasOwnProperty('value')) this.unset('value', this.value)
-        return;
+        if (this.hasOwnProperty('value')) this.unset('value', this.value);
+        return
       }
     }
     if (this.context !== false) this.context = this.getContext();
@@ -543,7 +543,7 @@ LSD.Script.prototype.callback = function(value, old) {
     case 3:
       object.nodeValue = value;
       break;
-    case 5:
+    case 7:
       object.set('value', value);
       break;
     case 8:

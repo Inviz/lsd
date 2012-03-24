@@ -19,19 +19,32 @@ provides:
 ...
 */
 
-LSD.Textnode = LSD.Struct({
-  nodeValue: function(value, old, memo) {
-    if (!memo || !(memo.push || memo.script)) {
-      for (var previous = -1, start, end, bits, substr; (start = value.indexOf('${', previous + 1)) > -1;) {
-        if ((end = value.indexOf('}', start)) == -1) continue;
-        if (!bits) bits = [];
-        if (start > 0 && previous + 1 != start) bits.push(value.substring(previous ? previous + 1 : 0, start));
-        bits.push(new LSD.Script({input: value.substring(start + 2, end), placeholder: value.substring(start, end + 1)}));
-        previous = end;
+LSD.Textnode = LSD.Struct.Stack({
+  textContent: function(value, old, memo) {
+    if (typeof value != 'undefined') {
+      if (!memo || !(memo.push || memo.script)) {
+        for (var previous = -1, start, end, bits, substr; (start = value.indexOf('${', previous + 1)) > -1;) {
+          if ((end = value.indexOf('}', start)) == -1) continue;
+          if (!bits) bits = [];
+          if (start > 0 && previous + 1 != start) bits.push(value.substring(previous ? previous + 1 : 0, start));
+          bits.push(new LSD.Script({input: value.substring(start + 2, end), placeholder: value.substring(start, end + 1)}));
+          previous = end;
+        }
       }
     }
     if (!bits) {
       if (this.origin) this.origin.textContent = typeof value == 'undefined' ? '' : value;
+      for (var node = this; node = node.parentNode;) {
+        var children = node.childNodes;
+        var content = children.textContent;
+        if (content != null) {
+          for (var text = '', child, i = 0; child = children[i++];)
+            if (child.textContent != null) text += child.textContent;
+          node.set('textContent', text);
+          node.unset('textContent', content);
+          children.textContent = text;
+        }
+      }
       return value;
     } else if (bits.length == 1) return bits[0];
     if (end + 1 < value.length) bits.push(value.substring(end + 1));
@@ -53,19 +66,22 @@ LSD.Textnode.prototype.__initialize = function() {
         if (arg != null) switch (arg.nodeType) {
           case 3:
             this.origin = arg;
-            string = string ? string + arg.nodeValue : arg.nodeValue
+            string = string ? string + arg.textContent : arg.textContent
             break;
           case 9:
             this.document = this.ownerDocument = arg;
             break;
           case 1:
             break;
+          case 11:
+            this.fragment = arg;
+            break;
           default:
             this.mix(arg);
         }
     }
   }
-  if (string != null) this.set('nodeValue', string);
+  if (string != null) this.set('textContent', string);
 }
 
 LSD.Textnode.prototype.nodeType = 3;
