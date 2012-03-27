@@ -10,14 +10,15 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Struct.Array
+  - LSD.Struct
+  - LSD.Array
   
 provides: 
   - LSD.Range
 ...
 */
 
-LSD.Range = new LSD.Struct.Array({
+LSD.Range = new LSD.Struct({
   startContainer: function() {
   
   },
@@ -34,7 +35,7 @@ LSD.Range = new LSD.Struct.Array({
   }
   // commonAncestorContainer
   // collapsed
-});
+}, 'Array');
 // Sets the start position of a Range
 LSD.Range.prototype.setStart = function(startContainer, startOffset) {
   this.change('startContainer', startContainer);

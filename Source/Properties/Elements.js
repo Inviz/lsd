@@ -78,11 +78,11 @@ LSD.Properties.Fields.prototype = Object.append(new LSD.Object, {
   }
 });
 LSD.Properties.Fields.rNameParser = /(^[^\[]+)|\[([^\]]*)\]/g;
-LSD.Properties.Elements = LSD.Struct.Array({
+LSD.Properties.Elements = LSD.Struct({
   exports: {
     length: 'length'
   }
-});
+}, 'Array');
 LSD.Properties.Elements.prototype.onSet = function(value, index, state, old, memo) {
   if (old == null) {
     if (state === false) value.attributes.unwatch('name', this);
@@ -103,6 +103,6 @@ LSD.Properties.Elements.prototype._identify = function(call, key, value, old) {
 LSD.Properties.Elements.prototype._observe = function(call, key, value, old) {
   call.callback.values.change(this.attributes.name, value);
 };
-LSD.Properties.Elements.prototype._get = LSD.Properties.Fields.prototype.get;
-LSD.Properties.Elements.prototype._set = LSD.Properties.Fields.prototype.set;
-LSD.Properties.Elements.prototype._unset = LSD.Properties.Fields.prototype.unset;
+LSD.Properties.Elements.prototype.get = LSD.Properties.Fields.prototype.get;
+LSD.Properties.Elements.prototype.set = LSD.Properties.Fields.prototype.set;
+LSD.Properties.Elements.prototype.unset = LSD.Properties.Fields.prototype.unset;

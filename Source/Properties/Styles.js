@@ -1,6 +1,4 @@
-LSD.Styles = new LSD.Struct.Stack({
-
-});
+LSD.Styles = LSD.Struct('Stack');
 
 LSD.Styles.prototype.onChange = function(key, value, memo, old) {
   var style = this.constructor[key];
@@ -198,6 +196,11 @@ LSD.Styles.rHex = /^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/;
   Definitions for properties are specified in a format similar
   to CSS specs, so this function prepares an efficient index
   that can quickly check if arguments are good or not.
+  
+  Properties functions may be both used as constructors 
+  or as generic validation methods, although if input
+  is valid there will be a new object constructed 
+  regardless of used syntax.
 */
 
 LSD.Styles.Property = function(definition, context, type) {
@@ -519,19 +522,19 @@ LSD.Styles.Parser = new LSD.RegExp({
   fn: function(name, args, scope) {
     var parsed = this.exec(args, true);
     for (var j = 0, bit; bit = parsed[j]; j++) if (bit && bit.length == 1) parsed[j] = bit[0];
-    switch (name) {
-      case '+': case '-':
-        if (isFinite(parsed)) {
-          return name === '-' ? - parsed : parsed;
-        } else {
-          scope.push(name);
-          return parsed;
-        }
-      default:  
+    //switch (name) {
+    //  case '+': case '-':
+    //    if (isFinite(parsed)) {
+    //      return name === '-' ? - parsed : parsed;
+    //    } else {
+    //      scope.push(name);
+    //      return parsed;
+    //    }
+    //  default:  
         var obj = {};
         obj[name] = parsed;
         return obj;
-    }
+    //}
   },
   length: function(number, unit, scope) {
     if (this.memo && scope.length) {
@@ -563,7 +566,8 @@ LSD.Styles.Parser = new LSD.RegExp({
       default:
         if (this.memo) return;
         var length = scope.length;
-        if ((scope == result) && !scope[length - 1].push) this.scope = scope[length - 1] = [scope[length - 1]];
+        if ((scope == result) && !scope[length - 1].push) 
+          this.scope = scope[length - 1] = [scope[length - 1]];
     }
   },
   operator: function(operator) {

@@ -11,7 +11,8 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Properties
-  - LSD.Struct.Group
+  - LSD.Struct
+  - LSD.Group
 
 provides: 
   - LSD.Module.Matches
@@ -55,7 +56,7 @@ provides:
 
 */
   
-LSD.Properties.Matches = LSD.Struct.Group();  
+LSD.Properties.Matches = LSD.Struct('Group');
 /*
   Matches observes selectors in small bites.
   

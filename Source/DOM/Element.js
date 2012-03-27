@@ -10,7 +10,8 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Struct.Stack
+  - LSD.Struct
+  - LSD.Stack
   - LSD.Properties.Events
   - LSD.Properties.Proxies
   - LSD.Node
@@ -55,7 +56,7 @@ provides:
   almost for free.
 */
 
-LSD.Element = new LSD.Struct.Stack(LSD.Properties)
+LSD.Element = new LSD.Struct(LSD.Properties, 'Stack');
 LSD.Element.prototype.onChange = function(key, value, state, old, memo) {
   var ns         = this.document || LSD.Document.prototype,
       states     = ns.states,
@@ -124,7 +125,7 @@ LSD.Element.prototype.__properties = {
     var roles = (this.document || LSD.Document.prototype).roles
     if (!roles) return;
     if (typeof value == 'string') 
-      value = typeof roles[value] == 'undefined' ? roles._get(value) : roles[value];
+      value = typeof roles[value] == 'undefined' ? roles.get(value) : roles[value];
     if (value) {
       var skip = value._skip;
       for (var property in value) {
@@ -281,16 +282,17 @@ LSD.Element.prototype.__properties = {
   will be used as an element.
 */
   origin: function(value, old, memo) {
-    var extracted = this.extracted;
-    if (value && !extracted) {
-      extracted = this.extracted = {};
-      if (value.tagName) var tag = extracted.tagName = extracted.localName = value.tagName.toLowerCase();
+    if (!memo) memo = 'origin';
+    var originated = this.originated;
+    if (value && !originated) {
+      originated = this.originated = {};
+      if (value.tagName) var tag = originated.tagName = originated.localName = value.tagName.toLowerCase();
       if (value.lsd) {
         var attributes = value.attributes, skip = attributes._skip;
         for (var attribute in attributes) {
           if (attributes.hasOwnProperty(attribute) && !skip[attribute]) {
-            if (!extracted.attributes) extracted.attributes = {};
-            extracted.attributes[attribute] = attributes[attribute];
+            if (!originated.attributes) originated.attributes = {};
+            originated.attributes[attribute] = attributes[attribute];
           }
         }
       } else {
@@ -301,14 +303,20 @@ LSD.Element.prototype.__properties = {
             bit = j ? attribute.value : attribute.name;
             len = bit.length;
 /*
-  Finds various kind of interpolations in attributes.
+  Finds various kind of interpolations in 
+  DOM element attributes.
 
   So far these are all valid interpolations:
 
   * <button title="Delete ${person.title}" />
   * <section ${itemscope(person), person.staff && class("staff")}></section>
   * <input type="range" value=${video.time} />
-
+  
+  Browser parses some of those like multiple weird attributes,
+  but those mostly are harmless, except perhaps the ">" character.
+  Following routine glues them together into an expression and
+  compiles an LSD.Script reprensentation of it targetted at
+  the attribute or element
 */
             while (start != -1) {
               if (exp == null && (start = bit.indexOf('${', start + 1)) > -1) {
@@ -338,7 +346,7 @@ LSD.Element.prototype.__properties = {
           }
           if (j === 0 && start === -1 && name == null) name = bit;
           if (script || exp == null)
-            (extracted.attributes || (extracted.attributes = {}))[name || attribute.name] = script 
+            (originated.attributes || (originated.attributes = {}))[name || attribute.name] = script 
               ? script.length > 1 
                 ? new LSD.Script({name: 'concat', input: script, type: 'function'}) 
                 : script[0]
@@ -350,10 +358,10 @@ LSD.Element.prototype.__properties = {
         }
       }
       for (var i = 0, clses = value.className.split(' '), cls; cls = clses[i++];)
-        (extracted.classes || (extracted.classes = {}))[cls] = true;
-      for (var key in extracted) {
+        (originated.classes || (originated.classes = {}))[cls] = true;
+      for (var key in originated) {
         if (key === 'classes') key = 'classList';
-        var val = extracted[key];
+        var val = originated[key];
         if (typeof val == 'object')
           for (var subkey in val) 
             this[key].set(subkey, val[subkey], memo, true);
@@ -365,16 +373,16 @@ LSD.Element.prototype.__properties = {
         this.fragment = fragment;
       }
     }
-    if (old && extracted) {
-      for (var key in extracted) {
+    if (old && originated) {
+      for (var key in originated) {
         if (key === 'classes') key = 'classList';
-        var val = extracted[key];
+        var val = originated[key];
         if (typeof val == 'object')
           for (var subkey in val) 
             this[key].unset(subkey, val[subkey], memo, true);
         else this.unset(key, val, memo, true);
       }
-      delete this.extracted;
+      delete this.originated;
     }
   },
 /*
@@ -385,8 +393,8 @@ LSD.Element.prototype.__properties = {
   and sometimes even `name` attribute) can't be easily changed
   later in all browsers. There's a whole section in HTML5 spec
   dedicated to how to store previous names of form elements,
-  before they had their name changed, so it's kind of a big
-  deal. 
+  before they had their name changed, so proper attributes and
+  tag names is kind of a big deal. 
   
   LSD tries to abstract away element's tagName,
   name and type attributes. LSD does not use element names
@@ -464,9 +472,9 @@ LSD.Element.prototype.__properties = {
 */
   focused: function(value, old, memo) {
     if (memo === this) return;
-    if (value) this.mix('parentNode.focused', value, memo || this, null, null, null, null, true);
+    if (value) this.mix('parentNode.focused', value, memo || this, true, false, false, true);
     if (value && !memo && this.ownerDocument) this.ownerDocument.change('activeElement', this, false);
-    if (old) this.mix('parentNode.focused', old, memo || this, false, null, null, null, true);
+    if (old) this.mix('parentNode.focused', old, memo || this, false, false, false, true);
   },
   rendered: function(value, old) {
   },
@@ -571,18 +579,26 @@ LSD.Element.prototype.__properties = {
   },
   date: Date,
   value: function(value, old, memo) {
-    if (this.checked === true || typeof this.checked == 'undefined')
-      this.change('nodeValue', value);
+    if (this.checked === true || typeof this.checked == 'undefined') {
+      if (typeof value != 'undefined') this.set('nodeValue', value);
+      if (typeof old != 'undefined') this.unset('nodeValue', old);
+    }
   },
+  /*
+    A change in `textContent` of a text node or explicit override
+    of `textContent` property in node bubbles up to all parent nodes
+    and updates their text content properties. A special `memo`
+    parameter is used to avoid recursion.
+  */
   textContent: function(value, old, memo) {
-    for (var node = this; node = node.parentNode;) {
+    if (memo !== 'textContent') for (var node = this; node = node.parentNode;) {
       var children = node.childNodes;
       var content = children.textContent;
       if (content != null) {
         for (var text = '', child, i = 0; child = children[i++];)
           if (child.textContent != null) text += child.textContent;
-        node.set('textContent', text);
-        node.unset('textContent', content);
+        node.set('textContent', text, 'textContent');
+        node.unset('textContent', content, 'textContent');
         children.textContent = text;
       }
     }
@@ -590,12 +606,37 @@ LSD.Element.prototype.__properties = {
     if (typeof old != 'undefined') this.unset('nodeValue', old, memo, true);
   },
   /*
+    Different types of elements have different strategies 
+    to define value. The strategy may be defined dynamically
+    by providing a `nodeValueProperty` with the name of a
+    property that should be trated as value. If it's not
+    given `textContent` will be used as `nodeValue`.
+  */
+  nodeValueProperty: function(value, old) {
+    if (value) this.watch(value, 'nodeValue');
+    console.error([this.nodeValue, value, this.href])
+    if (old) this.unwatch(old, 'nodeValue');
+  },
+  //src: function(value, old) {
+  //  if (value) this.set('request.url', value);
+  //  if (old) this.unset('request.url', old);
+  //},
+  href: function(value, old) {
+    console.error('setting href', value)
+    if (value) this.set('request.url', value);
+    if (old) this.unset('request.url', old);
+  },
+  //action: function(value, old) {
+  //  if (value) this.set('request.url', value);
+  //  if (old) this.unset('request.url', old);
+  //},
+  /*
     Microdata object is one of inheritable values. When
-    a child node defines its own microdata object by using
+    a child node defines its own scope object by using
     `itemscope` property, the widget will hold links to both
     object coming from parent node and own object, but only
     use the latter. If a widget loses the `itemscope` attribute,
-    it'll lose its own microdata object and fall back to an object
+    it'll lose its own scope object and fall back to an object
     inherited from parent element.
   */
   microdata: function(value, old) {
@@ -603,40 +644,20 @@ LSD.Element.prototype.__properties = {
     if (old) this.variables.unmerge(old);
   },
   itemscope: function(value, old, memo) {
-    if (value) {
-      var microdata = new LSD.Object.Stack;
-      microdata._shared = true;
-      this.set('nodeValue', microdata);
-      this.set('microdata', microdata);
-      this.mix('parentNode.microdata', microdata, 'itemscope', true, null, true, null, true);
-      if (this.itemprop && memo !== 'itemprop') 
-        this.mix('parentNode.microdata.' + this.itemprop, value, 'itemscope', true, null, null, null, true);
-    }
-    if (old) {
-      this.unset('nodeValue', this.microdata);
-      this.unset('microdata', this.microdata);
-      this.mix('parentNode.microdata', value, 'itemscope', false, null, true, null, true);
-      if (this.itemprop && memo !== 'itemprop') 
-        this.mix('parentNode.microdata.' + this.itemprop, old, 'itemscope', false, null, null, null, true);
-    }
-    return microdata;
+    if (value) this.set('nodeValue', this._construct('microdata'), memo);
+    if (old) this.unset('nodeValue', this.microdata, memo);
   },
   itemprop: function(value, old, memo) {
-    if (value) {
-      this.watch('nodeValue', 'microdata.' + value);
-      if (this.itemscope && memo !== 'itemscope') 
-        this.mix('parentNode.microdata.' + value, this.microdata, 'itemprop', true, null, null, null, true);
-    }
-    if (old) {
-      this.unwatch('nodeValue', 'microdata.' + old);
-      if (this.itemscope && memo !== 'itemscope') 
-        this.mix('parentNode.microdata.' + old, this.microdata, 'itemprop', false, null, null, null, true);
-    }
+    if (value) this.watch('nodeValue', 'parentNode.microdata.' + value, true);
+    if (old) this.unwatch('nodeValue', 'parentNode.microdata.' + old, true);
   },
   itemtype: function(value, old) {
     
   },
   itemid: function(value, old) {
+    
+  },
+  itemref: function() {
     
   }
 };
@@ -692,6 +713,7 @@ LSD.Element.prototype.setRoleBit = function(key, value) {
   bits[key] = value;
   for (var i = 0, role; i < 4; i++)
     if (bits[i]) role = (role ? role + '-' : '') + bits[i];
+  this.autorole = role;
   this.set('role', role)
   if (autorole != null) this.unset('role', autorole)
 };

@@ -18,7 +18,7 @@ provides:
 ...
 */
 
-LSD.Properties.Proxies = LSD.Struct.Group();
+LSD.Properties.Proxies = LSD.Struct('Group');
 LSD.Properties.Proxies.prototype._hash = function(key) {
   switch (key) {
     case '3': case 'textnode': case 'textnodes': case 'text':

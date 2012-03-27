@@ -20,14 +20,14 @@ provides:
 ...
 */
 
-LSD.ChildNodes = LSD.Struct.Array({
+LSD.ChildNodes = LSD.Struct({
   _parent: function(value, old) {
     if (old && this._length) {
       old.unset('firstChild', this[0]);
       old.unset('lastChild', this[this.length - 1]);
     }
   }
-});
+}, 'Array');
 LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
   if (!state || this._parent != value.parentNode)
     value[state ? 'set' : 'unset']('parentNode', this._parent || null, memo);
@@ -85,7 +85,7 @@ LSD.ChildNodes.prototype._onShift = function(index, offset, args, shift) {
   }
   return offset;
 }
-LSD.ChildNodes.Virtual = LSD.Struct.Array({
+LSD.ChildNodes.Virtual = LSD.Struct({
   imports: {
     parentNode: '.parentNode'
   },
@@ -98,7 +98,7 @@ LSD.ChildNodes.Virtual = LSD.Struct.Array({
       children.splice.apply(children, args);
     }
   }
-});
+}, 'Array');
 LSD.ChildNodes.Virtual.prototype.virtual = true;
 LSD.ChildNodes.Virtual.prototype._onShift = LSD.ChildNodes.prototype._onShift;
 LSD.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old) {

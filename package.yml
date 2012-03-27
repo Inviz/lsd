@@ -22,8 +22,8 @@ sources:
   - Source/DOM/NodeList.js
   - Source/DOM/ChildNodes.js
   - Source/Object/Object.js
-  - Source/Object/Object.Stack.js
-  - Source/Object/Object.Group.js
+  - Source/Object/Stack.js
+  - Source/Object/Group.js
   - Source/Object/Struct.js
   - Source/Object/Array.js
   - Source/Properties/ClassList.js

@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Properties
-  - LSD.Struct.Stack
+  - LSD.Struct
 
 provides: 
   - LSD.Properties.ClassList
@@ -19,9 +19,9 @@ provides:
 ...
 */
 
-LSD.Properties.ClassList = LSD.Struct.Stack({
+LSD.Properties.ClassList = LSD.Struct({
   _name: '.className'
-});
+}, 'Stack');
 LSD.Properties.ClassList.prototype.onChange = function(name, value, state, old, memo) {
   if (name == '_name') return value || old;
   var ns = this._parent.document || LSD.Document.prototype;

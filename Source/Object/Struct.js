@@ -19,11 +19,17 @@ provides:
 */
 
 /*
-  Struct is an object with a number of setter methods that
-  observe changes to values to transform and use in callbacks.
+  Struct is a class builder and a combinator of objects. 
+  It generates a constructor with an observable prototype.
+  The function recieves additional arguments that specify
+  the base type of object, it builds classes based on 
+  LSD.Object by default. A struct class may define its own
+  set of observable property setters, callbacks or
+  data transformers.
 */
 
-LSD.Struct = function(properties, Base) {
+LSD.Struct = function(properties, Base, Sub) {
+  if (typeof properties == 'string') Sub = Base, Base = properties, properties = null;
 /*
   `new LSD.Struct` creates a constructor, that can be used to
   construct instances of that structure, which bears close 
@@ -62,13 +68,14 @@ LSD.Struct = function(properties, Base) {
     if (this._exports) this._link(this._exports, true, true);
     if (this._initialize) return this._initialize.apply(this, arguments);
   }
-  var constructor = Base || LSD.Object;
+  var constructor = (typeof Base == 'string' ? LSD[Base] : Base) || LSD.Object;
   Struct.struct = true;
   Struct.prototype = new constructor;
   Struct.implement = LSD.Struct.implement;
   Struct.implement(LSD.Struct.prototype);
-  Struct.prototype.constructor = constructor;
-  Struct.prototype.__constructor = Struct;
+  Struct.prototype.constructor = Struct;
+  if (!constructor.prototype.push) Struct.prototype._constructor = constructor;
+  if (Sub) Struct.prototype.__constructor = typeof Sub == 'string' ? LSD[Sub] : Sub;
   Struct.prototype._constructors = {};
   if (properties) {
     Struct.prototype._properties = properties;
@@ -143,33 +150,32 @@ LSD.Struct.Mutators = {
       objects with specific class
 
 */
-LSD.Struct.prototype = {
-  _onChange: function(key, value, state, old, memo) {
-    if (typeof key != 'string') return value;
-    var props = this._properties, prop;
-    if (props) prop = props[key];
-    if (!prop && (props = this.__properties) && !(prop = props[key])) return value;
-    var group = this._observed;
-    if (group && (group = group[key])) {
-      if (state) group[2] = value;
-      else delete group[2];
-    }
+LSD.Struct.prototype._onChange = function(key, value, state, old, memo) {
+  if (typeof key != 'string') return value;
+  var props = this._properties, prop;
+  if (props) prop = props[key];
+  if (!prop && (props = this.__properties) && !(prop = props[key])) return value;
+  var group = this._observed;
+  if (group && (group = group[key])) {
+    if (state) group[2] = value;
+    else delete group[2];
+  }
 /*
   The found property definition may be of different kind:
 */
-    switch (typeof prop) {
+  switch (typeof prop) {
 /*
   - A function, that will be called whenever property is set,
     changed, or unset.
 */
-      case 'function':
-        if (prop.prototype._set) {
-          if (state && typeof this[key] == 'undefined') this._construct(key, prop, memo)
-        } else {
-          if (state) return prop.call(this, value, old, memo);
-          else return prop.call(this, undefined, value, memo);
-        }
-        break;
+    case 'function':
+      if (prop.prototype._set) {
+        if (state && typeof this[key] == 'undefined') this._construct(key, prop, memo)
+      } else {
+        if (state) return prop.call(this, value, old, memo);
+        else return prop.call(this, undefined, value, memo);
+      }
+      break;
 /*        
   - A string, the link to another property in current or 
     a linked object. Works as a one-way setter/getter alias.
@@ -178,52 +184,48 @@ LSD.Struct.prototype = {
     circular (there's another alias that links the linked
     property back to original alias). 
 */
-      case 'string':
-        if (typeof value != 'object') {
-          if (state) this.set(prop, value, memo);
-          else this.unset(prop, value, memo);
-        }
-    };
-    return value;
-  },
+    case 'string':
+      if (typeof value != 'object') {
+        if (state) this.set(prop, value, memo);
+        else this.unset(prop, value, memo);
+      }
+  };
+  return value;
+};
 /*
   - An LSD.Object constructor, used to instantiate nested
     objects with specific class
 */
-  _getConstructor: function(key) {
-    if (this._properties) {
-      var prop = this._properties[key];
-      if (typeof prop == 'undefined') {
-        var Key = key.charAt(0).toUpperCase() + key.substring(1);
-        if (typeof (prop = this._properties[Key]) != 'undefined') this._properties[key] = prop;
-      }
+LSD.Struct.prototype._getConstructor = function(key) {
+  if (this._properties) {
+    var prop = this._properties[key];
+    if (typeof prop == 'undefined') {
+      var Key = key.charAt(0).toUpperCase() + key.substring(1);
+      prop = this._properties[Key];
     }
-    if (prop == null && this.__properties) prop = this.__properties[key];
-    if (prop) {
-      var proto = prop.prototype;
-      if (proto && proto.constructor) var constructor = prop;
-    }
-    return (this._constructors[key] = (constructor || this._constructor || this.constructor));
-  },
-  _construct: function(key, property, memo) {
-    if (!property) {
-      var props = this._properties;
-      if (props) property = props[key];
-      if (!property && (props = this.__properties)) property = props[key];
-    }
-    if (typeof property == 'string') {
-      if (!this._observed) this._observed = {};
-      if (!this._observed[key]) {
-        this._observed[key] = [this, key];
-        this.watch(property, this._observed[key], false)
-      }
-      var value = this[key];
-      if (typeof value == 'undefined') this.set('key', this._get(property, true));
-      return this[key];
-    }
-    if (this._delegate && !memo) memo = this;
-    return LSD.Object.prototype._construct.call(this, key, property, memo);
-  },
+  }
+  if (prop == null && this.__properties) prop = this.__properties[key];
+  if (prop) {
+    var proto = prop.prototype;
+    if (proto && proto.constructor) var constructor = prop;
+  }
+  return constructor || this._constructor || this.constructor;
+};
+LSD.Struct.prototype._construct = function(key, property, memo) {
+  if (!property) {
+    var props = this._properties;
+    if (props) property = props[key];
+    if (!property && (props = this.__properties)) property = props[key];
+  }
+  if (typeof property == 'string') {
+    if (!(this._observed || (this._observed = {}))[key]) 
+      this.watch(property, (this._observed[key] = [this, key]), false);
+    if (typeof this[key] == 'undefined') this.set(key, this.get(property, true));
+    return this[key];
+  }
+  if (this._delegate && !memo) memo = this;
+  return LSD.Object.prototype._construct.call(this, key, null, memo);
+};
 /*
   There's a way to define dynamic properties and two-way links
   by using `exports` & `imports` object directives. Properties
@@ -232,25 +234,25 @@ LSD.Struct.prototype = {
   that when object is created, it does not iterate the dictionary and
   only looks it up when actual properties change. 
 */
-  _link: function(properties, state, external) {
-    for (var name in properties) {
-      var alias = properties[name];
-      if (alias.match(this._simple_property)) {
-        if (state === false) {
-          this._unwatch(properties[name], this);
-        } else {
-          this._watch(properties[name], {
-            fn: this._linker,
-            bind: this,
-            callback: this,
-            key: external ? '.' + name : name
-          });
-        }
+LSD.Struct.prototype._link = function(properties, state, external) {
+  for (var name in properties) {
+    var alias = properties[name];
+    if (alias.match(this._simple_property)) {
+      if (state === false) {
+        this._unwatch(properties[name], this);
       } else {
-        this[state === false ? '_unscript' : '_script'](name, alias)
+        this._watch(properties[name], {
+          fn: this._linker,
+          bind: this,
+          callback: this,
+          key: external ? '.' + name : name
+        });
       }
+    } else {
+      this[state === false ? '_unscript' : '_script'](name, alias)
     }
-  },
+  }
+};
 /*
   Dynamic properties may be calculated in run time using on other properties
   values.
@@ -273,41 +275,38 @@ LSD.Struct.prototype = {
   paying attention to `rate`, then `tax`. When all variables are found, the result is
   calculated and assigned to `total` property.
 */
-  _script: function(key, expression) {
-    var node = this.nodeType && this || (this._global && this._parent);
-    if (this.nodeType) {
-      var script = LSD.Script(expression, null, [this, key]);;
-      if (!this._scripted) this._scripted = {};
-      node.watch('variables', '_scripted.' + key + '.scope')
-    } else {
-      var script = LSD.Script(expression, this, [this, key]);;
-    }
-    (this._scripted || (this._scripted = {}))[key] = script;
-    return this._skip;
-  },
-  _unscript: function(key, value) {
-    var script = this._scripted[key];
-    script.unset('attached', script.attached);
-    script.unset('value', script.value)
-    delete this._scripted[key]
-  },
-  _linker: function(call, key, value, old, memo) {
-    if (typeof value != 'undefined') 
-      this.mix(call.key, value, memo, true);
-    if (old != null && (this._stack || typeof value == 'undefined'))
-      this.mix(call.key, old, memo, false);
-  },
-  _unlinked: ['_stack', '_stored'],
-  _skip: Object.append({
-    initialize: true,
-    _initialize: true,
-    _properties: true,
-    _linker: true,
-    _exports: true,
-    _imports: true,
-    _constructors: true,
-    __initialize: true,
-    __constructor: true
-  }, LSD.Object.prototype._skip),
-  _simple_property: /^[a-zA-Z._-]+?$/
+LSD.Struct.prototype._script = function(key, expression) {
+  var node = this.nodeType && this || (this._global && this._parent);
+  if (this.nodeType) {
+    var script = LSD.Script(expression, null, [this, key]);;
+    if (!this._scripted) this._scripted = {};
+    node.watch('variables', '_scripted.' + key + '.scope')
+  } else {
+    var script = LSD.Script(expression, this, [this, key]);;
+  }
+  (this._scripted || (this._scripted = {}))[key] = script;
+  return this._skip;
 };
+LSD.Struct.prototype._unscript = function(key, value) {
+  var script = this._scripted[key];
+  script.unset('attached', script.attached);
+  script.unset('value', script.value)
+  delete this._scripted[key]
+};
+LSD.Struct.prototype._linker = function(call, key, value, old, memo) {
+  if (typeof value != 'undefined') 
+    this.mix(call.key, value, memo, true);
+  if (old != null && (this._stack || typeof value == 'undefined'))
+    this.mix(call.key, old, memo, false);
+};
+LSD.Struct.prototype._unlinked = ['_stack', '_stored'];
+LSD.Struct.prototype._skip = Object.append({
+  initialize: true,
+  _initialize: true,
+  __initialize: true,
+  _properties: true,
+  _linker: true,
+  _exports: true,
+  _imports: true
+}, LSD.Object.prototype._skip);
+LSD.Struct.prototype._simple_property = /^[a-zA-Z._-]+?$/;

@@ -15,7 +15,8 @@ requires:
   - Core/Element.Event
   - Core/Element.Delegation
   - More/Element.Event.Pseudos
-  - LSD.Struct.Group
+  - LSD.Struct
+  - LSD.Group
 
 provides:
   - LSD.Properties.Events
@@ -23,14 +24,14 @@ provides:
 ...
 */
   
-LSD.Properties.Events = LSD.Struct.Group({
+LSD.Properties.Events = LSD.Struct({
   'self':         '.',
   'element':      '.element',
   'document':     '.document',
   'window':       '.document.window',
   'matches':      '.matches',
   'relations':    '.relations'
-});
+}, 'Group');
 
 LSD.Properties.Events.prototype.fire = function(key, a, b, c, d, e) {
   var collection = this[key];

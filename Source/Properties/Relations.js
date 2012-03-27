@@ -11,7 +11,9 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Properties
-  - LSD.Struct.Group.NodeList
+  - LSD.Group
+  - LSD.Struct
+  - LSD.NodeList
 
 provides: 
   - LSD.Properties.Relations
@@ -19,9 +21,7 @@ provides:
 ...
 */
 
-LSD.Properties.Relations = LSD.Struct.Group.NodeList({
-  matches: '.matches'
-});
+LSD.Properties.Relations = LSD.Struct('Group', 'NodeList');
 LSD.Properties.Relations.prototype.onChange = function(key, value, state, old) {
   if (value.lsd) {
     var group = this[key]

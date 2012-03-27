@@ -33,8 +33,8 @@ provides:
   The class contains a few hacks that allows Slick to initialize.
 */
 
-LSD.Document = LSD.Struct.Stack({
-  childNodes: LSD.Properties.Children,
+LSD.Document = LSD.Struct({
+  childNodes: LSD.Properties.ChildNodes,
   events: LSD.Properties.Events,
   title: 'origin.title',
   origin: function(document, old) {
@@ -47,7 +47,7 @@ LSD.Document = LSD.Struct.Stack({
       if (old) for (; old != element; old = old.parentNode) old.unset('focused', true, element)
     } else if (old) old.unset('focused', true)
   }
-})
+}, 'Stack')
 LSD.Document.prototype.nodeType = 9;
 LSD.Document.implement(LSD.Node.prototype);
 LSD.Document.prototype._preconstruct = ['childNodes', 'events'];

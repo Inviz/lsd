@@ -15,7 +15,6 @@ requires:
   
 provides:
   - LSD.Array
-  - LSD.Struct.Array
   
 ...
 */
@@ -517,12 +516,3 @@ LSD.Array.prototype['+'] = LSD.Array.prototype.concat;
 Object.each(Array.prototype, function(fn, method) {
   if (!LSD.Array.prototype[method]) LSD.Array.prototype[method] = fn;
 });
-
-/*
-  A special kind of object that is based on LSD.Array but also 
-  has its own properties.
-*/
-
-LSD.Struct.Array = function(properties) {
-  return LSD.Struct(properties, LSD.Array);
-};

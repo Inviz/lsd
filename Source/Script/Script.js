@@ -85,7 +85,7 @@ LSD.Script = function(input, scope, output) {
       this._yieldback.block = this;
       if (!this.origin && this.locals) this.findLocals(this.locals);
       if (this.locals) {
-        this.variables = new LSD.Object.Stack;
+        this.variables = new LSD.Stack;
         if (this.scope) this.variables.merge(this.scope.variables || this.scope, true);
         this.scope = this;
       }
@@ -450,7 +450,7 @@ LSD.Script.Struct = new LSD.Struct({
     if (old) delete old.wrapped;
     if (value) value.wrapped = this;
   }
-}, LSD.NodeList);
+}, 'NodeList');
 LSD.Script.prototype = new LSD.Script.Struct;
 LSD.Script.prototype.Script = LSD.Script.Script = LSD.Script;
 
@@ -537,7 +537,7 @@ LSD.Script.prototype.callback = function(value, old) {
   if (!object) return;
   switch (object.nodeType) {
     case 1:
-      if (object.lsd) object.write(value)
+      if (object.lsd) object.set('nodeValue', value);
       else object.innerHTML = value;
       break;
     case 3:

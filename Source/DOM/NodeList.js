@@ -14,7 +14,6 @@ requires:
 
 provides:
   - LSD.NodeList
-  - LSD.Struct.NodeList
   
 ...
 */
@@ -55,13 +54,4 @@ LSD.NodeList.prototype._observeIndex = function(value, index, state, old) {
 };
 LSD.NodeList.prototype.fn = function(collection, value, old) {
   collection.move(collection.indexOf(this), collection.indexFor(this));
-};
-
-/*
-  A special kind of object that is based on LSD.NodeList but also 
-  has its own properties.
-*/
-
-LSD.Struct.NodeList = function(properties) {
-  return LSD.Struct(properties, LSD.NodeList);
 };

@@ -33,7 +33,7 @@ LSD.Fragment = function(object, parent, document) {
   if (!this.render) return LSD.Fragment.apply(new LSD.Fragment, arguments)
   if (this.nodeType) {
     this.childNodes = this;
-    this.variables = new LSD.Object.Stack;
+    this.variables = new LSD.Stack;
   }
   switch (arguments.length) {
     case 0: break;

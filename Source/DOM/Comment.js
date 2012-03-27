@@ -10,7 +10,7 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
  
 requires:
-  - LSD.Struct.Stack
+  - LSD.Struct
   - LSD.Node
 
 provides: 
@@ -24,9 +24,6 @@ LSD.Comment.implement(LSD.Node.prototype);
 LSD.Comment.prototype.__initialize = function(string, options, document) {
   this.nodeValue = string;
   if (document) this.document = this.ownerDocument = document;
-};
-LSD.Comment.prototype.cloneNode = function() {
-  return new (this.constructor)(this.nodeValue);
 };
 LSD.Comment.prototype.nodeType = 8;
 /*

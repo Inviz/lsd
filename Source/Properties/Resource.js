@@ -11,7 +11,9 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Properties
-  - LSD.Struct.Group.Array
+  - LSD.Struct
+  - LSD.Group
+  - LSD.Array
   - LSD.Document
   - LSD.Element
   - String.Inflections/String.singularize
@@ -33,7 +35,7 @@ provides:
   to a custom url.
 */
 
-LSD.Resource = new LSD.Struct.Array({
+LSD.Resource = LSD.Struct({
   //Extends: LSD.Properties.Request,
   
   imports: {
@@ -55,28 +57,26 @@ LSD.Resource = new LSD.Struct.Array({
   },
   domain: function(value, old) {
     this.change('url', value + (this.path ? '/' + this.path : ''))
+  },
+  _origin: function() {
+    
   }
-});
-LSD.Properties.Resource = LSD.Resource;
+}, 'Array');
 LSD.Resource.prototype.onChange = function(key, value, state, old, memo) {
-  if (value != null && value._constructor === LSD.Resource) {
+  if (value != null && value.match === this.match && !this._properties[key])
     value[state ? 'set' : 'unset']('name', key);
-  }
   return value;
 };
 LSD.Resource.prototype.onStore = function(key, value, memo, state, name) {
   if (name == null) {
-    var skip = value._skip; 
-    for (var prop in value) {
-      if (value.hasOwnProperty(prop) && (skip == null || !skip[prop])) {
-        var property = this._Properties[prop];
-        if (property != null) property.call(this, key, value[prop], state);
-      }
-    }
+    var skip = value._skip, property; 
+    for (var prop in value)
+      if (value.hasOwnProperty(prop) && (skip == null || !skip[prop]))
+        if ((property = this._Properties[prop]) != null) 
+          property.call(this[key] || this._construct(key), value[prop], state, memo);
   }
   return true;
 };
-LSD.Resource.prototype._constructor = LSD.Resource;
 LSD.Resource.prototype._initialize = function() {
   this.attributes = Object.append({}, this.attributes);
   var Struct = new LSD.Model(this.attributes);
@@ -208,8 +208,7 @@ LSD.Resource.prototype.execute = function(name, params) {
   }
 };
 LSD.Resource.prototype._Properties = {
-  urls: function() {
-    
+  urls: function(value, state) {
   },
   actions: function() {
     
@@ -336,7 +335,7 @@ LSD.Resource.attributes = {
 LSD.Model = function() {
   return LSD.Struct.apply(this, arguments);
 }
-LSD.Model.prototype = new LSD.Struct;
+LSD.Model.prototype = LSD.Struct();
 LSD.Model.prototype.dispatch = function() {
   this.constructor.action()
 };
@@ -440,6 +439,9 @@ LSD.Resource.prototype.path = '';
 LSD.Resource.prototype.url = '';
 LSD.Resource.prototype.domain = null;
 LSD.Resource.prototype._per_page = 20;
+LSD.Resource.prototype._object = true;
+
+LSD.Properties.Resource = LSD.Resource;
 
 // var Customer = new LSD.Resource('customers', {
 //   domains: {

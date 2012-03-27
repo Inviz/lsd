@@ -21,21 +21,21 @@ provides:
   Roles object allows finding specific roles by a composite
   string key where key bits are separated with dashes.
 */
-LSD.Properties.Roles = LSD.Roles = LSD.Struct.Stack({
-  get: function(key) {
-    for (var i, previous = 0, role = this, obj; i !== -1;) {
-      i = key.indexOf('-', i != null ? i + 1 : i);
-      bit = key.substring(previous, i > -1 ? i : undefined);
-      obj = role[bit];
-      if (i == null || obj == null || typeof obj !== 'object') break;
-      else role = obj;
-      previous = i + 1;
-    }
-    if (role === this) role = null;
-    this[key] = role;
-    return role;
+LSD.Properties.Roles = LSD.Roles = LSD.Struct('Stack');
+LSD.Properties.Roles.prototype.get = function(key) {
+  for (var i, previous = 0, role = this, obj; i !== -1;) {
+    i = key.indexOf('-', i != null ? i + 1 : i);
+    bit = key.substring(previous, i > -1 ? i : undefined);
+    obj = role[bit];
+    if (i == null || obj == null || typeof obj !== 'object') break;
+    else role = obj;
+    previous = i + 1;
   }
-})
+  if (role === this) role = null;
+  this[key] = role;
+  return role;
+};
+LSD.Properties.Roles.prototype._constructor = Object;
 LSD.Document.prototype.set('roles', new LSD.Roles({
   input: {
     localName: 'input',
@@ -162,7 +162,7 @@ LSD.Document.prototype.set('roles', new LSD.Roles({
   
   a: {
     request: 'href',
-    nodeValueAttribute: 'href'
+    nodeValueProperty: 'href'
   },
   
   link: {

@@ -11,7 +11,8 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Node
-  - LSD.Struct.Stack
+  - LSD.Struct
+  - LSD.Stack
 
 provides: 
   - LSD.Textnode
@@ -19,7 +20,7 @@ provides:
 ...
 */
 
-LSD.Textnode = LSD.Struct.Stack({
+LSD.Textnode = LSD.Struct({
   textContent: function(value, old, memo) {
     if (typeof value != 'undefined') {
       if (!memo || !(memo.push || memo.script)) {
@@ -40,8 +41,8 @@ LSD.Textnode = LSD.Struct.Stack({
         if (content != null) {
           for (var text = '', child, i = 0; child = children[i++];)
             if (child.textContent != null) text += child.textContent;
-          node.set('textContent', text);
-          node.unset('textContent', content);
+          node.set('textContent', text, 'textContent');
+          node.unset('textContent', content, 'textContent');
           children.textContent = text;
         }
       }
@@ -54,7 +55,8 @@ LSD.Textnode = LSD.Struct.Stack({
     if (value) this.set('variables', value.variables);
     if (old) this.unset('variables', old.variables)
   }
-}).implement(LSD.Node.prototype);
+}, 'Stack');
+LSD.Textnode.implement(LSD.Node.prototype);
 LSD.Textnode.prototype.__initialize = function() {
   for (var i = 0, args = arguments, j = args.length, arg, string; i < j; i++) {
     switch (typeof (arg = args[i])) {
