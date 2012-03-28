@@ -550,8 +550,8 @@ LSD.Element.prototype.__properties = {
   parentNode: function(value, old, memo) {
     if (!value) {
       if (memo !== 'overwrite' && memo !== 'collapse') this.unset('sourceIndex', this.sourceIndex, memo);
-    } else this.variables.merge(value.variables);
-    if (old) this.variables.unmerge(old.variables);
+    } else this.mix('variables', value.variables, memo, true, true);
+    if (old) this.mix('variables', old.variables, memo, false, true)
     for (var property in this._inherited) {
       if (value && value[property]) this.set(property, value[property], memo, true);
       if (old && old[property]) this.unset(property, old[property], memo, true);
@@ -639,17 +639,17 @@ LSD.Element.prototype.__properties = {
     it'll lose its own scope object and fall back to an object
     inherited from parent element.
   */
-  microdata: function(value, old) {
-    if (value) this.variables.merge(value);
-    if (old) this.variables.unmerge(old);
+  microdata: function(value, old, memo) {
+    if (value) this.mix('variables', value, memo, true, true);
+    if (old) this.mix('variables', old, memo, false, true);
   },
   itemscope: function(value, old, memo) {
     if (value) this.set('nodeValue', this._construct('microdata'), memo);
     if (old) this.unset('nodeValue', this.microdata, memo);
   },
   itemprop: function(value, old, memo) {
-    if (value) this.watch('nodeValue', 'parentNode.microdata.' + value, true);
-    if (old) this.unwatch('nodeValue', 'parentNode.microdata.' + old, true);
+    if (value) this.watch('nodeValue', 'parentNode.microdata.' + value);
+    if (old) this.unwatch('nodeValue', 'parentNode.microdata.' + old);
   },
   itemtype: function(value, old) {
     

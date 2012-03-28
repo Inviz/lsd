@@ -81,8 +81,9 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
   (e.g. Arrays dont write a link to its object values, and DOM
   elements dont let any objects write a link either).
 */
-    if (value != null && value._set && this._children !== false && value._parent == null)
-      value._set('_parent', this);
+    if (value != null && value._set && this._children !== false && typeof value._parent == 'undefined')
+      if (memo === 'reference') value._parent = null;
+      else value._set('_parent', this);
   }
 /*
   Objects accept special kind of values, compiled LSD.Script
@@ -92,7 +93,8 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
   its value asynchronously. The value stays undefined, 
   while the script doesn't have enough data to compute.
 */
-  if (nonenum !== true && this._script && value != null && value.script && value.Script && (!this._literal || !this._literal[key])) {
+  if (this._script && nonenum !== true && value != null && value.script
+  && value.Script && (!this._literal || !this._literal[key])) {
     if (hash == null) this[key] = old;
     return this._script(key, value);
   }
@@ -128,16 +130,16 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
   property that has nested object. When an object changes,
   it looks if it has any values stored for it to apply. 
 */
-    var stored = this._stored;
-    if (stored && (stored = stored[key]))
-      for (var i = 0, args; args = stored[i++];) {
-        if (value != null && (!args[2] || !args[2]._delegate || !args[2]._delegate(value, key, args[0], true)))
-          if (value.mix) value.mix.apply(value, args);
-          else if (typeof value == 'object' && args[1] == null) Object.append(value, args[0])
-          else value[args[0]] = args[1];
-        if (old != null && (!args[2] || !args[2]._delegate || !args[2]._delegate(old, key, args[0], false)))
-          old.unmix.apply(old, args);
-      }
+    var stored = this._stored, mem, obj;
+    if (stored && (stored = stored[key])) for (var i = 0, args; args = stored[i++];) {
+      obj = args[0], mem = args[2];
+      if (value != null && obj !== value && (!mem || !mem._delegate || !mem._delegate(value, key, obj, true)))
+        if (value.mix) value.mix.apply(value, args);
+        else if (typeof value == 'object' && args[1] == null) Object.append(value, obj)
+        else value[args[0]] = args[1];
+      if (old != null && obj !== old && (!mem || !mem._delegate || !mem._delegate._delegate(old, key, obj, false)))
+        old.unmix.apply(old, args);
+    }
   } 
   return true;
 };
@@ -301,10 +303,10 @@ LSD.Object.prototype.mix = function(key, value, memo, state, merge, prepend, laz
         for (var i = 0, j = obj.length; i < j; i++)
           obj[i].mix(subkey, value, memo, state, merge, prepend, lazy)
       } else {
-        var parent = this._children !== false && obj._parent !== false && obj._parent;
-        if (state && parent && parent !== this) {
-          this[name] = null;
-          obj = this._construct(name, null, memo)
+        var parent = obj._parent;
+        if (state && (parent ? parent !== this && this._children !== false : parent === null)) {
+          obj = this._construct(name, null, memo).merge(obj);
+          if (this._stack) this.unset(name, parent);
         } else if (typeof obj.mix == 'function' && obj._shared !== true) {
           obj.mix(subkey, value, memo, state, merge, prepend, lazy);
         } else {
@@ -349,7 +351,7 @@ LSD.Object.prototype.mix = function(key, value, memo, state, merge, prepend, laz
       var obj = this[key];
       if (obj == null) {
         if (state !== false && !this._skip[name]) 
-          obj = this._construct(key, null, memo);
+          obj = (merge && value && this.set(key, value, 'reference') && value) || this._construct(key, null, memo);
 /*
   Objects also support mixing values into arrays. They mix values
   into each value of the array. 
@@ -362,7 +364,8 @@ LSD.Object.prototype.mix = function(key, value, memo, state, merge, prepend, laz
           if (!memo || !memo._delegate || !memo._delegate(obj[i], key, value, state))
             obj[i].mix(value, null, memo, state, merge, prepend, lazy);
       } else if (obj.mix) {
-        obj.mix(value, null, memo, state, merge, prepend, lazy);
+        if (!state && obj === value) this.unset(key, value, prepend);
+        else obj.mix(value, null, memo, state, merge, prepend, lazy);
       } else {
         for (var prop in value)
           if (state) obj[prop] = value[prop];
@@ -425,6 +428,41 @@ LSD.Object.prototype.unmerge = function(value, prepend, memo) {
   return this.mix(value, null, memo, false, true, prepend)
 };
 /*
+  Observing is about passing around the callback and executing it at the right 
+  time. LSD does not care about type of callback while observing if it isn't
+  the right time to call it. All endpoints that might call outsider's callbacks 
+  in LSD.Object execute `_callback` method that figures out how to dispatch the 
+  given callback. It adds to consistensy and API richness across all observable 
+  structures. Another detail that makes it more practical is the fact that 
+  each time a callback is called with a new value, it also sends the old value 
+  that was possibly overriten. There may not be a reference to the old value in 
+  the object anymore, but it still exists in a call chain of synchronous 
+  callbacks arguments. `_callback` method also solves a problem of circular
+  callbacks that may possibling hang execution. The callback record and a 
+  reference to a previous value is passed to all callbacks, but not stored 
+  or referenced in objects.
+
+  Another use case for referencing the previous values is that it allows to 
+  aggregate data from different sources with overlapping keys. The bad way to
+  avoid callbacks be fired multiple times is to surpress execution of 
+  callbacks it is known that all values are in place and it's safe to 
+  do things. That approach is used in many frameworks based on event loops, 
+  but it gives too much control to developer and results in confusion and bugs.
+  It also makes a developer write glue code, and require him to decide **when** 
+  it's time to do a batch of changes but in asynchronous code you never know. 
+  The better approach is to buffer up values in a dedicated object 
+  (e.g. many CSS rules may define a font size of a specific element. 
+  But in the end only one declaration is used. An object may hold references
+  to all the values, but decide which to use). When such dedicated object 
+  is observed, it fires callbacks when the keys change and it always send 
+  reference to previous value allowing a developer to choose the optimal way
+  of transitioning from one value to another in his callback. Will be it 
+  be full redraw of a block, notification of child nodes, or a successful
+  cache lookup. It enables "black box" abstractions where objects simply 
+  export some properties, but the behavior that makes one properties
+  result in changing other is completely hidden from an uninterested 
+  spectator. Everything to make state be separated from the code.
+
   LSD Objects support two ways of observing values:
 */
 LSD.Object.prototype.watch = function(key, callback, lazy, memo) {
@@ -492,42 +530,6 @@ LSD.Object.prototype.watch = function(key, callback, lazy, memo) {
         lazy: lazy
       }, lazy)
     } else {
-/*
-  Observing is about passing around the callback and executing it at the right 
-  time. LSD does not care about type of callback while observing if it isn't
-  the right time to call it. All endpoints that might call outsider's callbacks 
-  in LSD.Object execute `_callback` method that figures out how to dispatch the 
-  given callback. It adds to consistensy and API richness across all observable 
-  structures. Another detail that makes it more practical is the fact that 
-  each time a callback is called with a new value, it also sends the old value 
-  that was possibly overriten. There may not be a reference to the old value in 
-  the object anymore, but it still exists in a call chain of synchronous 
-  callbacks arguments. `_callback` method also solves a problem of pairs of 
-  object and property that triggered callbacks. The callback record and a 
-  reference to a previous value is passed to all callbacks, but not stored 
-  or referenced in objects.
-  
-  Another use case for referencing the previous values is that it allows to 
-  aggregate data from different sources with overlapping keys. The bad way to
-  avoid callbacks be fired multiple times is to surpress execution of 
-  callbacks it is known that all values are in place and it's safe to 
-  do things. That approach is used in many frameworks based on event loops, 
-  but it gives too much control to developer and results in confusion and bugs.
-  It also makes a developer write glue code, and require him to decide **when** 
-  it's time to do a batch of changes but in asynchronous code you never know. 
-  The better approach is to buffer up values in a dedicated object 
-  (e.g. many CSS rules may define a font size of a specific element. 
-  But in the end only one declaration is used. An object may hold references
-  to all the values, but decide which to use). When such dedicated object 
-  is observed, it fires callbacks when the keys change and it always send 
-  reference to previous value allowing a developer to choose the optimal way
-  of transitioning from one value to another in his callback. Will be it 
-  be full redraw of a block, notification of child nodes, or a successful
-  cache lookup. It enables "black box" abstractions where objects simply 
-  export some properties, but the behavior that makes one properties
-  result in changing other is completely hidden from an uninterested 
-  spectator. Everything to make state separate from the code.
-*/
       var value = this.get(key, lazy === false);
       var watched = (this._watched || (this._watched = {}));
       (watched[key] || (watched[key] = [])).push(callback);
@@ -592,7 +594,6 @@ LSD.Object.prototype._construct = function(name, constructor, memo, value) {
                                 || (this._getConstructor && this._getConstructor(name)) 
                                 || (value && value.constructor) || this.constructor);
   if (constructors && !constructors[name]) constructors[name] = constructor;
-  if (constructor !== Object && !constructor.prototype._construct) return null;
   var instance = new constructor;
   if (this._delegate && !memo) memo = this;
   this.set(name, instance, memo);

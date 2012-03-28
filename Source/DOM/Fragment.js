@@ -106,8 +106,9 @@ LSD.Fragment.prototype.node = function(object, parent, memo, nodeType) {
   So fragment capabilities of instruction are used when
   its condition is met and nodes get displayed or hidden.
   
-  Linked instructions (e.g. if-elsif-else-end) recieve
-  `next` and `previous` links that trigger chained execution.
+  Linked instructions (e.g. if-elsif-else-end) have
+  `next` and `previous` properties that reference 
+  objects in chan and allow chained execution.
 */
 LSD.Fragment.prototype.instruction = function(object, parent, memo, connect) {
   if (typeof object.nodeType == 'number') {

@@ -126,6 +126,9 @@ LSD.Struct.Mutators = {
   skip: function(methods) {
     this.prototype._skip = Object.append(methods, LSD.Object.prototype._skip)
   },
+  constructor: function(constructor) {
+    this._constructor = constructor === true ? this : constructor;
+  },
 /*
   Mutators that have value equal to `true`, will copy a given value into prototype
   with a prefixed name. E.g. `imports` object will be saved as `prototype._imports`, 
@@ -139,8 +142,10 @@ LSD.Struct.Mutators = {
   initialize: true,
   construct: true,
   imports: true,
-  get: true,
-  exports: true
+  exports: true,
+  parent: true,
+  shared: true,
+  get: true
 };
 /*
   The biggest thing about a Struct instance is how it handles
@@ -205,11 +210,11 @@ LSD.Struct.prototype._getConstructor = function(key) {
     }
   }
   if (prop == null && this.__properties) prop = this.__properties[key];
-  if (prop) {
+  if (prop && prop !== Object) {
     var proto = prop.prototype;
-    if (proto && proto.constructor) var constructor = prop;
+    if (proto && proto._construct) return prop;
   }
-  return constructor || this._constructor || this.constructor;
+  return this._constructor || this.constructor;
 };
 LSD.Struct.prototype._construct = function(key, property, memo) {
   if (!property) {
