@@ -637,12 +637,6 @@ LSD.Element.prototype._inherited = {'drawn': 1, 'built': 1, 'hidden': 1, 'disabl
 LSD.Element.prototype._preconstruct = ['childNodes', 'proxies', 'variables', 'attributes', 'classList', 'events', 'matches', 'relations'];
 LSD.Element.prototype.__initialize = function(/* options, element, selector, document */) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
-  if (this.built == null) LSD.Element.prototype.mix({
-    built: false,
-    hidden: false,
-    disabled: false,
-    focused: false
-  }, null, '_set');
   if (this.classList) {
     this.classes = this.classList;
     this.childNodes._prefilter = this.proxies._bouncer
@@ -862,3 +856,8 @@ LSD.Document.prototype.mix('states', {
   placeheld: ['placehold',  'unplacehold'],
   invoked:   ['invoke',     'revoke']
 })
+
+LSD.Element.prototype._set('built', false);
+LSD.Element.prototype._set('hidden', false);
+LSD.Element.prototype._set('disabled', false);
+LSD.Element.prototype._set('focused', false);

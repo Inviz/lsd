@@ -350,7 +350,8 @@ LSD.Object.prototype.mix = function(key, value, memo, state, merge, prepend, laz
     var obj = this[key];
     if (obj == null) {
       if (state && !this._skip[name])
-        obj = (merge && value && this.mix(key, value, 'reference') && value) || this._construct(key, null, memo);
+        obj = (merge && value && value.mix && this.mix(key, value, 'reference') && value)
+             || this._construct(key, null, memo);
 /*
   Objects also support mixing values into arrays. They mix values
   into each value of the array.
