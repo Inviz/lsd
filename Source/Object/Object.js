@@ -625,10 +625,18 @@ LSD.Object.prototype._watcher = function(call, key, value, old, memo) {
   }
 };
 LSD.Object.prototype._merger = function(call, name, value, state, old) {
-  if (state)
-    this.mix(name, value, call, true, true, call.prepend);
-  if (this._stack && (!state || old != null))
-    this.mix(name, state ? old : value, call, false, true, call.prepend);
+  var current = this[name];
+  if (state) {
+    if (current === old) this.set(name, value, call, call.prepend);
+    else this.mix(name, value, call, true, true, call.prepend);
+  }
+  if (this._stack) {
+    if (!state) this.mix(name, value, call, false, true, call.prepend);
+    else if (old != null) {
+      if (current === old) this.unset(name, old, call, call.prepend);
+      else this.mix(name, old, call, false, true, call.prepend);
+    }
+  }
 };
 LSD.Object.prototype._callback = function(callback, key, value, old, memo, lazy) {
   if (callback.substr)
