@@ -19,10 +19,10 @@ provides:
 */
 
 /*
-  Struct is a class builder and a combinator of objects. 
+  Struct is a class builder and a combinator of objects.
   It generates a constructor with an observable prototype.
   The function recieves additional arguments that specify
-  the base type of object, it builds classes based on 
+  the base type of object, it builds classes based on
   LSD.Object by default. A struct class may define its own
   set of observable property setters, callbacks or
   data transformers.
@@ -32,14 +32,14 @@ LSD.Struct = function(properties, Base, Sub) {
   if (typeof properties == 'string') Sub = Base, Base = properties, properties = null;
 /*
   `new LSD.Struct` creates a constructor, that can be used to
-  construct instances of that structure, which bears close 
+  construct instances of that structure, which bears close
   resemblance to OOP.
 */
   var Struct = function(object) {
     if (this.Variable) return new Struct(object, arguments[1])
 /*
-  Inherited properties is an internal concept that allows an instance of a class to 
-  recieve its own copy of a private object from prototype without recursive cloning. 
+  Inherited properties is an internal concept that allows an instance of a class to
+  recieve its own copy of a private object from prototype without recursive cloning.
 */
     for (var i = 0, obj = this._unlinked, inherited, group, cloned, value; obj && (inherited = obj[i++]);)
       if ((group = this[inherited])) {
@@ -50,16 +50,16 @@ LSD.Struct = function(properties, Base, Sub) {
         }
       }
 /*
-  A Struct may have a _preconstruct array defined in a prototype that lists all nested 
+  A Struct may have a _preconstruct array defined in a prototype that lists all nested
   property names that should be initialized right away.
 */
     var preconstruct = this._preconstruct;
     if (preconstruct) for (var i = 0, type, constructors = this._constructors; type = preconstruct[i++];) {
       var constructor = constructors[type] || this._getConstructor(type);
       var obj = this[type] = new constructor;
-      obj._parent = this;
+      obj._owner = this;
       var properties = obj._properties;
-      if (properties && typeof properties._parent == 'function') properties._parent.call(obj, this)
+      if (properties && typeof properties._owner == 'function') properties._owner.call(obj, this)
     }
     if (this.__initialize) object = this.__initialize.apply(this, arguments);
     if (object != null) this.mix(object);
@@ -96,13 +96,13 @@ LSD.Struct.implement = function(object) {
 }
 /*
   Every property defined in a class properties object will be treated like a property,
-  unless it is defined in the Mutators object. Mutators are a hooks that allow some 
+  unless it is defined in the Mutators object. Mutators are a hooks that allow some
   DSL functions to be added to handle some sugary class definitions.
 */
 LSD.Struct.Mutators = {
 /*
-  Structs are slightly compatible with mootools 
-  classes, and can use Extends property to inherit the prototype 
+  Structs are slightly compatible with mootools
+  classes, and can use Extends property to inherit the prototype
   from given object.
 */
   Extends: function(Klass) {
@@ -131,26 +131,25 @@ LSD.Struct.Mutators = {
   },
 /*
   Mutators that have value equal to `true`, will copy a given value into prototype
-  with a prefixed name. E.g. `imports` object will be saved as `prototype._imports`, 
+  with a prefixed name. E.g. `imports` object will be saved as `prototype._imports`,
   so struct instance will have a quick prototype access to them
 
   A struct can have up to two constructors, private and public, called in that order.
   Most of the predefined LSD structs only use a private constructor leaving a public
   one for third party subclassing.
-*/  
+*/
   _initialize: true,
   initialize: true,
   construct: true,
   imports: true,
   exports: true,
-  parent: true,
   shared: true,
   get: true
 };
 /*
   The biggest thing about a Struct instance is how it handles
   changes. A single struct instance can have up to two property
-  object dictionaries, where properties are being looked up. 
+  object dictionaries, where properties are being looked up.
     - An LSD.Object constructor, useful to instantiate nested
       objects with specific class
 
@@ -181,13 +180,13 @@ LSD.Struct.prototype._onChange = function(key, value, state, old, memo) {
         else return prop.call(this, undefined, value, memo);
       }
       break;
-/*        
-  - A string, the link to another property in current or 
+/*
+  - A string, the link to another property in current or
     a linked object. Works as a one-way setter/getter alias.
     One-way means that the linked property will not update
     the aliased property, unless the property is defined
     circular (there's another alias that links the linked
-    property back to original alias). 
+    property back to original alias).
 */
     case 'string':
       if (typeof value != 'object') {
@@ -203,41 +202,33 @@ LSD.Struct.prototype._onChange = function(key, value, state, old, memo) {
 */
 LSD.Struct.prototype._getConstructor = function(key) {
   if (this._properties) {
-    var prop = this._properties[key];
-    if (typeof prop == 'undefined') {
-      var Key = key.charAt(0).toUpperCase() + key.substring(1);
-      prop = this._properties[Key];
-    }
+    var Key = key.charAt(0).toUpperCase() + key.substring(1);
+    var prop = this._properties[Key] || this._properties[key];
   }
   if (prop == null && this.__properties) prop = this.__properties[key];
   if (prop && prop !== Object) {
-    var proto = prop.prototype;
-    if (proto && proto._construct) return prop;
+    var type = typeof prop;
+    if (type == 'function' && prop.prototype._construct) return prop;
+    else return (type == 'string') ? null : false;
   }
-  return this._constructor || this.constructor;
+  return this._constructor;
 };
-LSD.Struct.prototype._construct = function(key, property, memo) {
-  if (!property) {
-    var props = this._properties;
-    if (props) property = props[key];
-    if (!property && (props = this.__properties)) property = props[key];
-  }
+LSD.Struct.prototype.onBeforeConstruct = function(key) {
+  var props = this._properties;
+  var property = (props && props[key]) || (props = this.__properties) && props[key];
   if (typeof property == 'string') {
-    if (!(this._observed || (this._observed = {}))[key]) 
+    if (!(this._observed || (this._observed = {}))[key])
       this.watch(property, (this._observed[key] = [this, key]), false);
-    if (typeof this[key] == 'undefined') this.set(key, this.get(property, true));
-    return this[key];
+    return typeof this[key] == 'undefined' ? this.get(property, true) || null: this[key]
   }
-  if (this._delegate && !memo) memo = this;
-  return LSD.Object.prototype._construct.call(this, key, null, memo);
 };
 /*
   There's a way to define dynamic properties and two-way links
   by using `exports` & `imports` object directives. Properties
-  defined in those object, will be defined when object is 
+  defined in those object, will be defined when object is
   instantiated, unlike property dictionaries that are lazy in the way
   that when object is created, it does not iterate the dictionary and
-  only looks it up when actual properties change. 
+  only looks it up when actual properties change.
 */
 LSD.Struct.prototype._link = function(properties, state, external) {
   for (var name in properties) {
@@ -261,7 +252,7 @@ LSD.Struct.prototype._link = function(properties, state, external) {
 /*
   Dynamic properties may be calculated in run time using on other properties
   values.
-  
+
   var Struct = new LSD.Struct({
     imports: {
       'total': 'sum * rate * (1 - tax)'
@@ -274,14 +265,14 @@ LSD.Struct.prototype._link = function(properties, state, external) {
   struct.set('sum', 200);
   expect(struct.total).toBeUndefined();
   struct.set('sum', 85);
-  
-  LSD.Script is compiled when struct is instantiated and starts observing variables 
+
+  LSD.Script is compiled when struct is instantiated and starts observing variables
   from left to right. It starts by expecting `sum`, and only when it gets it, it starts
   paying attention to `rate`, then `tax`. When all variables are found, the result is
   calculated and assigned to `total` property.
 */
 LSD.Struct.prototype._script = function(key, expression) {
-  var node = this.nodeType && this || (this._global && this._parent);
+  var node = this.nodeType && this || (this._global && this._owner);
   if (this.nodeType) {
     var script = LSD.Script(expression, null, [this, key]);;
     if (!this._scripted) this._scripted = {};
@@ -299,7 +290,7 @@ LSD.Struct.prototype._unscript = function(key, value) {
   delete this._scripted[key]
 };
 LSD.Struct.prototype._linker = function(call, key, value, old, memo) {
-  if (typeof value != 'undefined') 
+  if (typeof value != 'undefined')
     this.mix(call.key, value, memo, true);
   if (old != null && (this._stack || typeof value == 'undefined'))
     this.mix(call.key, old, memo, false);

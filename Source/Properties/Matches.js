@@ -151,7 +151,7 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, state, 
         }
       }
     }
-    if (this._parent && this._parent.test(expression)) callback(this._parent, state);
+    if (this._owner && this._owner.test(expression)) callback(this._owner, state);
   /*
     Expression may also be matching other node according to its combinator.
     Expectation is indexed by its combinator & tag and stored in the object.

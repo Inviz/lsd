@@ -25,7 +25,7 @@ LSD.Properties.Relations = LSD.Struct('Group', 'NodeList');
 LSD.Properties.Relations.prototype.onChange = function(key, value, state, old) {
   if (value.lsd) {
     var group = this[key]
-    if (this._parent) {
+    if (this._owner) {
       var widget = state ? group[0] || value : group[1] || null;
       var options = this._options && this._options[key];
       if (options) {
@@ -34,15 +34,15 @@ LSD.Properties.Relations.prototype.onChange = function(key, value, state, old) {
           if (!opts.length) continue;
           switch (name) {
             case 'singular':
-              var previous = this._parent[key];
-              this._parent.set(key, widget);
-              if (previous !== this[key]) this._parent.unset(key, previous);
+              var previous = this._owner[key];
+              this._owner.set(key, widget);
+              if (previous !== this[key]) this._owner.unset(key, previous);
               break;
             case 'as':
               if (state) {
-                if (old == null) value.set(opts[opts.length - 1], this._parent);
+                if (old == null) value.set(opts[opts.length - 1], this._owner);
               } else {
-                value.unset(opts[opts.length - 1], this._parent);
+                value.unset(opts[opts.length - 1], this._owner);
               }
               break;
             case 'collection':  
@@ -50,10 +50,10 @@ LSD.Properties.Relations.prototype.onChange = function(key, value, state, old) {
               if (state) {
                 if (old == null) {
                   if (value[collection] == null) value[collection] = new LSD.Array;
-                  value[collection].push(this._parent);
+                  value[collection].push(this._owner);
                 }
               } else {
-                var index = value[collection].indexOf(this._parent);
+                var index = value[collection].indexOf(this._owner);
                 value[collection].splice(index, 1);
               }
           }
@@ -70,7 +70,7 @@ LSD.Properties.Relations.prototype.onChange = function(key, value, state, old) {
 };
 LSD.Properties.Relations.prototype.onGroup = function(key, value, state) {
   if (state !== false) {
-    this._parent.set(key, value, null, true);
+    this._owner.set(key, value, null, true);
     value.watch({
       callback: this,
       fn: this._observer,
@@ -208,8 +208,8 @@ LSD.Properties.Relations.Properties = {
     var alias = this._setOption('as', key, value, state, prepend);
     var related = this[key];
     if (related) for (var i = 0, widget; widget = related[i++];) {
-      if (alias != null) widget.set(alias, this._parent);
-      if (old != null) widget.unset(old, this._parent);
+      if (alias != null) widget.set(alias, this._owner);
+      if (old != null) widget.unset(old, this._owner);
     }
   },
   
@@ -221,10 +221,10 @@ LSD.Properties.Relations.Properties = {
     if (related) for (var i = 0, widget; widget = related[i++];) {
       if (alias != null) {
         if (!widget[alias]) widget[alias].set(alias, new LSD.Array);
-        widget[alias].push(this._parent);
+        widget[alias].push(this._owner);
       }
       if (old != null) {
-        widget[alias].splice(widget[alias].indexOf(this._parent), 1)
+        widget[alias].splice(widget[alias].indexOf(this._owner), 1)
       }
     }
   },
@@ -233,8 +233,8 @@ LSD.Properties.Relations.Properties = {
     var singular = this._setOption('singular', key, true, state, prepend);
     var group = this[key];
     var widget = group && group[0] || null;
-    if (singular) this._parent.set(key, widget);
-    else this._parent.unset(key, widget);
+    if (singular) this._owner.set(key, widget);
+    else this._owner.unset(key, widget);
   },
   
   callbacks: function(key, value, state) {

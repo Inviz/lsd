@@ -1,28 +1,28 @@
 /*
 ---
- 
+
 script: Array.js
- 
-description: An observable array 
- 
+
+description: An observable array
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Object
   - LSD.Struct
-  
+
 provides:
   - LSD.Array
-  
+
 ...
 */
 
 /*
   LSD.Array is an observable array that acts just like a regular array.
-  It notifies listeners when new items are added, or old items 
-  are repositioned within array. 
+  It notifies listeners when new items are added, or old items
+  are repositioned within array.
 */
 
 LSD.Array = function(arg) {
@@ -40,7 +40,7 @@ LSD.Array = function(arg) {
         this.push(arg);
       }
     } else {
-      for (var i = 0; i < j; i++) 
+      for (var i = 0; i < j; i++)
         this.push(arguments[i]);
     }
   }
@@ -49,11 +49,11 @@ LSD.Array = function(arg) {
 /*
   LSD.Array uses LSD.Object as its base class like all other objects.
   When a non-integer key is given to `.set()`, `.unset()`, or `.get()`
-  functions, it resorts back to LSD.Object setters. 
-  
-  Length property in LSD.Array is maintained and observed that way, 
+  functions, it resorts back to LSD.Object setters.
+
+  Length property in LSD.Array is maintained and observed that way,
   by re-using LSD.Object capabilities.
-  
+
   It is possible to change an LSD.Array subclass to have a different
   base structure, by altering the getter and setter methods.
 */
@@ -70,11 +70,11 @@ LSD.Array.prototype.length = 0;
 LSD.Array.prototype._length = 0;
 LSD.Array.prototype._offset = 0;
 /*
-  Children option set to false disallows LSD.Array to adopt 
-  LSD.Objects, thus it does not change their ._parent link.
+  Children option set to false disallows LSD.Array to adopt
+  LSD.Objects, thus it does not change their ._owner link.
 */
-LSD.Array.prototype._children = false;
-  
+LSD.Array.prototype._owning = false;
+
 LSD.Array.prototype.push = function() {
   for (var i = 0, j = arguments.length; i < j; i++) {
     if (!this._prefilter || this._prefilter(arguments[i]))
@@ -127,45 +127,45 @@ LSD.Array.prototype.indexOf = function(object, from) {
   }
   return -1;
 };
-  
+
 /*
   Splice method is the heart of LSD.Array, since it's a method that abstracts
   away every change to array that may be appropriate. Methods like `pop`, `shift`,
   `unshift` all re-use it, because it's the only array method that does shifting
   of values that happens when more values are added or removed from array.
-  
+
   The goal of this method is to alter the array in a specific order that ensures
   that values are not overwritten in the process. That enables two things:
-  
+
     - No intermediate values are stored when array modifications take place
-    
+
     - Iterator-like separation of concerns, when observable array callbacks
-      only receive bare minimum of arguments and not handle order of 
+      only receive bare minimum of arguments and not handle order of
       execution by outsourcing it to implementation of the method that changes
       the array.
-  
+
   An array modification may lead up to 3 sitatuions:
 
     1. No shift is needed, when values are replaced
       with other values
-  
+
     2. It needs to be shifted to the right, when more values
       are inserted than removed
-  
+
     3. It needs to be shifted to the left, when more values
       are removed than inserted
 
-  It is also one of the few methods that prefilter their arguments, 
+  It is also one of the few methods that prefilter their arguments,
   before inserting when `_prefilter` hook is set in array definition
 */
 LSD.Array.prototype.splice = function(index, offset) {
 /*
-  Arguments are normalized and values are filtered, so splice knows 
-  upfront the number of inserted values, even if some of them may 
+  Arguments are normalized and values are filtered, so splice knows
+  upfront the number of inserted values, even if some of them may
   be filtered out by an optional `_prefilter` function hook.
 */
-  var args = Array.prototype.slice.call(arguments, 2), 
-      arity = args.length, 
+  var args = Array.prototype.slice.call(arguments, 2),
+      arity = args.length,
       length = this._length
   if (this._prefilter) for (var j = arity; j--;) if (!this._prefilter(args[j])) {
     args.splice(j--, 1);
@@ -196,8 +196,8 @@ LSD.Array.prototype.splice = function(index, offset) {
     } else {
 /*
   If there is more values to be inserted (#2) than to be removed,
-  splice shifts the array to the right by iterating from end 
-  to the beginning, ensuring that values are always written in an 
+  splice shifts the array to the right by iterating from end
+  to the beginning, ensuring that values are always written in an
   unoccupied spot.
 */
       if (i == offset)
@@ -224,17 +224,17 @@ LSD.Array.prototype.splice = function(index, offset) {
     if (values.length < - shift) {
       values.push(this[i])
       this.unset(i, this[i], null, 'splice');
-    } else {  
+    } else {
       this.unset(i, this[i], false, 'collapse');
     }
-  }  
+  }
   delete this._shifting;
   return values;
 };
 
 /*
-  `move` method can change the position of a value within array 
-  by shifting the values between the old and the new position. 
+  `move` method can change the position of a value within array
+  by shifting the values between the old and the new position.
   No values are lost this way, useful for manual sorting.
 */
 LSD.Array.prototype.move = function(from, to) {
@@ -251,7 +251,7 @@ LSD.Array.prototype.move = function(from, to) {
 LSD.Array.prototype.pop = function() {
   return this.splice(-1, 1)[0];
 },
-  
+
 LSD.Array.prototype.shift = function() {
   return this.splice(0, 1)[0]
 };
@@ -335,7 +335,7 @@ LSD.Array.prototype.filter = function(callback, plain) {
   var shifts = [], spliced = 0, origin = this;
   return this.seek(callback, function(result, value, index, state, old) {
     if (origin._position) index -= origin._position - (origin._origin && origin._origin._shifting || 0)
-    for (var i = shifts.length; i <= index + 1; i++) 
+    for (var i = shifts.length; i <= index + 1; i++)
       shifts[i] = (shifts[i - 1]) || 0
     var shift = shifts[index];
     if (state && old != null && shifts[old + 1] > shifts[old])
@@ -344,7 +344,7 @@ LSD.Array.prototype.filter = function(callback, plain) {
     else
       var diff = shifts[index + 1] - shift;
     if (state ? result ? diff : !diff : diff)
-      for (var i = index + 1, j = shifts.length, k = (state && !result ? 1 : -1); i < j; i++) 
+      for (var i = index + 1, j = shifts.length, k = (state && !result ? 1 : -1); i < j; i++)
         shifts[i] += k;
     if (result && state) {
       var current = filtered[index - shift];
@@ -382,7 +382,7 @@ LSD.Array.prototype.sort = function(callback, plain) {
       i = map[index];
       if (i != null) sorted.splice(i, 1);
     }
-    if (!state || old == null) 
+    if (!state || old == null)
       for (var j = 0; j < map.length; j++)
         if (map[j] >= i) map[j] += (state ? 1 : -1);
     if (state) map[index] = i;
@@ -407,7 +407,7 @@ LSD.Array.prototype.every = function(callback) {
     if (state) {
       var previous = values[index];
       values[index] = result || false;
-      if (previous != result) 
+      if (previous != result)
         callback.result += (state && result ? previous == null ? 0 : -1 : 1);
       if (old != null && old !== false) delete values[old];
     } else {
@@ -461,9 +461,9 @@ LSD.Array.prototype._sorter = function(a, b) {
   return a > b ? 1 : a < b ? - 1 : 0;
 };
 LSD.Array.prototype._hash = function(object) {
-  return typeof object._id != 'undefined' 
-    ? object._id 
-    : typeof object.id != 'undefined' 
+  return typeof object._id != 'undefined'
+    ? object._id
+    : typeof object.id != 'undefined'
       ? object.id
       : typeof object.$id != 'undefined' ? object.$id : null;
 };

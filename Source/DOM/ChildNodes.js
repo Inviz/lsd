@@ -21,7 +21,7 @@ provides:
 */
 
 LSD.ChildNodes = LSD.Struct({
-  _parent: function(value, old) {
+  _owner: function(value, old) {
     if (old && this._length) {
       old.unset('firstChild', this[0]);
       old.unset('lastChild', this[this.length - 1]);
@@ -29,8 +29,8 @@ LSD.ChildNodes = LSD.Struct({
   }
 }, 'Array');
 LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
-  if (!state || this._parent != value.parentNode)
-    value[state ? 'set' : 'unset']('parentNode', this._parent || null, memo);
+  if (!state || this._owner != value.parentNode)
+    value[state ? 'set' : 'unset']('parentNode', this._owner || null, memo);
   var previous = this[index - 1] || null;
   var next = this[index + 1] || null;
   if (previous !== value && memo !== 'collapse') {
@@ -61,17 +61,17 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
     value.unset('previousElementSibling', value.previousElementSibling);
     value.unset('nextElementSibling', value.nextElementSibling);
   }
-  if (this._parent) {
+  if (this._owner) {
     if (index === 0) {
-      if (state) this._parent.change('firstChild', value);
-      else this._parent.unset('firstChild', this._parent.firstChild);
+      if (state) this._owner.change('firstChild', value);
+      else this._owner.unset('firstChild', this._owner.firstChild);
     }
     var last = this.length - +state;
     if (index === last && memo !== 'collapse') {
-      if (state || last) this._parent.change('lastChild', state ? value : this[last - 1]);
-      else this._parent.unset('lastChild', this._parent.lastChild);
+      if (state || last) this._owner.change('lastChild', state ? value : this[last - 1]);
+      else this._owner.unset('lastChild', this._owner.lastChild);
     }
-    if (this._parent.onChildSet) this._parent.onChildSet.apply(this._parent, arguments);
+    if (this._owner.onChildSet) this._owner.onChildSet.apply(this._owner, arguments);
   }
 };
 LSD.ChildNodes.prototype._skip = Object.append({
@@ -91,7 +91,7 @@ LSD.ChildNodes.Virtual = LSD.Struct({
   },
   parentNode: function(node, old) {
     var children = (node || old).childNodes;
-    var index = children.indexOf(this._parent || this);
+    var index = children.indexOf(this._owner || this);
     if (node) {
       var args = [index + 1, 0];
       for (var i = 0, child; child = this[i++];) args.push(child)
@@ -103,7 +103,7 @@ LSD.ChildNodes.Virtual.prototype.virtual = true;
 LSD.ChildNodes.Virtual.prototype._onShift = LSD.ChildNodes.prototype._onShift;
 LSD.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old) {
   if (old != null) return;
-  var subject = (this._parent || this)
+  var subject = (this._owner || this)
   var parent = subject.parentNode;
   if (!parent) {
     if (value.virtual) 

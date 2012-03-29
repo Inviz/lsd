@@ -1,58 +1,61 @@
 /*
 ---
- 
+
 script: Script.js
- 
+
 description: Tokenize, translate and compile LSD.Script scope into javascript functions
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
-requires: 
+
+requires:
   - LSD
   - LSD.Struct
-  
+
 provides:
   - LSD.Script
-  
+
 ...
 */
 
 
 /*
-  LSD.Script is a reactive language that operates on C-like expressions. LSD.Script creates
-  Abstract Syntax Tree from expression that is kept throughout the expression lifetime. 
-  Every variable used in expression observes changes to its value, propagates the change
-  up in a tree and recalculates the value of expression firing callbacks. So it creates 
-  persistent functional expressions that automagically recalculate themselves and can 
-  be detached from observing the values. 
-  
-  Selectors are a first class citizens in LSD.Script and do not require additional syntax. 
-  An unescaped selector will fetch results in DOM upon execution. Selector that target 
-  widgets also seemlessly update and recalculate expressions.
-  
-  LSD.Script tokenizes its input using a Sheet.js Value parsing regexps with named group
-  emulation invented by SubtleGradient with impression of XRegExp.
-  
-  Then, AST is made from an array of tokens. The tree itself only has two types of nodes:
-  a function call (which child nodes are arguments) and a leaf (value as number, string 
-  or selector). Binary operators are implemented as functions and first go through a 
-  specificity reordering (making multiplication execute before deduction).
-  
-  The last phase compiles the Abstract Syntax Tree into an object that can be passed 
-  around and used to retrieve current expression value.
+  LSD.Script is a reactive language that operates on C-like expressions.
+  LSD.Script creates Abstract Syntax Tree from expression that is kept
+  throughout the expression lifetime. Every variable used in expression
+  observes changes to its value, propagates the change up in a tree and
+  recalculates the value of expression firing callbacks. So it creates
+  persistent functional expressions that automagically recalculate themselves
+  and can be detached from observing the values.
+
+   Selectors are a first class citizens in LSD.Script and do not require
+  additional syntax. An unescaped selector will fetch results in DOM upon
+  execution. Selector that target widgets also seemlessly update and
+  recalculate expressions.
+
+   LSD.Script tokenizes its input using a Sheet.js Value parsing regexps with
+  named group emulation invented by SubtleGradient with impression of XRegExp.
+
+   Then, AST is made from an array of tokens. The tree itself only has two
+  types of nodes: a function call (which child nodes are arguments) and a leaf
+  (value as number, string or selector). Binary operators are implemented as
+  functions and first go through a specificity reordering (making
+  multiplication execute before deduction).
+
+   The last phase compiles the Abstract Syntax Tree into an object that can be
+  passed around and used to retrieve current expression value.
 */
 
 LSD.Script = function(input, scope, output) {
   var regex = this._regexp, type = typeof input;
   if (regex) {
     if (scope) this.scope = scope;
-    if (output) 
+    if (output)
       if (output.nodeType == 9) this.document = output;
       else this.output = output;
     if (this.initialize) this.initialize()
-    if (typeof input == 'string') 
+    if (typeof input == 'string')
       input = this.Script.parsed && this.Script.parsed[input] || this.Script.parse(input);
     switch (typeof input) {
       case 'object':
@@ -63,7 +66,7 @@ LSD.Script = function(input, scope, output) {
         } else {
           for (var property in input) {
             if (property == 'input' || property == 'value') {
-              var parsed = typeof input[property] == 'string' 
+              var parsed = typeof input[property] == 'string'
                 ? this.Script.parsed && this.Script.parsed[input[property]] || this.Script.parse(input[property])
                 : input[property];
               if (typeof parsed == 'object' && !parsed.push)
@@ -109,13 +112,13 @@ LSD.Script = function(input, scope, output) {
   }
 };
 /*
-  Variables are the core of LSD.Script. A variable attaches to a widget and 
+  Variables are the core of LSD.Script. A variable attaches to a widget and
   notifies it that there's a named variable that needs to populate its value.
 
   A widget may have muptiple scopes of data for variables. The only scope
-  that is enabled by default is microdata and dataset, so a HTML written the 
-  right way provides values for variables. Microdata and dataset objects, 
-  just like other other store objects used are LSD.Object-compatible. 
+  that is enabled by default is microdata and dataset, so a HTML written the
+  right way provides values for variables. Microdata and dataset objects,
+  just like other other store objects used are LSD.Object-compatible.
   These objects provide `.watch()` interface that allows to observe changes
   in object values. Any object may be used as the scope for data to populate
   variables with values.
@@ -128,9 +131,9 @@ LSD.Script = function(input, scope, output) {
   A value may have a placeholder - default value to be used when the value
   was not found in widget.
 
-  A variable may have a parent object, a function that has that variable 
+  A variable may have a parent object, a function that has that variable
   as argument. Whenever variable changes, it only calls parent function
-  to update, and that function cascades up updating all the parents. That 
+  to update, and that function cascades up updating all the parents. That
   makes values recompute lazily.
 
   A variable accepts `output` as a second parameter. It may be function,
@@ -153,7 +156,7 @@ LSD.Script.Struct = new LSD.Struct({
     }
   },
   output: function(value, old) {
-    
+
   },
   scope: function(value, old) {
     if (this.attached) this.unset('attached', this.attached)
@@ -198,7 +201,7 @@ LSD.Script.Struct = new LSD.Struct({
       this.placeheld = true;
     } else if (this.placeheld) delete this.placeheld;
     if (this.output) this.callback(value, old);
-    if (this.type == 'variable') 
+    if (this.type == 'variable')
       if (typeof value == 'undefined' && memo !== false && !this.input && this.attached) this.set('executed', true)
       else delete this.executed
     if ((this.type != 'block' || this.yielder) && this.attached !== false && this.parents)
@@ -231,35 +234,35 @@ LSD.Script.Struct = new LSD.Struct({
           else return self.change('value', value)
         };
         (this.scope.variables || this.scope)[value ? 'watch' : 'unwatch'](this.name || this.input, this.setter);
-      } else this.scope(this.input, this, this.scope, !!value);  
+      } else this.scope(this.input, this, this.scope, !!value);
       if (typeof this.value == 'undefined' && !this.input) this.change('executed', value);
     }
   },
 /*
   Functions only deal with data coming from variable tokens or as raw values
-  like strings, numbers and objects. So a function is executed once, 
+  like strings, numbers and objects. So a function is executed once,
   when all of its arguments are resolved. A function has its arguments as
   child nodes in AST, so when a variable argument is changed, it propagates
-  the change up in the tree, and execute the parent function with updated 
+  the change up in the tree, and execute the parent function with updated
   values.
 
   A value is calculated once and will be recalculated when any of its variable
   arguments is changed.
 */
   executed: function(value, old, memo) {
-    var name = (value || !old) ? this.name : LSD.Script.Revertable[this.name]/* || LSD.Negation[name] */ 
+    var name = (value || !old) ? this.name : LSD.Script.Revertable[this.name]/* || LSD.Negation[name] */
     || (LSD.Script.Evaluators[this.name] && this.name) || (!LSD.Script.Operators[this.name] && 'un' + this.name) || old;
     var val, result, args = [];
-    if (typeof this.evaluator == 'undefined') 
+    if (typeof this.evaluator == 'undefined')
       this.evaluator = LSD.Script.Evaluators[name] || null;
-    if (name) 
+    if (name)
       var literal = LSD.Script.Literal[name];
     if (this.args) loop: for (var i = 0, j = this.args.length, arg, piped = this.prepiped, origin; i < j; i++) {
       if (typeof (arg = this.args[i]) == 'undefined') continue;
       if (i === literal) {
         if (!arg.type || arg.type != 'variable') throw "Unexpected token, argument must be a variable name";
         result = arg.name;
-      } else {  
+      } else {
         if (arg && (arg.script || arg.type)) {
           if (this.origin) origin = this.origin.args[i];
           if (origin && !origin.local && origin.script) {
@@ -279,7 +282,7 @@ LSD.Script.Struct = new LSD.Struct({
               if (i !== null) this.args[i] = arg;
               if (origin && origin.local) arg.local = true;
               this.translating = true;
-              var pipable = (arg.script && piped !== arg.piped); 
+              var pipable = (arg.script && piped !== arg.piped);
               if (pipable) {
                 arg.prepiped = arg.piped = piped;
                 delete arg.attached;
@@ -333,7 +336,7 @@ LSD.Script.Struct = new LSD.Struct({
             if (evaluated != null && evaluated == false && evaluated.failure) {
               args[args.length - 1] = piped = evaluated.failure;
               break;
-            } else { 
+            } else {
               args[args.length - 1] = evaluated;
             }
             break loop;
@@ -372,16 +375,16 @@ LSD.Script.Struct = new LSD.Struct({
     } else val = args[0];
     this.change('value', val, memo);
   },
-  
+
 /*
-  Selectors can be used without escaping them in strings in LSD.Script. 
+  Selectors can be used without escaping them in strings in LSD.Script.
   A selector targetted at widgets updates the collection as the widgets
   change and recalculates the expression in real time.
 
   The only tricky part is that a simple selector may be recognized as
-  a variable (e.g. `div.container`) or logical expression (`ul > li`) and 
-  not fetch the elements. A combinator added before ambigious expression 
-  would help parser to recognize selector. Referential combinators 
+  a variable (e.g. `div.container`) or logical expression (`ul > li`) and
+  not fetch the elements. A combinator added before ambigious expression
+  would help parser to recognize selector. Referential combinators
   `$`, `&`, `&&`, and `$$` may be used for that. Selectors are targetted
   at widgets by default, unless `$$` or `$` combinator is used.
 
@@ -393,16 +396,16 @@ LSD.Script.Struct = new LSD.Struct({
       // Because they are targetted at widgets
 
       // Count `item` children in `menu#main` widget
-      "count(menu#main > item)" 
+      "count(menu#main > item)"
 
       // Returns collection of widgets related to `grid` as `items` that are `:selected`
-      "grid::items:selected" 
+      "grid::items:selected"
 
       // Return next widget to current widget
-      "& + *" 
+      "& + *"
 
       // Combinators that have $ or $$ as referential combinators will not observe changes
-      // and only fetch element once from Element DOM 
+      // and only fetch element once from Element DOM
 
       // Find all `item` children in `menu` in current element
       "$ menu > item"
@@ -418,33 +421,31 @@ LSD.Script.Struct = new LSD.Struct({
 
 */
   selector: function(value, old) {
-    
+
   },
 /*
-  Another way powerful technique is wrapping. It allows a script
-  being overloaded by another script, that may alter its execution
-  flow by calling its own methods and processing arguments before
-  wrappee script kicks in. It also allows to call scripts after
-  the wrappee, possibly handing the failed call.
+  Another way powerful technique is wrapping. It allows a script being
+  overloaded by another script, that may alter its execution flow by calling
+  its own methods and processing arguments before wrappee script kicks in. It
+  also allows to call scripts after the wrappee, possibly handing the failed
+  call.
 
-  LSD Script wrapping is pretty much the same concept that is known
-  by the name Aspects in "objective reality". Although instead
-  of overloading a method, it overloads a single expression.
+   LSD Script wrapping is pretty much the same concept that is known by the
+  name Aspects in "objective reality". Although instead of overloading a
+  method, it overloads a single expression.
 
-    var wrappee = LSD.Script('submit');
-    var wrapper = LSD.Script('prepare, yield || error, finalize')
-    wrapper.wrap(wrappee).execute();
+   var wrappee = LSD.Script('submit'); var wrapper = LSD.Script('prepare,
+  yield || error, finalize') wrapper.wrap(wrappee).execute();
 
-  In example above, `prepare()` method may return data that will be
-  piped to `submit()` call. Then, after submit is executed
-  (synchronously or not), if it returns a falsy value, `error()`
-  method is called, that can handle the error by showing a pesky
-  red message to user. There's some control to what happens next,
-  the expression may be automatically retried, or a user may decide
-  to retry or cancel the whole chain of expression. When an expression
-  is cancelled, it gets unrolled, possibly removing all side effects,
-  like displayed messages, pending requests, or even putting removed
-  element back on its place.
+   In example above, `prepare()` method may return data that will be piped to
+  `submit()` call. Then, after submit is executed (synchronously or not), if
+  it returns a falsy value, `error()` method is called, that can handle the
+  error by showing a pesky red message to user. There's some control to what
+  happens next, the expression may be automatically retried, or a user may
+  decide to retry or cancel the whole chain of expression. When an expression
+  is cancelled, it gets unrolled, possibly removing all side effects, like
+  displayed messages, pending requests, or even putting removed element back
+  on its place.
 */
   wrapper: function(value, old) {
     if (old) delete old.wrapped;
@@ -455,9 +456,10 @@ LSD.Script.prototype = new LSD.Script.Struct;
 LSD.Script.prototype.Script = LSD.Script.Script = LSD.Script;
 
 /*
-  LSD is all about compiling code into asynchronous objects that observe properties.
-  But sometimes there needs to be a javascript function compiled that can be used
-  on a hot code and not observe any variables with as few function calls as possible.
+  LSD is all about compiling code into asynchronous objects that observe
+  properties. But sometimes there needs to be a javascript function compiled
+  that can be used on a hot code and not observe any variables with as few
+  function calls as possible.
 */
 LSD.Script.prototype.toJS = function(options) {
   var source = this.source || this.input;
@@ -502,7 +504,7 @@ LSD.Script.prototype.toJS = function(options) {
         break;
       case 'block':
         var args = [i, 1, 'function('];
-        if ((locals = obj.locals)) 
+        if ((locals = obj.locals))
           args.push(locals.map(function(l) { return l.name }).join(', '));
         args.push(') { ', obj.value, ' }');
         stack.splice.apply(stack, args);
@@ -521,13 +523,14 @@ LSD.Script.prototype.toJS = function(options) {
   }
   return stack.join('');
 };
-  
+
 /*
   Scripts are parsed, compiled and executed, but what then? Each script may
-  have its own output strategy. Scripts are often resolute it on the fly
-  based on what `this.output` value they are given.
-  
-  Callback method is shared by all LSD.Script primitives, but may be overriden.
+  have its own output strategy. Scripts are often resolute it on the fly based
+  on what `this.output` value they are given.
+
+   Callback method is shared by all LSD.Script primitives, but may be
+  overriden.
 */
 LSD.Script.prototype.eval = function() {
   return (this.evaled || (this.evaled = eval('(' + this.toJS() + ')')));
@@ -571,18 +574,17 @@ LSD.Script.prototype.update = function(value) {
   }
 }
 /*
-  Methods are dispatched by the first argument in LSD. If an
-  argument has a function defined by that property, it uses
-  that local method then. Otherwise, it looks for all parent
-  scopes to find a function defined in either `methods` sub object
-  or scope object itself.
-  
-  Finally, it falls back to helpers defined in `LSD.Script.Helpers`
-  object and Object methods as a last resort.
+  Methods are dispatched by the first argument in LSD. If an argument has a
+  function defined by that property, it uses that local method then.
+  Otherwise, it looks for all parent scopes to find a function defined in
+  either `methods` sub object or scope object itself.
+
+   Finally, it falls back to helpers defined in `LSD.Script.Helpers` object
+  and Object methods as a last resort.
 */
 LSD.Script.prototype.lookup = function(name, arg, scope) {
   if (arg != null && typeof arg[name] == 'function') return true;
-  if (scope != null || (scope = this.scope)) 
+  if (scope != null || (scope = this.scope))
     for (; scope; scope = scope.parentScope) {
       var method = (scope.methods && scope.methods[name]) || scope[name] || (scope.variables && scope.variables[name]);
       if (typeof method == 'function') return method;
@@ -602,6 +604,8 @@ LSD.Script.prototype.getContext = function() {
 LSD.Script.prototype.Script = LSD.Script;
 LSD.Script.prototype.script = true;
 LSD.Script.prototype._literal = LSD.Script.prototype._properties;
+LSD.Script.prototype._ownable = false;
+LSD.Script.prototype._owning = false;
 LSD.Script.prototype._compiled_call = 'dispatch';
 LSD.Script.prototype._regexp = /^[a-zA-Z0-9-_.]+$/;
 LSD.Script.compile = LSD.Script.prototype.compile;
@@ -637,7 +641,7 @@ LSD.Script.prototype.yield = function(keyword, args, callback, index, old, memo)
           else yielded = null;
         }
       } else if (old != null) this.yields[index] = block;
-      if (!block) block = this.yields[index] = this.recycled && this.recycled.pop() 
+      if (!block) block = this.yields[index] = this.recycled && this.recycled.pop()
       || new LSD.Script({type: 'block', locals: this.locals, input: this.input, scope: this.scope, origin: yielded});
       var invoked = block.invoked;
       block.yielded = true;
@@ -730,7 +734,7 @@ LSD.Script.prototype.findLocals = function(locals) {
           if (parent == this.input) break;
           else parent.local = true;
     } else {
-      if (item.name == '=' || item.name == 'define') 
+      if (item.name == '=' || item.name == 'define')
         map[item.value[0].name] = true;
       if (item.value)
         for (var k = 0, l = item.value.length, value; k < l; k++) {
@@ -745,10 +749,10 @@ LSD.Script.prototype.findLocals = function(locals) {
 /*
   LSD.Function constructor and function is a Function compatible
   API to produce a javascript function that calls LSD.Script
-  
+
     var fn = LSD.Function('key', 'value', 'return key % 2 ? value + 1 : value - 1')
     fn(2, 5); // 6
-    
+
   The first object argument will be treated as a scope for variable values.
 */
 LSD.Function = function() {

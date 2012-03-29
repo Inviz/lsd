@@ -37,7 +37,11 @@ LSD.Document = LSD.Struct({
   childNodes: LSD.Properties.ChildNodes,
   events: LSD.Properties.Events,
   title: 'origin.title',
+  ready: function() {
+    this.set('body', this.createElement(this.origin.body));
+  },
   origin: function(document, old) {
+    this.set('title', document.title);
     if (!this.onDomReady) this.onDomReady = this.onReady.bind(this);
     Element[document ? 'addEvent' : 'removeEvent']((document || old), 'domready', this.onDomReady);
   },
@@ -56,8 +60,7 @@ LSD.Document.prototype.__initialize = function() {
   return LSD.Element.prototype.__initialize.apply(this, arguments);
 }
 LSD.Document.prototype.onReady = function() {
-  this.events.fire('domready', this.origin.body);
-  this.set('body', this.createElement(this.origin.body));
+  this.set('ready', true)
 };
 LSD.Document.NodeTypes = {};
 LSD.NodeTypes = {

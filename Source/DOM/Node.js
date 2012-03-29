@@ -19,6 +19,7 @@ provides:
 */
 
 LSD.Node = function() {}
+LSD.Node.prototype._ownable = false;
 LSD.Node.prototype.appendChild = function(child) {
   this.childNodes.push(child)
   return this;

@@ -1,14 +1,14 @@
 /*
 ---
- 
+
 script: Resource.js
- 
+
 description: An dynamic collection or link with specific configuration
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Properties
   - LSD.Struct
@@ -18,18 +18,18 @@ requires:
   - LSD.Element
   - String.Inflections/String.singularize
 
-provides: 
+provides:
   - LSD.Resource
- 
+
 ...
 */
 
 /*
-  Resources are beautiful abstractions over access to data storages. 
+  Resources are beautiful abstractions over access to data storages.
   It leaves all work of building and matching urls to convenient
-  defaults of RESTful resource structure. LSD resources are 
+  defaults of RESTful resource structure. LSD resources are
   self-sufficent and can do all of the typical resource operations
-  in memory. Having resources on client side comes in handy when 
+  in memory. Having resources on client side comes in handy when
   the back end application also supports resources. But even if
   it doesn't, resources can be defined with each action mapped
   to a custom url.
@@ -37,7 +37,7 @@ provides:
 
 LSD.Resource = LSD.Struct({
   //Extends: LSD.Properties.Request,
-  
+
   imports: {
     'prefix': '.path',
     'domain': '.domain'
@@ -59,7 +59,7 @@ LSD.Resource = LSD.Struct({
     this.change('url', value + (this.path ? '/' + this.path : ''))
   },
   _origin: function() {
-    
+
   }
 }, 'Array');
 LSD.Resource.prototype.onChange = function(key, value, state, old, memo) {
@@ -69,10 +69,10 @@ LSD.Resource.prototype.onChange = function(key, value, state, old, memo) {
 };
 LSD.Resource.prototype.onStore = function(key, value, memo, state, name) {
   if (name == null) {
-    var skip = value._skip, property; 
+    var skip = value._skip, property;
     for (var prop in value)
       if (value.hasOwnProperty(prop) && (skip == null || !skip[prop]))
-        if ((property = this._Properties[prop]) != null) 
+        if ((property = this._Properties[prop]) != null)
           property.call(this[key] || this._construct(key), value[prop], state, memo);
   }
   return true;
@@ -82,28 +82,28 @@ LSD.Resource.prototype._initialize = function() {
   var Struct = new LSD.Model(this.attributes);
   Struct.prototype.constructor = Struct;
   Struct.constructor = LSD.Resource;
-  for (var property in this) 
-    if (!Struct[property]) 
+  for (var property in this)
+    if (!Struct[property])
       Struct[property] = this[property];
-  for (var property in LSD.Model.prototype) 
-    if (!Struct.prototype[property]) 
+  for (var property in LSD.Model.prototype)
+    if (!Struct.prototype[property])
       Struct.prototype[property] = LSD.Model.prototype[property];
-  delete Struct._parent;
-  delete Struct._children;
+  delete Struct._owning;
+  delete Struct._ownable;
   return Struct;
 };
 /*
   A simple resource router that can transform parameters
-  to what resource really understand. E.g. it can 
+  to what resource really understand. E.g. it can
   handle requests with `page` parameter, when resource
   only supports `offset` param. It may also rename
   parameters, e.g. if a resource accept `p` param,
   feeding it `param` will work just as well.
-  
+
   Backend resources may or may not follow naming conventions
   on clientside. If naming backend things is out of control,
   e.g. when using 3d party APIs, one could map real URLs
-  on virtual resources and use the mapped schema. 
+  on virtual resources and use the mapped schema.
 */
 LSD.Resource.prototype.match = function(url, params) {
   if (!params) params = {};
@@ -115,7 +115,7 @@ LSD.Resource.prototype.match = function(url, params) {
     } else {
       if ((resource = parent.get(bit))) parent = resource;
       if (id != null) {
-        params[parent._parent.foreign_key] = id;
+        params[parent._owner.foreign_key] = id;
         id = null;
       }
       if (!resource) {
@@ -183,9 +183,9 @@ LSD.Resource.prototype.match = function(url, params) {
               default:
                 if (val == null) {
                   console.error(bit)
-                } else params[bit] = val; 
+                } else params[bit] = val;
             }
-          }  
+          }
           if (j == null) break;
           else i = j + 1;
         }
@@ -211,21 +211,21 @@ LSD.Resource.prototype._Properties = {
   urls: function(value, state) {
   },
   actions: function() {
-    
+
   },
   collection: function() {
-    
+
   },
   member: function() {
-    
+
   }
 };
 LSD.Resource.prototype.all = function(params) {
-  
+
 };
 LSD.Resource.prototype.where = function(params) {
   switch (this.implementation && this.implementation.where) {
-    
+
   }
 };
 LSD.Resource.prototype.find = function() {
@@ -240,7 +240,7 @@ LSD.Resource.prototype._dictionary = {
   methods: {post: 1, get: 1, put: 1, 'delete': 1, patch: 1, options: 1}
 };
 LSD.Resource.prototype._params = (function(params) {
-  var proto = LSD.Resource.prototype; 
+  var proto = LSD.Resource.prototype;
   for (var type in proto._dictionary)
     for (var name in proto._dictionary[type])
       params[name] = type;
@@ -248,7 +248,7 @@ LSD.Resource.prototype._params = (function(params) {
 })({})
 
 LSD.Resource.prototype.limit = function(params) {
-  if (typeof params != 'object') var limit = parseInt(params) 
+  if (typeof params != 'object') var limit = parseInt(params)
   else for (var param in this._dictionary.limit) if (params[param]) {
     var limit = params[param];
     break;
@@ -259,7 +259,7 @@ LSD.Resource.prototype.limit = function(params) {
   return LSD.Array.prototype.limit.call(this, limit || this._per_page, params)
 };
 LSD.Resource.prototype.offset = function(params) {
-  if (typeof params != 'object') var offset = parseInt(params) 
+  if (typeof params != 'object') var offset = parseInt(params)
   else for (var param in this._dictionary.offset) if (params[param]) {
     var offset = params[param];
     break;
@@ -271,7 +271,7 @@ LSD.Resource.prototype.offset = function(params) {
 };
 LSD.Resource.prototype.paginate = function(params) {
   var page = this.page(params);
-  if (page !== this) 
+  if (page !== this)
     return this.offset(this.limit(params)._limit * page);
   return this;
 };
@@ -288,9 +288,9 @@ LSD.Resource.prototype.page = function(params) {
 LSD.Resource.prototype.search = function(params) {
   var query = params.q || params.query || params.search_query || params.search;
   if (this.implementation.search) {
-    
+
   } else {
-    
+
   }
   return this;
 };
@@ -298,10 +298,10 @@ LSD.Resource.prototype.form = function(params) {
   for (var name in this.attributes) {
     switch (this.attributes[name].type) {
       case Boolean:
-        
+
         break;
       case String:
-      
+
         break;
     }
   }
@@ -349,7 +349,7 @@ LSD.Model.prototype.save = function() {
 /*
   Universal perfect world REST scaffolder. Can be overriden
   to do actions on back end, or emulate them locally.
-  
+
   It's more actions than in usual REST implementations,
   but a developer may stick to regular CRUD and leave
   those extra methods until he needs it.
@@ -452,33 +452,33 @@ LSD.Properties.Resource = LSD.Resource;
 // });
 // var Customer = LSD.Resource('customers');
 // var Customer = LSD.document.createResource('customers');
-// 
+//
 // )
-// 
+//
 // LSD.Resource('customers/placements');
-// 
+//
 // Customer.create({name: 'Goe Doe'};
 // new Customer({name: 'John Doe'})
-// 
+//
 // Customer.filter({name: 'Goe Doe'});
 // Customer.filter({name: 'Goe Doe'}).sort('created_at');
 // Customer.limit(10).filter({'$or': [{name: 'Goe Doe'}, {name: 'Goe Dow'}]}).sort('created_at');
 // Customer.filter('{|customer| customer.name == "John Doe" && customer.age > 15}')
 // Customer('SELECT * WHERE name == "John Doe"')
 // Customer.all.filter({name: 'Goe Doe'}).sort('created_at')
-// 
-// 
-// 
+//
+//
+//
 // new Resource('/customers/willy/placements')
-// 
-// 
+//
+//
 // new Resource('facebook', {
-//   
+//
 // });
-// 
+//
 // new Resource('twitter', {
 //   domain: 'twitter.com',
-//   
+//
 //   users: {
 //     urls: {
 //       index: '/users/lookup',
@@ -510,7 +510,7 @@ LSD.Properties.Resource = LSD.Resource;
 //   },
 //   current_user: {
 //     urls: {
-//       show: 
+//       show:
 //     },
 //     statuses: {
 //       urls: {
@@ -526,5 +526,5 @@ LSD.Properties.Resource = LSD.Resource;
 //     }
 //   }
 // })
-// 
-// 
+//
+//

@@ -41,7 +41,7 @@ LSD.Properties.Proxies.prototype._hash = function(key) {
   }
 };
 LSD.Properties.Proxies.prototype._bouncer = function(node) {
-  var type = node.nodeType, origin = this._parent.proxies, proxy;
+  var type = node.nodeType, origin = this._owner.proxies, proxy;
   switch (type) {
     case 1:
       var group = origin._selectors;

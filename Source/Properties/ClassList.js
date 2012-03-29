@@ -1,21 +1,21 @@
 /*
 ---
- 
+
 script: ClassList.js
- 
+
 description: Base objects for accessories holders - attributes, classes, dataset
- 
+
 license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
- 
+
 requires:
   - LSD.Properties
   - LSD.Struct
 
-provides: 
+provides:
   - LSD.Properties.ClassList
- 
+
 ...
 */
 
@@ -24,13 +24,13 @@ LSD.Properties.ClassList = LSD.Struct({
 }, 'Stack');
 LSD.Properties.ClassList.prototype.onChange = function(name, value, state, old, memo) {
   if (name == '_name') return value || old;
-  var ns = this._parent.document || LSD.Document.prototype;
-  if ((!memo || memo !== 'states') && ns.states[name]) 
-    this._parent[state ? 'set' : 'unset'](name, true, 'classes');
+  var ns = this._owner.document || LSD.Document.prototype;
+  if ((!memo || memo !== 'states') && ns.states[name])
+    this._owner[state ? 'set' : 'unset'](name, true, 'classes');
   var index = (' ' + this._name + ' ').indexOf(' ' + name + ' ');
   if (state && value && index == -1) this.set('_name', this._name.length ? this._name + ' ' + name : name);
   if (!state && index > -1) this.set('_name', this._name.substring(0, index - 1) + this._name.substring(name.length));
-  var element = this._parent.element;
+  var element = this._owner.element;
   if (element) element.className = this._name
   return value || old;
 };

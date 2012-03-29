@@ -9,7 +9,7 @@ LSD.Styles.prototype.onChange = function(key, value, memo, old) {
     key = style.property;
     if (value === false) return this._skip;
     if (styles.type == 'simple') {
-      if (this._parent.element) this._parent.element[style] = value;
+      if (this._owner.element) this._owner.element[style] = value;
     } else {
       for (var property in value) this.style[property] = value[property];
     }
@@ -18,12 +18,12 @@ LSD.Styles.prototype.onChange = function(key, value, memo, old) {
 
 /*
   CSSOM function parsers for different types of values.
-  Each type may be used as a regular function, then 
+  Each type may be used as a regular function, then
 */
 
 LSD.Styles.Type = {
 /*
-  Number may be either float or integer. Floats are good 
+  Number may be either float or integer. Floats are good
   for line-heights, but not many other properties.
 */
   number: function(obj) {
@@ -40,7 +40,7 @@ LSD.Styles.Type = {
   },
 /*
   Keywords are most common in CSS, most of the properties
-  have their own setting of recognized keywords.  
+  have their own setting of recognized keywords.
 */
   keyword: function(keywords) {
     var storage;
@@ -76,7 +76,7 @@ LSD.Styles.Type = {
 };
 /*
   Property types above are simple, so values parsed
-  and converted to objects dont have additional 
+  and converted to objects dont have additional
   methods or capabilities. The following types
   create an object with its own prototype and methods.
 */
@@ -118,11 +118,11 @@ LSD.Styles.Type.color = function(obj, type) {
 /*
   Most browsers normalize colors internally
   by converting them to a consistent
-  `rgb()` function representation and 
+  `rgb()` function representation and
   falling back to `rgba` when alpha channel
   is not equal to 1. LSD color tries to keep
   values readable, so it uses hex wherever
-  possible. 
+  possible.
 */
 LSD.Styles.Type.color.prototype = {
   toString: function() {
@@ -131,20 +131,20 @@ LSD.Styles.Type.color.prototype = {
     return this.toRGB();
   }
 };
-for (var method in Color.prototype) 
-  if (!LSD.Styles.Type.color.prototype[method]) 
+for (var method in Color.prototype)
+  if (!LSD.Styles.Type.color.prototype[method])
     LSD.Styles.Type.color.prototype[method] = Color.prototype[method];
 /*
   Length is a combination of a number and a unit.
   Browsers dont treat regular numbers like lengths,
-  except for IE where it defaults to pixels. 
+  except for IE where it defaults to pixels.
   For easier length manipulations, LSD recognizes
   number as a length, with the pixel as a default
   unit.
 */
 LSD.Styles.Type.length = function(obj, unit) {
   if (this === Type) {
-    if (typeof obj == 'number') 
+    if (typeof obj == 'number')
       return new this.length(obj, unit);
     if ((typeof obj.number != 'undefined') && (unit || obj.unit != '%'))
       return new this.length(obj, unit);
@@ -196,10 +196,10 @@ LSD.Styles.rHex = /^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/;
   Definitions for properties are specified in a format similar
   to CSS specs, so this function prepares an efficient index
   that can quickly check if arguments are good or not.
-  
-  Properties functions may be both used as constructors 
+
+  Properties functions may be both used as constructors
   or as generic validation methods, although if input
-  is valid there will be a new object constructed 
+  is valid there will be a new object constructed
   regardless of used syntax.
 */
 
@@ -252,9 +252,9 @@ LSD.Styles.Property.simple = function(types, keywords) {
 
 /*
   Links list of inambigous arguments with corresponding properties keeping
-  the order. It returns an object with properties as keys (in order of 
+  the order. It returns an object with properties as keys (in order of
   appearance) and parsed values. It returns false if it was given a
-  value it could not recognize, such as an unknown keyword. 
+  value it could not recognize, such as an unknown keyword.
 */
 
 LSD.Styles.Property.shorthand = function(properties, keywords, context, multiple) {
@@ -264,7 +264,7 @@ LSD.Styles.Property.shorthand = function(properties, keywords, context, multiple
     var resolved = [], values = [], used = {}, args = arguments;
     var argument = args[0], start = 0, group, k = 0, l = args.length;
     for (var m = 0;; m++) {
-      // handle multiple values 
+      // handle multiple values
       if (argument.push && ((args = arguments[m]) != null)) {
         if (!args.push) args = [args];
         l = args.length;
@@ -272,7 +272,7 @@ LSD.Styles.Property.shorthand = function(properties, keywords, context, multiple
           if (m == 1) result = [result];
           result.push(shorthand.apply(this.push ? [] : {}, args));
           continue;
-        } 
+        }
       }
       if (m > 0) return result;
       // handle on set of values
@@ -296,7 +296,7 @@ LSD.Styles.Property.shorthand = function(properties, keywords, context, multiple
           }
           if ((property && !used[property]) || (i == l - 1)) {
             if (i - start > group.length) return false;
-            for (var j = start, end = (i + +!property); j < end; j++) 
+            for (var j = start, end = (i + +!property); j < end; j++)
               if (!resolved[j])
                 for (var n = 0, optional; optional = group[n++];)
                   if (!used[optional])
@@ -332,12 +332,12 @@ LSD.Styles.Property.shorthand = function(properties, keywords, context, multiple
 /*
   A shorthand that operates on collection of properties. When given values
   are not enough (less than properties in collection), the value sequence
-  is repeated until all properties are filled.     
+  is repeated until all properties are filled.
 */
 
 LSD.Styles.Property.collection = function(properties, keywords, context) {
   var first = context[properties[0]];
-  if (first.type != 'simple') 
+  if (first.type != 'simple')
     return function(arg) {
       var args = (!arg || !arg.push) ? [Array.prototype.slice.call(arguments)] : arguments;
       var result = this == window || this.$root ? {} : this;
@@ -366,7 +366,7 @@ LSD.Styles.Property.collection = function(properties, keywords, context) {
   Finds optional groups in expressions and builds keyword
   indecies for them. Keyword index is an object that has
   keywords as keys and values as property names.
-  
+
   Index only holds keywords that can be uniquely identified
   as one of the properties in group.
 */
@@ -390,7 +390,7 @@ LSD.Styles.Property.index = function(properties, context) {
 };
 
 Object.append((LSD.Document.prototype.styles || (LSD.Document.prototype.styles = {})),  {
-  background:           [[['backgroundColor', 'backgroundImage', 'backgroundRepeat', 
+  background:           [[['backgroundColor', 'backgroundImage', 'backgroundRepeat',
                           'backgroundAttachment', 'backgroundPositionX', 'backgroundPositionY']], 'multiple'],
   backgroundColor:      ['color', 'transparent', 'inherit'],
   backgroundImage:      ['url', 'none', 'inherit'],
@@ -399,55 +399,55 @@ Object.append((LSD.Document.prototype.styles || (LSD.Document.prototype.styles =
   backgroundPosition:   [['backgroundPositionX', 'backgroundPositionY']],
   backgroundPositionX:  ['percentage', 'center', 'left', 'right', 'length', 'inherit'],
   backgroundPositionY:  ['percentage', 'center', 'top', 'bottom', 'length', 'inherit'],
-   
+
   textShadow:           [['textShadowBlur', 'textShadowOffsetX', 'textShadowOffsetY', 'textShadowColor'], 'multiple', 'virtual'],
   textShadowBlur:       ['length'],
   textShadowOffsetX:    ['length'],
   textShadowOffsetY:    ['length'],
   textShadowColor:      ['color'],
-                        
+
   boxShadow:            [['boxShadowBlur', 'boxShadowOffsetX', 'boxShadowOffsetY', 'boxShadowColor'], 'multiple', 'virtual'],
   boxShadowBlur:        ['length'],
   boxShadowOffsetX:     ['length'],
   boxShadowOffsetY:     ['length'],
-  boxShadowColor:       ['color'], 
-  
+  boxShadowColor:       ['color'],
+
   outline:              ['outlineWidth', 'outlineStyle', 'outlineColor'],
   outlineWidth:         ['length'],
   outlineStyle:         ['dotted', 'dashed', 'solid', 'double', 'groove', 'ridge', 'inset', 'outset', 'none'],
   outlineColor:         ['color'],
-                        
+
   font:                 [[['fontStyle', 'fontVariant', 'fontWeight'], 'fontSize', ['lineHeight'], 'fontFamily']],
   fontStyle:            ['normal', 'italic', 'oblique', 'inherit'],
   fontVariant:          ['normal', 'small-caps', 'inherit'],
   fontWeight:           ['normal', 'number', 'bold', 'inherit'],
   fontFamily:           ['strings', 'inherit'],
-  fontSize:             ['length', 'percentage', 'inherit', 
+  fontSize:             ['length', 'percentage', 'inherit',
                          'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large', 'smaller', 'larger'],
-                        
+
   color:                ['color'],
   letterSpacing:        ['normal', 'length', 'inherit'],
   textDecoration:       ['none', 'capitalize', 'uppercase', 'lowercase'],
   textAlign:            ['left', 'right', 'center', 'justify'],
-  textIdent:            ['length', 'percentage'],                 
+  textIdent:            ['length', 'percentage'],
   lineHeight:           ['normal', 'number', 'length', 'percentage'],
-  
+
   listStyle:            [['list-style-type', 'list-style-position', 'list-style-image']],
-  listStyleType:        ['disc', 'circle', 'square', 'decimal', 'decimal-leading-zero', 'lower-roman', 'upper-roman', 
-                         'lower-greek', 'lower-latin', 'upper-latin', 'armenian', 'georgian', 'lower-alpha', 'none', 
+  listStyleType:        ['disc', 'circle', 'square', 'decimal', 'decimal-leading-zero', 'lower-roman', 'upper-roman',
+                         'lower-greek', 'lower-latin', 'upper-latin', 'armenian', 'georgian', 'lower-alpha', 'none',
                          'upper-alpha', 'inherit'],
   listStyleImage:       ['url', 'none', 'inherit'],
   listStylePosition:    ['inside', 'outside', 'none'],
-  
+
   height:               ['length', 'auto'],
   maxHeight:            ['length', 'auto'],
   minHeight:            ['length', 'auto'],
   width:                ['length', 'auto'],
   maxWidth:             ['length', 'auto'],
   minWidth:             ['length', 'auto'],
-                        
-  display:              ['inline', 'block', 'list-item', 'run-in', 'inline-block', 'table', 'inline-table', 'none', 
-                         'table-row-group', 'table-header-group', 'table-footer-group', 'table-row', 
+
+  display:              ['inline', 'block', 'list-item', 'run-in', 'inline-block', 'table', 'inline-table', 'none',
+                         'table-row-group', 'table-header-group', 'table-footer-group', 'table-row',
                          'table-column-group', 'table-column', 'table-cell', 'table-caption'],
   visibility:           ['visible', 'hidden'],
   'float':              ['none', 'left', 'right'],
@@ -459,7 +459,7 @@ Object.append((LSD.Document.prototype.styles || (LSD.Document.prototype.styles =
   right:                ['length', 'auto'],
   bottom:               ['length', 'auto'],
   zIndex:               ['integer'],
-  cursor:               ['auto', 'crosshair', 'default', 'hand', 'move', 'e-resize', 'ne-resize', 'nw-resize', 
+  cursor:               ['auto', 'crosshair', 'default', 'hand', 'move', 'e-resize', 'ne-resize', 'nw-resize',
                          'n-resize', 'se-resize', 'sw-resize', 's-resize', 'w-resize', 'text', 'wait', 'help']
 });
 
@@ -478,8 +478,8 @@ Object.append((LSD.Document.prototype.styles || (LSD.Document.prototype.styles =
       CSS[prop][0].push(prop.replace(/^([a-z]*)/, '$1' + side));
       if (i == 4) CSS[prop].push('collection')
     }
-    if (i % 2 == 0) 
-      for (var j = 1, adj; adj = sides[j+=2];) 
+    if (i % 2 == 0)
+      for (var j = 1, adj; adj = sides[j+=2];)
         CSS['borderRadius' + side + adj] = ['length', 'none'];
   };
   for (var property in CSS) {
@@ -494,26 +494,26 @@ Object.append((LSD.Document.prototype.styles || (LSD.Document.prototype.styles =
   Styles.cssFloat = Styles.styleFloat = Styles['float'];
 })(LSD.Styles, LSD.Document.prototype.styles);
 
-/* 
+/*
   A parser that handles CSS values. Refer to specs
-  for comprehensive demonstration of features. 
+  for comprehensive demonstration of features.
 */
 
 LSD.Styles.Parser = new LSD.RegExp({
   fn_arguments: '<inside_parens>*',
   fn_name: '[-_a-zA-Z0-9]',
   fn: '(<fn_name>)\\s*\\((<fn_arguments>)\\)',
-  
+
   integer: '[-+]?\d+',
   'float': '[-+]?(?:\d+\.\d*|\d*\.\d+)',
   number: '<integer>|<float>',
   unit: 'em|px|pt|%|fr|deg|(?=$|[^a-zA-Z0-9.])',
   length: '<number><unit>',
-  
+
   url: '(url|local|src)\\((.*?)\\)',
   operator: '([-+]|[\/%^~=><*\^!|&]+)',
   separator: '\s*,\s*|\s+',
-  
+
   string_double: '"((?:[^"]|\\\\")*)"',
   string_single: "'((?:[^']|\\\\')*)'",
   string_token: '([^$,\s\/()]+)',
@@ -530,7 +530,7 @@ LSD.Styles.Parser = new LSD.RegExp({
     //      scope.push(name);
     //      return parsed;
     //    }
-    //  default:  
+    //  default:
         var obj = {};
         obj[name] = parsed;
         return obj;
@@ -566,7 +566,7 @@ LSD.Styles.Parser = new LSD.RegExp({
       default:
         if (this.memo) return;
         var length = scope.length;
-        if ((scope == result) && !scope[length - 1].push) 
+        if ((scope == result) && !scope[length - 1].push)
           this.scope = scope[length - 1] = [scope[length - 1]];
     }
   },
