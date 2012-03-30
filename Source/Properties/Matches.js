@@ -77,7 +77,7 @@ LSD.Properties.Matches = LSD.Struct('Group');
   the state and fires callbacks when classes, pseudo 
   classes or attributes are changed.
 */
-LSD.Properties.Matches.prototype.onChange = function(selector, callback, state, old, memo, hash) {
+LSD.Properties.Matches.prototype.onChange = function(selector, callback, old, memo, hash) {
   /*
     Expression may be a string selector, so it gets parsed with Slick
   */
@@ -89,6 +89,7 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, state, 
     Expression may be a parsed Slick selector, only expressions part is used then
   */
   var expression = selector.expressions || selector;
+  var vdef = typeof value != 'undefined', odef = typeof old != 'undefined';
   /*
     If a selector is array of expressions, each of those expressions are processed then
   */
@@ -98,9 +99,11 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, state, 
       var storage = this._hash(expression);
       for (var i = 0, group; group = storage[i++];) {
         if (group[2] === false) {
-          if (typeof group[1] == 'function') group[1](callback, state);
-          else this._callback(group[1], callback, state)
-        } else callback.matches[state ? 'set' : 'unset'](group[0], group[1], group[2])
+          if (typeof group[1] == 'function') group[1](callback, vdef);
+          else this._callback(group[1], callback, vdef)
+        } else {
+          callback.matches[vdef ? 'set' : 'unset'](group[0], group[1], group[2])
+        }
       }
     }
     return callback;
@@ -111,17 +114,14 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, state, 
       var l = expressions.length;
       if (j == 1 && l == 1) break; 
       if (typeof memo != 'number') memo = 0;
-      if (state) {
-        this.set(expressions[memo], {
-          fn: this._advancer,
-          bind: this,
-          index: memo + 1,
-          callback: callback,
-          expressions: expressions
-        });
-      } else {
-        this.unset(expressions[memo], callback);
-      }
+      if (vdef) this.set(expressions[memo], {
+        fn: this._advancer,
+        bind: this,
+        index: memo + 1,
+        callback: callback,
+        expressions: expressions
+      });
+      if (odef) this.unset(expressions[memo], callback);
       if (j == 1 || expressions == expression) break;
     }
     if (j > 1 || l > 1) return this._skip;
@@ -135,7 +135,7 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, state, 
       var values = expression[type];
       var storage = this._state || (this._state = {});
       if (values) for (var j = 0, value; (value = values[j++]) && (value = value.key || value.value);) {
-        if (state) {
+        if (vdef) {
           var kind = storage[type];
           if (!kind) kind = storage[type] = {};
           var group = kind[value];

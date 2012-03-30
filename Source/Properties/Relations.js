@@ -22,7 +22,7 @@ provides:
 */
 
 LSD.Properties.Relations = LSD.Struct('Group', 'NodeList');
-LSD.Properties.Relations.prototype.onChange = function(key, value, state, old) {
+LSD.Properties.Relations.prototype.onChange = function(key, value, memo, old) {
   if (value.lsd) {
     var group = this[key]
     if (this._owner) {

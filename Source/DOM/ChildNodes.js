@@ -108,7 +108,8 @@ LSD.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old) {
   if (!parent) {
     if (value.virtual) 
       if (state) value.set('parentNode', subject);
-      else if (value.parentNode == subject) value.unset('parentNode', subject);
+      else if (value.parentNode == subject) 
+        value.unset('parentNode', subject);
     return
   };
   if (value.childNodes && value.childNodes.virtual)

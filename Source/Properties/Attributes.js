@@ -25,40 +25,33 @@ provides:
 */
 
 LSD.Properties.Attributes = LSD.Struct(LSD.attributes, 'Stack');
-LSD.Properties.Attributes.prototype.onChange = function(key, value, state, old, memo) {
+LSD.Properties.Attributes.prototype.onChange = function(key, value, old, memo) {
   var ns = this._owner.document || LSD.Document.prototype;
   var attribute = ns.attributes && ns.attributes[key]
   var vdef = typeof value != 'undefined', odef = typeof old != 'undefined';
   if (attribute) {
     if (typeof attribute == 'string') {
-      this._owner.set(attribute, value);
-      if (odef) this._owner.unset(attribute, old);
+      this._owner.mix(attribute, value, memo, old);
     } else if (value && !value.Script){
       var result = attribute.call(this._owner, value, old);
       if (typeof result != 'undefined') value = result;
     }
   }
-  if ((!memo || memo !== 'states') && ns.states[key])
-    this._owner[state ? 'set' : 'unset'](key, true, 'attributes');
   if (this._owner.element && (key != 'type' || LSD.toLowerCase(this._owner.element.tagName) != 'input')) {
-    if (value === true) this._owner.element[key] = state;
-    if (state && !value.script) this._owner.element.setAttribute(key, value === true ? key : value);
+    this._owner.element[key] = vdef;
+    if (vdef && !value.script) this._owner.element.setAttribute(key, value === true ? key : value);
     else this._owner.element.removeAttribute(key);
   }
-  if (key.substr(0, 5) == 'data-') {
-    var property = key.substring(5);
-    if (vdef) this._owner.variables[state ? 'set' : 'unset'](property, value, memo);
-    if (odef) this._owner.variables.unset(property, old, memo);
-  }
-  if (this._owner.__properties[key]) {
-    if (vdef) this._owner.set(key, value, memo);
-    if (odef) this._owner.unset(key, old, memo);
-  }
+  if (((!memo || memo !== 'states') && ns.states[key]) || this._owner.__properties[key])
+    this._owner.mix(key, value, 'attributes', old);
+  if (key.substr(0, 5) == 'data-')
+    this._owner.mix('variables.' + key.substring(5), value, memo, old);
   return value;
 };
 LSD.Properties.Attributes.prototype._global = true;
-LSD.Properties.Microdata = LSD.Struct('Stack');
-LSD.Properties.Microdata.prototype.onChange = function(key, value, state, old, memo) {
+LSD.Properties.Microdata = LSD.Struct();
+LSD.Properties.Microdata.prototype.onChange = function(key, value, old, memo) {
+  console.log([key, value])
 }
 LSD.Properties.Variables = LSD.Struct('Stack');
 

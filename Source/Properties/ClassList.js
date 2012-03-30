@@ -22,11 +22,11 @@ provides:
 LSD.Properties.ClassList = LSD.Struct({
   _name: '.className'
 }, 'Stack');
-LSD.Properties.ClassList.prototype.onChange = function(name, value, state, old, memo) {
+LSD.Properties.ClassList.prototype.onChange = function(name, value, old, memo) {
   if (name == '_name') return value || old;
   var ns = this._owner.document || LSD.Document.prototype;
   if ((!memo || memo !== 'states') && ns.states[name])
-    this._owner[state ? 'set' : 'unset'](name, true, 'classes');
+    this._owner.mix(name, true, 'classes', old);
   var index = (' ' + this._name + ' ').indexOf(' ' + name + ' ');
   if (state && value && index == -1) this.set('_name', this._name.length ? this._name + ' ' + name : name);
   if (!state && index > -1) this.set('_name', this._name.substring(0, index - 1) + this._name.substring(name.length));

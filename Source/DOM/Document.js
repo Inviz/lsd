@@ -45,9 +45,15 @@ LSD.Document = LSD.Struct({
     if (!this.onDomReady) this.onDomReady = this.onReady.bind(this);
     Element[document ? 'addEvent' : 'removeEvent']((document || old), 'domready', this.onDomReady);
   },
+/*
+  Sets a currently focused element in a document. When changing
+  from one to another, it keeps shared ancestors focused and
+  only blurs an unshared subtree. It also may focus an element
+  that is ancestor of currently focused element by blurring
+  the nodes.
+*/
   activeElement: function(element, old, memo) {
     if (element && memo !== false && !element.set('focused', true)) {
-      // If a focusing element is a parent of currently focused element, blur all focused children
       if (old) for (; old != element; old = old.parentNode) old.unset('focused', true, element)
     } else if (old) old.unset('focused', true)
   }

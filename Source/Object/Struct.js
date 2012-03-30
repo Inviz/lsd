@@ -154,14 +154,14 @@ LSD.Struct.Mutators = {
       objects with specific class
 
 */
-LSD.Struct.prototype._onChange = function(key, value, state, old, memo) {
+LSD.Struct.prototype._onChange = function(key, value, old, memo) {
   if (typeof key != 'string') return value;
   var props = this._properties, prop;
   if (props) prop = props[key];
   if (!prop && (props = this.__properties) && !(prop = props[key])) return value;
-  var group = this._observed;
+  var group = this._observed, vdef = typeof value != 'undefined';
   if (group && (group = group[key])) {
-    if (state) group[2] = value;
+    if (vdef) group[2] = value;
     else delete group[2];
   }
 /*
@@ -174,11 +174,9 @@ LSD.Struct.prototype._onChange = function(key, value, state, old, memo) {
 */
     case 'function':
       if (prop.prototype._set) {
-        if (state && typeof this[key] == 'undefined') this._construct(key, prop, memo)
-      } else {
-        if (state) return prop.call(this, value, old, memo);
-        else return prop.call(this, undefined, value, memo);
-      }
+        if (vdef && typeof this[key] == 'undefined')
+          this._construct(key, prop, memo)
+      } else return prop.call(this, value, old, memo);
       break;
 /*
   - A string, the link to another property in current or
@@ -189,10 +187,8 @@ LSD.Struct.prototype._onChange = function(key, value, state, old, memo) {
     property back to original alias).
 */
     case 'string':
-      if (typeof value != 'object') {
-        if (state) this.set(prop, value, memo);
-        else this.unset(prop, value, memo);
-      }
+      if (typeof value != 'object')
+        this.mix(prop, value, memo, old);
   };
   return value;
 };
