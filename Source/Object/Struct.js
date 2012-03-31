@@ -287,11 +287,11 @@ LSD.Struct.prototype._unscript = function(key, value) {
 };
 LSD.Struct.prototype._linker = function(call, key, value, old, memo) {
   if (typeof value != 'undefined')
-    this.mix(call.key, value, memo, true);
-  if (old != null && (this._stack || typeof value == 'undefined'))
-    this.mix(call.key, old, memo, false);
+    this.mix(call.key, value, memo);
+  if (old != null && (this._journal || typeof value == 'undefined'))
+    this.mix(call.key, undefined, memo, old);
 };
-LSD.Struct.prototype._unlinked = ['_stack', '_stored'];
+LSD.Struct.prototype._unlinked = ['_journal', '_stored'];
 LSD.Struct.prototype._skip = Object.append({
   initialize: true,
   _initialize: true,

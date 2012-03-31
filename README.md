@@ -37,7 +37,7 @@ LSD is an attempt to prove that DOM is a great and thought-out pattern that may 
   * SOON: Graceful automatic offline mode and data sync
 * Amazing **base objects**
   * Observable array that can create sorted and filtered views that are updated in realtime
-  * Stack-based objects that resolves state conflicts automatically and seamlessly enable complex behaviors
+  * Journal-based objects that resolves state conflicts automatically and seamlessly enable complex behaviors
   * A struct base class that uses native javascript prototypes to create classes of models with observable setters
   * A nodelist, that dynamically reoders nodes in collection based on their position in DOM with callbacks
 * Serious **coding standarts**

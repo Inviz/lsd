@@ -25,14 +25,13 @@ provides:
 */
 
 /*
-  Resources are beautiful abstractions over access to data storages.
-  It leaves all work of building and matching urls to convenient
-  defaults of RESTful resource structure. LSD resources are
-  self-sufficent and can do all of the typical resource operations
-  in memory. Having resources on client side comes in handy when
-  the back end application also supports resources. But even if
-  it doesn't, resources can be defined with each action mapped
-  to a custom url.
+  Resources are beautiful abstractions over access to data storages. It
+  leaves all work of building and matching urls to convenient defaults of
+  RESTful resource structure. LSD resources are self-sufficent and can do all
+  of the typical resource operations in memory. Having resources on client
+  side comes in handy when the back end application also supports resources.
+  But even if it doesn't, resources can be defined with each action mapped to
+  a custom url.
 */
 
 LSD.Resource = LSD.Struct({
@@ -62,21 +61,13 @@ LSD.Resource = LSD.Struct({
 
   }
 }, 'Array');
-LSD.Resource.prototype.onChange = function(key, value, state, old, memo) {
-  if (value != null && value.match === this.match && !this._properties[key])
-    value[state ? 'set' : 'unset']('name', key);
-  return value;
-};
-LSD.Resource.prototype.onStore = function(key, value, memo, state, name) {
-  if (name == null) {
-    var skip = value._skip, property;
-    for (var prop in value)
-      if (value.hasOwnProperty(prop) && (skip == null || !skip[prop]))
-        if ((property = this._Properties[prop]) != null)
-          property.call(this[key] || this._construct(key), value[prop], state, memo);
+LSD.Resource.prototype.onChange = function(key, value, memo, old) {
+  if (value != null && value.match === this.match && !this._properties[key]) {
+    if (typeof value != 'undefined') value.set('name', key);
+    if (typeof old != 'undefined') old.unset('name', key);
   }
-  return true;
 };
+LSD.Resource.prototype.onStore = true;
 LSD.Resource.prototype._initialize = function() {
   this.attributes = Object.append({}, this.attributes);
   var Struct = new LSD.Model(this.attributes);

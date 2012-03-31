@@ -77,7 +77,7 @@ LSD.Properties.Matches = LSD.Struct('Group');
   the state and fires callbacks when classes, pseudo 
   classes or attributes are changed.
 */
-LSD.Properties.Matches.prototype.onChange = function(selector, callback, old, memo, hash) {
+LSD.Properties.Matches.prototype.onChange = function(selector, callback, memo, old, hash) {
   /*
     Expression may be a string selector, so it gets parsed with Slick
   */

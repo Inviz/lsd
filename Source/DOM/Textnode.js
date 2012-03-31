@@ -12,7 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Node
   - LSD.Struct
-  - LSD.Stack
+  - LSD.Journal
 
 provides: 
   - LSD.Textnode
@@ -55,7 +55,7 @@ LSD.Textnode = LSD.Struct({
     if (value) this.mix('variables', value.variables, memo, true, true);
     if (old) this.mix('variables', old.variables, memo, false, true)
   }
-}, 'Stack');
+}, 'Journal');
 LSD.Textnode.implement(LSD.Node.prototype);
 LSD.Textnode.prototype.__initialize = function() {
   for (var i = 0, args = arguments, j = args.length, arg, string; i < j; i++) {

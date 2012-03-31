@@ -12,7 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Properties
   - LSD.Struct
-  - LSD.Stack
+  - LSD.Journal
   - LSD.Document
 
 provides:
@@ -24,7 +24,7 @@ provides:
 ...
 */
 
-LSD.Properties.Attributes = LSD.Struct(LSD.attributes, 'Stack');
+LSD.Properties.Attributes = LSD.Struct(LSD.attributes, 'Journal');
 LSD.Properties.Attributes.prototype.onChange = function(key, value, old, memo) {
   var ns = this._owner.document || LSD.Document.prototype;
   var attribute = ns.attributes && ns.attributes[key]
@@ -53,7 +53,7 @@ LSD.Properties.Microdata = LSD.Struct();
 LSD.Properties.Microdata.prototype.onChange = function(key, value, old, memo) {
   console.log([key, value])
 }
-LSD.Properties.Variables = LSD.Struct('Stack');
+LSD.Properties.Variables = LSD.Struct('Journal');
 
 LSD.Document.prototype.mix('attributes', {
   tabindex:  Number,

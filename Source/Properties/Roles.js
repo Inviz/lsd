@@ -21,7 +21,7 @@ provides:
   Roles object allows finding specific roles by a composite
   string key where key bits are separated with dashes.
 */
-LSD.Properties.Roles = LSD.Roles = LSD.Struct('Stack');
+LSD.Properties.Roles = LSD.Roles = LSD.Struct('Journal');
 LSD.Properties.Roles.prototype.get = function(key) {
   for (var i, previous = 0, role = this, obj; i !== -1;) {
     i = key.indexOf('-', i != null ? i + 1 : i);
@@ -81,7 +81,7 @@ LSD.Document.prototype.set('roles', new LSD.Roles({
       'if files': {
         '::list': {
           collection: 'files'
-        },
+        }
       }, 
       'else': {
         '::message': {
@@ -214,5 +214,5 @@ LSD.Document.prototype.set('roles', new LSD.Roles({
   container:    '.container',
   submit:       'input[type=submit]',
   calendar:     'table[type=calendar]',
-  clock:        'table[type=clock]',
+  clock:        'table[type=clock]'
 }));

@@ -82,19 +82,8 @@ LSD.Properties.Relations.prototype.onGroup = function(key, value, state) {
     value.unwatch(this);
   }
 }
-LSD.Properties.Relations.prototype.onStore = function(key, value, memo, state, name) {
-  if (name == null) {
-    var skip = value._skip; 
-    for (var prop in value) {
-      if (value.hasOwnProperty(prop) && (skip == null || !skip[prop])) {
-        var property = this._Properties[prop];
-        if (property != null) property.call(this, key, value[prop], state);
-      }
-    }
-  }
-  return true;
-};
-LSD.Properties.Relations.prototype._delegate = function(object, key, value, state) {
+LSD.Properties.Relations.prototype.onStore = '_Properties'
+LSD.Properties.Relations.prototype._delegate = function(object, key, value, old) {
   var property = this._Properties[key];
   if (property) return true;
 };

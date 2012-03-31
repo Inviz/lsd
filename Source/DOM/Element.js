@@ -11,7 +11,7 @@ authors: Yaroslaff Fedin
 
 requires:
   - LSD.Struct
-  - LSD.Stack
+  - LSD.Journal
   - LSD.Properties.Events
   - LSD.Properties.Proxies
   - LSD.Node
@@ -46,12 +46,12 @@ provides:
   gets powerful observing and introspection capabilities almost for free.
 */
 
-LSD.Element = new LSD.Struct(LSD.Properties, 'Stack');
+LSD.Element = new LSD.Struct(LSD.Properties, 'Journal');
 LSD.Element.prototype.onChange = function(key, value, memo, old) {
   var ns         = this.document || LSD.Document.prototype,
       states     = ns.states,
       definition = states[key],
-      stack      = this._stack && this._stack[key];
+      stack      = this._journal && this._journal[key];
   if (this._inherited[key] && this.childNodes)
     for (var i = 0, child; child = this.childNodes[i++];) {
       child.set(key, value, memo, true);
@@ -91,7 +91,7 @@ LSD.Element.prototype.__properties = {
     are exclusive, so element can have only one role at time. An element
     finds the role if it was given a string and mix in the found object. If a
     role object is an observable object, it subscribes the element for
-    changes in it. When a role is changed from one to another, stack objects
+    changes in it. When a role is changed from one to another, journal objects
     perform all manipulations on state and only the properties that are
     different between two roles will trigger observer callbacks.
 
@@ -403,13 +403,13 @@ LSD.Element.prototype.__properties = {
   and focuses it and all its parents. Each of the parent recieve an optional
   `memo` with an element that become `activeElement`.
 
-   What's different between LSD focus stack and DOM focus, is that when focus
-  changes between controls of a single form, the form itself never loses
-  focus so it can be styled and animated consistently. Focus observers based
-  on DOM events often have race conditions that are hidden behind delayed
-  callbacks. LSD can synchronously focus the specific subtree and blur
-  previously focused subtree without affecting focused state of common
-  ancestors.
+   The difference between LSD and DOM focus implementations, is that when
+  focus jumps between controls of a single form, the form and parent nodes
+  of a form are also focused while their child nodes have focus. Focus
+  observers based on DOM events often have race conditions that are hidden
+  behind delayed callbacks. LSD can synchronously focus the specific
+  subtree and blur previously focused subtree without affecting focused
+  state of common ancestors.
 
    Focusing a subtree instead of a single node is useful for nested
   interfaces like dialog overlays, slide-out panels, multi-window

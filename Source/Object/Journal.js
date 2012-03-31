@@ -1,7 +1,7 @@
 /*
 ---
 
-script: Stack.js
+script: Journal.js
 
 description: An observable object that remembers values
 
@@ -14,37 +14,37 @@ requires:
   - LSD.Struct
 
 provides:
-  - LSD.Stack
+  - LSD.Journal
 
 ...
 */
 
 /*
-  Stack object is an abstraction that aggregates have its key-values pairs 
+  Journal object is an abstraction that aggregates have its key-values pairs 
   from multiple sources. All calls to `set` and `unset` functions are logged, 
   so when the value gets unset, it returns to previous value 
   (that was set before, possibly by a different external object).
   
-  Stack objects are useful in an environment that objects influence each other,
+  Journal objects are useful in an environment that objects influence each other,
   some times in a conflicting way, because it provides gentle conflict 
   resolution based on order of execution. The latest change is more 
   important, but it's easy to roll back. It is possible to insert the value
-  into the beginning of the stack, or in other words do a reverse merge. 
+  into the beginning of the journal, or in other words do a reverse merge. 
   Values set in a reverse mode never overwrite values that were already there,
   and dont fire callbacks for those values. Shadowed values may be used later
-  anyways, when a shadowing value is removed from stack, it picks the previous
-  value. A call to `unset` function  with a value that is on top of the stack
+  anyways, when a shadowing value is removed from journal, it picks the previous
+  value. A call to `unset` function  with a value that is on top of the journal
   may result in a call to `set` as a side effect, that sets the previous 
-  value in stack. Very useful for objects live-merging.  
+  value in journal. Very useful for objects live-merging.  
 */
 
-LSD.Stack = function(object) {
+LSD.Journal = function(object) {
   if (object != null) this.mix(object)
 };
 
-LSD.Stack.prototype = new LSD.Object;
-LSD.Stack.prototype.constructor = LSD.Stack,
-LSD.Stack.prototype.set = function(key, value, memo, prepend, hash) {
+LSD.Journal.prototype = new LSD.Object;
+LSD.Journal.prototype.constructor = LSD.Journal,
+LSD.Journal.prototype.set = function(key, value, memo, prepend, hash) {
   if (typeof key != 'string') {
     if (hash == null) hash = this._hash(key);
     if (typeof hash == 'string') {
@@ -58,10 +58,10 @@ LSD.Stack.prototype.set = function(key, value, memo, prepend, hash) {
     var index = key.indexOf('.');
   }
   if (group == null && index === -1) {
-    var stack = this._stack;
-    if (!stack) stack = this._stack = {};
-    var group = stack[key];
-    if (!group) group = stack[key] = []
+    var journal = this._journal;
+    if (!journal) journal = this._journal = {};
+    var group = journal[key];
+    if (!group) group = journal[key] = []
   }
   if (group != null) {
     if (prepend) {
@@ -76,7 +76,7 @@ LSD.Stack.prototype.set = function(key, value, memo, prepend, hash) {
   }
   return !eql
 };
-LSD.Stack.prototype.unset = function(key, value, memo, prepend, hash) {
+LSD.Journal.prototype.unset = function(key, value, memo, prepend, hash) {
   if (typeof key != 'string') {
     if (hash == null) hash = this._hash(key);
     if (typeof hash == 'string') {
@@ -90,7 +90,7 @@ LSD.Stack.prototype.unset = function(key, value, memo, prepend, hash) {
     var index = key.indexOf('.');
   }
   if (group == null && index === -1) {
-    var group = this._stack[key];
+    var group = this._journal[key];
     if (!group) return;
     var length = group.length;
   }
@@ -126,27 +126,27 @@ LSD.Stack.prototype.unset = function(key, value, memo, prepend, hash) {
 };
 /*
   Change method first sets the new value, and triggers all callbacks,
-  and then removes old value from the stack without calling callbacks.
+  and then removes old value from the journal without calling callbacks.
   
   The method is useful to alter the state of the object in an 
-  stack-based object and not pollute the stacks with changed
+  journal-based object and not pollute the journals with changed
   values. When objects use .change() to mutate the state of an object,
   even in the case of the conflicting change, no values will be lost
-  in the stack, but only the top value on the stack of them will be used.
+  in the journal, but only the top value on the journal of them will be used.
   
   Change method is a helper, but not the best method, because it
-  produces side effect to value stacks. It removes a value on top
-  of a stack, but it's often possible to avoid any side-effects
+  produces side effect to value journals. It removes a value on top
+  of a journal, but it's often possible to avoid any side-effects
   whatsoever. When dealing with callbacks and properties
   handlers it is better to use a pair of `set` & `unset` explicitly
   because callbacks have a reference to old value and may avoid
-  screwing up the stack. The side effect often stay unnoticed
+  screwing up the journal. The side effect often stay unnoticed
   and in some situations is the best thing to do. Use with caution.
 */
-LSD.Stack.prototype.change = function(key, value, memo) {
+LSD.Journal.prototype.change = function(key, value, memo) {
   var old = this[key];
   this.set(key, value, memo);
   if (typeof old != 'undefined') this.unset(key, old, memo)
   return true;
 };
-LSD.Stack.prototype._skip = Object.append({_stack: true}, LSD.Object.prototype._skip);
+LSD.Journal.prototype._skip = Object.append({_journal: true}, LSD.Object.prototype._skip);

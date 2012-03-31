@@ -1,4 +1,4 @@
-LSD.Styles = LSD.Struct('Stack');
+LSD.Styles = LSD.Struct('Journal');
 
 LSD.Styles.prototype.onChange = function(key, value, memo, old) {
   var style = this.constructor[key];

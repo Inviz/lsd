@@ -12,7 +12,6 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Properties
   - LSD.Array
-  - Core/Element
 
 provides: 
   - LSD.ChildNodes

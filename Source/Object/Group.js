@@ -14,7 +14,7 @@ requires:
   - LSD.Struct
   - LSD.Array
   - LSD.NodeList
-  - LSD.Stack
+  - LSD.Journal
 
 provides:
   - LSD.Group

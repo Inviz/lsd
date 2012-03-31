@@ -22,7 +22,7 @@ sources:
   - Source/DOM/NodeList.js
   - Source/DOM/ChildNodes.js
   - Source/Object/Object.js
-  - Source/Object/Stack.js
+  - Source/Object/Journal.js
   - Source/Object/Group.js
   - Source/Object/Struct.js
   - Source/Object/Array.js

@@ -88,7 +88,7 @@ LSD.Script = function(input, scope, output) {
       this._yieldback.block = this;
       if (!this.origin && this.locals) this.findLocals(this.locals);
       if (this.locals) {
-        this.variables = new LSD.Stack;
+        this.variables = new LSD.Journal;
         if (this.scope) this.variables.merge(this.scope.variables || this.scope, true);
         this.scope = this;
       }

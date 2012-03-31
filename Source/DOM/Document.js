@@ -57,7 +57,7 @@ LSD.Document = LSD.Struct({
       if (old) for (; old != element; old = old.parentNode) old.unset('focused', true, element)
     } else if (old) old.unset('focused', true)
   }
-}, 'Stack')
+}, 'Journal')
 LSD.Document.prototype.nodeType = 9;
 LSD.Document.implement(LSD.Node.prototype);
 LSD.Document.prototype._preconstruct = ['childNodes', 'events'];
