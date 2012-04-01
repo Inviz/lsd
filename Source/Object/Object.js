@@ -152,7 +152,7 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
         else if (typeof value == 'object' && args[1] == null) Object.append(value, obj)
         else value[args[0]] = args[1];
       if (old != null && memo !== 'copy' && obj !== old 
-      && (!mem || !mem._delegate || !mem._delegate(old, key, undefined, obj)))
+      && (!mem || !mem._delegate || !mem._delegate(old, key, undefined, memo, obj)))
         old.unmix.apply(old, args);
     }
   }
@@ -222,7 +222,7 @@ LSD.Object.prototype.unset = function(key, value, memo, index, hash) {
     if (stored != null && value != null)
       for (var i = 0, args, obj; args = stored[i++];)
         if ((obj = args[0]) !== value && obj !== old)
-          if (!args[2] || !args[2]._delegate || !args[2]._delegate(value, key, undefined, args[0]))
+          if (!args[2] || !args[2]._delegate || !args[2]._delegate(value, key, undefined, memo, args[0]))
             value.unmix.apply(value, args)
   }
   return true;
@@ -378,7 +378,8 @@ LSD.Object.prototype.mix = function(key, value, memo, old, merge, prepend, lazy,
   if (index > -1) {
     var name = key.substr(key.lastIndexOf('.', index - 1) + 1, index) || '_owner';
     var subkey = key.substring(index + 1);
-    if (this.onStore && typeof this.onStore(name, value, memo, old, prepend, subkey) == 'undefined') return;
+    var store = this.onStore && (this.onStore.call ? 'onStore' : '_onStore');
+    if (store && this[store] && this[store](name, value, memo, old, prepend, subkey) === false) return;
     var storage = (this._stored || (this._stored = {})), group = storage[name];
     if (!group) group = storage[name] = [];
     if (vdef) group.push([subkey, value, memo, old, merge, prepend, lazy]);
@@ -406,7 +407,7 @@ LSD.Object.prototype.mix = function(key, value, memo, old, merge, prepend, lazy,
   creating a new object that is subscribed to all values and changes of a
   referenced object.
 */
-      if (vdef && (parent ? parent !== this : obj._references > 0) && this._owning !== false) {
+      if (vdef && old !== obj && (parent ? parent !== this : obj._references > 0) && this._owning !== false) {
         obj = this._construct(name, null, 'copy')
       } else if (typeof obj.mix == 'function' && obj._ownable !== false) {
         obj.mix(subkey, value, memo, old, merge, prepend, lazy);
@@ -448,9 +449,11 @@ LSD.Object.prototype.mix = function(key, value, memo, old, merge, prepend, lazy,
     // controlled mutation creates an observed copy of ref'd object
     this.mix('key.dance', true)               // this.key !== object
 */
-  } else if ((!vdef && typeof old == 'object') || (value != null && typeof value == 'object' && !value.exec && !value.push 
+  } else if ((!vdef && typeof old == 'object' && old != null) 
+         || (value != null && typeof value == 'object' && !value.exec && !value.push 
          && !value.nodeType && value.script !== true && (!value.mix || merge))) {
-    if (this.onStore && typeof this.onStore(key, value, memo, old, prepend) == 'undefined') return;
+    var store = this.onStore && (this.onStore.call ? 'onStore' : '_onStore');
+    if (store && this[store] && this[store](key, value, memo, old, prepend) === false) return;
     var storage = (this._stored || (this._stored = {}));
     var group = storage[key];
     if (!group) group = storage[key] = [];
@@ -485,7 +488,7 @@ LSD.Object.prototype.mix = function(key, value, memo, old, merge, prepend, lazy,
 */
     } else if (obj.push && obj._object !== true) {
       for (var i = 0, j = obj.length; i < j; i++)
-        if (!memo || !memo._delegate || !memo._delegate(obj[i], key, value, old))
+        if (!memo || !memo._delegate || !memo._delegate(obj[i], key, value, memo, old))
           obj[i].mix(value, null, memo, old, merge, prepend, lazy);
     } else if (obj.mix) {
 /*
@@ -498,7 +501,7 @@ LSD.Object.prototype.mix = function(key, value, memo, old, merge, prepend, lazy,
       if (memo === 'copy') {
         if (vdef) this.set(key, value, memo, prepend);
         if (odef && (!vdef || this._journal)) this.unset(key, old, memo, prepend);
-      } else if (vdef && (obj._owner ? obj._owner !== this : obj._references > 0) 
+      } else if (vdef && obj !== old && (obj._owner ? obj._owner !== this : obj._references > 0) 
              && this._owning !== false && (!memo || !memo._delegate)) {
         obj = this._construct(key, null, 'copy')
       } else {
@@ -530,8 +533,10 @@ LSD.Object.prototype.mix = function(key, value, memo, old, merge, prepend, lazy,
           delete old[prop];
     }
   } else {
-    if (vdef) this.set(key, value, memo, prepend);
-    if (odef && (!vdef || this._journal)) this.unset(key, old, memo, prepend);
+    if (vdef) {
+      if (this._journal) this.set(key, value, memo, prepend, old);
+      else this.set(key, value, memo)
+    } else if (odef) this.unset(key, old, memo, prepend);
   }
   return this;
 };
@@ -939,3 +944,25 @@ LSD.Object.prototype._skip = {
   LSD.Object.prototype['_' + method] = LSD.Object.prototype[method];
 });
 LSD.Object.prototype.change = LSD.Object.prototype.set;
+LSD.Object.prototype._onStore = function(key, value, memo, old, name) {
+  if (name == null) {
+    if (value != null) {
+      var skip = value._skip; 
+      for (var prop in value) {
+        if (value.hasOwnProperty(prop) && (skip == null || !skip[prop])) {
+          var property = this._Properties[prop];
+          if (property != null) property.call(this, key, value[prop], true);
+        }
+      }
+    }
+    if (old != null) {
+      var skip = old._skip; 
+      for (var prop in old) {
+        if (old.hasOwnProperty(prop) && (skip == null || !skip[prop])) {
+          var property = this._Properties[prop];
+          if (property != null) property.call(this, key, old[prop], false);
+        }
+      }
+    }
+  }
+};

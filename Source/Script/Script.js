@@ -145,7 +145,8 @@ LSD.Script.Struct = new LSD.Struct({
   input: function(value, old) {
     if (this.attached && scope != null) {
       if (value) {
-        if (typeof this.scope != 'function') (this.scope.variables || this.scope).watch(this.input, this);
+        if (typeof this.scope != 'function') 
+          (this.scope.variables || this.scope).watch(this.input, this);
         else this.scope(this.input, this, true);
       }
       if (old) {

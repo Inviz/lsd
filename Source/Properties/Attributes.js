@@ -25,7 +25,7 @@ provides:
 */
 
 LSD.Properties.Attributes = LSD.Struct(LSD.attributes, 'Journal');
-LSD.Properties.Attributes.prototype.onChange = function(key, value, old, memo) {
+LSD.Properties.Attributes.prototype.onChange = function(key, value, memo, old) {
   var ns = this._owner.document || LSD.Document.prototype;
   var attribute = ns.attributes && ns.attributes[key]
   var vdef = typeof value != 'undefined', odef = typeof old != 'undefined';
@@ -50,7 +50,7 @@ LSD.Properties.Attributes.prototype.onChange = function(key, value, old, memo) {
 };
 LSD.Properties.Attributes.prototype._global = true;
 LSD.Properties.Microdata = LSD.Struct();
-LSD.Properties.Microdata.prototype.onChange = function(key, value, old, memo) {
+LSD.Properties.Microdata.prototype.onChange = function(key, value, memo, old) {
   console.log([key, value])
 }
 LSD.Properties.Variables = LSD.Struct('Journal');

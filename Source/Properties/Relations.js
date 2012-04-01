@@ -23,10 +23,9 @@ provides:
 
 LSD.Properties.Relations = LSD.Struct('Group', 'NodeList');
 LSD.Properties.Relations.prototype.onChange = function(key, value, memo, old) {
-  if (value.lsd) {
+  if ((value && value.lsd) || (old && old.lsd)) {
     var group = this[key]
     if (this._owner) {
-      var widget = state ? group[0] || value : group[1] || null;
       var options = this._options && this._options[key];
       if (options) {
         for (var name in options) {
@@ -34,27 +33,21 @@ LSD.Properties.Relations.prototype.onChange = function(key, value, memo, old) {
           if (!opts.length) continue;
           switch (name) {
             case 'singular':
-              var previous = this._owner[key];
-              this._owner.set(key, widget);
-              if (previous !== this[key]) this._owner.unset(key, previous);
+              this._owner.set(key, value, memo, false, this._owner[key]);
               break;
             case 'as':
-              if (state) {
-                if (old == null) value.set(opts[opts.length - 1], this._owner);
-              } else {
-                value.unset(opts[opts.length - 1], this._owner);
-              }
+            console.log(value, opts)
+              value.set(opts[opts.length - 1], this._owner, memo);
               break;
             case 'collection':  
               var collection = opts[opts.length - 1];
-              if (state) {
-                if (old == null) {
-                  if (value[collection] == null) value[collection] = new LSD.Array;
-                  value[collection].push(this._owner);
-                }
-              } else {
-                var index = value[collection].indexOf(this._owner);
-                value[collection].splice(index, 1);
+              if (value) {
+                if (value[collection] == null) value[collection] = new LSD.Array;
+                value[collection].push(this._owner);
+              }
+              if (old) {
+                var index = old[collection].indexOf(this._owner);
+                old[collection].splice(index, 1);
               }
           }
         }
@@ -83,7 +76,7 @@ LSD.Properties.Relations.prototype.onGroup = function(key, value, state) {
   }
 }
 LSD.Properties.Relations.prototype.onStore = '_Properties'
-LSD.Properties.Relations.prototype._delegate = function(object, key, value, old) {
+LSD.Properties.Relations.prototype._delegate = function(object, key, value, memo, old) {
   var property = this._Properties[key];
   if (property) return true;
 };
@@ -227,6 +220,7 @@ LSD.Properties.Relations.Properties = {
   },
   
   callbacks: function(key, value, state) {
+    console.error(key, value)
     if (!this._callbacks) this._callbacks = {};
     var group = (this._callbacks[key] || (this._callbacks[key] = {}));
     for (var name in value) {

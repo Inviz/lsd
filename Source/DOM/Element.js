@@ -113,7 +113,7 @@ LSD.Element.prototype.__properties = {
     if (!roles) return;
     if (typeof value == 'string')
       value = typeof roles[value] == 'undefined' ? roles.get(value) : roles[value];
-    if (typeof old == 'string') old = roles[old];
+    if (typeof old == 'string') old = roles[old] || undefined;
     this.mix(value, null, memo, old, false, true);
   },
 
@@ -418,11 +418,11 @@ LSD.Element.prototype.__properties = {
   focused: function(value, old, memo) {
     if (memo === this) return;
     if (value)
-      this.mix('parentNode.focused', value, memo || this, true);
+      this.mix('parentNode.focused', value, memo || this);
     if (value && !memo && this.ownerDocument)
       this.ownerDocument.change('activeElement', this, false);
     if (old)
-      this.mix('parentNode.focused', old, memo || this, false);
+      this.mix('parentNode.focused', undefined, memo || this, old);
   },
   rendered: function(value, old) {
   },

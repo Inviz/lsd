@@ -154,7 +154,7 @@ LSD.Struct.Mutators = {
       objects with specific class
 
 */
-LSD.Struct.prototype._onChange = function(key, value, old, memo) {
+LSD.Struct.prototype._onChange = function(key, value, memo, old) {
   if (typeof key != 'string') return value;
   var props = this._properties, prop;
   if (props) prop = props[key];

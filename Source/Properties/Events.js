@@ -49,14 +49,14 @@ LSD.Properties.Events.prototype.fire = function(key, a, b, c, d, e) {
   when a data flows through one of the sibling modules
 */
 
-LSD.Properties.Events.prototype._delegate = function(object, key, value, old, memo) {
+LSD.Properties.Events.prototype._delegate = function(object, key, value, memo, old) {
   switch (object.nodeType) {
     case 1:
       if (object.lsd) {
         object.events.mix(key, value, memo, old)
       } else {
-        if (typeof value != 'undefined') Element.addEvent(object, key, value);
-        if (typeof old != 'undefined') Element.removeEvent(object, key, old);
+        if (typeof value != 'undefined') Element.addEvents(object, key, value);
+        if (typeof old != 'undefined') Element.removeEvents(object, key, old);
       }
       break;
     default:

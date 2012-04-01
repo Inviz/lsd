@@ -35,7 +35,21 @@ provides:
   anyways, when a shadowing value is removed from journal, it picks the previous
   value. A call to `unset` function  with a value that is on top of the journal
   may result in a call to `set` as a side effect, that sets the previous 
-  value in journal. Very useful for objects live-merging.  
+  value in journal. Very handy for objects live merging.
+  
+  Setter method also accepts special `prepend` argument, that specifies
+  if the value should be added on top or on the bottom of its stack. 
+  Unlike regular LSD.Object, setter of LSD.Journal optionally accepts 
+  `old` value that will be removed from the stack. It's a nice little
+  convention that makes all the difference. All callbacks in LSD
+  accept both new and an old value, so when both values are fed to
+  setter, it handles side effects and ensures that a single callback
+  wrote a single value to the journal.
+  
+  It should be noted that Journal does not accept `undefined` as values
+  and ignores them. It is possible to give an `undefined` value
+  and a defined `old` value, so a call to `_unset` method will be 
+  issued instead. 
 */
 
 LSD.Journal = function(object) {
@@ -44,9 +58,9 @@ LSD.Journal = function(object) {
 
 LSD.Journal.prototype = new LSD.Object;
 LSD.Journal.prototype.constructor = LSD.Journal,
-LSD.Journal.prototype.set = function(key, value, memo, prepend, hash) {
+LSD.Journal.prototype.set = function(key, value, memo, prepend, old) {
   if (typeof key != 'string') {
-    if (hash == null) hash = this._hash(key);
+    var hash = this._hash(key);
     if (typeof hash == 'string') {
       key = hash;
       var index = key.indexOf('.');
@@ -54,24 +68,41 @@ LSD.Journal.prototype.set = function(key, value, memo, prepend, hash) {
       if (hash == null) return;
       var group = hash;
     }
-  } else {
-    var index = key.indexOf('.');
-  }
-  if (group == null && index === -1) {
+  } else var index = key.indexOf('.');
+  if (index === -1) {
     var journal = this._journal;
     if (!journal) journal = this._journal = {};
     var group = journal[key];
     if (!group) group = journal[key] = []
   }
+  var vdef = typeof value != 'undefined';
   if (group != null) {
-    if (prepend) {
-      var length = group.unshift(value);
-      if (length > 1) value = group[length - 1];
-    } else group.push(value);
+    if (typeof old != 'undefined') {
+      var j = group.length;
+      if (prepend) {
+        for (var i = 0; i < j; i++) if (group[i] === old) {
+            group.splice(i, 1);
+            break;
+          }
+      } else {
+        for (; --j > -1;) if (group[j] === old) {
+            group.splice(j, 1);
+            break;
+          }
+      }
+    }
+    if (vdef)
+      if (prepend) {
+        var length = group.unshift(value);
+        if (length > 1) value = group[length - 1];
+      } else group.push(value);
+    else if (j == null || j == (i == null ? -1 : i)) 
+      return false;
   }
+  if (!vdef) return this._unset(key, old, memo, index, hash);
   var eql = value === this[key];
   if (!eql && !this._set(key, value, memo, index, hash)) {
-    prepend ? group.shift() : group.pop();
+    if (group) prepend ? group.shift() : group.pop();
     return false;
   }
   return !eql
