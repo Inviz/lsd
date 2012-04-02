@@ -23,7 +23,7 @@ LSD.Action.Set = LSD.Action.build({
     var widget = LSD.Module.DOM.find(target, true);
     switch (LSD.toLowerCase(target.tagName)) {
       case 'input': case 'textarea':
-        if (target.applyValue) target.applyValue(value);
+        if (widget && widget.setValue) widget.setValue(value);
         else target.value = value; break;
       default:
         if (widget && widget.findItemByValue) {
