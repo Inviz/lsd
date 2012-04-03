@@ -52,8 +52,7 @@ LSD.Textnode = LSD.Struct({
     return new LSD.Script({type: 'function', name: 'concat', input: bits, pipable: false});
   },
   parentNode: function(value, old, memo) {
-    if (value) this.mix('variables', value.variables, memo, true, true);
-    if (old) this.mix('variables', old.variables, memo, false, true)
+    this.mix('variables', value && value.variables, memo, old && old.variables, true);
   }
 }, 'Journal');
 LSD.Textnode.implement(LSD.Node.prototype);

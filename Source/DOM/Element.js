@@ -492,10 +492,9 @@ LSD.Element.prototype.__properties = {
     }
   },
   parentNode: function(value, old, memo) {
-    if (!value) {
-      if (memo !== 'overwrite' && memo !== 'collapse') this.unset('sourceIndex', this.sourceIndex, memo);
-    } else this.mix('variables', value.variables, memo, true, true);
-    if (old) this.mix('variables', old.variables, memo, false, true)
+    if (!value && memo !== 'overwrite' && memo !== 'collapse') 
+      this.unset('sourceIndex', this.sourceIndex, memo);
+    this.mix('variables', value && value.variables, memo, old && old.variables, true);
     for (var property in this._inherited) {
       if (value && value[property]) this.set(property, value[property], memo, true);
       if (old && old[property]) this.unset(property, old[property], memo, true);
@@ -544,7 +543,7 @@ LSD.Element.prototype.__properties = {
         children.textContent = text;
       }
     }
-    this.mix('nodeValue', value, memo, old, true);
+    this.mix('nodeValue', value, memo, old, true, true);
   },
   /*
     Different types of elements have different strategies to define value.
@@ -554,7 +553,6 @@ LSD.Element.prototype.__properties = {
   */
   nodeValueProperty: function(value, old) {
     if (value) this.watch(value, 'nodeValue');
-    console.error([this.nodeValue, value, this.href])
     if (old) this.unwatch(old, 'nodeValue');
   },
   src:    'request.url',

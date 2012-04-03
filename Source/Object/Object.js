@@ -219,7 +219,7 @@ LSD.Object.prototype.unset = function(key, value, memo, index, hash) {
         if (fn.call) fn.call(this, undefined, old);
         else this._callback(fn, key, undefined, old, memo);
     var stored = this._stored && this._stored[key];
-    if (stored != null && value != null)
+    if (stored != null && value != null && value.unmix)
       for (var i = 0, args, obj; args = stored[i++];)
         if ((obj = args[0]) !== value && obj !== old)
           if (!args[2] || !args[2]._delegate || !args[2]._delegate(value, key, undefined, memo, args[0]))
