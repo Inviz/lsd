@@ -519,7 +519,7 @@ LSD.Styles.Parser = new LSD.RegExp({
   string_token: '([^$,\s\/()]+)',
   string: '<string_single>|<string_double>|<string_token>'
 }, {
-  fn: function(name, args, scope) {
+  fn: function(name, args) {
     var parsed = this.exec(args, true);
     for (var j = 0, bit; bit = parsed[j]; j++) if (bit && bit.length == 1) parsed[j] = bit[0];
     //switch (name) {
@@ -536,7 +536,7 @@ LSD.Styles.Parser = new LSD.RegExp({
         return obj;
     //}
   },
-  length: function(number, unit, scope) {
+  length: function(number, unit) {
     if (this.memo && scope.length) {
       var chr = number.charAt(0)
       switch (chr) {
@@ -558,16 +558,15 @@ LSD.Styles.Parser = new LSD.RegExp({
     obj[found[type]] = /* path.match(Value.string) ? path.substr(1, path.length - 2) : */ path
     return obj;
   },
-  separator: function(character, scope, result) {
+  separator: function(character) {
     switch (character) {
       case ',':
-        result.push((this.scope = []));
+        return (this.scope = []));
         break;
-      default:
-        if (this.memo) return;
-        var length = scope.length;
-        if ((scope == result) && !scope[length - 1].push)
-          this.scope = scope[length - 1] = [scope[length - 1]];
+      //default:
+      //  if (this.memo || this.scope !== this.result) return;
+      //  var scope = this.scope, length = scope.length, last = scope[length - 1]
+      //  if (last.push) this.scope = this.scope[length - 1] = [last];
     }
   },
   operator: function(operator) {
