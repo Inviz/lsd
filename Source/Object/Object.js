@@ -620,7 +620,6 @@ LSD.Object.prototype.unmerge = function(value, prepend, memo) {
    LSD Objects support two ways of observing values:
 */
 LSD.Object.prototype.watch = function(key, callback, lazy, memo) {
-  var string = typeof key == 'string';
 /*
   A single argument without a pair is treated like a **Global observer** that
   recieve changes to all properties in an object. It supports different
@@ -635,8 +634,8 @@ LSD.Object.prototype.watch = function(key, callback, lazy, memo) {
   * Another observable object - the most efficient way, since it stores
     only a reference to another object. It results in "linking" objects
     together, so changes in observed object will be propagated to argument
-
 */
+  var string = typeof key == 'string';
   if (!string && typeof callback == 'undefined') {
     var watchers = this._watchers;
     if (!watchers) watchers = this._watchers = [];
@@ -684,10 +683,19 @@ LSD.Object.prototype.watch = function(key, callback, lazy, memo) {
         lazy: lazy
       }, lazy)
     } else {
+      if (lazy && typeof callback == 'string') {
+        callback = {
+          fn: this._watcher,
+          key: callback,
+          callback: callback,
+          memo: memo,
+          lazy: lazy
+        }
+      }
       var value = this.get(key, lazy === false);
       var watched = (this._watched || (this._watched = {}));
       (watched[key] || (watched[key] = [])).push(callback);
-      if (memo !== 'skip' && typeof value != 'undefined') {
+      if (typeof value != 'undefined') {
         if (callback.call) callback(value, undefined, memo);
         else this._callback(callback, key, value, undefined, memo, lazy);
       }
@@ -794,24 +802,18 @@ LSD.Object.prototype._construct = function(name, constructor, memo, value) {
   internally.
 */
 LSD.Object.prototype._watcher = function(call, key, value, old, memo) {
-  var object = value == null ? old : value, key = call.key;
-  if (typeof object._watch == 'function') {
-    object[value ? '_watch' : '_unwatch'](key.substring(call.index + 1), call.callback, call.lazy);
-  } else if (value != null) {
-    for (var dot, start; dot != -1;) {
-      start = (dot || call.index) + 1;
-      dot = key.indexOf('.', start)
-      var subkey = call.key.substring(start, dot == -1 ? key.length : dot);
-      var result = object.get ? object.get(subkey, lazy === false) : object[subkey];
-      if (result != null) {
-        if (dot != -1) {
-          if (typeof object._watch == 'function') {
-            return result[value ? '_watch' : '_unwatch'](key.substring(dot + 1), call.callback, call.lazy);
-          } else {
-            object = object[subkey];
-          }
-        } else call.callback(result);
-      } else break;
+  for (var i = 0, object; i < 2; i++) {
+    if ((object = (i ? value : old)) == null) continue;
+    for (var dot = null, start; dot != -1;) {
+      start = (dot == null ? call.index == null ? -1 : call.index : dot) + 1;
+      dot = call.key.indexOf('.', start)
+      if (object && object._watch) {
+        object[i ? '_watch' : '_unwatch'](call.key.substring(start), call.callback, call.lazy);
+      } else {
+        var subkey = call.key.substring(start, dot == -1 ? call.key.length : dot);
+        if (typeof (object = object[subkey]) == 'undefined') break;
+        if (dot == -1) call.callback(object);
+      }
     }
   }
 };

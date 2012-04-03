@@ -81,20 +81,21 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, memo, o
   /*
     Expression may be a string selector, so it gets parsed with Slick
   */
-  if (typeof selector == 'string') {
+  if (typeof selector == 'string')
     selector = (this._parsed[selector] || (this._parsed[selector] = Slick.parse(selector)));
-    if (callback.lsd) selector = selector.expressions[0];
+  if (value != null) {
+    if (value.lsd) {
+      var storage = this._hash(expression);
+      if (typeof expression.push == 'function') expression = expression[memo || 0];
+    }
   }
-  /*
-    Expression may be a parsed Slick selector, only expressions part is used then
-  */
-  var expression = selector.expressions || selector;
-  var vdef = typeof value != 'undefined', odef = typeof old != 'undefined';
+  if (old != null) {
+    
+  }
   /*
     If a selector is array of expressions, each of those expressions are processed then
   */
   if (callback.lsd) {
-    if (typeof expression.push == 'function') expression = expression[memo || 0];
     if (this._callbacks) {
       var storage = this._hash(expression);
       for (var i = 0, group; group = storage[i++];) {
@@ -159,30 +160,31 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, memo, o
     widgets that match each of combinator-tag pair.
   */
   } else {
-    if (state) {
+    if (vdef) {
       var stateful = !!(expression.id || expression.attributes || expression.pseudos || expression.classes) 
-      hash.push([expression, callback, stateful]);
+      hash.push([expression, value, stateful]);
       if (this._results) {
         var group = this._hash(expression, null, this._results);
         for (var i = 0, widget; widget = group[i++];) {
           if (!stateful) {
-            if (typeof callback == 'function') callback(widget, state);
-            else if (callback.callback)
-              (callback.fn || (callback.bind || this)[callback.method]).call(callback.bind || this, callback, widget, state)
-            else widget.mix(callback, null, memo, state)
-          } else widget.matches.set(expression, callback, 'state');
+            if (typeof value == 'function') value(widget, true);
+            else if (value.callback)
+              (value.fn || (value.bind || this)[value.method]).call(value.bind || this, value, widget, true)
+            else widget.mix(value, null, memo)
+          } else widget.matches.set(expression, value, 'state');
         }
       }
-    } else {
+    }
+    if (odef) {
       if (hash) for (var i = hash.length, fn; i--;) {
-        if ((fn = hash[i]) && (fn = fn[1]) && (fn === callback || fn.callback === callback)) {
+        if ((fn = hash[i]) && (fn = fn[1]) && (fn === old || fn.callback === old)) {
           if (this._results) {
-            var results = this._hash(expression, null, this._results);
-            for (var j = 0, result; result = results[j++];) {
-              if (typeof fn == 'function') fn(widget, state);
+            var group = this._hash(expression, null, this._results);
+            for (var j = 0, result; result = group[j++];) {
+              if (typeof fn == 'function') fn(widget, false);
               else if (typeof fn.callback != 'undefined')
-                (fn.fn || (fn.bind || this)[fn.method]).call(fn.bind || this, fn, result, state)
-              else result.mix(fn, null, memo, state)
+                (fn.fn || (fn.bind || this)[fn.method]).call(fn.bind || this, fn, result, false)
+              else result.mix(undefined, undefined, memo, fn)
             }
           }
           hash.splice(i, 1);

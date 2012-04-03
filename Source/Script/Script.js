@@ -230,10 +230,7 @@ LSD.Script.Struct = new LSD.Struct({
       }
     } else if (this.scope != null && (!this.type || this.type == 'variable')) {
       if (typeof this.scope != 'function') {
-        if (!this.setter) var self = this, setter = this.setter = function(value, old) {
-          if (typeof value == 'undefined') return self.unset('value', old);
-          else return self.change('value', value)
-        };
+        if (!this.setter) this.setter = [this, 'value'];
         (this.scope.variables || this.scope)[value ? 'watch' : 'unwatch'](this.name || this.input, this.setter);
       } else this.scope(this.input, this, this.scope, !!value);
       if (typeof this.value == 'undefined' && !this.input) this.change('executed', value);

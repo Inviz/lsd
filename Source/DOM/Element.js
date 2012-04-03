@@ -574,8 +574,8 @@ LSD.Element.prototype.__properties = {
     if (old) this.unset('nodeValue', this.microdata, memo);
   },
   itemprop: function(value, old, memo) {
-    if (value) this.watch('nodeValue', 'parentNode.microdata.' + value);
-    if (old) this.unwatch('nodeValue', 'parentNode.microdata.' + old);
+    if (value) this.watch('nodeValue', 'parentNode.microdata.' + value, true);
+    if (old) this.unwatch('nodeValue', 'parentNode.microdata.' + old, true);
   },
   itemtype: function(value, old) {
 
