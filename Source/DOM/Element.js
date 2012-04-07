@@ -134,8 +134,8 @@ LSD.Element.prototype.__properties = {
   Sub roles are accessible by specifying `type` and `kind` attributes.
 */
   tagName: function(value, old, memo) {
-    this.mix('nodeName', value, memo, old);
-    this.mix('localName', value, memo, old, true);
+    this.set('nodeName', value, memo, old);
+    this.set('localName', value, memo, old, true);
 /*
   LSD.Element figures out its tag name before it is placed in DOM, so
   following code doesn't run initially. It only runs if an element was in DOM
@@ -155,34 +155,14 @@ LSD.Element.prototype.__properties = {
     var previous = this.previousElementSibling, next = this.nextElementSibling, parent = this.parentNode;
     if (previous) {
       if (value) {
-        previous.matches.add('!+', value, this);
+        previous.matches.add('+', value, this);
         previous.matches.add('++', value, this);
       }
       if (old) {
-        previous.matches.remove('!+', old, this);
+        previous.matches.remove('+', old, this);
         previous.matches.remove('++', old, this);
       }
       for (var sibling = previous; sibling; sibling = sibling.previousElementSibling) {
-        if (value) {
-          sibling.matches.add('!~', value, this);
-          sibling.matches.add('~~', value, this);
-        }
-        if (old) {
-          sibling.matches.remove('!~', old, this);
-          sibling.matches.remove('~~', old, this);
-        }
-      }
-    }
-    if (next) {
-      if (value) {
-        next.matches.add('+', value, this);
-        next.matches.add('++', value, this);
-      }
-      if (old) {
-        next.matches.remove('+', old, this);
-        next.matches.remove('++', old, this);
-      }
-      for (var sibling = next; sibling; sibling = sibling.nextElementSibling) {
         if (value) {
           sibling.matches.add('~', value, this);
           sibling.matches.add('~~', value, this);
@@ -193,14 +173,45 @@ LSD.Element.prototype.__properties = {
         }
       }
     }
+    if (next) {
+      if (value) {
+        next.matches.add('!+', value, this);
+        next.matches.add('++', value, this);
+      }
+      if (old) {
+        next.matches.remove('!+', old, this);
+        next.matches.remove('++', old, this);
+      }
+      for (var sibling = next; sibling; sibling = sibling.nextElementSibling) {
+        if (value) {
+          sibling.matches.add('!~', value, this);
+          sibling.matches.add('~~', value, this);
+        }
+        if (old) {
+          sibling.matches.remove('!~', old, this);
+          sibling.matches.remove('~~', old, this);
+        }
+      }
+    }
     if (parent) {
       if (value) parent.matches.add('>', value, this);
       if (old) parent.matches.remove('>', old, this);
-      for (sibling = parent; sibling; sibling = parent.parentNode) {
+      for (sibling = parent; sibling; sibling = sibling.parentNode) {
         if (value) sibling.matches.add(' ', value, this);
         if (old) sibling.matches.remove(' ', old, this);
       }
     }
+    if (this.firstChild) for (var node = this, x, el; el != this; node = el)
+      if ((x || !(el = node.firstChild)) && (x = !(el = node.nextSibling)))
+        x = el = node.parentNode;
+      else if (el.nodeType == 1) {
+        if (value) el.matches.add('!', value, this);
+        if (old) el.matches.remove('!', old, this);
+        if (el.parentNode == this) {
+          if (value) el.matches.add('!>', value, this);
+          if (old) el.matches.remove('!>', old, this);
+        }
+      }
     this.setRoleBit(0, value);
   },
 /*
@@ -463,30 +474,38 @@ LSD.Element.prototype.__properties = {
   previousSibling: function(value, old, memo) {
     if (value) this.change('sourceIndex', (value.sourceLastIndex || value.sourceIndex || 0) + 1, memo);
   },
-  previousElementSibling: function(value, old) {
-    for (var i = 0, node, method; i < 2; i++) {
-      if (i) node = old, method = 'remove';
-      else node = value, method = 'add';
-      if (node) {
-        node.matches[method]('!+', this.tagName, this, true);
-        node.matches[method]('++', this.tagName, this, true);
-        for (var sibling = this; sibling = sibling.previousElementSibling;) {
-          sibling.matches[method]('!~', this.tagName, this, true);
-          sibling.matches[method]('~~', this.tagName, this, true);
-        }
-      }
-    }
-  },
-  nextElementSibling: function(value, old) {
-    for (var i = 0, node, method; i < 2; i++) {
+  previousElementSibling: function(value, old, memo) {
+    if (memo !== 'expand') for (var i = 0, node, method; i < 2; i++) {
       if (i) node = old, method = 'remove';
       else node = value, method = 'add';
       if (node) {
         node.matches[method]('+', this.tagName, this, true);
         node.matches[method]('++', this.tagName, this, true);
-        for (var sibling = node; sibling; sibling = sibling.nextElementSibling) {
+        for (var sibling = node; sibling; sibling = sibling.previousElementSibling) {
           sibling.matches[method]('~', this.tagName, this, true);
           sibling.matches[method]('~~', this.tagName, this, true);
+          if (old || memo != null) {
+            this.matches[method]('!~', sibling.tagName, sibling, this, true);
+            this.matches[method]('~~', sibling.tagName, sibling, this, true);
+          }
+        }
+      }
+    }
+  },
+  nextElementSibling: function(value, old, memo) {
+    if (memo !== 'collapse') for (var i = 0, node, method; i < 2; i++) {
+      if (i) node = old, method = 'remove';
+      else node = value, method = 'add';
+      if (node) {
+        node.matches[method]('!+', this.tagName, this, true);
+        node.matches[method]('++', this.tagName, this, true);
+        for (var sibling = node; sibling; sibling = sibling.nextElementSibling) {
+          sibling.matches[method]('!~', this.tagName, this, true);
+          sibling.matches[method]('~~', this.tagName, this, true);
+          if (old || memo != null) {
+            this.matches[method]('~', sibling.tagName, sibling, this, true);
+            this.matches[method]('~~', sibling.tagName, sibling, this, true);
+          }
         }
       }
     }
@@ -511,6 +530,19 @@ LSD.Element.prototype.__properties = {
         }
       }
     }
+    if (this.firstChild) for (var node = this, x, el; el != this; node = el)
+      if ((x || !(el = node.firstChild)) && (x = !(el = node.nextSibling)))
+        x = el = node.parentNode;
+      else if (el.nodeType == 1) {
+        if (old) {
+          old.matches.remove(' ', el.tagName, el, true);
+          el.matches.remove('!', old.tagName, old, true)
+        }
+        if (value) {
+          value.matches.add(' ', el.tagname, el, true);
+          el.matches.add('!', value.tagName, value, true)
+        }
+      }
   },
   multiple: function(value, old) {
     if (value) {
@@ -521,9 +553,15 @@ LSD.Element.prototype.__properties = {
     }
   },
   date: Date,
+  name: function(value, old) {
+    if (value) this.watch('nodeValue', 'form.' + value);
+    if (old) this.unwatch('nodeValue', 'form.' + old);
+  },
+  form: function(value, old) {
+  },
   value: function(value, old, memo) {
     if (this.checked === true || typeof this.checked == 'undefined')
-      this.mix('nodeValue', value, memo, old)
+      this.set('nodeValue', value, memo, old)
   },
   /*
     A change in `textContent` of a text node or explicit override of
@@ -538,12 +576,11 @@ LSD.Element.prototype.__properties = {
       if (content != null) {
         for (var text = '', child, i = 0; child = children[i++];)
           if (child.textContent != null) text += child.textContent;
-        node.set('textContent', text, 'textContent');
-        node.unset('textContent', content, 'textContent');
+        node.set('textContent', text, 'textContent', true, content);
         children.textContent = text;
       }
     }
-    this.mix('nodeValue', value, memo, old, true, true);
+    this.set('nodeValue', value, memo, true, old);
   },
   /*
     Different types of elements have different strategies to define value.
@@ -574,8 +611,8 @@ LSD.Element.prototype.__properties = {
     if (old) this.unset('nodeValue', this.microdata, memo);
   },
   itemprop: function(value, old, memo) {
-    if (value) this.watch('nodeValue', 'parentNode.microdata.' + value, true);
-    if (old) this.unwatch('nodeValue', 'parentNode.microdata.' + old, true);
+    if (value) this.watch('nodeValue', 'parentNode.microdata.' + value);
+    if (old) this.unwatch('nodeValue', 'parentNode.microdata.' + old);
   },
   itemtype: function(value, old) {
 
@@ -592,7 +629,7 @@ LSD.Element.prototype.localName = 'div';
 LSD.Element.prototype.tagName = null;
 LSD.Element.prototype.className = '';
 LSD.Element.prototype.nodeType = 1;
-LSD.Element.prototype._inherited = {'drawn': 1, 'built': 1, 'hidden': 1, 'disabled': 1, 'root': 1, 'microdata': 1};
+LSD.Element.prototype._inherited = {'drawn': 1, 'built': 1, 'hidden': 1, 'disabled': 1, 'root': 1, 'microdata': 1, 'form': 1};
 LSD.Element.prototype._preconstruct = ['childNodes', 'proxies', 'variables', 'attributes', 'classList', 'events', 'matches', 'relations'];
 LSD.Element.prototype.__initialize = function(/* options, element, selector, document */) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
@@ -796,6 +833,36 @@ LSD.Element.prototype.onChildSet = function(value, index, state, old, memo) {
   this.set('textContent', text);
   if (children.textContent != null) this.unset('textContent', children.textContent);
   children.textContent = text;
+  if (value.nodeType === 1 && old !== false) {
+    for (var next = children[index + 1]; next && next.nodeType != 1;) next = next.nextSibling;
+    for (var prev = children[index - 1]; prev && prev.nodeType != 1;) prev = prev.previousSibling;
+    if ((memo !== 'collapse' || old != null)) for (var i = index, node; node = children[--i];) {
+      if (node === value) continue;
+      if (state || old === false)
+        node.change('nextElementSibling', value, memo);
+      else if (node.nextElementSibling === value) {
+        if (next) node.change('nextElementSibling', next, memo);
+        else node.unset('nextElementSibling', value, memo);
+      }
+      if (node.nodeType === 1) {
+        value[state ? 'change' : 'unset']('previousElementSibling', node, memo);
+        break;
+      };
+    }  
+    if (memo !== 'collapse') for (var i = index, node; node = children[++i];) {
+      if (node === value) continue;
+      if (state || old === false)
+        node.change('previousElementSibling', value, memo);
+      else if (node.previousElementSibling === value) {
+        if (prev) node.change('previousElementSibling', prev, memo);
+        else node.unset('previousElementSibling', value, memo);
+      }
+      if (node.nodeType === 1) {
+        value[state ? 'change' : 'unset']('nextElementSibling', node, memo);
+        break;
+      }
+    }
+  }
 };
 
 LSD.Document.prototype.mix('states', {

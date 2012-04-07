@@ -21,10 +21,12 @@ provides:
 LSD.Node = function() {}
 LSD.Node.prototype._ownable = false;
 LSD.Node.prototype.appendChild = function(child) {
+  if (child.parentNode) child.parentNode.removeChild(child);
   this.childNodes.push(child)
   return this;
 };
 LSD.Node.prototype.insertBefore = function(child, before) {
+  if (child.parentNode) child.parentNode.removeChild(child);
   var index = this.childNodes.indexOf(before);
   if (index == -1) index = this.childNodes.length;
   this.childNodes.splice(index, 0, child);

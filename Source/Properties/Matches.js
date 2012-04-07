@@ -77,63 +77,40 @@ LSD.Properties.Matches = LSD.Struct('Group');
   the state and fires callbacks when classes, pseudo 
   classes or attributes are changed.
 */
-LSD.Properties.Matches.prototype.onChange = function(selector, callback, memo, old, hash) {
-  /*
-    Expression may be a string selector, so it gets parsed with Slick
-  */
-  if (typeof selector == 'string')
-    selector = (this._parsed[selector] || (this._parsed[selector] = Slick.parse(selector)));
-  if (value != null) {
-    if (value.lsd) {
-      var storage = this._hash(expression);
-      if (typeof expression.push == 'function') expression = expression[memo || 0];
-    }
-  }
-  if (old != null) {
-    
-  }
-  /*
-    If a selector is array of expressions, each of those expressions are processed then
-  */
-  if (callback.lsd) {
-    if (this._callbacks) {
-      var storage = this._hash(expression);
-      for (var i = 0, group; group = storage[i++];) {
-        if (group[2] === false) {
-          if (typeof group[1] == 'function') group[1](callback, vdef);
-          else this._callback(group[1], callback, vdef)
-        } else {
-          callback.matches[vdef ? 'set' : 'unset'](group[0], group[1], group[2])
-        }
-      }
-    }
-    return callback;
-  } else if (typeof expression.push == 'function') {
-    for (var i = 0, j = expression.length; i < j; i++) {
-      var expressions = expression[i];
-      if (typeof expressions.push != 'function') expressions = expression;
+LSD.Properties.Matches.prototype.onChange = function(key, value, memo, old, hash) {
+  if (typeof key == 'string') 
+    key = (this._parsed[key] || (this._parsed[key] = Slick.parse(key)));
+  var odef = old !== undefined, vdef = value !== undefined;
+  if (key.expressions) key = key.expressions;
+  if (typeof key.push == 'function') {
+    for (var i = 0, j = key.length; i < j; i++) {
+      var expressions = key[i];
+      if (typeof expressions.push != 'function') expressions = key;
       var l = expressions.length;
-      if (j == 1 && l == 1) break; 
+      if (j == 1 && l == 1) {
+        key = key[0][0]
+        break; 
+      }
       if (typeof memo != 'number') memo = 0;
       if (vdef) this.set(expressions[memo], {
         fn: this._advancer,
         bind: this,
         index: memo + 1,
-        callback: callback,
+        callback: value,
         expressions: expressions
       });
-      if (odef) this.unset(expressions[memo], callback);
-      if (j == 1 || expressions == expression) break;
+      if (odef) this.unset(expressions[memo], old);
+      if (j == 1 || expressions == key) break;
     }
     if (j > 1 || l > 1) return this._skip;
   }
   /* 
-    Expression may be a state selector, that expects current node
+    Expression may be a state key, that expects current node
     to be in a specific state (classes, pseudos and attributes).
   */
-  if (!expression.combinator || expression.combinator == '&' || memo === 'state') {
+  if (!key.combinator || key.combinator == '&' || memo === 'state') {
     for (var types = this._types, type, i = 0; type = types[i++];) {
-      var values = expression[type];
+      var values = key[type];
       var storage = this._state || (this._state = {});
       if (values) for (var j = 0, value; (value = values[j++]) && (value = value.key || value.value);) {
         if (vdef) {
@@ -141,18 +118,19 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, memo, o
           if (!kind) kind = storage[type] = {};
           var group = kind[value];
           if (!group) group = kind[value] = [];
-          group.push([expression, callback, true]);
-        } else {
+          group.push([key, value, true]);
+        }
+        if (odef) {
           var array = group[bit.key || bit.value];
           if (array) for (var k = array.length, fn; k--;)
-            if ((fn = array[k][1]) == callback || fn.callback == callback) {
+            if ((fn = array[k][1]) == old || fn.callback == old) {
               array.splice(k, 1);
               break;
             }
         }
       }
     }
-    if (this._owner && this._owner.test(expression)) callback(this._owner, state);
+    if (this._owner && this._owner.test(key)) callback(this._owner, state);
   /*
     Expression may also be matching other node according to its combinator.
     Expectation is indexed by its combinator & tag and stored in the object.
@@ -161,17 +139,17 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, memo, o
   */
   } else {
     if (vdef) {
-      var stateful = !!(expression.id || expression.attributes || expression.pseudos || expression.classes) 
-      hash.push([expression, value, stateful]);
+      var stateful = !!(key.id || key.attributes || key.pseudos || key.classes) 
+      hash.push([key, value, stateful]);
       if (this._results) {
-        var group = this._hash(expression, null, this._results);
+        var group = this._hash(key, null, this._results);
         for (var i = 0, widget; widget = group[i++];) {
           if (!stateful) {
-            if (typeof value == 'function') value(widget, true);
+            if (typeof value == 'function') value(widget);
             else if (value.callback)
-              (value.fn || (value.bind || this)[value.method]).call(value.bind || this, value, widget, true)
+              (value.fn || (value.bind || this)[value.method]).call(value.bind || this, value, widget)
             else widget.mix(value, null, memo)
-          } else widget.matches.set(expression, value, 'state');
+          } else widget.matches.set(key, value, 'state');
         }
       }
     }
@@ -179,12 +157,12 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, memo, o
       if (hash) for (var i = hash.length, fn; i--;) {
         if ((fn = hash[i]) && (fn = fn[1]) && (fn === old || fn.callback === old)) {
           if (this._results) {
-            var group = this._hash(expression, null, this._results);
+            var group = this._hash(key, null, this._results);
             for (var j = 0, result; result = group[j++];) {
-              if (typeof fn == 'function') fn(widget, false);
+              if (typeof fn == 'function') fn(undefined, old);
               else if (typeof fn.callback != 'undefined')
-                (fn.fn || (fn.bind || this)[fn.method]).call(fn.bind || this, fn, result, false)
-              else result.mix(undefined, undefined, memo, fn)
+                (fn.fn || (fn.bind || this)[fn.method]).call(fn.bind || this, fn, undefined, result)
+              else result.mix(undefined, undefined, memo, old)
             }
           }
           hash.splice(i, 1);
@@ -206,11 +184,14 @@ LSD.Properties.Matches.prototype.onChange = function(selector, callback, memo, o
   When an element that matches the last expression in a selector is found, 
   the callback is called.
 */
-LSD.Properties.Matches.prototype._advancer = function(call, widget, state) {
+LSD.Properties.Matches.prototype._advancer = function(call, value, old) {
   if (call.expressions[call.index] == null) {
-    if (typeof call.callback == 'function') call.callback(widget, state);
-    else this._callback(call.callback, widget, state)
-  } else widget.matches[state ? 'set' : 'unset'](call.expressions, call.callback, call.index)
+    if (typeof call.callback == 'function') call.callback(value, old);
+    else this._callback(call.callback, value, old)
+  } else {
+    if (value) value.matches.set(call.expressions, call.callback, call.index);
+    if (old) old.matches.unset(call.expressions, call.callback, call.index);
+  }
 };
 /*
   Hash hook allows Matches object to handle keys with types other than string.
@@ -260,34 +241,47 @@ LSD.Properties.Matches.prototype._hash = function(expression, value, storage) {
   If `wildcard` argument is given, it will also register 
   the widget with `*` tag by the same combinator.
 */
-LSD.Properties.Matches.prototype.add = function(combinator, tagName, value, wildcard) {
-  var storage = value.lsd ? this._results || (this._results = {}) : this._callbacks || (this._callbacks = {});
+LSD.Properties.Matches.prototype.add = function(combinator, tag, value, wildcard) {
+  if (value.lsd) var storage = this._results || (this._results = {}), 
+                     other = this._callbacks;
+  else           var storage = this._callbacks || (this._callbacks = {}), 
+                     other = this._results;
   var group = storage[combinator];
   if (group == null) group = storage[combinator] = {};
-  for (var tag = wildcard ? '*' : tagName; tag;) {
-    var array = group[tag];
-    if (array == null) array = group[tag] = [];
+  for (var key = tag; key; key = key == tag && wildcard && '*') {
+    var array = group[key];
+    if (array == null) array = group[key] = [];
     array.push(value);
-    if (tag === tagName) break;
-    else if (wildcard) tag = tagName;
+    if (other && (matched = other[combinator]) && (matched = matched[key])) {
+      for (var i = 0, item; item = matched[i++];) {
+        if (item[2] === false) {
+          if (typeof item[1] == 'function') item[1](value);
+          else this._callback(item[1], value);
+        } else callback.matches.set(item[0], item[1], item[2]);
+      }
+    }
   }
-  return true;
 }
-LSD.Properties.Matches.prototype.remove = function(combinator, tagName, value, wildcard) {
-  var storage = value.lsd ? this._results : this._callbacks;
+LSD.Properties.Matches.prototype.remove = function(combinator, tag, value, wildcard) {
+  if (value.lsd) var storage = this._results, other = this._callbacks;
+  else var storage = this._callbacks, other = this._results;
   if (storage == null) return false;
   var group = storage[combinator];
   if (group == null) return false;
-  for (var tag = wildcard ? '*' : tagName; tag;) {
-    var array = group[tag];
-    if (array) {
-      var index = array.indexOf(value);
-      if (index > -1) array.splice(index, 1);
+  for (var key = tag; key; key = key == tag && wildcard && '*') {
+    var array = group[key];
+    if (!array) continue;
+    var index = array.indexOf(value);
+    if (index > -1) array.splice(index, 1);
+    if (other && (matched = other[combinator]) && (matched = matched[key])) {
+      for (var i = 0, item; item = matched[i++];) {
+        if (item[2] === false) {
+          if (typeof item[1] == 'function') item[1](undefined, value);
+          else this._callback(item[1], undefined, value);
+        } else callback.matches.unset(item[0], item[1], item[2]);
+      }
     }
-    if (tag === tagName) break;
-    else if (wildcard) tag = tagName;
   }
-  return true;
 }
 LSD.Properties.Matches.prototype._types = ['pseudos', 'classes', 'attributes'];
 LSD.Properties.Matches.prototype._parsed = {};

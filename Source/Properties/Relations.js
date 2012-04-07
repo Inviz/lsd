@@ -36,7 +36,6 @@ LSD.Properties.Relations.prototype.onChange = function(key, value, memo, old) {
               this._owner.set(key, value, memo, false, this._owner[key]);
               break;
             case 'as':
-            console.log(value, opts)
               value.set(opts[opts.length - 1], this._owner, memo);
               break;
             case 'collection':  

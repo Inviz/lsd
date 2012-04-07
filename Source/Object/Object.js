@@ -382,7 +382,7 @@ LSD.Object.prototype.mix = function(key, value, memo, old, merge, prepend, lazy,
     if (store && this[store] && this[store](name, value, memo, old, prepend, subkey) === false) return;
     var storage = (this._stored || (this._stored = {})), group = storage[name];
     if (!group) group = storage[name] = [];
-    if (vdef) group.push([subkey, value, memo, old, merge, prepend, lazy]);
+    if (vdef) group.push([subkey, value, memo, undefined, merge, prepend, lazy]);
     if (odef) for (var i = 0, j = group.length; i < j; i++)
       if (group[i][1] === old) {
         group.splice(i, 1);
@@ -457,7 +457,7 @@ LSD.Object.prototype.mix = function(key, value, memo, old, merge, prepend, lazy,
     var storage = (this._stored || (this._stored = {}));
     var group = storage[key];
     if (!group) group = storage[key] = [];
-    if (vdef) group.push([value, null, memo, old, merge, prepend, lazy, index]);
+    if (vdef) group.push([value, null, memo, undefined, merge, prepend, lazy, index]);
     if (odef) for (var i = 0, j = group.length; i < j; i++)
       if (group[i][0] === old) {
         group.splice(i, 1);
