@@ -480,7 +480,7 @@ LSD.Element.prototype.__properties = {
       value.matches.add('+', this.tagName, this, true);
       value.matches.add('++', this.tagName, this, true);
       for (var node = value; node; node = node.previousElementSibling) {
-        if (memo !== 'insert') {
+        if (memo !== 'insert' && memo !== 'empty' && memo !== 'collapse') {
           node.matches.add('~', this.tagName, this, true);
           node.matches.add('~~', this.tagName, this, true);
         }
@@ -494,12 +494,11 @@ LSD.Element.prototype.__properties = {
       old.matches.remove('+', this.tagName, this, true);
       old.matches.remove('++', this.tagName, this, true);
       for (var node = old; node; node = node.previousElementSibling) {
-        if (memo !== 'overwrite') {
+        if (memo !== 'empty') {
           node.matches.remove('~', this.tagName, this, true);
           node.matches.remove('~~', this.tagName, this, true);
-        }
+        }  
         this.matches.remove('!~', node.tagName, node, true);
-        this.matches.remove('~~', node.tagName, node, true);
       }
     }
   },
@@ -509,7 +508,9 @@ LSD.Element.prototype.__properties = {
       value.matches.add('!+', this.tagName, this, true);
       value.matches.add('++', this.tagName, this, true);
       for (var node = value; node; node = node.nextElementSibling) {
-        if (memo === 'insert' || memo === 'overwrite') {
+        if (memo === 'insert' && node !== value)
+          node.matches.add('~~', this.tagName, this, true);
+        if (memo === 'insert' || memo === 'empty') {
           this.matches.add('~', node.tagName, node, true);
           this.matches.add('~~', node.tagName, node, true);
         }
@@ -519,13 +520,15 @@ LSD.Element.prototype.__properties = {
       old.matches.remove('!+', this.tagName, this, true);
       old.matches.remove('++', this.tagName, this, true);
       for (var node = old; node; node = node.nextElementSibling) {
+        if (memo === 'empty')
+          node.matches.remove('~~', this.tagName, this, true);
         this.matches.remove('~', node.tagName, node, true);
         this.matches.remove('~~', node.tagName, node, true);
       }
     }
   },
   parentNode: function(value, old, memo) {
-    if (!value && memo !== 'overwrite' && memo !== 'collapse') 
+    if (!value && memo !== 'empty' && memo !== 'collapse') 
       this.unset('sourceIndex', this.sourceIndex, memo);
     this.mix('variables', value && value.variables, memo, old && old.variables, true);
     for (var property in this._inherited) {

@@ -215,7 +215,7 @@ LSD.Array.prototype.splice = function(index, offset) {
       var d = (index - shift) - (i + shift);
       if (d > -1) {
         if (d) values.push(this[i + shift])
-        this.unset(i + shift, this[i + shift], null, d ? 'overwrite' : 'collapse');
+        this.unset(i + shift, this[i + shift], null, d ? 'empty' : 'collapse');
       }
       this.set(i + shift, this[i], i, 'collapse');
     }
