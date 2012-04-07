@@ -475,38 +475,52 @@ LSD.Element.prototype.__properties = {
     if (value) this.change('sourceIndex', (value.sourceLastIndex || value.sourceIndex || 0) + 1, memo);
   },
   previousElementSibling: function(value, old, memo) {
-    if (memo !== 'expand') for (var i = 0, node, method; i < 2; i++) {
-      if (i) node = old, method = 'remove';
-      else node = value, method = 'add';
-      if (node) {
-        node.matches[method]('+', this.tagName, this, true);
-        node.matches[method]('++', this.tagName, this, true);
-        for (var sibling = node; sibling; sibling = sibling.previousElementSibling) {
-          sibling.matches[method]('~', this.tagName, this, true);
-          sibling.matches[method]('~~', this.tagName, this, true);
-          if (old || memo != null) {
-            this.matches[method]('!~', sibling.tagName, sibling, this, true);
-            this.matches[method]('~~', sibling.tagName, sibling, this, true);
-          }
+    if (memo === 'expand') return;
+    if (value) {
+      value.matches.add('+', this.tagName, this, true);
+      value.matches.add('++', this.tagName, this, true);
+      for (var node = value; node; node = node.previousElementSibling) {
+        if (memo !== 'insert') {
+          node.matches.add('~', this.tagName, this, true);
+          node.matches.add('~~', this.tagName, this, true);
         }
+        if (memo === 'insert' || memo == null) {
+          this.matches.add('!~', node.tagName, node, true);
+          this.matches.add('~~', node.tagName, node, true);
+        }
+      }
+    }
+    if (old) {
+      old.matches.remove('+', this.tagName, this, true);
+      old.matches.remove('++', this.tagName, this, true);
+      for (var node = old; node; node = node.previousElementSibling) {
+        if (memo !== 'overwrite') {
+          node.matches.remove('~', this.tagName, this, true);
+          node.matches.remove('~~', this.tagName, this, true);
+        }
+        this.matches.remove('!~', node.tagName, node, true);
+        this.matches.remove('~~', node.tagName, node, true);
       }
     }
   },
   nextElementSibling: function(value, old, memo) {
-    if (memo !== 'collapse') for (var i = 0, node, method; i < 2; i++) {
-      if (i) node = old, method = 'remove';
-      else node = value, method = 'add';
-      if (node) {
-        node.matches[method]('!+', this.tagName, this, true);
-        node.matches[method]('++', this.tagName, this, true);
-        for (var sibling = node; sibling; sibling = sibling.nextElementSibling) {
-          sibling.matches[method]('!~', this.tagName, this, true);
-          sibling.matches[method]('~~', this.tagName, this, true);
-          if (old || memo != null) {
-            this.matches[method]('~', sibling.tagName, sibling, this, true);
-            this.matches[method]('~~', sibling.tagName, sibling, this, true);
-          }
+    if (memo === 'collapse') return;
+    if (value) {
+      value.matches.add('!+', this.tagName, this, true);
+      value.matches.add('++', this.tagName, this, true);
+      for (var node = value; node; node = node.nextElementSibling) {
+        if (memo === 'insert' || memo === 'overwrite') {
+          this.matches.add('~', node.tagName, node, true);
+          this.matches.add('~~', node.tagName, node, true);
         }
+      }
+    }
+    if (old) {
+      old.matches.remove('!+', this.tagName, this, true);
+      old.matches.remove('++', this.tagName, this, true);
+      for (var node = old; node; node = node.nextElementSibling) {
+        this.matches.remove('~', node.tagName, node, true);
+        this.matches.remove('~~', node.tagName, node, true);
       }
     }
   },

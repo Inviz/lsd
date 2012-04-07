@@ -204,7 +204,7 @@ LSD.Array.prototype.splice = function(index, offset) {
         for (var j = length, k = index + arity - shift; --j >= k;)
           this.set(j + shift, this[j], j, 'expand')
     }
-    this.set(i + index, args[i], i < offset ? false : null, i < offset ? 'overwrite' : null);
+    this.set(i + index, args[i], i < offset ? false : null, i < offset ? 'overwrite' : 'insert');
   }
 /*
   Otherwise, if there are more to be removed, then to inserted (#3),
