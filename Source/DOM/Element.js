@@ -461,12 +461,11 @@ LSD.Element.prototype.__properties = {
   },
 /*
   LSD.Element uses LSD.ChildNodes primitive that creates a special observable
-  collection that links objects in the collection together with links from
-  DOM1 (`previousSibling`, `nextSibling`) and from DOM2
-  (`previousElementSibling`, `nextElementSibling`). LSD.Element uses both
-  kinds of links to register the node in surrounding nodes to match possible
-  observing selectors and remap the indecies of nodes to trigger LSD.NodeList
-  collections resorts.
+  collection that connects objects in the collection together with links like
+  `previousSibling`, `firstChild` and `previousElementSibling`. LSD.Element 
+  uses both kinds of links to register the node in surrounding nodes to match 
+  possible observing selectors and remap the indecies of nodes to trigger 
+  LSD.NodeList collections resorts.
 */
   firstChild: function(value, old) {
     if (value) value.change('sourceIndex', (this.sourceIndex || 0) + 1);
@@ -475,12 +474,11 @@ LSD.Element.prototype.__properties = {
     if (value) this.change('sourceIndex', (value.sourceLastIndex || value.sourceIndex || 0) + 1, memo);
   },
   previousElementSibling: function(value, old, memo) {
-    if (memo === 'expand') return;
     if (value) {
       value.matches.add('+', this.tagName, this, true);
       value.matches.add('++', this.tagName, this, true);
       for (var node = value; node; node = node.previousElementSibling) {
-        if (memo !== 'insert' && memo !== 'empty' && memo !== 'collapse') {
+        if (memo !== 'collapse') {
           node.matches.add('~', this.tagName, this, true);
           node.matches.add('~~', this.tagName, this, true);
         }
@@ -494,7 +492,7 @@ LSD.Element.prototype.__properties = {
       old.matches.remove('+', this.tagName, this, true);
       old.matches.remove('++', this.tagName, this, true);
       for (var node = old; node; node = node.previousElementSibling) {
-        if (memo !== 'empty') {
+        if (memo !== 'collapse') {
           node.matches.remove('~', this.tagName, this, true);
           node.matches.remove('~~', this.tagName, this, true);
         }  
@@ -503,25 +501,21 @@ LSD.Element.prototype.__properties = {
     }
   },
   nextElementSibling: function(value, old, memo) {
-    if (memo === 'collapse') return;
     if (value) {
       value.matches.add('!+', this.tagName, this, true);
       value.matches.add('++', this.tagName, this, true);
-      for (var node = value; node; node = node.nextElementSibling) {
-        if (memo === 'insert' && node !== value)
+      if (memo === 'insert') 
+        for (var node = value; node; node = node.nextElementSibling) {
           node.matches.add('~~', this.tagName, this, true);
-        if (memo === 'insert' || memo === 'empty') {
           this.matches.add('~', node.tagName, node, true);
           this.matches.add('~~', node.tagName, node, true);
         }
-      }
     }
     if (old) {
       old.matches.remove('!+', this.tagName, this, true);
       old.matches.remove('++', this.tagName, this, true);
       for (var node = old; node; node = node.nextElementSibling) {
-        if (memo === 'empty')
-          node.matches.remove('~~', this.tagName, this, true);
+        node.matches.remove('~~', this.tagName, this, true);
         this.matches.remove('~', node.tagName, node, true);
         this.matches.remove('~~', node.tagName, node, true);
       }
@@ -850,35 +844,31 @@ LSD.Element.prototype.onChildSet = function(value, index, state, old, memo) {
   this.set('textContent', text);
   if (children.textContent != null) this.unset('textContent', children.textContent);
   children.textContent = text;
-  if (value.nodeType === 1 && old !== false) {
-    for (var next = children[index + 1]; next && next.nodeType != 1;) next = next.nextSibling;
-    for (var prev = children[index - 1]; prev && prev.nodeType != 1;) prev = prev.previousSibling;
-    if ((memo !== 'collapse' || old != null)) for (var i = index, node; node = children[--i];) {
-      if (node === value) continue;
-      if (state || old === false)
-        node.change('nextElementSibling', value, memo);
-      else if (node.nextElementSibling === value) {
-        if (next) node.change('nextElementSibling', next, memo);
-        else node.unset('nextElementSibling', value, memo);
-      }
-      if (node.nodeType === 1) {
-        value[state ? 'change' : 'unset']('previousElementSibling', node, memo);
-        break;
-      };
-    }  
-    if (memo !== 'collapse') for (var i = index, node; node = children[++i];) {
-      if (node === value) continue;
-      if (state || old === false)
-        node.change('previousElementSibling', value, memo);
-      else if (node.previousElementSibling === value) {
-        if (prev) node.change('previousElementSibling', prev, memo);
-        else node.unset('previousElementSibling', value, memo);
-      }
-      if (node.nodeType === 1) {
-        value[state ? 'change' : 'unset']('nextElementSibling', node, memo);
-        break;
-      }
-    }
+  if (value.nodeType !== 1 || old === false) return;
+  for (var prev = children[index - 1]; prev && (prev.nodeType != 1 || prev == value);) 
+    prev = prev.previousSibling;
+  for (var next = children[index + 1]; next && (next.nodeType != 1 || next == prev || next == value);)
+    next = next.nextSibling; 
+  if (prev && (memo !== 'collapse' || old != null)) {
+    if (state || old === false)
+      prev.change('nextElementSibling', value, memo);
+    else if (prev.nextElementSibling === value)
+      if (next) {
+        if (memo !== 'empty') prev.change('nextElementSibling', next, memo);
+      } else prev.unset('nextElementSibling', value, memo);
+      
+    if (state) value.change('previousElementSibling', prev, memo);
+    else value.unset('previousElementSibling', value.previousElementSibling)
+  }  
+  if (next && memo !== 'collapse') {
+    if (state || old === false)
+      next.change('previousElementSibling', value, memo);
+    else if (next.previousElementSibling === value)
+      if (prev) {
+        if (memo !== 'empty') next.change('previousElementSibling', prev, memo);
+      } else next.unset('previousElementSibling', value, memo);
+      if (state) value.change('nextElementSibling', next, memo);
+      else value.unset('nextElementSibling', value.nextElementSibling)
   }
 };
 

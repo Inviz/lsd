@@ -192,7 +192,7 @@ LSD.Array.prototype.splice = function(index, offset) {
   for (var i = 0; i < arity; i++) {
     if (i < offset) {
       values.push(this[i + index]);
-      this.unset(i + index, this[i + index], false, 'splice');
+      this.unset(i + index, this[i + index], false, 'empty');
     } else {
 /*
   If there is more values to be inserted (#2) than to be removed,
@@ -207,7 +207,7 @@ LSD.Array.prototype.splice = function(index, offset) {
     this.set(i + index, args[i], i < offset ? false : null, i < offset ? 'overwrite' : 'insert');
   }
 /*
-  Otherwise, if there are more to be removed, then to inserted (#3),
+  Otherwise, if there are more to be removed, than to inserted (#3),
   it shifts the array to the left.
 */
   if (shift < 0 && index < length)
