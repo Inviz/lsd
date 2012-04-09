@@ -59,13 +59,13 @@ LSD.RegExp.prototype = {
     if (memo) this.memo = memo;
     regexp.lastIndex = 0;
     for (var match, group, val, args; match = regexp.exec(string);) {
-      for (var i = 1, s = null, j = match.length + 1, group = null, val; i <= j; i++) {
+      for (var i = 1, s = null, j = match.length, group = null, val; i <= j; i++) {
         if (group != null && group !== groups[i]) {
           while (!match[i - 1]) i--
           while (!match[s - 1] && !this.alternatives[s] && groups[s - 1] === group) s--
           match = match.slice(s, i);
           if (!callbacks) {
-            if (!stack) var stack = {};
+            if (!stack) var stack = this.result = {};
             stack[group] = i - s == 1 ? match[0] : match;
           } else {
             if (!stack) var stack = this.stack = this.result = [];
