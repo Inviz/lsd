@@ -1,3 +1,122 @@
+/*
+---
+
+script: Styles.js
+
+description: An observable styles object and CSSOM matcher
+
+license: Public domain (http://unlicense.org).
+
+authors: Yaroslaff Fedin
+
+requires:
+  - LSD.Struct
+  - LSD.Group
+  - LSD.Document
+  - Color/Color
+
+provides:
+  - LSD.Styles
+  - LSD.Styles
+
+...
+*/
+
+LSD.RegExp = function(object, callbacks, clean) {
+  this.definition = object;
+  this.callbacks = callbacks;
+  this.clean = clean;
+  this.groups = {};
+  this.alternatives = {};
+  var source = '', re = this, index = 0
+  var placeholder = function(all, token, start, input) {
+    var value = object[token], left, right;
+    if ((value == null || token === name) && typeof (value = re[token]) != 'string') {
+      var bits = token.split('_');
+      value = (re[bits[0]]) ? re[bits.shift()].apply(re, bits) : token;
+    }
+    if ((left = input.substring(0, start).match(re.re_left))) left = left[0];
+    if ((right = input.substring(start + all.length).match(re.re_right))) right = right[0];
+    if (left || right) re.groups[++index] = name;
+    if (left && left.charAt(left.length - 1) === '|' && left.charAt(0) !== '\\') 
+      re.alternatives[index] = re.groups[index - 1] || re.alternatives[index - 1];
+    return value.replace(re.re_reference, placeholder);
+  };
+  for (var name in object) {
+    var old = index, value = object[name];
+    var replaced = value.replace(this.re_reference, placeholder)
+    var groupped = this.re_groupped.test(value);
+    if (old !== index || groupped) source += (source ? '|' : '') + replaced;
+    if (old === index && groupped) this.groups[++index] = name;
+  }  
+  this.source = source;
+};
+LSD.RegExp.prototype = {
+  exec: function(string, callbacks, memo) {
+    if (typeof callbacks == 'undefined') callbacks = this.callbacks;
+    var regexp = this.compiled || (this.compiled = new RegExp(this.source, "g"));
+    var lastIndex = regexp.lastIndex, old = this.stack, res = this.result, groups = this.groups, mem = this.memo;
+    if (memo) this.memo = memo;
+    regexp.lastIndex = 0;
+    for (var match, group, val, args; match = regexp.exec(string);) {
+      for (var i = 1, s = null, j = match.length + 1, group = null, val; i <= j; i++) {
+        if (group != null && group !== groups[i]) {
+          while (!match[i - 1]) i--
+          while (!match[s - 1] && !this.alternatives[s] && groups[s - 1] === group) s--
+          match = match.slice(s, i);
+          if (!callbacks) {
+            if (!stack) var stack = {};
+            stack[group] = i - s == 1 ? match[0] : match;
+          } else {
+            if (!stack) var stack = this.stack = this.result = [];
+            if (typeof (val = callbacks[group]) == 'function') 
+              val = val.apply(this, match);
+            else if (val === true) val = match[0];
+            if (typeof val !== 'undefined') this.stack.push(val);
+          }
+          break;
+        } else if (match[i]) {
+          if (s == null) s = i;
+          if (group == null) group = groups[i];
+        }
+      }
+    }
+    var result = this.result;
+    regexp.lastIndex = lastIndex;
+    this.stack = old;
+    this.memo = mem;
+    this.result = res;
+    if (memo) for (var j = 0, bit; bit = result[j]; j++) if (bit && bit.length == 1) result[j] = bit[0];
+    return (result && result.length == 1) ? result[0] : result;
+  },
+  inside: function(type, level) {
+    var key = Array.prototype.join.call(arguments, '_');
+    if (this.insiders[key]) return this.insiders[key];
+    var g = this.insides[type], s = '[^' + '\\' + g[0] + '\\' + g[1] + ']'
+    for (var i = 1, bit, j = parseInt(level) || 5; i < j; i++)
+      s = '(?:[^\\' + g[0] + '\\' + g[1] + ']' + '|\\' + g[0] + s +  '*\\' + g[1] + ')'
+    return (this.insiders[key] = s);
+  },
+  re_reference: /\<([a-zA-Z][a-zA-Z0-9_]*)\>/g,
+  re_left: /\(\?\:$|[^\\]\|(?=\()*?|\($/,
+  re_right: /\||\)/,
+  re_groupped: /^\([^\?].*?\)$/,
+  insides: {
+    curlies: ['{', '}'],
+    squares: ['[', ']'],
+    parens:  ['(', ')']
+  },
+  insiders: {},
+  callbacks: {},
+  unicode:       "(?:[\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])",
+  string_double: '"((?:[^"]|\\\\")*)"',
+  string_single: "'((?:[^']|\\\\')*)'",
+  string:        '<string_double>|<string_single>',
+  whitespace:    '\\s',
+  comma:         ','
+}
+
+
 LSD.Styles = LSD.Struct('Journal');
 
 LSD.Styles.prototype.onChange = function(key, value, memo, old) {
@@ -483,7 +602,7 @@ Object.append((LSD.Document.prototype.styles || (LSD.Document.prototype.styles =
         CSS['borderRadius' + side + adj] = ['length', 'none'];
   };
   for (var property in CSS) {
-    var style = Styles[property] = Styles.Property.compile(CSS[property], Styles);
+    var style = Styles[property] = LSD.Styles.Property(CSS[property], Styles);
     var hyphenated = property.replace(/(^|[a-z])([A-Z])/g, function(m, a, b) {
       return a + '-' + b.toLowerCase();
     });
@@ -500,77 +619,78 @@ Object.append((LSD.Document.prototype.styles || (LSD.Document.prototype.styles =
 */
 
 LSD.Styles.Parser = new LSD.RegExp({
+  url_name: 'url|local|src',
+  url_string: '.*?',
+  url: '(<url_name>)\\((<url_string>)\\)',
+  
   fn_arguments: '<inside_parens>*',
-  fn_name: '[-_a-zA-Z0-9]',
+  fn_name: '[-_a-zA-Z0-9]*',
   fn: '(<fn_name>)\\s*\\((<fn_arguments>)\\)',
-
-  integer: '[-+]?\d+',
-  'float': '[-+]?(?:\d+\.\d*|\d*\.\d+)',
-  number: '<integer>|<float>',
-  unit: 'em|px|pt|%|fr|deg|(?=$|[^a-zA-Z0-9.])',
-  length: '<number><unit>',
-
-  url: '(url|local|src)\\((.*?)\\)',
-  operator: '([-+]|[\/%^~=><*\^!|&]+)',
-  separator: '\s*,\s*|\s+',
-
-  string_double: '"((?:[^"]|\\\\")*)"',
-  string_single: "'((?:[^']|\\\\')*)'",
-  string_token: '([^$,\s\/()]+)',
-  string: '<string_single>|<string_double>|<string_token>'
+  
+  integer: '[-+]?\\d+',
+  'float': '[-+]?\\d+\\.\\d*|\\d*\\.\\d+',
+  length: '(<integer>|<float>)(em|px|pt|%|fr|deg|(?=$|[^a-zA-Z0-9.]))',
+  operator: '([-+]|[\\/%^~=><*\\^!|&]+)',
+  delimeters: ',|\\s',
+  separator: '\\s*(<delimeters>)\\s*',
+  
+  string: '<string>',
+  token: '([^$,\\s\\/()]+)'
 }, {
   fn: function(name, args) {
-    var parsed = this.exec(args, true);
-    for (var j = 0, bit; bit = parsed[j]; j++) if (bit && bit.length == 1) parsed[j] = bit[0];
-    //switch (name) {
-    //  case '+': case '-':
-    //    if (isFinite(parsed)) {
-    //      return name === '-' ? - parsed : parsed;
-    //    } else {
-    //      scope.push(name);
-    //      return parsed;
-    //    }
-    //  default:
+    var parsed = args == null ? [] : this.exec(args, undefined, true)
+    switch (name) {
+      case '+': case '-':
+        if (isFinite(parsed)) {
+          return name === '-' ? - parsed : parsed;
+        } else {
+          this.stack.push(name);
+          return parsed;
+        }
+        break;
+      default:
+        if (!name) return parsed;
         var obj = {};
         obj[name] = parsed;
         return obj;
-    //}
+    }
   },
   length: function(number, unit) {
-    if (this.memo && scope.length) {
+    var num = parseFloat(number);
+    if (this.memo && this.stack.length) {
       var chr = number.charAt(0)
       switch (chr) {
         case '+': case '-':
-          var last = scope[scope.length - 1];
+          var last = this.stack[this.stack.length - 1];
           if (!last || !last.match) {
-            scope.push(chr);
-            if (chr === '-') number = - number;
+            this.stack.push(chr);
+            if (chr === '-') num = - num;
           }
       };
     }
-    return unit ? {number: parseFloat(number), unit: unit} : parseFloat(number);
-  },
-  string: function(string) {
-    return string;
+    return unit ? {number: num, unit: unit} : num;
   },
   url: function(type, path) {
     var obj = {};
-    obj[found[type]] = /* path.match(Value.string) ? path.substr(1, path.length - 2) : */ path
+    var first = path.charAt(0), length = path.length;
+    if (first == path.charAt(length - 1) && (first == '"' || first == "'"))
+      path = path.substring(1, length - 1);
+    obj[type] = path
     return obj;
   },
   separator: function(character) {
     switch (character) {
       case ',':
-        return (this.scope = []));
+        if (this.result[0] && !this.result[0].push) this.result = [this.result];
+        this.result.push(this.stack = []);
         break;
-      //default:
-      //  if (this.memo || this.scope !== this.result) return;
-      //  var scope = this.scope, length = scope.length, last = scope[length - 1]
-      //  if (last.push) this.scope = this.scope[length - 1] = [last];
+      default:
+        if (this.memo || this.stack !== this.result) return;
+        var stack = this.stack, length = stack.length, last = stack[length - 1]
+        if (last.push) this.stack = this.stack[length - 1] = [last];
     }
   },
-  operator: function(operator) {
-    this.memo = true;
-    return operator;
-  }
-});
+  string: true,
+  token: true,
+  operator: true
+}, true);

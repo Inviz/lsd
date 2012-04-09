@@ -35,6 +35,7 @@ sources:
   - Source/Properties/Resource.js
   - Source/Properties/Proxies.js
   - Source/Properties/Roles.js
+  - Source/Properties/Styles.js
   - Source/Script/Script.js
   - Source/Script/Parser.js
   - Source/Script/Helpers.js
