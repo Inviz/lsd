@@ -82,15 +82,7 @@ LSD.Mixin.Fieldset = new Class({
   addFieldErrors: function(errors) {
     for (var name in errors) {
       var field = this.submittedFields && this.submittedFields.get(name) || this.fields.get(name);
-      if (!field) continue;
-      if (!field.lsd) {
-        for (var i in field)
-          if (field[i] != null && field[i].lsd) {
-            field = field[i];
-            break;
-          } 
-        if (field == null || !field.lsd) continue;
-      }
+      if (!field || !field.lsd) continue;
       field.invalidate(errors[name]);
     }
     this.errors = errors;
