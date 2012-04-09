@@ -86,7 +86,8 @@ LSD.RegExp.prototype = {
     this.stack = old;
     this.memo = mem;
     this.result = res;
-    if (memo) for (var j = 0, bit; bit = result[j]; j++) if (bit && bit.length == 1) result[j] = bit[0];
+    if (memo) for (var j = 0, bit; (bit = result[j]) != null; j++) 
+      if (bit && bit.length == 1) result[j] = bit[0];
     return (result && result.length == 1) ? result[0] : result;
   },
   inside: function(type, level) {
@@ -97,23 +98,21 @@ LSD.RegExp.prototype = {
       s = '(?:[^\\' + g[0] + '\\' + g[1] + ']' + '|\\' + g[0] + s +  '*\\' + g[1] + ')'
     return (this.insiders[key] = s);
   },
-  re_reference: /\<([a-zA-Z][a-zA-Z0-9_]*)\>/g,
-  re_left: /\(\?\:$|[^\\]\|(?=\()*?|\($/,
-  re_right: /\||\)/,
-  re_groupped: /^\([^\?].*?\)$/,
+  re_reference:  /\<([a-zA-Z][a-zA-Z0-9_]*)\>/g,
+  re_left:       /\(\?\:$|[^\\]\|(?=\()*?|\($/,
+  re_right:      /\||\)/,
+  re_groupped:   /^\([^\?].*?\)$/,
   insides: {
-    curlies: ['{', '}'],
-    squares: ['[', ']'],
-    parens:  ['(', ')']
+    curlies:     ['{', '}'],
+    squares:     ['[', ']'],
+    parens:      ['(', ')']
   },
-  insiders: {},
-  callbacks: {},
+  insiders:      {},
+  callbacks:     {},
   unicode:       "(?:[\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])",
   string_double: '"((?:[^"]|\\\\")*)"',
   string_single: "'((?:[^']|\\\\')*)'",
-  string:        '<string_double>|<string_single>',
-  whitespace:    '\\s',
-  comma:         ','
+  string:        '<string_double>|<string_single>'
 }
 
 
@@ -136,30 +135,30 @@ LSD.Styles.prototype.onChange = function(key, value, memo, old) {
 };
 
 /*
-  CSSOM function parsers for different types of values.
-  Each type may be used as a regular function, then
+  CSSOM function parsers for different types of values. Each type may be used
+  as a regular function that validates input.
 */
 
 LSD.Styles.Type = {
 /*
-  Number may be either float or integer. Floats are good
-  for line-heights, but not many other properties.
+  Number may be either float or integer. Floats are good for line-heights,
+  but not many other properties.
 */
   number: function(obj) {
     if (typeof obj == 'number') return obj;
     return false;
   },
 /*
-  Number is a integer value. Only a few standart properties
-  accept integer as a value, like `zoom`, `line-height` or `zIndex`.
+  Number is a integer value. Only a few standart properties accept integer
+  as a value, like `zoom`, `line-height` or `zIndex`.
 */
   integer: function(obj) {
     if (obj % 1 == 0 && ((0 + obj).toString() == obj)) return obj;
     return false;
   },
 /*
-  Keywords are most common in CSS, most of the properties
-  have their own setting of recognized keywords.
+  Keywords are most common in CSS, most of the properties have their own
+  setting of recognized keywords.
 */
   keyword: function(keywords) {
     var storage;
@@ -169,42 +168,36 @@ LSD.Styles.Type = {
     }
   },
 /*
-  The only place in CSS that accepts multiple strings,
-  is the `font-family` property and values are not
-  really validated there.
+  The only place in CSS that accepts multiple strings, is the `font-family`
+  property and values are not really validated there.
 */
   strings: function(obj) {
     return obj.indexOf ? obj : false;
   },
 /*
-  Position is a limited set of keywords that proeprties
-  like `background-position` can deal with.
+  Position is a limited set of keywords that proeprties like
+  `background-position` can deal with.
 */
   position: function(obj) {
     return LSD.Styles.positions[obj] ? obj : false
   },
 /*
-  A number with a percent sign is parsed as a length,
-  but most of the properties dont accept percentages,
-  e.g. `border-left-width` so we have to separate
-  percentage from other lengths
+  A number with a percent sign is parsed as a length, but most of the
+  properties dont accept percentages, e.g. `border-left-width` so we have to
+  separate percentage from other lengths
 */
   percentage: function(obj) {
     return obj.unit == '%' ? LSD.Styles.Type.length(obj, '%') : false
   }
 };
 /*
-  Property types above are simple, so values parsed
-  and converted to objects dont have additional
-  methods or capabilities. The following types
-  create an object with its own prototype and methods.
-*/
-
-/*
-  Color may be defined in a variety of ways in CSS:
-  `rgb`, `rgba`, `hsb` functions and hex notation.
-  Parsed color is an object that has some conversion
-  and convenience methods.
+  Property types above are simple, so values parsed and converted to objects
+  dont have additional methods or capabilities. The following types create
+  an object with its own prototype and methods.
+  
+  Color may be defined in a variety of ways in CSS: `rgb`, `rgba`, `hsb`
+  functions and hex notation. Parsed color is an object that has some
+  conversion and convenience methods.
 */
 LSD.Styles.Type.color = function(obj, type) {
   if (this === LSD.Styles.Type) {
@@ -235,13 +228,10 @@ LSD.Styles.Type.color = function(obj, type) {
   return false;
 };
 /*
-  Most browsers normalize colors internally
-  by converting them to a consistent
-  `rgb()` function representation and
-  falling back to `rgba` when alpha channel
-  is not equal to 1. LSD color tries to keep
-  values readable, so it uses hex wherever
-  possible.
+  Most browsers normalize colors internally by converting them to a consistent
+  `rgb()` function representation and falling back to `rgba` when alpha channel
+  is not equal to 1. LSD color tries to keep values readable, so it uses hex
+  wherever possible.
 */
 LSD.Styles.Type.color.prototype = {
   toString: function() {
@@ -254,15 +244,13 @@ for (var method in Color.prototype)
   if (!LSD.Styles.Type.color.prototype[method])
     LSD.Styles.Type.color.prototype[method] = Color.prototype[method];
 /*
-  Length is a combination of a number and a unit.
-  Browsers dont treat regular numbers like lengths,
-  except for IE where it defaults to pixels.
-  For easier length manipulations, LSD recognizes
-  number as a length, with the pixel as a default
-  unit.
+  Length is a combination of a number and a unit. Browsers dont treat regular
+  numbers like lengths, except for IE where it defaults to pixels. For easier
+  length manipulations, LSD recognizes number as a length, with the pixel as a
+  default unit.
 */
 LSD.Styles.Type.length = function(obj, unit) {
-  if (this === Type) {
+  if (this === LSD.Styles.Type) {
     if (typeof obj == 'number')
       return new this.length(obj, unit);
     if ((typeof obj.number != 'undefined') && (unit || obj.unit != '%'))
@@ -282,10 +270,9 @@ LSD.Styles.Type.length.prototype = {
   }
 };
 /*
-  `url()` is a special CSS function that allows its
-  arguments not have quotes, unlike all other
-  functions. There're other functions like `src()`
-  that share that behavior.
+  `url()` is a special CSS function that allows its arguments not have quotes,
+  unlike all other functions. There're other functions like `src()` that share
+  that behavior.
 */
 LSD.Styles.Type.url = function(obj) {
   if (this === LSD.Styles.Type) {
@@ -309,19 +296,16 @@ LSD.Styles.rHex = /^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/;
 
 
 /*
-  Property is a function that accepts number of arguments
-  and returns either parsed sub-properties and values,
-  or false if arguments dont match the property definition.
-  Definitions for properties are specified in a format similar
-  to CSS specs, so this function prepares an efficient index
-  that can quickly check if arguments are good or not.
+  Property is a function that accepts number of arguments and returns either
+  parsed sub-properties and values, or false if arguments dont match the
+  property definition. Definitions for properties are specified in a format
+  similar to CSS specs, so this function prepares an efficient index that can
+  quickly check if arguments are good or not.
 
-  Properties functions may be both used as constructors
-  or as generic validation methods, although if input
-  is valid there will be a new object constructed
-  regardless of used syntax.
+   Properties functions may be both used as constructors or as generic
+  validation methods, although if input is valid there will be a new object
+  constructed regardless of used syntax.
 */
-
 LSD.Styles.Property = function(definition, context, type) {
   var properties, keywords, types;
   for (var i = 0, bit; bit = definition[i++];) {
@@ -354,8 +338,7 @@ LSD.Styles.Property = function(definition, context, type) {
 };
 
 /*
-  Matches simple value against possible types. It only
-  returns a single value.
+  Matches simple value against possible types. It only returns a single value.
 */
 
 LSD.Styles.Property.simple = function(types, keywords) {
@@ -406,7 +389,7 @@ LSD.Styles.Property.shorthand = function(properties, keywords, context, multiple
         }
         if (group) {
           if (!property) {
-            if (!index) index = Property.index(properties, context)
+            if (!index) index = LSD.Styles.Property.index(properties, context)
             if ((property = index[k][arg])) {
               if (used[property]) return false;
               else used[property] = true;
@@ -482,12 +465,12 @@ LSD.Styles.Property.collection = function(properties, keywords, context) {
 };
 
 /*
-  Finds optional groups in expressions and builds keyword
-  indecies for them. Keyword index is an object that has
-  keywords as keys and values as property names.
+  Finds optional groups in expressions and builds keyword indecies for them.
+  Keyword index is an object that has keywords as keys and values as property
+  names.
 
-  Index only holds keywords that can be uniquely identified
-  as one of the properties in group.
+   Index only holds keywords that can be uniquely identified as one of the
+  properties in group.
 */
 
 LSD.Styles.Property.index = function(properties, context) {
@@ -614,28 +597,28 @@ Object.append((LSD.Document.prototype.styles || (LSD.Document.prototype.styles =
 })(LSD.Styles, LSD.Document.prototype.styles);
 
 /*
-  A parser that handles CSS values. Refer to specs
-  for comprehensive demonstration of features.
+  A parser that handles CSS values. Refer to specs for comprehensive
+  demonstration of features.
 */
 
 LSD.Styles.Parser = new LSD.RegExp({
-  url_name: 'url|local|src',
-  url_string: '.*?',
-  url: '(<url_name>)\\((<url_string>)\\)',
-  
-  fn_arguments: '<inside_parens>*',
-  fn_name: '[-_a-zA-Z0-9]*',
-  fn: '(<fn_name>)\\s*\\((<fn_arguments>)\\)',
-  
-  integer: '[-+]?\\d+',
-  'float': '[-+]?\\d+\\.\\d*|\\d*\\.\\d+',
-  length: '(<integer>|<float>)(em|px|pt|%|fr|deg|(?=$|[^a-zA-Z0-9.]))',
-  operator: '([-+]|[\\/%^~=><*\\^!|&]+)',
+  url_fn:     'url|local|src',
+  url_src:    '.*?',
+  url:        '(<url_fn>)\\((<url_src>)\\)',
+              
+  fn_args:    '<inside_parens>*',
+  fn_name:    '[-_a-zA-Z0-9]*',
+  fn:         '(<fn_name>)\\s*\\((<fn_args>)\\)',
+              
+  integer:    '[-+]?\\d+',
+  'float':    '[-+]?\\d+\\.\\d*|\\d*\\.\\d+',
+  length:     '(<integer>|<float>)(em|px|pt|%|fr|deg|(?=$|[^a-zA-Z0-9.]))',
+  operator:   '([-+]|[\\/%^~=><*\\^!|&]+)',
   delimeters: ',|\\s',
-  separator: '\\s*(<delimeters>)\\s*',
-  
-  string: '<string>',
-  token: '([^$,\\s\\/()]+)'
+  separator:  '\\s*(<delimeters>)\\s*',
+              
+  string:     '<string>',
+  token:      '([^$,\\s\\/()]+)'
 }, {
   fn: function(name, args) {
     var parsed = args == null ? [] : this.exec(args, undefined, true)
