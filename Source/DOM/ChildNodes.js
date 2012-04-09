@@ -30,8 +30,9 @@ LSD.ChildNodes = LSD.Struct({
 LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
   if ((!state || this._owner != value.parentNode) && memo !== 'collapse')
     value[state ? 'set' : 'unset']('parentNode', this._owner || null, memo);
-  var previous = this[index - 1] || null;
+  var previous = this[index - 1] || null;  
   var next = this[index + 1] || null;
+  if (next && next === previous) next = this[index + 2] || null;
   if (previous !== value && memo !== 'collapse') {
     if (previous && (memo !== 'splice' || (!state && !next)))
       previous.change('nextSibling', state ? value : next, memo);
@@ -41,8 +42,9 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
       value.unset('previousSibling', previous, memo);
   }
   if (next !== value && memo !== 'collapse') {
-    if (next && (memo !== 'splice' || (!state && !previous)))
+    if (next && (memo !== 'splice' || (!state && !previous))) {
       next.change('previousSibling', state ? value : previous, memo);
+    }
     if ((state || old === false))
       value.change('nextSibling', next, memo);
     else if (value.nextSibling == next)
