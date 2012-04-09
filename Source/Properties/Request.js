@@ -20,41 +20,30 @@ provides:
 ...
 */
 
-LSD.Properties.Request = new LSD.Class({
-  Extends: Request.Auto,
-  
-  options: {
-    request: {
-      method: 'get'
-    }
+LSD.Request = LSD.Properties.Request = new LSD.Struct({
+  format: function() {
+    
   },
   
-  type: function() {
+  started: function(value, old, memo) {
     
   },
   
   imports: {
-    data: '.fields'
-  },
-  
-  exports: {
-    send: function() {
-      
-    },
-    started: 'started'
-  },
-  
-  events: {
-    start: function() {
-      this.set('started', true);
-    },
-    complete: function() {
-      this.unset('started', false);
-    }
+    data: '.elements'
   }
-  
 });
-
-LSD.Properties.Request
-
-LSD.Behavior.define(':form[action], [src], [href], :request', 'request');
+LSD.Request.prototype.encoding = 'utf-8';
+LSD.Request.prototype.onStateChange = function() {
+};
+LSD.Request.prototype.onCancel = function() {
+};
+LSD.Request.prototype.onComplete = function() {
+};
+LSD.Request.prototype.onSuccess = function() {
+};
+LSD.Request.prototype.onFailure = function() {
+};
+LSD.Request.prototype.isSuccess = function() {
+  return this.status > 199 && this.status < 300;
+};
