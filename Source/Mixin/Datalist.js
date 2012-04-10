@@ -120,6 +120,7 @@ LSD.Mixin.Datalist = new Class({
   },
 
   suggestSelected: function(e) {
+    this.suggested = true;
     if (this.selectedSuggestion) {
       this.setCurrentValue(this.selectedSuggestion.get('text'), false);
       if (e) e.stop();
@@ -128,6 +129,8 @@ LSD.Mixin.Datalist = new Class({
   },
 
   unsetSuggestion: function() {
+    if (!this.suggested) return;
+    this.suggested = false;
     this.setCurrentValue(this.getCurrentValue(false));
   },
 
