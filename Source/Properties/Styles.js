@@ -102,17 +102,17 @@ LSD.RegExp.prototype = {
   re_left:       /\(\?\:$|[^\\]\|(?=\()*?|\($/,
   re_right:      /\||\)/,
   re_groupped:   /^\([^\?].*?\)$/,
+  unicode:       "(?:[\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])",
+  string_double: '"((?:[^"]|\\\\")*)"',
+  string_single: "'((?:[^']|\\\\')*)'",
+  string:        '<string_double>|<string_single>',
   insides: {
     curlies:     ['{', '}'],
     squares:     ['[', ']'],
     parens:      ['(', ')']
   },
   insiders:      {},
-  callbacks:     {},
-  unicode:       "(?:[\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])",
-  string_double: '"((?:[^"]|\\\\")*)"',
-  string_single: "'((?:[^']|\\\\')*)'",
-  string:        '<string_double>|<string_single>'
+  callbacks:     {}
 }
 
 

@@ -267,24 +267,6 @@ LSD.Struct.prototype._link = function(properties, state, external) {
   paying attention to `rate`, then `tax`. When all variables are found, the result is
   calculated and assigned to `total` property.
 */
-LSD.Struct.prototype._script = function(key, expression) {
-  var node = this.nodeType && this || (this._global && this._owner);
-  if (this.nodeType) {
-    var script = LSD.Script(expression, null, [this, key]);;
-    if (!this._scripted) this._scripted = {};
-    node.watch('variables', '_scripted.' + key + '.scope')
-  } else {
-    var script = LSD.Script(expression, this, [this, key]);;
-  }
-  (this._scripted || (this._scripted = {}))[key] = script;
-  return this._skip;
-};
-LSD.Struct.prototype._unscript = function(key, value) {
-  var script = this._scripted[key];
-  script.unset('attached', script.attached);
-  script.unset('value', script.value)
-  delete this._scripted[key]
-};
 LSD.Struct.prototype._linker = function(call, key, value, old, memo) {
   if (typeof value != 'undefined')
     this.mix(call.key, value, memo);

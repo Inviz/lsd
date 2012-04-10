@@ -603,7 +603,7 @@ LSD.Script.prototype.getContext = function() {
   return this.context;
 };
 LSD.Script.prototype.Script = LSD.Script;
-LSD.Script.prototype.script = true;
+LSD.Script.prototype.script = LSD.Script.prototype._calculated = true;
 LSD.Script.prototype._literal = LSD.Script.prototype._properties;
 LSD.Script.prototype._ownable = false;
 LSD.Script.prototype._owning = false;

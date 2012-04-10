@@ -146,7 +146,7 @@ LSD.Journal.prototype.unset = function(key, value, memo, prepend, hash) {
         if (j == -1) return
       }
     }
-    if (length > 1 && (value == null || !value.script)) {
+    if (length > 1 && (value == null || !value[this._trigger])) {
       var method = '_set';
       value = group[length - 2];
     } else var method = '_unset';

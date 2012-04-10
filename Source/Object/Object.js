@@ -106,10 +106,10 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
   script doesn't have enough data to compute.
 */
   }
-  if (nonenum !== true && this._script && nonenum !== true && value != null && value.script
-  && value.Script && (!this._literal || !this._literal[key])) {
+  if (nonenum !== true && nonenum !== true && value != null
+  && value[this._trigger] != null && (!this._literal || !this._literal[key])) {
     if (hash == null) this[key] = old;
-    return this._script(key, value);
+    return this._script(key, value, memo);
   }
 
 /*
@@ -200,8 +200,9 @@ LSD.Object.prototype.unset = function(key, value, memo, index, hash) {
     if (this.onChange && typeof (changed = this.onChange(key, undefined, memo, old, hash)) != 'undefined')
       if (changed === this._skip) return;
       else value = changed;
-  if (nonenum !== true && this._unscript && value != null && value.script && (!this._literal || !this._literal[key]))
-    return this._unscript(key, value);
+  if (nonenum !== true && value != null && value[this._trigger] != null
+  && (!this._literal || !this._literal[key]))
+    return this._unscript(key, value, memo);
   var watchers = this._watchers;
   if (watchers && nonenum !== true) for (var i = 0, j = watchers.length, watcher, fn; i < j; i++) {
     if ((watcher = watchers[i]) == null) continue;
@@ -449,9 +450,9 @@ LSD.Object.prototype.mix = function(key, value, memo, old, merge, prepend, lazy,
     // controlled mutation creates an observed copy of ref'd object
     this.mix('key.dance', true)               // this.key !== object
 */
-  } else if ((!vdef && typeof old == 'object' && old != null) 
+  } else if ((!vdef && typeof old == 'object' && old != null && !old[this._trigger]) 
          || (value != null && typeof value == 'object' && !value.exec && !value.push 
-         && !value.nodeType && value.script !== true && (!value.mix || merge))) {
+         && !value.nodeType && value[this._trigger] == null && (!value.mix || merge))) {
     var store = this.onStore && (this.onStore.call ? 'onStore' : '_onStore');
     if (store && this[store] && this[store](key, value, memo, old, prepend) === false) return;
     var storage = (this._stored || (this._stored = {}));
@@ -931,13 +932,12 @@ LSD.Object.prototype.has = function(key) {
   to the object itself and still not be used in iterations.
 */
 LSD.Object.prototype._skip = {
-  _owning: true,
   _watchers: true,
   _watched: true,
+  _ownable: true,
+  _owning: true,
   _owner: true,
   _stored: true,
-  _ownable: true,
-  _merger: true,
   _hash: true,
   _skip: true
 };
@@ -967,4 +967,24 @@ LSD.Object.prototype._onStore = function(key, value, memo, old, name) {
       }
     }
   }
+};
+LSD.Object.prototype._trigger = '_calculated';
+LSD.Object.prototype._script = function(key, expression) {
+  var node = this.nodeType && this || (this._global && this._owner);
+  if (this.nodeType) {
+    var script = LSD.Script(expression, null, [this, key]);;
+    if (!this._scripted) this._scripted = {};
+    node.watch('variables', '_scripted.' + key + '.scope')
+  } else {
+    var script = LSD.Script(expression, this, [this, key]);;
+  }
+  (this._scripted || (this._scripted = {}))[key] = script;
+  return this._skip;
+};
+LSD.Object.prototype._unscript = function(key, value, memo) {
+  var script = this._scripted[key];
+  script.unset('attached', script.attached, memo);
+  script.unset('value', script.value, memo)
+  delete this._scripted[key]
+  return this._skip;
 };

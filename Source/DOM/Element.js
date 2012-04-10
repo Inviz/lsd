@@ -563,6 +563,14 @@ LSD.Element.prototype.__properties = {
       this.unset('value', this.values);
     }
   },
+  nodeValue: function(value, old, memo) {
+    if (memo === 'textContent') return;
+    var vtype = typeof value, otype = typeof old, prop = this.nodeValueProperty;
+    if (vtype !== 'undefined' && (prop || vtype !== 'object'))
+      this.set(prop || 'textContent', value, 'nodeValue');
+    if (otype !== 'undefined' && (prop || otype !== 'object'))
+      this.unset(prop || 'textContent', old, 'nodeValue');
+  },
   date: Date,
   name: function(value, old) {
     if (value) this.watch('nodeValue', 'form.' + value);
@@ -581,17 +589,26 @@ LSD.Element.prototype.__properties = {
     avoid recursion.
   */
   textContent: function(value, old, memo) {
-    if (memo !== 'textContent') for (var node = this; node = node.parentNode;) {
-      var children = node.childNodes;
-      var content = children.textContent;
-      if (content != null) {
-        for (var text = '', child, i = 0; child = children[i++];)
-          if (child.textContent != null) text += child.textContent;
-        node.set('textContent', text, 'textContent', true, content);
-        children.textContent = text;
+    if (memo !== 'textContent') {
+      if (memo !== 'childNodes') {
+        if (this.childNodes.length === 1 && this.childNodes[0].nodeType == 3)
+          this.childNodes[0].set('textContent', value, 'textContent', false, old);
+        else if (typeof value != 'undefined' && (value !== '' || this.childNodes.length)) {
+          this.childNodes.splice(0, this.childNodes.length, new LSD.Textnode(value));
+        }
+      }
+      for (var node = this; node = node.parentNode;) {
+        var children = node.childNodes;
+        var content = children.textContent;
+        if (content != null) {
+          for (var text = '', child, i = 0; child = children[i++];)
+            if (child.textContent != null) text += child.textContent;
+          node.set('textContent', text, 'textContent', true, content);
+          children.textContent = text;
+        }
       }
     }
-    this.set('nodeValue', value, memo, true, old);
+    this.set('nodeValue', value, 'textContent', true, old);
   },
   /*
     Different types of elements have different strategies to define value.
@@ -622,8 +639,8 @@ LSD.Element.prototype.__properties = {
     if (old) this.unset('nodeValue', this.microdata, memo);
   },
   itemprop: function(value, old, memo) {
-    if (value) this.watch('nodeValue', 'parentNode.microdata.' + value);
-    if (old) this.unwatch('nodeValue', 'parentNode.microdata.' + old);
+    if (value) this.mix('parentNode.microdata.' + value, this, memo, undefined, true);
+    if (old) this.mix('parentNode.microdata.' + old, undefined, memo, this, true);
   },
   itemtype: function(value, old) {
 
@@ -839,11 +856,14 @@ LSD.Element.prototype.toElement = function(){
   return this.element;
 };
 LSD.Element.prototype.onChildSet = function(value, index, state, old, memo) {
-  for (var children = this.childNodes, text = '', child, i = 0; child = children[i++];)
-    if (child.textContent != null) text += child.textContent;
-  this.set('textContent', text);
-  if (children.textContent != null) this.unset('textContent', children.textContent);
-  children.textContent = text;
+  var children = this.childNodes
+  if (memo !== 'empty') {
+    for (var text = '', child, i = 0; child = children[i++];)
+      if (child.textContent != null) text += child.textContent;
+    this.set('textContent', text, 'childNodes');
+    if (children.textContent != null) this.unset('textContent', children.textContent, 'childNodes');
+    children.textContent = text;
+  }
   if (value.nodeType !== 1 || old === false) return;
   for (var prev = children[index - 1]; prev && (prev.nodeType != 1 || prev == value);) 
     prev = prev.previousSibling;
