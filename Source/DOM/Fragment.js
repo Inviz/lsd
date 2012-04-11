@@ -65,7 +65,7 @@ LSD.Fragment.prototype.render = function(object, parent, memo) {
   instructions and documents.
   Processing a node may result in 3 scenarios:
     * Element node is converted into LSD.Element
-    * Element node was already an LSD.Element and not converted
+    * Element node was already an LSD.Element and was reused
     * Element node was already an LSD.Element and was cloned
 */
 LSD.Fragment.prototype.node = function(object, parent, memo, nodeType) {
@@ -74,13 +74,11 @@ LSD.Fragment.prototype.node = function(object, parent, memo, nodeType) {
       children = object.childNodes;
   if (!nodeType) nodeType = object.nodeType || 1;
   if (!parent) parent = this;
-  if (!widget) switch (nodeType) {
-    case 8: case 3:
-      if ((widget = this.instruction(object, parent, memo)))
-        return widget;
-    default:
-      var document = this.document || (parent && parent.document) || LSD.Document.prototype;
-      widget = document.createNode(nodeType, object, this);
+  if (!widget) {
+    if (nodeType === 8 && (widget = this.instruction(object, parent, memo)))
+      return widget;
+    var document = this.document || (parent && parent.document) || LSD.Document.prototype;
+    widget = document.createNode(nodeType, object, this);
   } else if (memo && memo.clone) 
     widget = widget.cloneNode();
   if (widget.parentNode != parent) parent.appendChild(widget, memo);
