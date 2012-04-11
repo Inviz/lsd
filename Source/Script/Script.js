@@ -228,13 +228,25 @@ LSD.Script.Struct = new LSD.Struct({
           else this.yield('unyield', null, null, property);
         }
       }
-    } else if (this.scope != null && (!this.type || this.type == 'variable')) {
+    } else if (this.scope != null && (!this.type || this.type == 'variable' || this.type == 'selector')) {
       if (typeof this.scope != 'function') {
-        if (!this.setter) var self = this, setter = this.setter = function(value, old) {
-          if (typeof value == 'undefined') return self.unset('value', old);
-          else return self.change('value', value)
-        };
-        (this.scope.variables || this.scope)[value ? 'watch' : 'unwatch'](this.name || this.input, this.setter);
+        if (this.type === 'selector') {
+          if (!this.setter) var self = this, setter = this.setter = function(value, old) {
+            if (!self.value) self.set('value', new LSD.NodeList);
+            if (value != null) self.value.push(value);
+            if (old != null) {
+              var index = self.value.indexOf(old);
+              if (index > -1) self.value.splice(index, 1);
+            }
+          };
+          (this.scope._owner || this.scope).matches[value ? 'set' : 'unset'](this.input, this.setter);
+        } else {
+          if (!this.setter) var self = this, setter = this.setter = function(value, old) {
+            if (typeof value == 'undefined') return self.unset('value', old);
+            else return self.change('value', value)
+          };
+          (this.scope.variables || this.scope)[value ? 'watch' : 'unwatch'](this.name || this.input, this.setter);
+        }
       } else this.scope(this.input, this, this.scope, !!value);
       if (typeof this.value == 'undefined' && !this.input) this.change('executed', value);
     }
@@ -422,7 +434,7 @@ LSD.Script.Struct = new LSD.Struct({
 
 */
   selector: function(value, old) {
-
+    console.log(value, old)
   },
 /*
   Another way powerful technique is wrapping. It allows a script being
