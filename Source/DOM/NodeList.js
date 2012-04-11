@@ -52,6 +52,7 @@ LSD.NodeList.prototype._observeIndex = function(value, index, state, old) {
   if (old == null) value[state ? 'watch' : 'unwatch'](this._sortBy, this)
   return value;
 };
-LSD.NodeList.prototype.fn = function(collection, value, old) {
-  collection.move(collection.indexOf(this), collection.indexFor(this));
+LSD.NodeList.prototype.fn = function(collection, key, value, old) {
+  if (value != null && old != null)
+    collection.move(collection.indexOf(this), collection.indexFor(this));
 };
