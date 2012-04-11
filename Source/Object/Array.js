@@ -219,7 +219,7 @@ LSD.Array.prototype.splice = function(index, offset) {
       }
       this.set(i + shift, this[i], i, 'collapse');
     }
-  this.set('length', (this._length = length + shift));
+  this._set('length', (this._length = length + shift));
   for (var i = this._length; i < length; i++) {
     if (values.length < - shift) {
       values.push(this[i])
