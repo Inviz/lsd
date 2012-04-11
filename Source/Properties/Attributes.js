@@ -64,6 +64,7 @@ LSD.Properties.Microdata.prototype.onChange = function(key, value, memo, old) {
     if (odef && old !== storage[key]) odef = old = undefined;
     if (typeof storage[key] == 'undefined' ? !vdef || value === element.nodeValue : !odef) return;
     if (vdef) storage[key] = value;
+    else delete storage[key];
     element.mix('nodeValue', value, 'microdata', old);
   }
 }
@@ -80,8 +81,7 @@ LSD.Properties.Microdata.prototype._script = function(key, value, memo) {
   value.watch('nodeValue', [this, key]);
 }
 LSD.Properties.Microdata.prototype._unscript = function(key, value, memo) {
-  if (this._elements[key] === value) delete this._elements[key];
-  else this._elements[key].splice(this._elements[key].indexOf(value), 1);
+  var group = this._elements[key];
   value.unwatch('nodeValue', [this, key]);
 }
 LSD.Properties.Variables = LSD.Struct('Journal');

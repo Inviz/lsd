@@ -81,14 +81,14 @@ LSD.Journal.prototype.set = function(key, value, memo, prepend, old) {
       var j = group.length;
       if (prepend) {
         for (var i = 0; i < j; i++) if (group[i] === old) {
-            group.splice(i, 1);
-            break;
-          }
+          group.splice(i, 1);
+          break;
+        }
       } else {
         for (; --j > -1;) if (group[j] === old) {
-            group.splice(j, 1);
-            break;
-          }
+          group.splice(j, 1);
+          break;
+        }
       }
     }
     if (vdef)

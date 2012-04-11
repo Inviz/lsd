@@ -600,7 +600,7 @@ LSD.Element.prototype.__properties = {
         }
       }
     }
-    this.set('nodeValue', value, 'textContent', true, old);
+    if (memo !== 'nodeValue') this.set('nodeValue', value, 'textContent', true, old);
   },
   /*
     Different types of elements have different strategies to define value.
