@@ -109,16 +109,16 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, memo, old, hash
     to be in a specific state (classes, pseudos and attributes).
   */
   if (!key.combinator || key.combinator == '&' || memo === 'state') {
-    for (var types = this._types, type, i = 0; type = types[i++];) {
+    for (var type in this._types) {
       var values = key[type];
       var storage = this._state || (this._state = {});
-      if (values) for (var j = 0, value; (value = values[j++]) && (value = value.key || value.value);) {
+      if (values) for (var j = 0, val; (val = values[j++]) && (val = val.key || val.value);) {
         if (vdef) {
           var kind = storage[type];
           if (!kind) kind = storage[type] = {};
-          var group = kind[value];
-          if (!group) group = kind[value] = [];
-          group.push([key, value, true]);
+          var group = kind[val];
+          if (!group) group = kind[val] = [];
+          group.push([key, val, true]);
         }
         if (odef) {
           var array = group[bit.key || bit.value];
@@ -130,7 +130,11 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, memo, old, hash
         }
       }
     }
-    if (this._owner && this._owner.test(key)) callback(this._owner, state);
+    if (this._owner && this._owner.test(key)) {
+      if (typeof value == 'function') value(this._owner);
+      else if (value.callback)
+        (value.fn || (value.bind || this._owner)[value.method]).call(value.bind || this._owner, value, widget)
+    }
   /*
     Expression may also be matching other node according to its combinator.
     Expectation is indexed by its combinator & tag and stored in the object.
@@ -242,22 +246,33 @@ LSD.Properties.Matches.prototype._hash = function(expression, value, storage) {
   the widget with `*` tag by the same combinator.
 */
 LSD.Properties.Matches.prototype.add = function(combinator, tag, value, wildcard) {
-  if (value.lsd) var storage = this._results || (this._results = {}), 
-                     other = this._callbacks;
-  else           var storage = this._callbacks || (this._callbacks = {}), 
-                     other = this._results;
-  var group = storage[combinator];
-  if (group == null) group = storage[combinator] = {};
-  for (var key = tag; key; key = key == tag && wildcard && '*') {
-    var array = group[key];
-    if (array == null) array = group[key] = [];
-    array.push(value);
-    if (other && (matched = other[combinator]) && (matched = matched[key])) {
-      for (var i = 0, item; item = matched[i++];) {
-        if (item[2] === false) {
-          if (typeof item[1] == 'function') item[1](value);
-          else this._callback(item[1], value);
-        } else callback.matches.set(item[0], item[1], item[2]);
+  if (this._types[combinator]) {
+    var storage = this._state;
+    if (!storage) return;
+    var group = storage[combinator];
+    if (!group) return;
+    for (var i = 0, item; i < group.length; i++) {
+      
+    }
+  } else {
+    if (value.lsd) {
+      var storage = this._results || (this._results = {}), other = this._callbacks;
+    } else {
+      var storage = this._callbacks || (this._callbacks = {}), other = this._results;
+    }
+    var group = storage[combinator];
+    if (group == null) group = storage[combinator] = {};
+    for (var key = tag; key; key = key == tag && wildcard && '*') {
+      var array = group[key];
+      if (array == null) array = group[key] = [];
+      array.push(value);
+      if (other && (matched = other[combinator]) && (matched = matched[key])) {
+        for (var i = 0, item; item = matched[i++];) {
+          if (item[2] === false) {
+            if (typeof item[1] == 'function') item[1](value);
+            else this._callback(item[1], value);
+          } else callback.matches.set(item[0], item[1], item[2]);
+        }
       }
     }
   }
@@ -283,5 +298,5 @@ LSD.Properties.Matches.prototype.remove = function(combinator, tag, value, wildc
     }
   }
 }
-LSD.Properties.Matches.prototype._types = ['pseudos', 'classes', 'attributes'];
+LSD.Properties.Matches.prototype._types = {pseudos: 1, classes: 1, attributes: 1};
 LSD.Properties.Matches.prototype._parsed = {};

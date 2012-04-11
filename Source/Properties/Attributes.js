@@ -26,26 +26,30 @@ provides:
 
 LSD.Properties.Attributes = LSD.Struct(LSD.attributes, 'Journal');
 LSD.Properties.Attributes.prototype.onChange = function(key, value, memo, old) {
-  var ns = this._owner.document || LSD.Document.prototype;
+  var owner = this._owner, ns = owner.document || LSD.Document.prototype;
   var attribute = ns.attributes && ns.attributes[key]
   var vdef = typeof value != 'undefined', odef = typeof old != 'undefined';
   if (attribute) {
     if (typeof attribute == 'string') {
-      this._owner.mix(attribute, value, memo, old);
+      owner.mix(attribute, value, memo, old);
     } else if (value){
-      var result = attribute.call(this._owner, value, old);
+      var result = attribute.call(owner, value, old);
       if (typeof result != 'undefined') value = result;
     }
   }
-  if (this._owner.element && (key != 'type' || LSD.toLowerCase(this._owner.element.tagName) != 'input')) {
-    this._owner.element[key] = vdef;
-    if (vdef) this._owner.element.setAttribute(key, value === true ? key : value);
-    else this._owner.element.removeAttribute(key);
+  if (owner.element && (key != 'type' || LSD.toLowerCase(owner.element.tagName) != 'input')) {
+    owner.element[key] = vdef;
+    if (vdef) owner.element.setAttribute(key, value === true ? key : value);
+    else owner.element.removeAttribute(key);
   }
-  if (((!memo || memo !== 'states') && ns.states[key]) || this._owner.__properties[key])
-    this._owner.mix(key, value, 'attributes', old);
+  if (((!memo || memo !== 'states') && ns.states[key]) || owner.__properties[key])
+    owner.mix(key, value, 'attributes', old);
   if (key.substr(0, 5) == 'data-')
-    this._owner.mix('variables.' + key.substring(5), value, memo, old);
+    owner.mix('variables.' + key.substring(5), value, memo, old);
+  if (owner.matches) {
+    if (value != null) owner.matches.add('attributes', key, value);
+    if (old != null) owner.matches.remove('attributes', key, old);
+  }
   return value;
 };
 LSD.Properties.Attributes.prototype._global = true;

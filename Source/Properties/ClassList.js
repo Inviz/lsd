@@ -22,16 +22,20 @@ provides:
 LSD.Properties.ClassList = LSD.Struct({
   _name: '.className'
 }, 'Journal');
-LSD.Properties.ClassList.prototype.onChange = function(name, value, memo, old) {
-  if (name == '_name') return value || old;
-  var ns = this._owner.document || LSD.Document.prototype;
-  if ((!memo || memo !== 'states') && ns.states[name])
-    this._owner.mix(name, true, 'classes', old);
-  var index = (' ' + this._name + ' ').indexOf(' ' + name + ' ');
-  if (value && index == -1) this.set('_name', this._name.length ? this._name + ' ' + name : name);
-  else if (old && index > -1) this.set('_name', this._name.substring(0, index - 1) + this._name.substring(name.length));
-  var element = this._owner.element;
+LSD.Properties.ClassList.prototype.onChange = function(key, value, memo, old) {
+  if (key == '_name') return value || old;
+  var owner = this._owner, ns = owner.document || LSD.Document.prototype;
+  if ((!memo || memo !== 'states') && ns.states[key])
+    owner.mix(key, true, 'classes', old);
+  var index = (' ' + this._name + ' ').indexOf(' ' + key + ' ');
+  if (value && index == -1) this.set('_name', this._name.length ? this._name + ' ' + key : key);
+  else if (old && index > -1) this.set('_name', this._name.substring(0, index - 1) + this._name.substring(key.length));
+  var element = owner.element;
   if (element) element.className = this._name
+  if (owner.matches) {
+    if (value != null) owner.matches.add('classes', key, value);
+    if (old != null) owner.matches.remove('classes', key, old);
+  }
   return value || old;
 };
 LSD.Properties.ClassList.prototype._name = '';
