@@ -63,8 +63,8 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
     if (this._owner.onChildSet) this._owner.onChildSet.apply(this._owner, arguments);
   }
   
-  if (state) {
-    if (index == 0) value.change('sourceIndex', (value.parentNode.sourceIndex || 0) + 1);
+  if (owner) if (state) {
+    if (index == 0) value.change('sourceIndex', (owner.sourceIndex || 0) + 1);
     else if (previous) 
       value.change('sourceIndex', (previous.sourceLastIndex || previous.sourceIndex || 0) + 1, memo);
   } else if (memo !== 'empty' && memo !== 'collapse') 
