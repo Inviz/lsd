@@ -805,7 +805,7 @@ LSD.Element.prototype.setSelector = function(selector, state) {
       this.classList[method](klass.value, true);
   if (id) this.attributes[method]('id', id);
 };
-LSD.Element.prototype.test = function(selector) {
+LSD.Element.prototype.test = function(selector, group, key, value) {
   if (typeof selector == 'string') selector = LSD.Slick.parse(selector);
   if (selector.expressions) selector = selector.expressions[0][0];
   if (selector.combinator == '::') {
@@ -818,13 +818,22 @@ LSD.Element.prototype.test = function(selector) {
     && (this.tagName != selector.tag)) return false;
   }
   if (selector.id && (this.attributes.id != selector.id)) return false;
-  if (selector.attributes) for (var i = 0, j; j = selector.attributes[i]; i++)
-    if (!this.attributes || (j.operator
-      ? !j.test(this.attributes[j.key] && this.attributes[j.key].toString())
-      : !(j.key in this.attributes))) return false;
-  if (selector.classes)
+  if (selector.attributes) {
+    var attrs = this.attributes
+    if (!attrs) return false;
+    for (var i = 0, j; j = selector.attributes[i]; i++) {
+      var val = group === 'attributes' && key === j.key ? value : attrs[j.key];
+      if (j.operator ? !j.test(val && val.toString()) : !(j.key in attrs)) 
+        return false;
+    }
+  }
+  if (selector.classes) {
+    var classes = this.classList;
+    if (!classes) return false;
     for (var i = 0, j; j = selector.classes[i]; i++)
-      if (!this.classList || !this.classList[j.value]) return false;
+      if (!(group === 'classes' && j.value === key ? value : classes[j.value]))
+        return false;
+  }
   if (selector.pseudos) {
     for (var i = 0, j; j = selector.pseudos[i]; i++) {
       var name = j.key;
