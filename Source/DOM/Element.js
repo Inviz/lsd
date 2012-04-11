@@ -440,7 +440,7 @@ LSD.Element.prototype.__properties = {
   disabled: function(value, old) {
   },
   root: function(value, old) {
-  },
+  },  
 /*
   Good DOM collections are sorted so nodes in collection are in the order of
   appearance in DOM. When an element is removed from DOM, it is removed from
@@ -467,12 +467,6 @@ LSD.Element.prototype.__properties = {
   possible observing selectors and remap the indecies of nodes to trigger 
   LSD.NodeList collections resorts.
 */
-  firstChild: function(value, old) {
-    if (value) value.change('sourceIndex', (this.sourceIndex || 0) + 1);
-  },
-  previousSibling: function(value, old, memo) {
-    if (value) this.change('sourceIndex', (value.sourceLastIndex || value.sourceIndex || 0) + 1, memo);
-  },
   previousElementSibling: function(value, old, memo) {
     if (value) {
       value.matches.add('+', this.tagName, this, true);
@@ -522,8 +516,6 @@ LSD.Element.prototype.__properties = {
     }
   },
   parentNode: function(value, old, memo) {
-    if (!value && memo !== 'empty' && memo !== 'collapse') 
-      this.unset('sourceIndex', this.sourceIndex, memo);
     this.mix('variables', value && value.variables, memo, old && old.variables, true);
     for (var property in this._inherited) {
       if (value && value[property]) this.set(property, value[property], memo, true);
