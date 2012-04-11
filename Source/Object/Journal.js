@@ -146,10 +146,17 @@ LSD.Journal.prototype.unset = function(key, value, memo, prepend, hash) {
         if (j == -1) return
       }
     }
-    if (length > 1 && (value == null || !value[this._trigger])) {
-      var method = '_set';
-      value = group[length - 2];
-    } else var method = '_unset';
+    if (length > 1) {
+      if (value != null && value[this._trigger]) {
+        this._unscript(key, value, memo, index, hash);
+        if (--length === 1) return true;
+      }
+      var val = group[length - 2];
+      if (val == null || !val[this._trigger]) {
+        var method = '_set';
+        value = val;
+      }
+    }
   }
   if (method !== '_set' || value != this[key])
     return this[method || '_unset'](key, value, memo, index, hash);

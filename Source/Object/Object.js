@@ -59,6 +59,15 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
   if (hash == null && typeof index != 'number') index = key.indexOf('.');
   if (index > -1) return this.mix(key, value, memo, undefined, null, null, null, index);
 /*
+  Objects accept special kind of values, compiled LSD.Script expressions.
+  They may use other keys in the object as observable variables, call
+  functions and iterate data. Script updates value for the key when it
+  computes its value asynchronously. The value stays undefined, while the
+  script doesn't have enough data to compute.
+*/
+  var nonscript = nonenum === true || value == null || (this._literal && this._literal[key]);
+  if (!nonscript && value[this._trigger] != null) return this._script(key, value, memo);
+/*
   `hash` argument may disable all mutation caused by the setter, the value by
   the key will not be mofified. May be used by subclasses to implement its
   own mechanism of object mutations.
@@ -75,8 +84,7 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
   writing a link (e.g. Arrays dont write a link to its object values, and DOM
   elements dont let any objects write a link either).
 */
-  if (nonenum !== true && value != null && !value._owner
-    && value._set && this._owning !== false)
+  if (nonenum !== true && value != null && !value._owner && value._set && this._owning !== false)
     if (memo !== 'reference') {
       if (value._ownable !== false) value._set('_owner', this);
     } else value._references = (value._references || 0) + 1;
@@ -98,16 +106,13 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
         if (hash == null) this[key] = old;
         return;
       } else value = changed;
-/*
-  Objects accept special kind of values, compiled LSD.Script expressions.
-  They may use other keys in the object as observable variables, call
-  functions and iterate data. Script updates value for the key when it
-  computes its value asynchronously. The value stays undefined, while the
-  script doesn't have enough data to compute.
-*/
   }
-  if (nonenum !== true && nonenum !== true && value != null
-  && value[this._trigger] != null && (!this._literal || !this._literal[key])) {
+/*
+  Global object listeners (and so custom property handlers in structs) 
+  may compile given value into expression (e.g. a textnode may find
+  interpolations in a given `textContent`).
+*/
+  if (!nonscript && value != null && value[this._trigger] != null) {
     if (hash == null) this[key] = old;
     return this._script(key, value, memo);
   }
@@ -408,7 +413,8 @@ LSD.Object.prototype.mix = function(key, value, memo, old, merge, prepend, lazy,
   creating a new object that is subscribed to all values and changes of a
   referenced object.
 */
-      if (vdef && old !== obj && (parent ? parent !== this : obj._references > 0) && this._owning !== false) {
+      if (vdef && old !== obj && this._owning !== false && obj._shared !== true
+      && (parent ? parent !== this : obj._references > 0)) {
         obj = this._construct(name, null, 'copy')
       } else if (typeof obj.mix == 'function' && obj._ownable !== false) {
         obj.mix(subkey, value, memo, old, merge, prepend, lazy);
@@ -503,7 +509,7 @@ LSD.Object.prototype.mix = function(key, value, memo, old, merge, prepend, lazy,
         if (vdef) this.set(key, value, memo, prepend);
         if (odef && (!vdef || this._journal)) this.unset(key, old, memo, prepend);
       } else if (vdef && obj !== old && (obj._owner ? obj._owner !== this : obj._references > 0) 
-             && this._owning !== false && (!memo || !memo._delegate)) {
+             && this._owning !== false && (!memo || !memo._delegate) && obj._shared !== true) {
         obj = this._construct(key, null, 'copy')
       } else {
 /*
@@ -810,10 +816,13 @@ LSD.Object.prototype._watcher = function(call, key, value, old, memo) {
       dot = call.key.indexOf('.', start)
       if (object && object._watch) {
         object[i ? '_watch' : '_unwatch'](call.key.substring(start), call.callback, call.lazy);
+        break;
       } else {
         var subkey = call.key.substring(start, dot == -1 ? call.key.length : dot);
         if (typeof (object = object[subkey]) == 'undefined') break;
-        if (dot == -1) call.callback(object);
+        if (dot == -1) 
+          if (typeof call.callback == 'function') call.callback(object);
+          else this._callback(call.callback, key, object, undefined, memo);
       }
     }
   }

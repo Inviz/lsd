@@ -653,6 +653,10 @@ LSD.Styles.Parser = new LSD.RegExp({
     }
     return unit ? {number: num, unit: unit} : num;
   },
+  /*
+    Url is an specific case of a function that does not require its argument
+    be escaped with quotes.
+  */
   url: function(type, path) {
     var obj = {};
     var first = path.charAt(0), length = path.length;
@@ -661,6 +665,11 @@ LSD.Styles.Parser = new LSD.RegExp({
     obj[type] = path
     return obj;
   },
+  /*
+    Values may constitute a list when separated with whitespaces or commas.
+    Either way makes an array of values. A whitespace separated value inside
+    of a comma separated value makes a nested array.
+  */
   separator: function(character) {
     switch (character) {
       case ',':
