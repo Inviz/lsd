@@ -58,9 +58,8 @@ LSD.Node.prototype.replaces = function(el) {
 };
 LSD.Node.prototype.dispose = function() {
   var parent = this.parentNode;
-  if (!parent) return;
+  if (!parent) return this;
   parent.removeChild(this);
-  if (this.events) this.events.fire('dispose', parent);
   return this;
 };
 LSD.Node.prototype.$family = function() {
