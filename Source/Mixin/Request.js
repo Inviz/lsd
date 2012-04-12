@@ -80,10 +80,13 @@ LSD.Mixin.Request = new Class({
     var request = this[type == 'xhr' ? 'getXHRRequest' : 'getFormRequest'](options);
     request.addEvents({
       request: function() {
+        clearTimeout(this.idling);
         this.busy()
       }.bind(this),
       complete: function() {
-        this.idle();
+        clearTimeout(this.idling);
+        if (this.isRequestFinished()) this.idle();
+        else this.idling = this.idle.delay(7500, this);
         if (request.isSuccess && request.isSuccess() && this.getCommandAction && this.getCommandAction() == 'submit')
           if (this.chainPhase == -1
           || (this.chainPhase == this.getActionChain().length - 1)
@@ -92,6 +95,10 @@ LSD.Mixin.Request = new Class({
       }.bind(this)
     });
     return request;
+  },
+  
+  isRequestFinished: function() {
+    return !this.request.getHeader('X-Redirect');
   },
 
   getXHRRequest: function(options) {
