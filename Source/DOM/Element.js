@@ -468,26 +468,27 @@ LSD.Element.prototype.__properties = {
   LSD.NodeList collections resorts.
 */
   previousElementSibling: function(value, old, memo) {
+    var moving = memo === 'collapse' || memo === 'finalize';
     if (value) {
-      value.matches.add('+', this.tagName, this, true);
+      value.matches.add('+',  this.tagName, this, true);
       value.matches.add('++', this.tagName, this, true);
       for (var node = value; node; node = node.previousElementSibling) {
-        if (memo !== 'collapse') {
-          node.matches.add('~', this.tagName, this, true);
+        if (!moving) {
+          node.matches.add('~',  this.tagName, this, true);
           node.matches.add('~~', this.tagName, this, true);
         }
-        if (memo === 'insert' || memo == null) {
+        if (!moving || memo === 'insert') {
           this.matches.add('!~', node.tagName, node, true);
           this.matches.add('~~', node.tagName, node, true);
         }
       }
     }
     if (old) {
-      old.matches.remove('+', this.tagName, this, true);
+      old.matches.remove('+',  this.tagName, this, true);
       old.matches.remove('++', this.tagName, this, true);
       for (var node = old; node; node = node.previousElementSibling) {
-        if (memo !== 'collapse') {
-          node.matches.remove('~', this.tagName, this, true);
+        if (!moving) {
+          node.matches.remove('~',  this.tagName, this, true);
           node.matches.remove('~~', this.tagName, this, true);
         }  
         this.matches.remove('!~', node.tagName, node, true);
@@ -501,7 +502,7 @@ LSD.Element.prototype.__properties = {
       if (memo === 'insert') 
         for (var node = value; node; node = node.nextElementSibling) {
           node.matches.add('~~', this.tagName, this, true);
-          this.matches.add('~', node.tagName, node, true);
+          this.matches.add('~',  node.tagName, node, true);
           this.matches.add('~~', node.tagName, node, true);
         }
     }
@@ -510,7 +511,7 @@ LSD.Element.prototype.__properties = {
       old.matches.remove('++', this.tagName, this, true);
       for (var node = old; node; node = node.nextElementSibling) {
         node.matches.remove('~~', this.tagName, this, true);
-        this.matches.remove('~', node.tagName, node, true);
+        this.matches.remove('~',  node.tagName, node, true);
         this.matches.remove('~~', node.tagName, node, true);
       }
     }
@@ -857,7 +858,7 @@ LSD.Element.prototype.toElement = function(){
   return this.element;
 };
 LSD.Element.prototype.onChildSet = function(value, index, state, old, memo) {
-  var children = this.childNodes
+  var children = this.childNodes, moving = memo === 'collapse' || memo === 'finalize';
   if (memo !== 'empty') {
     for (var text = '', child, i = 0; child = children[i++];)
       if (child.textContent != null) text += child.textContent;
@@ -870,7 +871,7 @@ LSD.Element.prototype.onChildSet = function(value, index, state, old, memo) {
     prev = prev.previousSibling;
   for (var next = children[index + 1]; next && (next.nodeType != 1 || next == prev || next == value);)
     next = next.nextSibling; 
-  if (prev && (memo !== 'collapse' || old != null)) {
+  if (prev && (!moving || old != null)) {
     if (state || old === false)
       prev.change('nextElementSibling', value, memo);
     else if (prev.nextElementSibling === value)
@@ -881,7 +882,7 @@ LSD.Element.prototype.onChildSet = function(value, index, state, old, memo) {
     if (state) value.change('previousElementSibling', prev, memo);
     else value.unset('previousElementSibling', value.previousElementSibling)
   }  
-  if (next && memo !== 'collapse') {
+  if (next && !moving) {
     if (state || old === false)
       next.change('previousElementSibling', value, memo);
     else if (next.previousElementSibling === value)

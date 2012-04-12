@@ -28,12 +28,12 @@ LSD.ChildNodes = LSD.Struct({
   }
 }, 'Array');
 LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
-  var owner = this._owner
-  if ((!state || owner != value.parentNode) && memo !== 'collapse')
+  var owner = this._owner, moving = memo === 'collapse' || memo === 'finalize'
+  if ((!state || owner != value.parentNode) && !moving)
     value[state ? 'set' : 'unset']('parentNode', owner || null, memo);
   var previous = this[index - 1] || null, next = this[index + 1] || null;
   if (next && next === previous) next = this[index + 2] || null;
-  if (previous !== value && memo !== 'collapse') {
+  if (previous !== value && !moving) {
     if (previous && (memo !== 'splice' || (!state && !next)))
       previous.change('nextSibling', state ? value : next, memo);
     if ((state || old === false))
@@ -41,7 +41,7 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
     else if (value.previousSibling == previous)
       value.unset('previousSibling', previous, memo);
   }
-  if (next !== value && memo !== 'collapse') {
+  if (next !== value && !moving) {
     if (next && (memo !== 'splice' || (!state && !previous))) {
       next.change('previousSibling', state ? value : previous, memo);
     }
@@ -56,7 +56,7 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
       else owner.unset('firstChild', owner.firstChild);
     }
     var last = this.length - +state;
-    if (index === last && memo !== 'collapse') {
+    if (index === last && !moving) {
       if (state || last) owner.change('lastChild', state ? value : this[last - 1]);
       else owner.unset('lastChild', owner.lastChild);
     }
@@ -67,7 +67,7 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
     if (index == 0) value.change('sourceIndex', (owner.sourceIndex || 0) + 1);
     else if (previous) 
       value.change('sourceIndex', (previous.sourceLastIndex || previous.sourceIndex || 0) + 1, memo);
-  } else if (memo !== 'empty' && memo !== 'collapse') 
+  } else if (memo !== 'empty' && !moving) 
       value.unset('sourceIndex', value.sourceIndex, memo);
 };
 LSD.ChildNodes.prototype._skip = Object.append({

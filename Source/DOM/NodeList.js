@@ -53,6 +53,8 @@ LSD.NodeList.prototype._observeIndex = function(value, index, state, old) {
   return value;
 };
 LSD.NodeList.prototype.fn = function(collection, key, value, old) {
-  if (value != null && old != null)
-    collection.move(collection.indexOf(this), collection.indexFor(this));
+  if (value != null && old != null) {
+    var index = collection.indexFor(this), now = collection.indexOf(this);
+    if (index !== now) collection.move(now, index)
+  }
 };

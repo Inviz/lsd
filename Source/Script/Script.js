@@ -201,6 +201,23 @@ LSD.Script.Struct = new LSD.Struct({
       value = this.placeholder;
       this.placeheld = true;
     } else if (this.placeheld) delete this.placeheld;
+    if (value != null && value.push && value.watch) {
+      if (!this._enumerator) {
+        var self = this;
+        this._enumerator = function(val, index, state, old, memo) {
+          if (memo === 'collapse' || memo === 'empty') return;
+          delete self.value;
+          self.set('value', value, 'enumerate');
+          self.value = value;
+        }
+        this._enumerated = true;
+        value.watch(this._enumerator);
+      }  
+    }
+    if (old != null && old.push && old.watch && this._enumerated) {
+      old.unwatch(this._enumerator);
+      delete this._enumerated;
+    }
     if (this.output) this.callback(value, old);
     if (this.type == 'variable')
       if (typeof value == 'undefined' && memo !== false && !this.input && this.attached) this.set('executed', true)
@@ -209,7 +226,7 @@ LSD.Script.Struct = new LSD.Struct({
       for (var i = 0, parent; parent = this.parents[i++];) {
         if (!parent.translating && parent.attached !== false) {
           delete parent.executed;
-          parent.set('executed', true);
+          parent.set('executed', true, memo);
         }
       }
     if (this.wrapper && this.wrapper.wrappee)
@@ -382,11 +399,12 @@ LSD.Script.Struct = new LSD.Struct({
       return args;
     }
     if (name) {
-      var method = this.lookup(name, args[0]);
+      var method = this.lookup(name, args[0], null, memo);
       if (method === true) val = args[0][name].apply(args[0], Array.prototype.slice.call(args, 1));
       else if (method) val = method.apply(this, args);
+      else if (memo === 'enumerate') return;
     } else val = args[0];
-    this.change('value', val, memo);
+    this.change('value', val, memo === 'enumerate' ? null : memo);
   },
 
 /*
@@ -595,8 +613,9 @@ LSD.Script.prototype.update = function(value) {
    Finally, it falls back to helpers defined in `LSD.Script.Helpers` object
   and Object methods as a last resort.
 */
-LSD.Script.prototype.lookup = function(name, arg, scope) {
-  if (arg != null && typeof arg[name] == 'function') return true;
+LSD.Script.prototype.lookup = function(name, arg, scope, memo) {
+  if (arg != null && typeof arg[name] == 'function') 
+    return memo !== 'enumerate';
   if (scope != null || (scope = this.scope))
     for (; scope; scope = scope.parentScope) {
       var method = (scope.methods && scope.methods[name]) || scope[name] || (scope.variables && scope.variables[name]);

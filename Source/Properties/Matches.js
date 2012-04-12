@@ -271,7 +271,7 @@ LSD.Properties.Matches.prototype.add = function(combinator, tag, value, wildcard
           if (item[2] === false) {
             if (typeof item[1] == 'function') item[1](value);
             else this._callback(item[1], value);
-          } else callback.matches.set(item[0], item[1], item[2]);
+          } else this.set(item[0], item[1], item[2]);
         }
       }
     }
@@ -293,7 +293,7 @@ LSD.Properties.Matches.prototype.remove = function(combinator, tag, value, wildc
         if (item[2] === false) {
           if (typeof item[1] == 'function') item[1](undefined, value);
           else this._callback(item[1], undefined, value);
-        } else callback.matches.unset(item[0], item[1], item[2]);
+        } else this.unset(item[0], item[1], item[2]);
       }
     }
   }

@@ -217,15 +217,15 @@ LSD.Array.prototype.splice = function(index, offset) {
         if (d) values.push(this[i + shift])
         this.unset(i + shift, this[i + shift], null, d ? 'empty' : 'collapse');
       }
-      this.set(i + shift, this[i], i, 'collapse');
+      this.set(i + shift, this[i], i, i + 1 == length && shift > -1 ? 'finalize' : 'collapse');
     }
-  this._set('length', (this._length = length + shift));
+  this._set('length', (this._length = length + shift));  
   for (var i = this._length; i < length; i++) {
     if (values.length < - shift) {
       values.push(this[i])
       this.unset(i, this[i], null, 'splice');
     } else {
-      this.unset(i, this[i], false, 'collapse');
+      this.unset(i, this[i], false, i + 1 == length ? 'finalize' : 'collapse');
     }
   }
   delete this._shifting;
@@ -237,16 +237,17 @@ LSD.Array.prototype.splice = function(index, offset) {
   by shifting the values between the old and the new position.
   No values are lost this way, useful for manual sorting.
 */
-LSD.Array.prototype.move = function(from, to) {
+LSD.Array.prototype.move = function(from, to, memo) {
   if (from === to) return true;
   var value = this[from];
   if (from > to)
     for (var i = from; --i > to;)
-      this.set(i, this[i + 1], i + 1);
+      this.set(i, this[i + 1], i + 1, 'collapse');
   else
     for (var i = from; i < to; i++)
-      this.set(i, this[i + 1], i + 1);
-  this.set(from > to ? to : to - 1, value, from);
+      this.set(i, this[i + 1], i + 1, 'collapse');
+  var j = from > to ? to : to - 1;
+  if (j !== from) this.set(j, value, from, 'move');
 };
 LSD.Array.prototype.pop = function() {
   return this.splice(-1, 1)[0];
