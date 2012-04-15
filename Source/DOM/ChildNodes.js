@@ -28,10 +28,18 @@ LSD.ChildNodes = LSD.Struct({
   }
 }, 'Array');
 LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
-  var owner = this._owner, moving = memo === 'collapse' || memo === 'finalize'
+  switch (memo) {
+    case 'collapse': case 'finalize': case 'clean':
+      var moving = true;
+      break;
+    case 'splice': case 'empty':
+      var removing = true;
+  }
+  var owner = this._owner
   if ((!state || owner != value.parentNode) && !moving)
     value[state ? 'set' : 'unset']('parentNode', owner || null, memo);
-  var previous = this[index - 1] || null, next = this[index + 1] || null;
+  var previous = (!state && value.previousSibling) || this[index - 1] || null, 
+      next = (!state && value.nextSibling) || this[index + 1] || null;
   if (next && next === previous) next = this[index + 2] || null;
   if (previous !== value && !moving) {
     if (previous && (memo !== 'splice' || (!state && !next)))
@@ -42,9 +50,8 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
       value.unset('previousSibling', previous, memo);
   }
   if (next !== value && !moving) {
-    if (next && (memo !== 'splice' || (!state && !previous))) {
+    if (next && (memo !== 'splice' || (!state && !previous)))
       next.change('previousSibling', state ? value : previous, memo);
-    }
     if ((state || old === false))
       value.change('nextSibling', next, memo);
     else if (value.nextSibling == next)

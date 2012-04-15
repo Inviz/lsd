@@ -42,9 +42,12 @@ LSD.NodeList.prototype.push = function() {
   return this._length;
 };
 LSD.NodeList.prototype.indexFor = function(value, criteria) {
-  if (!value) return this._length;
-  for (var i = 0, j = this._length, k = value[this._sortBy]; i < j; i++)
-    if (!this[i] || this[i][this._sortBy] > k) break;
+  var k = value[this._sortBy]
+  if (k == null) return this._length;
+  for (var i = 0, j = this._length; i < j; i++)
+    if (value === this[i] 
+     ? (!this[i + 1] || this[i + 1][this._sortBy] > k)
+     : (this[i] && this[i][this._sortBy]) > k) break;
   return i;
 };
 LSD.NodeList.prototype._sortBy = 'sourceIndex';

@@ -118,10 +118,10 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, memo, old, hash
           if (!kind) kind = storage[type] = {};
           var group = kind[val];
           if (!group) group = kind[val] = [];
-          group.push([key, val, true]);
+          group.push([key, value, true]);
         }
         if (odef) {
-          var array = group[bit.key || bit.value];
+          var array = storage[type][val];
           if (array) for (var k = array.length, fn; k--;)
             if ((fn = array[k][1]) == old || fn.callback == old) {
               array.splice(k, 1);
@@ -131,9 +131,14 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, memo, old, hash
       }
     }
     if (this._owner && this._owner.test(key)) {
-      if (typeof value == 'function') value(this._owner);
-      else if (value.callback)
-        (value.fn || (value.bind || this._owner)[value.method]).call(value.bind || this._owner, value, widget)
+      if (vdef)
+        if (typeof value == 'function') value(this._owner);
+        else if (value.callback)
+          (value.fn || (value.bind || this._owner)[value.method]).call(value.bind || this._owner, value, this._owner)
+      if (odef)
+        if (typeof old == 'function') old(undefined, this._owner);
+        else if (old.callback)
+          (old.fn || (old.bind || this._owner)[old.method]).call(old.bind || this._owner, old, undefined, this._owner)
     }
   /*
     Expression may also be matching other node according to its combinator.
@@ -142,8 +147,8 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, memo, old, hash
     widgets that match each of combinator-tag pair.
   */
   } else {
+    var stateful = !!(key.id || key.attributes || key.pseudos || key.classes)
     if (vdef) {
-      var stateful = !!(key.id || key.attributes || key.pseudos || key.classes) 
       hash.push([key, value, stateful]);
       if (this._results) {
         var group = this._hash(key, null, this._results);
@@ -163,10 +168,12 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, memo, old, hash
           if (this._results) {
             var group = this._hash(key, null, this._results);
             for (var j = 0, result; result = group[j++];) {
-              if (typeof fn == 'function') fn(undefined, old);
-              else if (typeof fn.callback != 'undefined')
-                (fn.fn || (fn.bind || this)[fn.method]).call(fn.bind || this, fn, undefined, result)
-              else result.mix(undefined, undefined, memo, old)
+              if (!stateful) {
+                if (typeof fn == 'function') fn(undefined, old);
+                else if (typeof fn.callback != 'undefined')
+                  (fn.fn || (fn.bind || this)[fn.method]).call(fn.bind || this, fn, undefined, result)
+                else result.mix(undefined, undefined, memo, old)
+              } else result.matches.unset(key, old, 'state');
             }
           }
           hash.splice(i, 1);
@@ -216,7 +223,9 @@ LSD.Properties.Matches.prototype._hash = function(expression, value, storage) {
   }
   var tag = expression.tag;
   if (!tag) return false;
-  if (storage == null) storage = value != null && value.lsd ? this._results || (this._results = {}) : this._callbacks || (this._callbacks = {});
+  if (storage == null) storage = value != null && value.lsd 
+    ? this._results || (this._results = {}) 
+    : this._callbacks || (this._callbacks = {});
   var combinator = expression.combinator || ' ';
   var group = storage[combinator];
   if (group == null) group = storage[combinator] = {};
@@ -247,13 +256,12 @@ LSD.Properties.Matches.prototype._hash = function(expression, value, storage) {
 */
 LSD.Properties.Matches.prototype.add = function(combinator, tag, value, wildcard) {
   if (this._types[combinator]) {
-    var storage = this._state;
-    if (!storage) return;
-    var group = storage[combinator];
-    if (!group) return;
-    for (var i = 0, item; i < group.length; i++) {
-      
-    }
+    var storage = this._state, group, owner = this._owner;
+    if (!storage || !(group = storage[combinator]) || !(group = group[tag])) return;
+    for (var i = 0, item; item = group[i++];)
+      if (owner.test(item[0]))
+        if (typeof item[1] == 'function') item[1](owner);
+        else this._callback(item[1], owner);
   } else {
     if (value.lsd) {
       var storage = this._results || (this._results = {}), other = this._callbacks;
@@ -271,29 +279,40 @@ LSD.Properties.Matches.prototype.add = function(combinator, tag, value, wildcard
           if (item[2] === false) {
             if (typeof item[1] == 'function') item[1](value);
             else this._callback(item[1], value);
-          } else this.set(item[0], item[1], item[2]);
+          } else {
+            value.matches.set(item[0], item[1], 'state');
+          }
         }
       }
     }
   }
 }
 LSD.Properties.Matches.prototype.remove = function(combinator, tag, value, wildcard) {
-  if (value.lsd) var storage = this._results, other = this._callbacks;
-  else var storage = this._callbacks, other = this._results;
-  if (storage == null) return false;
-  var group = storage[combinator];
-  if (group == null) return false;
-  for (var key = tag; key; key = key == tag && wildcard && '*') {
-    var array = group[key];
-    if (!array) continue;
-    var index = array.indexOf(value);
-    if (index > -1) array.splice(index, 1);
-    if (other && (matched = other[combinator]) && (matched = matched[key])) {
-      for (var i = 0, item; item = matched[i++];) {
-        if (item[2] === false) {
-          if (typeof item[1] == 'function') item[1](undefined, value);
-          else this._callback(item[1], undefined, value);
-        } else this.unset(item[0], item[1], item[2]);
+  if (this._types[combinator]) {
+    var storage = this._state, group, owner = this._owner;
+    if (!storage || !(group = storage[combinator]) || !(group = group[tag])) return;
+    for (var i = 0, item; item = group[i++];)
+      if (owner.test(item[0], combinator, tag, value))
+        if (typeof item[1] == 'function') item[1](undefined, owner);
+        else this._callback(item[1], undefined, owner);
+  } else {
+    if (value.lsd) var storage = this._results, other = this._callbacks;
+    else var storage = this._callbacks, other = this._results;
+    if (storage == null) return false;
+    var group = storage[combinator];
+    if (group == null) return false;
+    for (var key = tag; key; key = key == tag && wildcard && '*') {
+      var array = group[key];
+      if (!array) continue;
+      var index = array.indexOf(value);
+      if (index > -1) array.splice(index, 1);
+      if (other && (matched = other[combinator]) && (matched = matched[key])) {
+        for (var i = 0, item; item = matched[i++];) {
+          if (item[2] === false) {
+            if (typeof item[1] == 'function') item[1](undefined, value);
+            else this._callback(item[1], undefined, value);
+          } else value.matches.unset(item[0], item[1], 'state');
+        }
       }
     }
   }

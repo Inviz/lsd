@@ -8,42 +8,73 @@ description: Make various requests to back end
 license: Public domain (http://unlicense.org).
 
 requires:
-  - LSD.Mixin
-  - Core/Request
-  - Ext/Request.Form
-  - Ext/Request.Auto
-  - Ext/document.createFragment
+  - LSD.Journal
 
 provides:
-  - LSD.Mixin.Request
+  - LSD.Request
 
 ...
 */
 
 LSD.Request = LSD.Properties.Request = new LSD.Struct({
-  format: function() {
+  state: function(state, old, memo) {
+    switch (state) {
+      case 'opened':
+        this.change('progress', 0);
+        break;
+      case 'head':
+        this.change('status', this.object.status);
+        break;
+      case 'complete':
+        this.change('progress', 1);
+        this.change('response', this.object.responseText)
+    }
+  },
+  
+  status: function() {
     
   },
   
-  started: function(value, old, memo) {
+  response: function() {
     
   },
   
-  imports: {
-    data: '.elements'
+  method: function(value) {
+    if (typeof value == 'string') return value.toUpperCase();
   }
-});
+}, 'Journal');
+
+LSD.Request.prototype._hash = function(key, value) {
+  var fitst = key.charAt(0);
+  if (first === first.toUpperCase()) return 'headers.' + key;
+};
 LSD.Request.prototype.encoding = 'utf-8';
 LSD.Request.prototype.onStateChange = function() {
-};
-LSD.Request.prototype.onCancel = function() {
-};
-LSD.Request.prototype.onComplete = function() {
-};
-LSD.Request.prototype.onSuccess = function() {
-};
-LSD.Request.prototype.onFailure = function() {
+  this.set('state', this.request.readyState, this.request);
 };
 LSD.Request.prototype.isSuccess = function() {
   return this.status > 199 && this.status < 300;
 };
+LSD.Request.Formats = {
+  html: 'text/html',
+  htm:  'text/html',
+  json: 'application/json',
+  js:   'text/javascript'
+};
+LSD.Request.prototype._states = ['unsent', 'opened', 'head', 'loading', 'complete'];
+LSD.Request.Data = new LSD.Struct('Data');
+LSD.Request.Headers = new LSD.Struct({
+  Accept: function(value) {
+    return LSD.Requests.formats[value] || value;
+  }
+}, 'Journal');
+LSD.Request.URL = new LSD.Struct({
+})
+LSD.Request.URL.prototype.onChange = function(key, value, memo, old) {
+  
+};
+LSD.Request.URL.prototype.toString = function() {
+  
+}
+LSD.Request.URL.prototype._regex = /^(?:(\w+):)?(?:\/\/(?:(?:([^:@\/]*):?([^:@\/]*))?@)?([^:\/?#]*)(?::(\d*))?)?(\.\.?$|(?:[^?#\/]*\/)*)([^?#]*)(?:\?([^#]*))?(?:#(.*))?/;
+LSD.Request.URL.prototype._parts: ['scheme', 'user', 'password', 'host', 'port', 'directory', 'file', 'query', 'fragment'];

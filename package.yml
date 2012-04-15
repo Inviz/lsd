@@ -21,14 +21,15 @@ sources:
   - Source/DOM/Range.js
   - Source/DOM/NodeList.js
   - Source/DOM/ChildNodes.js
-  - Source/Object/Object.js
-  - Source/Object/Journal.js
-  - Source/Object/Group.js
-  - Source/Object/Struct.js
-  - Source/Object/Array.js
+  - Source/Typer/Object.js
+  - Source/Type/Journal.js
+  - Source/Type/Group.js
+  - Source/Type/Struct.js
+  - Source/Type/Array.js
+  - Source/Type/Data.js
+  - Source/Type/RegExp.js
   - Source/Properties/ClassList.js
   - Source/Properties/Matches.js
-  - Source/Properties/Elements.js
   - Source/Properties/Relations.js
   - Source/Properties/Attributes.js
   - Source/Properties/Events.js

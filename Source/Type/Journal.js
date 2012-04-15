@@ -59,16 +59,13 @@ LSD.Journal = function(object) {
 LSD.Journal.prototype = new LSD.Object;
 LSD.Journal.prototype.constructor = LSD.Journal,
 LSD.Journal.prototype.set = function(key, value, memo, prepend, old) {
-  if (typeof key != 'string') {
-    var hash = this._hash(key);
-    if (typeof hash == 'string') {
-      key = hash;
-      var index = key.indexOf('.');
-    } else {
-      if (hash == null) return;
-      var group = hash;
-    }
-  } else var index = key.indexOf('.');
+  if (this._hash) {
+    var hash = this._hash(key, value, memo, true);
+    if (hash === true) return true;
+    if (typeof hash == 'string' && (key = hash)) hash = null;
+  }
+  if (hash == null) var index = key.indexOf('.');
+  else if (typeof hash == 'object') group = hash;
   if (index === -1) {
     var journal = this._journal;
     if (!journal) journal = this._journal = {};
@@ -108,19 +105,13 @@ LSD.Journal.prototype.set = function(key, value, memo, prepend, old) {
   return !eql
 };
 LSD.Journal.prototype.unset = function(key, value, memo, prepend, hash) {
-  if (typeof key != 'string') {
-    if (hash == null) hash = this._hash(key);
-    if (typeof hash == 'string') {
-      key = hash;
-      var index = key.indexOf('.');
-    } else {
-      if (hash == null) return;
-      var group = hash;
-    }
-  } else {
-    var index = key.indexOf('.');
+  if (this._hash) {
+    var hash = this._hash(key, value);
+    if (typeof hash == 'string' && (key = hash)) hash = null;
   }
-  if (group == null && index === -1) {
+  if (hash == null) var index = key.indexOf('.');
+  else if (typeof hash == 'object') group = hash;
+  if (index === -1) {
     var group = this._journal[key];
     if (!group) return;
     var length = group.length;
@@ -152,15 +143,12 @@ LSD.Journal.prototype.unset = function(key, value, memo, prepend, hash) {
         if (--length === 1) return true;
       }
       var val = group[length - 2];
-      if (val == null || !val[this._trigger]) {
-        var method = '_set';
-        value = val;
-      }
+      if (val === this[key]) return false;
+      if (val !== this[key] && (val == null || !val[this._trigger]))
+        return this._set(key, val, memo, index, hash);
     }
   }
-  if (method !== '_set' || value != this[key])
-    return this[method || '_unset'](key, value, memo, index, hash);
-  else return false;
+  return this._unset(key, value, memo, index, hash);
 };
 /*
   Change method first sets the new value, and triggers all callbacks,

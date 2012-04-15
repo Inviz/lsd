@@ -452,11 +452,15 @@ LSD.Element.prototype.__properties = {
 */
   sourceIndex: function(value, old, memo) {
     var index = value == null ? old - 1 : value;
-    if (memo !== false) for (var node = this, next, nodes, i = 0; node; node = next) {
+    var collapse = memo === 'collapse' || memo === 'join';
+    if (memo !== false) for (var node = this, next, i = 0; node; node = next) {
       for (next = node.firstChild || node.nextSibling;
           !next && (node = node.parentNode); next = node.nextSibling)
-        if (value) node.sourceLastIndex = index + i;
-      if (next) next.change('sourceIndex', index + ++i, false)
+        if (next === this.nextSibling && collapse) return;
+        else if (value) node.sourceLastIndex = index + i;
+        
+      if (next === this.nextSibling && collapse) return;
+      else if (next) next.change('sourceIndex', index + ++i, false)
     }
   },
 /*
@@ -468,20 +472,17 @@ LSD.Element.prototype.__properties = {
   LSD.NodeList collections resorts.
 */
   previousElementSibling: function(value, old, memo) {
-    var moving = memo === 'collapse' || memo === 'finalize';
+    var moving = memo === 'collapse' || memo === 'finalize' || memo === 'clean' || memo === 'join';
     if (value) {
       value.matches.add('+',  this.tagName, this, true);
       value.matches.add('++', this.tagName, this, true);
-      for (var node = value; node; node = node.previousElementSibling) {
-        if (!moving) {
+      if (!moving) 
+        for (var node = value; node; node = node.previousElementSibling) {
           node.matches.add('~',  this.tagName, this, true);
           node.matches.add('~~', this.tagName, this, true);
-        }
-        if (!moving || memo === 'insert') {
           this.matches.add('!~', node.tagName, node, true);
           this.matches.add('~~', node.tagName, node, true);
         }
-      }
     }
     if (old) {
       old.matches.remove('+',  this.tagName, this, true);
@@ -491,7 +492,6 @@ LSD.Element.prototype.__properties = {
           node.matches.remove('~',  this.tagName, this, true);
           node.matches.remove('~~', this.tagName, this, true);
         }  
-        this.matches.remove('!~', node.tagName, node, true);
       }
     }
   },
@@ -504,6 +504,7 @@ LSD.Element.prototype.__properties = {
           node.matches.add('~~', this.tagName, this, true);
           this.matches.add('~',  node.tagName, node, true);
           this.matches.add('~~', node.tagName, node, true);
+          this.matches.remove('!~', node.tagName, node, true);
         }
     }
     if (old) {
@@ -513,6 +514,7 @@ LSD.Element.prototype.__properties = {
         node.matches.remove('~~', this.tagName, this, true);
         this.matches.remove('~',  node.tagName, node, true);
         this.matches.remove('~~', node.tagName, node, true);
+        node.matches.remove('!~', this.tagName, this, true);
       }
     }
   },
@@ -824,7 +826,7 @@ LSD.Element.prototype.test = function(selector, group, key, value) {
     if (!attrs) return false;
     for (var i = 0, j; j = selector.attributes[i]; i++) {
       var val = group === 'attributes' && key === j.key ? value : attrs[j.key];
-      if (j.operator ? !j.test(val && val.toString()) : !(j.key in attrs)) 
+      if (j.operator ? !j.test(val && val.toString()) : typeof val == 'undefined') 
         return false;
     }
   }
@@ -858,7 +860,10 @@ LSD.Element.prototype.toElement = function(){
   return this.element;
 };
 LSD.Element.prototype.onChildSet = function(value, index, state, old, memo) {
-  var children = this.childNodes, moving = memo === 'collapse' || memo === 'finalize';
+  var children = this.childNodes;
+  var moving = memo === 'collapse' || memo === 'finalize' || memo === 'clean';
+  console.log(value, index, state, old, memo)
+  if (index == 2 && !state && memo === 'empty') debugger
   if (memo !== 'empty') {
     for (var text = '', child, i = 0; child = children[i++];)
       if (child.textContent != null) text += child.textContent;
@@ -872,25 +877,25 @@ LSD.Element.prototype.onChildSet = function(value, index, state, old, memo) {
   for (var next = children[index + 1]; next && (next.nodeType != 1 || next == prev || next == value);)
     next = next.nextSibling; 
   if (prev && (!moving || old != null)) {
-    if (state || old === false)
+    if (state || old === false) {
       prev.change('nextElementSibling', value, memo);
-    else if (prev.nextElementSibling === value)
+    } else if (prev.nextElementSibling === value)
       if (next) {
-        if (memo !== 'empty') prev.change('nextElementSibling', next, memo);
+        if (memo !== 'empty' && memo !== 'splice') prev.change('nextElementSibling', next, memo);
       } else prev.unset('nextElementSibling', value, memo);
       
     if (state) value.change('previousElementSibling', prev, memo);
     else value.unset('previousElementSibling', value.previousElementSibling)
-  }  
+  } 
   if (next && !moving) {
-    if (state || old === false)
+    if (state || old === false) {
       next.change('previousElementSibling', value, memo);
-    else if (next.previousElementSibling === value)
+    } else if (next.previousElementSibling === value)
       if (prev) {
         if (memo !== 'empty') next.change('previousElementSibling', prev, memo);
       } else next.unset('previousElementSibling', value, memo);
       if (state) value.change('nextElementSibling', next, memo);
-      else value.unset('nextElementSibling', value.nextElementSibling)
+      else value.unset('nextElementSibling', value.nextElementSibling, memo)
   }
 };
 

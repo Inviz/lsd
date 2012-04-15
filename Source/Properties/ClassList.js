@@ -29,7 +29,7 @@ LSD.Properties.ClassList.prototype.onChange = function(key, value, memo, old) {
     owner.mix(key, true, 'classes', old);
   var index = (' ' + this._name + ' ').indexOf(' ' + key + ' ');
   if (value && index == -1) this.set('_name', this._name.length ? this._name + ' ' + key : key);
-  else if (old && index > -1) this.set('_name', this._name.substring(0, index - 1) + this._name.substring(key.length));
+  else if (old && index > -1) this.set('_name', this._name.substring(0, index - 1) + this._name.substring(index + key.length));
   var element = owner.element;
   if (element) element.className = this._name
   if (owner.matches) {

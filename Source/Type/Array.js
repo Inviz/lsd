@@ -44,6 +44,7 @@ LSD.Array = function(arg) {
         this.push(arguments[i]);
     }
   }
+  if (!this.hasOwnProperty('_length')) this.length = this._length = 0;
 };
 
 /*
@@ -217,21 +218,19 @@ LSD.Array.prototype.splice = function(index, offset) {
         if (d) values.push(this[i + shift])
         this.unset(i + shift, this[i + shift], null, d ? 'empty' : 'collapse');
       }
-      this.set(i + shift, this[i], i, i + 1 == length && shift > -1 ? 'finalize' : 'collapse');
+      this.set(i + shift, this[i], i, i + 1 == length && shift > -1 ? 'finalize' : i == index + arity - shift ? 'join' : 'collapse');
     }
   this._set('length', (this._length = length + shift));  
-  for (var i = this._length; i < length; i++) {
+  for (var i = this._length; i < length; i++)
     if (values.length < - shift) {
       values.push(this[i])
       this.unset(i, this[i], null, 'splice');
     } else {
-      this.unset(i, this[i], false, i + 1 == length ? 'finalize' : 'collapse');
+      this.unset(i, this[i], false, i + 1 == length ? 'clean' : 'collapse');
     }
-  }
   delete this._shifting;
   return values;
 };
-
 /*
   `move` method can change the position of a value within array
   by shifting the values between the old and the new position.

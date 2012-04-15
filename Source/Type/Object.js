@@ -174,17 +174,16 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
   long way of programs without race conditions, that can be seemlessly
   assembled and disassembled at run time.
   
-   LSD.Object guarantees that a value that was unset becomes `undefined`.
-  Although it's not always the case with LSD.Object subclass types. For
-  example, behavior of LSD.Journal.unset may not be a surprise for developers
-  familiar with `delete` behavior. In javascript it is impossible to undefine
-  a key on an object, if it has that a value inherited from prototype by that
-  key. Even if the key was overwritten in the object, deleting it will revert
-  it to the value from prototype. Similarly, LSD.Journal reverts to value that
-  was overwritten by the value that was unset. Repeated calls to `unset` will
-  remove all values from the stack and the key will finally become undefined.
+   LSD.Object#unset uses `delete` keyword to remove value from the object.
+  It usually makes the key `undefined` in an object, if an object prototype
+  does not have such key. If an object prototype has a value with the same
+  key, the object will still reference that value after `delete` is called.
+  LSD.Journal setters have similar behavior, it is possible to overwrite
+  any value, but `unset`ting may revert the value to the one that was set
+  previously. Repeated calls to `unset` will remove all values from the 
+  journal and the key will finally may become undefined.
   
-   The method does all things that .set does in the same order: hashes its
+   `unset` method does all things that `set` does in the same order: hashes its
   key, deals with ownership reference, transforms values, notifies 
   observers, fires callbacks and processes stored arguments
 */
