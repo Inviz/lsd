@@ -21,9 +21,9 @@ provides:
 */
 
 LSD.Textnode = LSD.Struct({
-  textContent: function(value, old, memo) {
+  textContent: function(value, old, meta) {
     if (typeof value != 'undefined') {
-      if (!memo || !(memo.push || memo.script)) {
+      if (!meta || !(meta.push || meta.script)) {
         for (var previous = -1, start, end, bits, substr; (start = value.indexOf('${', previous + 1)) > -1;) {
           if ((end = value.indexOf('}', start)) == -1) continue;
           if (!bits) bits = [];
@@ -51,8 +51,8 @@ LSD.Textnode = LSD.Struct({
     if (end + 1 < value.length) bits.push(value.substring(end + 1));
     return new LSD.Script({type: 'function', name: 'concat', input: bits, pipable: false});
   },
-  parentNode: function(value, old, memo) {
-    this.mix('variables', value && value.variables, memo, old && old.variables, true);
+  parentNode: function(value, old, meta) {
+    this.mix('variables', value && value.variables, meta, old && old.variables, true);
   }
 }, 'Journal');
 LSD.Textnode.implement(LSD.Node.prototype);

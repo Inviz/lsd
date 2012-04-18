@@ -22,10 +22,10 @@ provides:
 LSD.Properties.ClassList = LSD.Struct({
   _name: '.className'
 }, 'Journal');
-LSD.Properties.ClassList.prototype.onChange = function(key, value, memo, old) {
+LSD.Properties.ClassList.prototype.onChange = function(key, value, meta, old) {
   if (key == '_name') return value || old;
   var owner = this._owner, ns = owner.document || LSD.Document.prototype;
-  if ((!memo || memo !== 'states') && ns.states[key])
+  if ((!meta || meta !== 'states') && ns.states[key])
     owner.mix(key, true, 'classes', old);
   var index = (' ' + this._name + ' ').indexOf(' ' + key + ' ');
   if (value && index == -1) this.set('_name', this._name.length ? this._name + ' ' + key : key);

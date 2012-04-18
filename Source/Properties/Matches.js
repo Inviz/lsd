@@ -77,7 +77,7 @@ LSD.Properties.Matches = LSD.Struct('Group');
   the state and fires callbacks when classes, pseudo 
   classes or attributes are changed.
 */
-LSD.Properties.Matches.prototype.onChange = function(key, value, memo, old, hash) {
+LSD.Properties.Matches.prototype.onChange = function(key, value, meta, old, hash) {
   if (typeof key == 'string') 
     key = (this._parsed[key] || (this._parsed[key] = Slick.parse(key)));
   var odef = old !== undefined, vdef = value !== undefined;
@@ -91,15 +91,15 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, memo, old, hash
         key = key[0][0]
         break; 
       }
-      if (typeof memo != 'number') memo = 0;
-      if (vdef) this.set(expressions[memo], {
+      if (typeof meta != 'number') meta = 0;
+      if (vdef) this.set(expressions[meta], {
         fn: this._advancer,
         bind: this,
-        index: memo + 1,
+        index: meta + 1,
         callback: value,
         expressions: expressions
       });
-      if (odef) this.unset(expressions[memo], old);
+      if (odef) this.unset(expressions[meta], old);
       if (j == 1 || expressions == key) break;
     }
     if (j > 1 || l > 1) return this._skip;
@@ -108,7 +108,7 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, memo, old, hash
     Expression may be a state key, that expects current node
     to be in a specific state (classes, pseudos and attributes).
   */
-  if (!key.combinator || key.combinator == '&' || memo === 'state') {
+  if (!key.combinator || key.combinator == '&' || meta === 'state') {
     for (var type in this._types) {
       var values = key[type];
       var storage = this._state || (this._state = {});
@@ -157,7 +157,7 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, memo, old, hash
             if (typeof value == 'function') value(widget);
             else if (value.callback)
               (value.fn || (value.bind || this)[value.method]).call(value.bind || this, value, widget)
-            else widget.mix(value, null, memo)
+            else widget.mix(value, null, meta)
           } else widget.matches.set(key, value, 'state');
         }
       }
@@ -172,7 +172,7 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, memo, old, hash
                 if (typeof fn == 'function') fn(undefined, old);
                 else if (typeof fn.callback != 'undefined')
                   (fn.fn || (fn.bind || this)[fn.method]).call(fn.bind || this, fn, undefined, result)
-                else result.mix(undefined, undefined, memo, old)
+                else result.mix(undefined, undefined, meta, old)
               } else result.matches.unset(key, old, 'state');
             }
           }

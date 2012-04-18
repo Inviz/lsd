@@ -58,9 +58,9 @@ LSD.Journal = function(object) {
 
 LSD.Journal.prototype = new LSD.Object;
 LSD.Journal.prototype.constructor = LSD.Journal,
-LSD.Journal.prototype.set = function(key, value, memo, prepend, old, hash) {
+LSD.Journal.prototype.set = function(key, value, meta, prepend, old, hash) {
   if (this._hash && hash == null) {
-    if ((hash = this._hash(key, value, memo, true)) === true) return true;
+    if ((hash = this._hash(key, value, meta, true)) === true) return true;
     if (typeof hash == 'string' && (key = hash)) hash = null;
   }
   if (hash == null) var index = key.indexOf('.');
@@ -95,17 +95,17 @@ LSD.Journal.prototype.set = function(key, value, memo, prepend, old, hash) {
     else if (j == null || j == (i == null ? -1 : i)) 
       return false;
   }
-  if (!vdef) return this._unset(key, old, memo, index, hash);
+  if (!vdef) return this._unset(key, old, meta, index, hash);
   var eql = value === this[key];
-  if (!eql && !this._set(key, value, memo, index, hash)) {
+  if (!eql && !this._set(key, value, meta, index, hash)) {
     if (group) prepend ? group.shift() : group.pop();
     return false;
   }
   return !eql
 };
-LSD.Journal.prototype.unset = function(key, value, memo, prepend, hash) {
+LSD.Journal.prototype.unset = function(key, value, meta, prepend, hash) {
   if (this._hash && hash == null) {
-    if ((hash = this._hash(key, value, memo, true)) === true) return true;
+    if ((hash = this._hash(key, value, meta, true)) === true) return true;
     if (typeof hash == 'string' && (key = hash)) hash = null;
   }
   if (hash == null) var index = key.indexOf('.');
@@ -138,16 +138,16 @@ LSD.Journal.prototype.unset = function(key, value, memo, prepend, hash) {
     }
     if (length > 1) {
       if (value != null && value[this._trigger]) {
-        this._unscript(key, value, memo, index, hash);
+        this._unscript(key, value, meta, index, hash);
         if (--length === 1) return true;
       }
       var val = group[length - 2];
       if (val === this[key]) return false;
       if (val !== this[key] && (val == null || !val[this._trigger]))
-        return this._set(key, val, memo, index, hash);
+        return this._set(key, val, meta, index, hash);
     }
   }
-  return this._unset(key, value, memo, index, hash);
+  return this._unset(key, value, meta, index, hash);
 };
 /*
   Change method first sets the new value, and triggers all callbacks,
@@ -168,10 +168,10 @@ LSD.Journal.prototype.unset = function(key, value, memo, prepend, hash) {
   screwing up the journal. The side effect often stay unnoticed
   and in some situations is the best thing to do. Use with caution.
 */
-LSD.Journal.prototype.change = function(key, value, memo) {
+LSD.Journal.prototype.change = function(key, value, meta) {
   var old = this[key];
-  this.set(key, value, memo);
-  if (typeof old != 'undefined') this.unset(key, old, memo)
+  this.set(key, value, meta);
+  if (typeof old != 'undefined') this.unset(key, old, meta)
   return true;
 };
 LSD.Journal.prototype._skip = Object.append({_journal: true}, LSD.Object.prototype._skip);

@@ -166,7 +166,7 @@ LSD.Script.Struct = new LSD.Struct({
   placeholder: function(value, old) {
     if (this.placeheld) this.change('value', value);
   },
-  value: function(value, old, memo) {
+  value: function(value, old, meta) {
     if (this.frozen) return;
     if (this.yielder && this.invoked && this.invoked !== true) {
       this.yielder(value, this.invoked[0], this.invoked[1], this.invoked[2], this.invoked[3]);
@@ -204,8 +204,8 @@ LSD.Script.Struct = new LSD.Struct({
     if (value != null && value.push && value.watch) {
       if (!this._enumerator) {
         var self = this;
-        this._enumerator = function(val, index, state, old, memo) {
-          if (memo === 'collapse' || memo === 'empty') return;
+        this._enumerator = function(val, index, state, old, meta) {
+          if (meta === 'collapse' || meta === 'empty') return;
           delete self.value;
           self.set('value', value, 'enumerate');
           self.value = value;
@@ -220,13 +220,13 @@ LSD.Script.Struct = new LSD.Struct({
     }
     if (this.output) this.callback(value, old);
     if (this.type == 'variable')
-      if (typeof value == 'undefined' && memo !== false && !this.input && this.attached) this.set('executed', true)
+      if (typeof value == 'undefined' && meta !== false && !this.input && this.attached) this.set('executed', true)
       else delete this.executed
     if ((this.type != 'block' || this.yielder) && this.attached !== false && this.parents)
       for (var i = 0, parent; parent = this.parents[i++];) {
         if (!parent.translating && parent.attached !== false) {
           delete parent.executed;
-          parent.set('executed', true, memo);
+          parent.set('executed', true, meta);
         }
       }
     if (this.wrapper && this.wrapper.wrappee)
@@ -279,7 +279,7 @@ LSD.Script.Struct = new LSD.Struct({
   A value is calculated once and will be recalculated when any of its variable
   arguments is changed.
 */
-  executed: function(value, old, memo) {
+  executed: function(value, old, meta) {
     var name = (value || !old) ? this.name : LSD.Script.Revertable[this.name]/* || LSD.Negation[name] */
     || (LSD.Script.Evaluators[this.name] && this.name) || (!LSD.Script.Operators[this.name] && 'un' + this.name) || old;
     var val, result, args = [];
@@ -399,12 +399,12 @@ LSD.Script.Struct = new LSD.Struct({
       return args;
     }
     if (name) {
-      var method = this.lookup(name, args[0], null, memo);
+      var method = this.lookup(name, args[0], null, meta);
       if (method === true) val = args[0][name].apply(args[0], Array.prototype.slice.call(args, 1));
       else if (method) val = method.apply(this, args);
-      else if (memo === 'enumerate') return;
+      else if (meta === 'enumerate') return;
     } else val = args[0];
-    this.change('value', val, memo === 'enumerate' ? null : memo);
+    this.change('value', val, meta === 'enumerate' ? null : meta);
   },
 
 /*
@@ -613,9 +613,9 @@ LSD.Script.prototype.update = function(value) {
    Finally, it falls back to helpers defined in `LSD.Script.Helpers` object
   and Object methods as a last resort.
 */
-LSD.Script.prototype.lookup = function(name, arg, scope, memo) {
+LSD.Script.prototype.lookup = function(name, arg, scope, meta) {
   if (arg != null && typeof arg[name] == 'function') 
-    return memo !== 'enumerate';
+    return meta !== 'enumerate';
   if (scope != null || (scope = this.scope))
     for (; scope; scope = scope.parentScope) {
       var method = (scope.methods && scope.methods[name]) || scope[name] || (scope.variables && scope.variables[name]);
@@ -650,7 +650,7 @@ LSD.Script.prototype.onFailure = function(value) {
   object.failure = value;
   this.change('value', object);
 };
-LSD.Script.prototype.yield = function(keyword, args, callback, index, old, memo) {
+LSD.Script.prototype.yield = function(keyword, args, callback, index, old, meta) {
   if (args == null) args = [];
   switch (keyword) {
     case 'yield':
@@ -678,11 +678,11 @@ LSD.Script.prototype.yield = function(keyword, args, callback, index, old, memo)
       var invoked = block.invoked;
       block.yielded = true;
       block.yielder = callback;
-      if (memo && (memo.limit || memo.offset)) {
+      if (meta && (meta.limit || meta.offset)) {
         args = args.slice();
         delete args[3];
-        this._limit = memo.limit;
-        this._offset = memo.offset;
+        this._limit = meta.limit;
+        this._offset = meta.offset;
       }
       block.invoke(args, true, !!invoked);
       if (invoked && block.locals)

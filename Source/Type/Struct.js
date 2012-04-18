@@ -154,7 +154,7 @@ LSD.Struct.Mutators = {
       objects with specific class
 
 */
-LSD.Struct.prototype._onChange = function(key, value, memo, old) {
+LSD.Struct.prototype._onChange = function(key, value, meta, old) {
   if (typeof key != 'string') return value;
   var props = this._properties, prop;
   if (props) prop = props[key];
@@ -175,8 +175,8 @@ LSD.Struct.prototype._onChange = function(key, value, memo, old) {
     case 'function':
       if (prop.prototype._set) {
         if (vdef && typeof this[key] == 'undefined')
-          this._construct(key, prop, memo)
-      } else return prop.call(this, value, old, memo);
+          this._construct(key, prop, meta)
+      } else return prop.call(this, value, old, meta);
       break;
 /*
   - A string, the link to another property in current or
@@ -188,7 +188,7 @@ LSD.Struct.prototype._onChange = function(key, value, memo, old) {
 */
     case 'string':
       if (typeof value != 'object')
-        this.mix(prop, value, memo, old);
+        this.mix(prop, value, meta, old);
   };
   return value;
 };
@@ -267,11 +267,11 @@ LSD.Struct.prototype._link = function(properties, state, external) {
   paying attention to `rate`, then `tax`. When all variables are found, the result is
   calculated and assigned to `total` property.
 */
-LSD.Struct.prototype._linker = function(call, key, value, old, memo) {
+LSD.Struct.prototype._linker = function(call, key, value, old, meta) {
   if (typeof value != 'undefined')
-    this.mix(call.key, value, memo);
+    this.mix(call.key, value, meta);
   if (old != null && (this._journal || typeof value == 'undefined'))
-    this.mix(call.key, undefined, memo, old);
+    this.mix(call.key, undefined, meta, old);
 };
 LSD.Struct.prototype._unlinked = ['_journal', '_stored'];
 LSD.Struct.prototype._skip = Object.append({

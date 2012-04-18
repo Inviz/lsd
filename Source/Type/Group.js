@@ -29,9 +29,9 @@ LSD.Group = function(object, constructor) {
 LSD.Group.prototype = new LSD.Object;
 LSD.Group.prototype.constructor = LSD.Group;
 LSD.Group.prototype.__constructor = Array;
-LSD.Group.prototype.set = function(key, value, memo, prepend, old, hash) {
+LSD.Group.prototype.set = function(key, value, meta, prepend, old, hash) {
   if (this._hash) {
-    if ((hash = this._hash(key, value, memo, true)) === true) return true;
+    if ((hash = this._hash(key, value, meta, true)) === true) return true;
     if (typeof hash == 'string' && (key = hash)) hash = null;
   }
   if (hash == null) {
@@ -44,13 +44,13 @@ LSD.Group.prototype.set = function(key, value, memo, prepend, old, hash) {
       }
     }
   } else var group = hash;
-  if (typeof (this._set(key, value, memo, index, group)) != 'undefined' && group != null)
+  if (typeof (this._set(key, value, meta, index, group)) != 'undefined' && group != null)
     if (group != null) (prepend || value == null) ? group.unshift(value) : group.push(value);
   return true;
 },
-LSD.Group.prototype.unset = function(key, value, memo, prepend, old, hash) {
+LSD.Group.prototype.unset = function(key, value, meta, prepend, old, hash) {
   if (this._hash) {
-    if ((hash = this._hash(key, value, memo, true)) === true) return true;
+    if ((hash = this._hash(key, value, meta, true)) === true) return true;
     if (typeof hash == 'string' && (key = hash)) hash = null;
   }
   if (hash == null) {
@@ -59,7 +59,7 @@ LSD.Group.prototype.unset = function(key, value, memo, prepend, old, hash) {
       var group = this[key];
   } else var group = hash; 
   var length = group.length;
-  if (typeof (this._unset(key, value, memo, index, group)) != 'undefined' && group != null)
+  if (typeof (this._unset(key, value, meta, index, group)) != 'undefined' && group != null)
     if (prepend) {
       for (var i = 0, j = length; i < j; i++)
         if (group[i] === value) {

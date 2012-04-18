@@ -17,7 +17,7 @@ provides:
 */
 
 LSD.Request = LSD.Properties.Request = new LSD.Struct({
-  state: function(state, old, memo) {
+  state: function(state, old, meta) {
     switch (state) {
       case 'opened':
         this.change('progress', 0);
@@ -36,7 +36,6 @@ LSD.Request = LSD.Properties.Request = new LSD.Struct({
   },
   
   response: function() {
-    
   },
   
   method: function(value) {
@@ -70,7 +69,7 @@ LSD.Request.Headers = new LSD.Struct({
 }, 'Journal');
 LSD.Request.URL = new LSD.Struct({
 })
-LSD.Request.URL.prototype.onChange = function(key, value, memo, old) {
+LSD.Request.URL.prototype.onChange = function(key, value, meta, old) {
   
 };
 LSD.Request.URL.prototype.toString = function() {

@@ -25,13 +25,13 @@ provides:
 */
 
 LSD.Properties.Attributes = LSD.Struct(LSD.attributes, 'Journal');
-LSD.Properties.Attributes.prototype.onChange = function(key, value, memo, old) {
+LSD.Properties.Attributes.prototype.onChange = function(key, value, meta, old) {
   var owner = this._owner, ns = owner.document || LSD.Document.prototype;
   var attribute = ns.attributes && ns.attributes[key]
   var vdef = typeof value != 'undefined', odef = typeof old != 'undefined';
   if (attribute) {
     if (typeof attribute == 'string') {
-      owner.mix(attribute, value, memo, old);
+      owner.mix(attribute, value, meta, old);
     } else if (value){
       var result = attribute.call(owner, value, old);
       if (typeof result != 'undefined') value = result;
@@ -42,10 +42,10 @@ LSD.Properties.Attributes.prototype.onChange = function(key, value, memo, old) {
     if (vdef) owner.element.setAttribute(key, value === true ? key : value);
     else owner.element.removeAttribute(key);
   }
-  if (((!memo || memo !== 'states') && ns.states[key]) || owner.__properties[key])
+  if (((!meta || meta !== 'states') && ns.states[key]) || owner.__properties[key])
     owner.mix(key, value, 'attributes', old);
   if (key.substr(0, 5) == 'data-')
-    owner.mix('variables.' + key.substring(5), value, memo, old);
+    owner.mix('variables.' + key.substring(5), value, meta, old);
   if (owner.matches) {
     if (value != null) owner.matches.add('attributes', key, value);
     if (old != null) owner.matches.remove('attributes', key, old);
@@ -54,9 +54,9 @@ LSD.Properties.Attributes.prototype.onChange = function(key, value, memo, old) {
 };
 LSD.Properties.Attributes.prototype._global = true;
 LSD.Properties.Microdata = LSD.Struct();
-LSD.Properties.Microdata.prototype.onChange = function(key, value, memo, old) {
+LSD.Properties.Microdata.prototype.onChange = function(key, value, meta, old) {
   var vdef = typeof value != 'undefined', odef = typeof old != 'undefined';
-  if (memo !== 'microdata' && memo !== 'textContent') {
+  if (meta !== 'microdata' && meta !== 'textContent') {
     if (!this._elements) return;
     var element = this._elements[key];
     var storage = this._values;
@@ -70,7 +70,7 @@ LSD.Properties.Microdata.prototype.onChange = function(key, value, memo, old) {
 }
 LSD.Properties.Microdata.prototype._trigger = 'lsd';
 LSD.Properties.Microdata.prototype._shared = true;
-LSD.Properties.Microdata.prototype._script = function(key, value, memo) {
+LSD.Properties.Microdata.prototype._script = function(key, value, meta) {
   var storage = this._elements;
   if (!storage) storage = this._elements = {};
   var group = storage[key];
@@ -80,7 +80,7 @@ LSD.Properties.Microdata.prototype._script = function(key, value, memo) {
   } else storage[key] = value;
   value.watch('nodeValue', [this, key]);
 }
-LSD.Properties.Microdata.prototype._unscript = function(key, value, memo) {
+LSD.Properties.Microdata.prototype._unscript = function(key, value, meta) {
   var group = this._elements[key];
   value.unwatch('nodeValue', [this, key]);
 }

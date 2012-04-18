@@ -28,7 +28,7 @@ provides:
   Resources are beautiful abstractions over access to data storages. It
   leaves all work of building and matching urls to convenient defaults of
   RESTful resource structure. LSD resources are self-sufficent and can do all
-  of the typical resource operations in memory. Having resources on client
+  of the typical resource operations in metary. Having resources on client
   side comes in handy when the back end application also supports resources.
   But even if it doesn't, resources can be defined with each action mapped to
   a custom url.
@@ -61,7 +61,7 @@ LSD.Resource = LSD.Struct({
 
   }
 }, 'Array');
-LSD.Resource.prototype.onChange = function(key, value, memo, old) {
+LSD.Resource.prototype.onChange = function(key, value, meta, old) {
   if (value != null && value.match === this.match && !this._properties[key]) {
     if (typeof value != 'undefined') value.set('name', key);
     if (typeof old != 'undefined') old.unset('name', key);

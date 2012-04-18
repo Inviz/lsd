@@ -25,11 +25,11 @@ LSD.Data = function(object) {
 };
 LSD.Data.prototype = new LSD.Object;
 LSD.Data.prototype.constructor = LSD.Data;
-LSD.Data.prototype.set = function (key, value, memo) {
+LSD.Data.prototype.set = function (key, value, meta) {
   for (var l, r, start = 0, obj = this, subkey, name, index;;) {
     if ((l = key.indexOf('[', start)) == -1) {
       if (name === '') return obj.push(value);
-      else return obj[obj === this ? '_set' : 'set'](name || key, value, memo)
+      else return obj[obj === this ? '_set' : 'set'](name || key, value, meta)
     } else {
       if ((r = key.indexOf(']', l)) == -1) return;
       if (name == null) name = key.substring(start, l);
@@ -47,11 +47,11 @@ LSD.Data.prototype.set = function (key, value, memo) {
     }
   }
 };
-LSD.Data.prototype.unset = function (key, value, memo) {
+LSD.Data.prototype.unset = function (key, value, meta) {
   for (var l, r, start = 0, obj = this, subkey, name, index; ;) {
     if ((l = key.indexOf('[', start)) == -1) {
       if (name === '') object.pop();
-      else object[object === this ? '_unset' : 'unset'](name || key, value, memo)
+      else object[object === this ? '_unset' : 'unset'](name || key, value, meta)
     } else {
       if ((r = key.indexOf(']', l)) == -1) return;
       if (!(object = object[key.substring(start, l)])) return
@@ -60,7 +60,7 @@ LSD.Data.prototype.unset = function (key, value, memo) {
     }
   }
 };
-LSD.Data.prototype.get = function (key, value, memo) {
+LSD.Data.prototype.get = function (key, value, meta) {
   for (var l, r, start = 0, obj = this, subkey, name, index; ;) {
     if ((l = key.indexOf('[', start)) == -1) {
       if (name === '') return object[object.length - 1];
@@ -79,6 +79,6 @@ LSD.Data.prototype.fromString = function() {
 LSD.Data.prototype.toString = function() {
 
 };
-LSD.Data.prototype._hash = function(key, value, memo, state) {
-  
+LSD.Data.prototype._hash = function(key, value, meta, state) {
+  console.log(state, meta)
 }

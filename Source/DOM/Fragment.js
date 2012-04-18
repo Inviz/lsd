@@ -55,10 +55,10 @@ LSD.Fragment.prototype.nodeType = 11;
   Render method accepts any objects and translates them 
   into LSD objects that resemble regular DOM.
 */
-LSD.Fragment.prototype.render = function(object, parent, memo) {
+LSD.Fragment.prototype.render = function(object, parent, meta) {
   var type = this.typeOf(object);
-  if (type === 'string') this.node(object, parent, memo, 3)
-  else return this[type](object, parent, memo);
+  if (type === 'string') this.node(object, parent, meta, 3)
+  else return this[type](object, parent, meta);
 };
 /*
   Nodes may be of different types: textnodes, elements, fragments, 
@@ -68,23 +68,23 @@ LSD.Fragment.prototype.render = function(object, parent, memo) {
     * Element node was already an LSD.Element and was reused
     * Element node was already an LSD.Element and was cloned
 */
-LSD.Fragment.prototype.node = function(object, parent, memo, nodeType) {
+LSD.Fragment.prototype.node = function(object, parent, meta, nodeType) {
   var uid      = object.lsd,
       widget   = object.mix ? object : uid && LSD.UIDs[uid], 
       children = object.childNodes;
   if (!nodeType) nodeType = object.nodeType || 1;
   if (!parent) parent = this;
   if (!widget) {
-    if (nodeType === 8 && (widget = this.instruction(object, parent, memo)))
+    if (nodeType === 8 && (widget = this.instruction(object, parent, meta)))
       return widget;
     var document = this.document || (parent && parent.document) || LSD.Document.prototype;
     widget = document.createNode(nodeType, object, this);
-  } else if (memo && memo.clone) 
+  } else if (meta && meta.clone) 
     widget = widget.cloneNode();
-  if (widget.parentNode != parent) parent.appendChild(widget, memo);
+  if (widget.parentNode != parent) parent.appendChild(widget, meta);
   if (children && children.length)
     for (var i = 0, child, array = this.slice.call(children, 0), previous; child = array[i]; i++)
-      this.node(child, widget, memo);
+      this.node(child, widget, meta);
   return widget;
 };
 /*
@@ -108,7 +108,7 @@ LSD.Fragment.prototype.node = function(object, parent, memo, nodeType) {
   `next` and `previous` properties that reference 
   objects in chan and allow chained execution.
 */
-LSD.Fragment.prototype.instruction = function(object, parent, memo, connect) {
+LSD.Fragment.prototype.instruction = function(object, parent, meta, connect) {
   if (typeof object.nodeType == 'number') {
     var origin = object;
     object = origin.nodeValue;
@@ -121,7 +121,7 @@ LSD.Fragment.prototype.instruction = function(object, parent, memo, connect) {
       if (object.charAt(length - 1) == '?') object = object.substring(1, length - 2);
     }
   }
-  if (memo) memo.range = this;
+  if (meta) meta.range = this;
   if (typeof object == 'string') {
     var chr = object.charAt(0);
     switch (chr) {
@@ -134,7 +134,7 @@ LSD.Fragment.prototype.instruction = function(object, parent, memo, connect) {
         if (!word || !(word = word[0]) || (!LSD.Script.Boundaries[word] && !LSD.Script.prototype.lookup.call(parent, word)))
           return false;
     }
-    var instruction = this.node(object, parent, memo, 7), node;
+    var instruction = this.node(object, parent, meta, 7), node;
     if (origin) instruction.set('origin', origin);
     if (chr) instruction.set('mode', chr);
     if (word === 'end') instruction.closed = true;
@@ -150,9 +150,9 @@ LSD.Fragment.prototype.instruction = function(object, parent, memo, connect) {
   Each element of an array (or collection, or arguments, 
   or a fragment) is rendered.
 */
-LSD.Fragment.prototype.enumerable = function(object, parent, memo) {
+LSD.Fragment.prototype.enumerable = function(object, parent, meta) {
   for (var i = 0, length = object.length, instruction, previous; i < length; i++)
-    this[this.typeOf(object[i])](object[i], parent, memo);
+    this[this.typeOf(object[i])](object[i], parent, meta);
 };
 /*
   Fragments accept plain javascripts objects for a template.
@@ -178,16 +178,16 @@ LSD.Fragment.prototype.enumerable = function(object, parent, memo) {
   })
   
 */
-LSD.Fragment.prototype.object = function(object, parent, memo) {
+LSD.Fragment.prototype.object = function(object, parent, meta) {
   var skip = object._skip, value, result, ancestor;
   for (var selector in object) {
     if (!object.hasOwnProperty(selector) || (skip && skip[selector])) continue;
-    if (!(result = this.instruction(selector, parent, memo, false)))
-      result = this.node(selector, parent, memo, 1);
+    if (!(result = this.instruction(selector, parent, meta, false)))
+      result = this.node(selector, parent, meta, 1);
     if ((value = object[selector])) {  
       var type = this.typeOf(value);
-      if (type == 'string') this.node(value, result, memo, 3);
-      else this[type](value, result, memo);
+      if (type == 'string') this.node(value, result, meta, 3);
+      else this[type](value, result, meta);
       if (result.nodeType == 7 && LSD.Script.Boundaries[result.name]) result.closed = true;
     }
   }
@@ -195,8 +195,8 @@ LSD.Fragment.prototype.object = function(object, parent, memo) {
 /*
   A rendered string produces a text node
 */
-LSD.Fragment.prototype.string = function(object, parent, memo) {
-  return this.node(object, parent, memo, 3);
+LSD.Fragment.prototype.string = function(object, parent, meta) {
+  return this.node(object, parent, meta, 3);
 };
 /*
   Fragments accept raw html, that gets parsed and each
@@ -205,7 +205,7 @@ LSD.Fragment.prototype.string = function(object, parent, memo) {
   although strings in objects and calls to .render() will
   render text nodes instead
 */
-LSD.Fragment.prototype.html = function(object, parent, memo) {
+LSD.Fragment.prototype.html = function(object, parent, meta) {
   if (!this._dummy) {
     this._dummy = document.createElement('div')
     /*@cc_on this._dummy.style.display = 'none' @*/
@@ -213,7 +213,7 @@ LSD.Fragment.prototype.html = function(object, parent, memo) {
   /*@cc_on document.body.appendChild(this._dummy) @*/
   this._dummy.innerHTML = object.toString();
   /*@cc_on document.body.removeChild(this._dummy) @*/
-  return this.enumerable(this.slice.call(this._dummy.childNodes), parent, memo);
+  return this.enumerable(this.slice.call(this._dummy.childNodes), parent, meta);
 };
 /*
   Type checking plays the role of a method dispatcher.

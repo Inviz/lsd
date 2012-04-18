@@ -22,7 +22,7 @@ provides:
 */
 
 LSD.Properties.Relations = LSD.Struct('Group', 'NodeList');
-LSD.Properties.Relations.prototype.onChange = function(key, value, memo, old) {
+LSD.Properties.Relations.prototype.onChange = function(key, value, meta, old) {
   if ((value && value.lsd) || (old && old.lsd)) {
     var group = this[key]
     if (this._owner) {
@@ -33,10 +33,10 @@ LSD.Properties.Relations.prototype.onChange = function(key, value, memo, old) {
           if (!opts.length) continue;
           switch (name) {
             case 'singular':
-              this._owner.set(key, value, memo, false, this._owner[key]);
+              this._owner.set(key, value, meta, false, this._owner[key]);
               break;
             case 'as':
-              value.set(opts[opts.length - 1], this._owner, memo);
+              value.set(opts[opts.length - 1], this._owner, meta);
               break;
             case 'collection':  
               var collection = opts[opts.length - 1];
@@ -75,7 +75,7 @@ LSD.Properties.Relations.prototype.onGroup = function(key, value, state) {
   }
 }
 LSD.Properties.Relations.prototype.onStore = '_Properties'
-LSD.Properties.Relations.prototype._delegate = function(object, key, value, memo, old) {
+LSD.Properties.Relations.prototype._delegate = function(object, key, value, meta, old) {
   var property = this._Properties[key];
   if (property) return true;
 };

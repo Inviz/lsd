@@ -47,15 +47,15 @@ provides:
 */
 
 LSD.Element = new LSD.Struct(LSD.Properties, 'Journal');
-LSD.Element.prototype.onChange = function(key, value, memo, old) {
+LSD.Element.prototype.onChange = function(key, value, meta, old) {
   var ns         = this.document || LSD.Document.prototype,
       states     = ns.states,
       definition = states[key],
       stack      = this._journal && this._journal[key];
   if (this._inherited[key] && this.childNodes)
     for (var i = 0, child; child = this.childNodes[i++];) {
-      child.set(key, value, memo, true);
-      if (typeof old != 'undefined') child.unset(key, old, memo, true);
+      child.set(key, value, meta, true);
+      if (typeof old != 'undefined') child.unset(key, old, meta, true);
     }
   if (!definition) return
   if (typeof value != 'undefined' && (!stack || stack.length === 1) && typeof this[definition[0]] != 'function') {
@@ -63,21 +63,21 @@ LSD.Element.prototype.onChange = function(key, value, memo, old) {
     var methods = compiled[key];
     if (!methods) {
       compiled[key] = methods = {};
-      methods[definition[0]] = function(memo) {
-        return this.change(key, true, memo);
+      methods[definition[0]] = function(meta) {
+        return this.change(key, true, meta);
       };
-      methods[definition[1]] = function(memo) {
-        return this.change(key, false, memo);
+      methods[definition[1]] = function(meta) {
+        return this.change(key, false, meta);
       };
     }
     for (var method in methods) this._set(method, methods[method]);
   }
   if (value || old)
     if ((ns.attributes[key]) !== Boolean) {
-      if (memo !== 'classes' && key !== 'built')
+      if (meta !== 'classes' && key !== 'built')
         this.classList.mix(key, value, 'states', old);
     } else {
-      if (memo !== 'attributes')
+      if (meta !== 'attributes')
         this.attributes.mix(key, value, 'states', old);
     }
   if (stack && stack.length === 0) {
@@ -108,24 +108,24 @@ LSD.Element.prototype.__properties = {
     `input.date` role. And if it's not there, it tries `input` which in terms
     of html is a text input. `input.datetime-local`.
   */
-  role: function(value, old, memo) {
+  role: function(value, old, meta) {
     var roles = (this.document || LSD.Document.prototype).roles
     if (!roles) return;
     if (typeof value == 'string')
       value = typeof roles[value] == 'undefined' ? roles.get(value) : roles[value];
     if (typeof old == 'string') old = roles[old] || undefined;
-    this.mix(value, null, memo, old, false, true);
+    this.mix(value, null, meta, old, false, true);
   },
 
-  type: function(value, old, memo) {
+  type: function(value, old, meta) {
     this.setRoleBit(1, value);
   },
 
-  kind: function(value, old, memo) {
+  kind: function(value, old, meta) {
     this.setRoleBit(2, value);
   },
 
-  id: function(value, old, memo) {
+  id: function(value, old, meta) {
     this.setRoleBit(3, value);
   },
 /*
@@ -133,9 +133,9 @@ LSD.Element.prototype.__properties = {
   one role, but some have a family of sub-roles like `input` or `menu`.
   Sub roles are accessible by specifying `type` and `kind` attributes.
 */
-  tagName: function(value, old, memo) {
-    this.set('nodeName', value, memo, old);
-    this.set('localName', value, memo, old, true);
+  tagName: function(value, old, meta) {
+    this.set('nodeName', value, meta, old);
+    this.set('localName', value, meta, old, true);
 /*
   LSD.Element figures out its tag name before it is placed in DOM, so
   following code doesn't run initially. It only runs if an element was in DOM
@@ -230,12 +230,12 @@ LSD.Element.prototype.__properties = {
   neutral `span` or `div` element (true and false values respectively).
   It's only used when no localName is given.
 */
-  inline: function(value, old, memo) {
+  inline: function(value, old, meta) {
     var revert = this.tagName != this.localName;
     if (typeof value != 'undefined')
-      this.set('localName', value ? 'span' : 'div', memo, revert);
+      this.set('localName', value ? 'span' : 'div', meta, revert);
     if (typeof old != 'undefined')
-      this.unset('localName', old ? 'span' : 'div', memo, revert);
+      this.unset('localName', old ? 'span' : 'div', meta, revert);
   },
 /*
   LSD.Element writes a single property into a real element that helps to tell
@@ -252,8 +252,8 @@ LSD.Element.prototype.__properties = {
   create its own copy of an origin to use as its element. If `clone` is not
   set, origin will be used as an element.
 */
-  origin: function(value, old, memo) {
-    if (!memo) memo = 'origin';
+  origin: function(value, old, meta) {
+    if (!meta) meta = 'origin';
     var originated = this.originated;
     if (value && !originated) {
       opts = this.originated = {};
@@ -333,8 +333,8 @@ LSD.Element.prototype.__properties = {
         var val = opts[key];
         if (typeof val == 'object')
           for (var subkey in val)
-            this[key].set(subkey, val[subkey], memo, true);
-        else this.set(key, val, memo, true);
+            this[key].set(subkey, val[subkey], meta, true);
+        else this.set(key, val, meta, true);
       }
       if (!this.fragment && value.childNodes.length) {
         var fragment = new LSD.Fragment;
@@ -348,8 +348,8 @@ LSD.Element.prototype.__properties = {
         var val = opts[key];
         if (typeof val == 'object')
           for (var subkey in val)
-            this[key].unset(subkey, val[subkey], memo, true);
-        else this.unset(key, val, memo, true);
+            this[key].unset(subkey, val[subkey], meta, true);
+        else this.unset(key, val, meta, true);
       }
       delete this.originated;
     }
@@ -374,7 +374,7 @@ LSD.Element.prototype.__properties = {
   Stylesheet can compensate for mismatch by observing selectors and finding
   where rules did not match and assigning styles explicitly.
 */
-  built: function(value, old, memo) {
+  built: function(value, old, meta) {
     if (old) {
       this.fireEvent('beforeDestroy');
       if (this.parentNode) this.dispose();
@@ -399,7 +399,7 @@ LSD.Element.prototype.__properties = {
       }
       this.set('element', element)
     }
-    this.mix('childNodes.built', value, memo, old);
+    this.mix('childNodes.built', value, meta, old);
   },
 /*
   Javascript DOM is known for its unfriendly implementation of accessibility
@@ -412,7 +412,7 @@ LSD.Element.prototype.__properties = {
   keyboard, LSD looks for a closest element that may become `activeElement`,
   a form control or a link (in less restrictive environments like Windows)
   and focuses it and all its parents. Each of the parent recieve an optional
-  `memo` with an element that become `activeElement`.
+  `meta` with an element that become `activeElement`.
 
    The difference between LSD and DOM focus implementations, is that when
   focus jumps between controls of a single form, the form and parent nodes
@@ -426,14 +426,14 @@ LSD.Element.prototype.__properties = {
   interfaces like dialog overlays, slide-out panels, multi-window
   environments, in focus-driven navigation and lots of other applications.
 */
-  focused: function(value, old, memo) {
-    if (memo === this) return;
+  focused: function(value, old, meta) {
+    if (meta === this) return;
     if (value)
-      this.mix('parentNode.focused', value, memo || this);
-    if (value && !memo && this.ownerDocument)
+      this.mix('parentNode.focused', value, meta || this);
+    if (value && !meta && this.ownerDocument)
       this.ownerDocument.change('activeElement', this, false);
     if (old)
-      this.mix('parentNode.focused', undefined, memo || this, old);
+      this.mix('parentNode.focused', undefined, meta || this, old);
   },
   rendered: function(value, old) {
   },
@@ -450,10 +450,10 @@ LSD.Element.prototype.__properties = {
   DOM, numbers are updated, callbacks are fired and collections get gently
   resorted with swaps.
 */
-  sourceIndex: function(value, old, memo) {
+  sourceIndex: function(value, old, meta) {
     var index = value == null ? old - 1 : value;
-    var collapse = memo === 'collapse';
-    if (memo !== false) for (var node = this, next, i = 0; node; node = next) {
+    var collapse = meta === 'collapse';
+    if (meta !== false) for (var node = this, next, i = 0; node; node = next) {
       for (next = node.firstChild || node.nextSibling;
           !next && (node = node.parentNode); next = node.nextSibling)
         if (next === this.nextSibling && collapse) return;
@@ -471,8 +471,8 @@ LSD.Element.prototype.__properties = {
   possible observing selectors and remap the indecies of nodes to trigger 
   LSD.NodeList collections resorts.
 */
-  previousElementSibling: function(value, old, memo) {
-    var moving = memo & 0x1
+  previousElementSibling: function(value, old, meta) {
+    var moving = meta & 0x1
     if (value) {
       value.matches.add('+',  this.tagName, this, true);
       value.matches.add('++', this.tagName, this, true);
@@ -498,8 +498,8 @@ LSD.Element.prototype.__properties = {
       }
     }
   },
-  nextElementSibling: function(value, old, memo) {
-    var moving = memo & 0x1, splicing = memo & 0x4;
+  nextElementSibling: function(value, old, meta) {
+    var moving = meta & 0x1, splicing = meta & 0x4;
     if (value) {
       value.matches.add('!+', this.tagName, this, true);
       value.matches.add('++', this.tagName, this, true);
@@ -513,7 +513,7 @@ LSD.Element.prototype.__properties = {
     if (old) {
       old.matches.remove('!+', this.tagName, this, true);
       old.matches.remove('++', this.tagName, this, true);
-      if ((!splicing || !(memo & this.childNodes.FIRST)) && !moving)
+      if ((!splicing || !(meta & this.childNodes.FIRST)) && !moving)
       for (var node = old; node; node = node.nextElementSibling) {
         node.matches.remove('~~', this.tagName, this, true);
         node.matches.remove('!~', this.tagName, this, true);
@@ -522,11 +522,11 @@ LSD.Element.prototype.__properties = {
       }
     }
   },
-  parentNode: function(value, old, memo) {
-    this.mix('variables', value && value.variables, memo, old && old.variables, true);
+  parentNode: function(value, old, meta) {
+    this.mix('variables', value && value.variables, meta, old && old.variables, true);
     for (var property in this._inherited) {
-      if (value && value[property]) this.set(property, value[property], memo, true);
-      if (old && old[property]) this.unset(property, old[property], memo, true);
+      if (value && value[property]) this.set(property, value[property], meta, true);
+      if (old && old[property]) this.unset(property, old[property], meta, true);
     }
     for (var i = 0, node, method; i < 2; i++) {
       if (i) node = old, method = 'remove';
@@ -562,8 +562,8 @@ LSD.Element.prototype.__properties = {
       this.unset('value', this.values);
     }
   },
-  nodeValue: function(value, old, memo) {
-    if (memo === 'textContent') return;
+  nodeValue: function(value, old, meta) {
+    if (meta === 'textContent') return;
     var vtype = typeof value, otype = typeof old, prop = this.nodeValueProperty;
     if (vtype !== 'undefined' && (prop || vtype !== 'object'))
       this.set(prop || 'textContent', value, 'nodeValue');
@@ -577,19 +577,19 @@ LSD.Element.prototype.__properties = {
   },
   form: function(value, old) {
   },
-  value: function(value, old, memo) {
+  value: function(value, old, meta) {
     if (this.checked === true || typeof this.checked == 'undefined')
-      this.set('nodeValue', value, memo, old)
+      this.set('nodeValue', value, meta, old)
   },
   /*
     A change in `textContent` of a text node or explicit override of
     `textContent` property in node bubbles up to all parent nodes and updates
-    their text content properties. A special `memo` parameter is used to
+    their text content properties. A special `meta` parameter is used to
     avoid recursion.
   */
-  textContent: function(value, old, memo) {
-    if (memo !== 'textContent') {
-      if (memo !== 'childNodes') {
+  textContent: function(value, old, meta) {
+    if (meta !== 'textContent') {
+      if (meta !== 'childNodes') {
         if (this.childNodes.length === 1 && this.childNodes[0].nodeType == 3)
           this.childNodes[0].set('textContent', value, 'textContent', false, old);
         else if (typeof value != 'undefined' && (value !== '' || this.childNodes.length)) {
@@ -607,7 +607,7 @@ LSD.Element.prototype.__properties = {
         }
       }
     }
-    if (memo !== 'nodeValue') this.set('nodeValue', value, 'textContent', true, old);
+    if (meta !== 'nodeValue') this.set('nodeValue', value, 'textContent', true, old);
   },
   /*
     Different types of elements have different strategies to define value.
@@ -630,16 +630,16 @@ LSD.Element.prototype.__properties = {
     own scope object and fall back to an object inherited from parent
     element.
   */
-  microdata: function(value, old, memo) {
-    this.mix('variables', value, memo, old, true);
+  microdata: function(value, old, meta) {
+    this.mix('variables', value, meta, old, true);
   },
-  itemscope: function(value, old, memo) {
-    if (value) this.set('nodeValue', this._construct('microdata'), memo);
-    if (old) this.unset('nodeValue', this.microdata, memo);
+  itemscope: function(value, old, meta) {
+    if (value) this.set('nodeValue', this._construct('microdata'), meta);
+    if (old) this.unset('nodeValue', this.microdata, meta);
   },
-  itemprop: function(value, old, memo) {
-    if (value) this.mix('parentNode.microdata.' + value, this, memo, undefined, true);
-    if (old) this.mix('parentNode.microdata.' + old, undefined, memo, this, true);
+  itemprop: function(value, old, meta) {
+    if (value) this.mix('parentNode.microdata.' + value, this, meta, undefined, true);
+    if (old) this.mix('parentNode.microdata.' + old, undefined, meta, this, true);
   },
   itemtype: function(value, old) {
 
@@ -744,20 +744,20 @@ LSD.Element.prototype.hasClass = function(name) {
 LSD.Element.prototype.fireEvent = function() {
   return this.events.fire.apply(this.events, arguments);
 };
-LSD.Element.prototype.addEvent = function(name, fn, memo) {
-  this.events.mix(name, fn, memo);
+LSD.Element.prototype.addEvent = function(name, fn, meta) {
+  this.events.mix(name, fn, meta);
   return this;
 };
-LSD.Element.prototype.addEvents = function(events, memo) {
-  this.events.mix(events, null, fn, memo);
+LSD.Element.prototype.addEvents = function(events, meta) {
+  this.events.mix(events, null, fn, meta);
   return this;
 };
-LSD.Element.prototype.removeEvent = function(name, fn, memo) {
-  this.events.mix(name, fn, memo, false);
+LSD.Element.prototype.removeEvent = function(name, fn, meta) {
+  this.events.mix(name, fn, meta, false);
   return this;
 };
-LSD.Element.prototype.removeEvents = function(events, memo) {
-  this.events.mix(events, null, memo, false);
+LSD.Element.prototype.removeEvents = function(events, meta) {
+  this.events.mix(events, null, meta, false);
   return this;
 };
 LSD.Element.prototype.store = function(name, value) {
@@ -863,10 +863,10 @@ LSD.Element.prototype.toElement = function(){
   if (!this.built) this.build();
   return this.element;
 };
-LSD.Element.prototype.onChildSet = function(value, index, state, old, memo) {
+LSD.Element.prototype.onChildSet = function(value, index, state, old, meta) {
   var children = this.childNodes;
-  var moving = memo === 'collapse' || memo === 'finalize' || memo === 'clean';
-  if (memo !== 'empty') {
+  var moving = meta === 'collapse' || meta === 'finalize' || meta === 'clean';
+  if (meta !== 'empty') {
     for (var text = '', child, i = 0; child = children[i++];)
       if (child.textContent != null) text += child.textContent;
     this.set('textContent', text, 'childNodes');

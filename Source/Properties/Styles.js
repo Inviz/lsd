@@ -52,11 +52,11 @@ LSD.RegExp = function(object, callbacks, clean) {
   this.source = source;
 };
 LSD.RegExp.prototype = {
-  exec: function(string, callbacks, memo) {
+  exec: function(string, callbacks, meta) {
     if (typeof callbacks == 'undefined') callbacks = this.callbacks;
     var regexp = this.compiled || (this.compiled = new RegExp(this.source, "g"));
-    var lastIndex = regexp.lastIndex, old = this.stack, res = this.result, groups = this.groups, mem = this.memo;
-    if (memo) this.memo = memo;
+    var lastIndex = regexp.lastIndex, old = this.stack, res = this.result, groups = this.groups, mem = this.meta;
+    if (meta) this.meta = meta;
     regexp.lastIndex = 0;
     for (var match, group, val, args; match = regexp.exec(string);) {
       for (var i = 1, s = null, j = match.length, group = null, val; i <= j; i++) {
@@ -84,9 +84,9 @@ LSD.RegExp.prototype = {
     var result = this.result;
     regexp.lastIndex = lastIndex;
     this.stack = old;
-    this.memo = mem;
+    this.meta = mem;
     this.result = res;
-    if (memo) for (var j = 0, bit; (bit = result[j]) != null; j++) 
+    if (meta) for (var j = 0, bit; (bit = result[j]) != null; j++) 
       if (bit && bit.length == 1) result[j] = bit[0];
     return (result && result.length == 1) ? result[0] : result;
   },
@@ -118,7 +118,7 @@ LSD.RegExp.prototype = {
 
 LSD.Styles = LSD.Struct('Journal');
 
-LSD.Styles.prototype.onChange = function(key, value, memo, old) {
+LSD.Styles.prototype.onChange = function(key, value, meta, old) {
   var style = this.constructor[key];
   if (style) {
     if (value != null && typeof value == 'object') value = String(value);
@@ -640,7 +640,7 @@ LSD.Styles.Parser = new LSD.RegExp({
   },
   length: function(number, unit) {
     var num = parseFloat(number);
-    if (this.memo && this.stack.length) {
+    if (this.meta && this.stack.length) {
       var chr = number.charAt(0)
       switch (chr) {
         case '+': case '-':
@@ -677,7 +677,7 @@ LSD.Styles.Parser = new LSD.RegExp({
         this.result.push(this.stack = []);
         break;
       default:
-        if (this.memo || this.stack !== this.result) return;
+        if (this.meta || this.stack !== this.result) return;
         var stack = this.stack, length = stack.length, last = stack[length - 1]
         if (last.push) this.stack = this.stack[length - 1] = [last];
     }

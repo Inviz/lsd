@@ -52,8 +52,8 @@ LSD.Document = LSD.Struct({
   that is ancestor of currently focused element by blurring
   the nodes.
 */
-  activeElement: function(element, old, memo) {
-    if (element && memo !== false && !element.set('focused', true)) {
+  activeElement: function(element, old, meta) {
+    if (element && meta !== false && !element.set('focused', true)) {
       if (old) for (; old != element; old = old.parentNode) old.unset('focused', true, element)
     } else if (old) old.unset('focused', true)
   }

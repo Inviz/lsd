@@ -27,28 +27,28 @@ LSD.ChildNodes = LSD.Struct({
     }
   }
 }, 'Array');
-LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
-  var moving = memo & this.MOVE, splicing = memo & this.SPLICE, emptying = memo & this.FORWARD;
+LSD.ChildNodes.prototype.onSet = function(value, index, state, old, meta) {
+  var moving = meta & this.MOVE, splicing = meta & this.SPLICE, emptying = meta & this.FORWARD;
   var owner = this._owner
   var prev = (!state && value.previousSibling) || this[index - 1] || null, 
       next = (!state && value.nextSibling) || this[index + 1] || null;
   if (next && next === prev) next = this[index + 2] || null;
   if (owner && owner.onChildSet) owner.onChildSet.apply(owner, arguments);
-  if (prev !== value && (!moving || (memo & this.FIRST && state))) {
+  if (prev !== value && (!moving || (meta & this.FIRST && state))) {
     if (prev && (state || (!splicing || !next)))
-      prev.change('nextSibling', state ? value : next, memo);
+      prev.change('nextSibling', state ? value : next, meta);
     if ((state || moving))
-      value.change('previousSibling', prev, memo);
+      value.change('previousSibling', prev, meta);
     else if (value.previousSibling == prev)
-      value.unset('previousSibling', prev, memo);
+      value.unset('previousSibling', prev, meta);
   }
   if (next !== value && !moving) {
     if (next && (state || (!splicing || !prev)))
-      next.change('previousSibling', state ? value : prev, memo);
+      next.change('previousSibling', state ? value : prev, meta);
     if ((state || moving))
-      value.change('nextSibling', next, memo);
+      value.change('nextSibling', next, meta);
     else if (value.nextSibling == next)
-      value.unset('nextSibling', next, memo);
+      value.unset('nextSibling', next, meta);
   }
   if (owner) {
     if (index === 0) {
@@ -72,36 +72,36 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
     else next = null;
     if (prev && (!moving || old != null)) {
       if (state || moving) {
-        prev.change('nextElementSibling', value, memo);
+        prev.change('nextElementSibling', value, meta);
       } else if (prev.nextElementSibling === value)
         if (next) {
-          if (!emptying && !splicing) prev.change('nextElementSibling', next, memo);
-        } else prev.unset('nextElementSibling', value, memo);
-      if (state) value.change('previousElementSibling', prev, memo);
+          if (!emptying && !splicing) prev.change('nextElementSibling', next, meta);
+        } else prev.unset('nextElementSibling', value, meta);
+      if (state) value.change('previousElementSibling', prev, meta);
       else if (value.previousElementSibling)
-        value.unset('previousElementSibling', value.previousElementSibling, memo)
+        value.unset('previousElementSibling', value.previousElementSibling, meta)
     } 
-    if (next && (!state || (memo & this.LAST))) {
+    if (next && (!state || (meta & this.LAST))) {
       if ((state && !moving) || moving) {
-        next.change('previousElementSibling', value, memo);
+        next.change('previousElementSibling', value, meta);
       } else if (next.previousElementSibling === value)
         if (prev) {
-          if ((state || !emptying)) next.change('previousElementSibling', prev, memo);
-        } else next.unset('previousElementSibling', value, memo);
+          if ((state || !emptying)) next.change('previousElementSibling', prev, meta);
+        } else next.unset('previousElementSibling', value, meta);
       if (state) {
-        if (!moving) value.change('nextElementSibling', next, memo);
+        if (!moving) value.change('nextElementSibling', next, meta);
       } else if (value.nextElementSibling)
-        value.unset('nextElementSibling', value.nextElementSibling, memo)
+        value.unset('nextElementSibling', value.nextElementSibling, meta)
     }
   }
   if ((!state || owner != value.parentNode) && !moving)
-    value[state ? 'set' : 'unset']('parentNode', owner || null, memo);
+    value[state ? 'set' : 'unset']('parentNode', owner || null, meta);
   if (owner) if (state) {
     if (index == 0) value.change('sourceIndex', (owner.sourceIndex || 0) + 1);
     else if (prev) 
-      value.change('sourceIndex', (prev.sourceLastIndex || prev.sourceIndex || 0) + 1, memo);
-  } else if (!moving && (state || !(memo & this.FORWARD))) 
-      value.unset('sourceIndex', value.sourceIndex, memo);
+      value.change('sourceIndex', (prev.sourceLastIndex || prev.sourceIndex || 0) + 1, meta);
+  } else if (!moving && (state || !(meta & this.FORWARD))) 
+      value.unset('sourceIndex', value.sourceIndex, meta);
 };
 LSD.ChildNodes.prototype._skip = Object.append({
   _onShift: true,
