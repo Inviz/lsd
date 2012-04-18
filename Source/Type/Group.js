@@ -29,9 +29,9 @@ LSD.Group = function(object, constructor) {
 LSD.Group.prototype = new LSD.Object;
 LSD.Group.prototype.constructor = LSD.Group;
 LSD.Group.prototype.__constructor = Array;
-LSD.Group.prototype.set = function(key, value, memo, prepend, old) {
+LSD.Group.prototype.set = function(key, value, memo, prepend, old, hash) {
   if (this._hash) {
-    var hash = this._hash(key, value);
+    if ((hash = this._hash(key, value, memo, true)) === true) return true;
     if (typeof hash == 'string' && (key = hash)) hash = null;
   }
   if (hash == null) {
@@ -48,9 +48,9 @@ LSD.Group.prototype.set = function(key, value, memo, prepend, old) {
     if (group != null) (prepend || value == null) ? group.unshift(value) : group.push(value);
   return true;
 },
-LSD.Group.prototype.unset = function(key, value, memo, prepend, old) {
+LSD.Group.prototype.unset = function(key, value, memo, prepend, old, hash) {
   if (this._hash) {
-    var hash = this._hash(key, value);
+    if ((hash = this._hash(key, value, memo, true)) === true) return true;
     if (typeof hash == 'string' && (key = hash)) hash = null;
   }
   if (hash == null) {

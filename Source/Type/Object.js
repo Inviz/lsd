@@ -17,12 +17,9 @@ provides:
 
 ...
 */
-
 LSD.Object = function(object) {
   if (object != null) this.mix(object)
 };
-
-LSD.Object.prototype.constructor = LSD.Object;
 /*
   Objects in LSD are different from regular objects in the way that LSD
   objects dont use or define getters at all. Values are precomputed and the
@@ -33,11 +30,11 @@ LSD.Object.prototype.constructor = LSD.Object;
   optional third parameter called `memo` that passes additional data all
   observers of properties affected by the change. It is easy to make
   dependent properties to know where the change come from, or what kind of
-  change it is and react accordingly - e.g. avoid multiple updates, or
-  trying to make circular changes. If a `memo` argument is not given, LSD
-  automatically records cascade of changed properties and prevent circular
-  callbacks automagically.
+  change it is and react accordingly - e.g. avoid multiple or circular updates
+  If a `memo` argument is not given, LSD automatically records cascade of 
+  changed properties and prevent circular property callbacks.
 */
+LSD.Object.prototype.constructor = LSD.Object;
 LSD.Object.prototype.set = function(key, value, memo, index, hash) {
 /*
   The values may be set by keys with types other then string. A special
@@ -48,13 +45,16 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
   own strategy of storing values, as callbacks recieve result of hashing as
   the last argument.
 */
-  if (this._hash && hash == null && typeof (hash = this._hash(key, value)) == 'string' && (key = hash)) hash = null;
-  else if (typeof key == 'string') var nonenum = this._skip[key];
+  if (this._hash && hash == null) {
+    if ((hash = this._hash(key, value, memo, true)) === true) return true;
+    if (typeof hash == 'string' && (key = hash)) hash = null;
+  }
+  if (typeof key == 'string') var nonenum = this._skip[key];
 /*
   Object setters accept nested keys, instantiates objects in the path (e.g.
-  setting post.title will create a post object), and observes changes in the
-  path (post object may be changed and title property will be unset from the
-  previous object and set to the new object)
+  setting `post.title` will create a `post` object), and observes changes in 
+  the path (post object may be changed and title property will be unset from 
+  the previous object and set to the new object)
 */
   if (hash == null && typeof index != 'number') index = key.indexOf('.');
   if (index > -1) return this.mix(key, value, memo, undefined, null, null, null, index);
@@ -91,8 +91,8 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
 /*
   Most of the keys that start with `_` underscore do not trigger calls to
   global object listeners. But they can be watched individually. A list of
-  the skipped properties is defined in `_skip` object below. Builtin
-  listeners may reject or transform value.
+  the skipped properties is defined in `_skip` object in the end of a file. 
+  Builtin listeners may reject or transform value.
 */
   var changed;
   if (this._onChange && typeof (changed = this._onChange(key, value, memo, old, hash)) != 'undefined')
@@ -116,11 +116,10 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
     if (hash == null) this[key] = old;
     return this._script(key, value, memo);
   }
-
 /*
   Watchers are listeners that observe every property in an object. It may be
-  a function (called on change) or another object (change property will be
-  changed in the watcher object)
+  a function (called on change) or another object (property change in
+  original object will change in the watcher object)
 */
   var watchers = this._watchers;
   if (watchers && nonenum !== true) for (var i = 0, j = watchers.length, watcher, fn; i < j; i++) {
@@ -133,6 +132,7 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
   An alternative to listening for all properties, is to watch a specific
   property. Callback observers recieve key, new and old value each time 
   value changes.
+  
 */
     if (hash == null && this[key] !== value) this[key] = value;
     var watched = this._watched;
@@ -188,8 +188,11 @@ LSD.Object.prototype.set = function(key, value, memo, index, hash) {
   observers, fires callbacks and processes stored arguments
 */
 LSD.Object.prototype.unset = function(key, value, memo, index, hash) {
-  if (this._hash && hash == null && typeof (hash = this._hash(key, value)) == 'string' && (key = hash)) hash = null;
-  else if (typeof key == 'string') var nonenum = this._skip[key];
+  if (this._hash && hash == null) {
+    if ((hash = this._hash(key, value, memo, true)) === true) return true;
+    if (typeof hash == 'string' && (key = hash)) hash = null;
+  }
+  if (typeof key == 'string') var nonenum = this._skip[key];
   if (hash == null && typeof index != 'number') index = key.indexOf('.');
   if (index > -1) return this.mix(key, undefined, memo, value, null, null, null, index);
   var vdef = typeof value != 'undefined', old = vdef ? value : this[key];

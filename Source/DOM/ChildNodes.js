@@ -37,7 +37,7 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
   if (prev !== value && (!moving || (memo & this.FIRST && state))) {
     if (prev && (state || (!splicing || !next)))
       prev.change('nextSibling', state ? value : next, memo);
-    if ((state || old === false))
+    if ((state || moving))
       value.change('previousSibling', prev, memo);
     else if (value.previousSibling == prev)
       value.unset('previousSibling', prev, memo);
@@ -45,7 +45,7 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
   if (next !== value && !moving) {
     if (next && (state || (!splicing || !prev)))
       next.change('previousSibling', state ? value : prev, memo);
-    if ((state || old === false))
+    if ((state || moving))
       value.change('nextSibling', next, memo);
     else if (value.nextSibling == next)
       value.unset('nextSibling', next, memo);
@@ -61,8 +61,7 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
       else owner.unset('lastChild', owner.lastChild);
     }
   }
-  if (value.nodeType === 1 && (state || old !== false)) {
-    
+  if (value.nodeType === 1 && (state || !moving)) {
     if (!state) prev = value.previousElementSibling
     else for (var i = index - 1; prev && (prev.nodeType != 1 || prev == value);) 
       prev = this[--i];
@@ -72,7 +71,7 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
         next = this[++i];
     else next = null;
     if (prev && (!moving || old != null)) {
-      if (state || old === false) {
+      if (state || moving) {
         prev.change('nextElementSibling', value, memo);
       } else if (prev.nextElementSibling === value)
         if (next) {
@@ -83,7 +82,7 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
         value.unset('previousElementSibling', value.previousElementSibling, memo)
     } 
     if (next && (!state || (memo & this.LAST))) {
-      if ((state && !moving) || old === false) {
+      if ((state && !moving) || moving) {
         next.change('previousElementSibling', value, memo);
       } else if (next.previousElementSibling === value)
         if (prev) {
