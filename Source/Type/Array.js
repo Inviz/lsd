@@ -190,10 +190,11 @@ LSD.Array.prototype.splice = function(index, offset) {
   if the offset is equal than the number of inserted
   values, then no shift is needed (#1).
 */
-  for (var i = 0; i < arity; i++) {
+  for (var i = 0, bit; i < arity; i++) {
+    bit = (i == 0 && this.FIRST) | ((i == arity - 1) && this.LAST);
     if (i < offset) {
       values.push(this[i + index]);
-      this.unset(i + index, this[i + index], false, 'empty');
+      this.unset(i + index, this[i + index], false, bit | this.FORWARD);
     } else {
 /*
   If there is more values to be inserted (#2) than to be removed,
@@ -203,9 +204,9 @@ LSD.Array.prototype.splice = function(index, offset) {
 */
       if (i == offset)
         for (var j = length, k = index + arity - shift; --j >= k;)
-          this.set(j + shift, this[j], j, 'expand')
+          this.set(j + shift, this[j], j, bit | this.MOVE_FORWARD)
     }
-    this.set(i + index, args[i], i < offset ? false : null, i < offset ? 'overwrite' : 'insert');
+    this.set(i + index, args[i], i < offset ? false : null, i < offset ? bit : bit | this.SPLICE);
   }
 /*
   Otherwise, if there are more to be removed, than to inserted (#3),
@@ -213,24 +214,32 @@ LSD.Array.prototype.splice = function(index, offset) {
 */
   if (shift < 0 && index < length)
     for (var i = index + arity - shift, old; i < length; i++) {
+      bit = ((i == index + arity - shift) && this.FIRST) | ((i === length - 1) && this.LAST);
       var d = (index - shift) - (i + shift);
       if (d > -1) {
         if (d) values.push(this[i + shift])
-        this.unset(i + shift, this[i + shift], null, d ? 'empty' : 'collapse');
+        this.unset(i + shift, this[i + shift], null, bit | (d ? this.FORWARD : this.MOVE));
       }
-      this.set(i + shift, this[i], i, i + 1 == length && shift > -1 ? 'finalize' : i == index + arity - shift ? 'join' : 'collapse');
+      this.set(i + shift, this[i], i, bit | this.MOVE);
     }
   this._set('length', (this._length = length + shift));  
-  for (var i = this._length; i < length; i++)
+  for (var i = this._length; i < length; i++)  {
+    bit = ((i === this._length) && this.FIRST) | ((i === length - 1) && this.LAST);
     if (values.length < - shift) {
       values.push(this[i])
-      this.unset(i, this[i], null, 'splice');
+      this.unset(i, this[i], null, bit | this.SPLICE);
     } else {
-      this.unset(i, this[i], false, i + 1 == length ? 'clean' : 'collapse');
+      this.unset(i, this[i], false, bit | this.MOVE);
     }
+  }
   delete this._shifting;
   return values;
 };
+LSD.Array.prototype.MOVE = 0x1;
+LSD.Array.prototype.FORWARD = 0x2;
+LSD.Array.prototype.SPLICE = 0x4;
+LSD.Array.prototype.FIRST = 0x8;
+LSD.Array.prototype.LAST = 0x10;
 /*
   `move` method can change the position of a value within array
   by shifting the values between the old and the new position.
@@ -285,9 +294,9 @@ LSD.Array.prototype._seeker = function(call, value, index, state, old, memo) {
     return;
   if (index < invoker._position) return;
   if (block.block) {
-    var result = block(state ? 'yield' : 'unyield', args, call.callback, index, old, memo);
+    var result = block(state ? 'yield' : 'unyield', args, call.callback, index, old, typeof memo !== 'number' && memo);
   } else {
-    var result = call.callback(block.apply(block, args), value, index, state, old, memo);
+    var result = call.callback(block.apply(block, args), value, index, state, old, typeof memo !== 'number' && memo);
   }
   if (result != null && result.value && (invoker._last == null || invoker._last < index)) invoker._last = index;
   return result;
@@ -333,7 +342,7 @@ LSD.Array.prototype.each = function(callback) {
 LSD.Array.prototype.filter = function(callback, plain) {
   var filtered = plain ? [] : new LSD.Array;
   var shifts = [], spliced = 0, origin = this;
-  return this.seek(callback, function(result, value, index, state, old) {
+  return this.seek(callback, function(result, value, index, state, old, memo) {
     if (origin._position) index -= origin._position - (origin._origin && origin._origin._shifting || 0)
     for (var i = shifts.length; i <= index + 1; i++)
       shifts[i] = (shifts[i - 1]) || 0
@@ -368,7 +377,7 @@ LSD.Array.prototype.sort = function(callback, plain) {
   if (!callback) callback = this._sorter;
   var sorted = plain ? [] : new LSD.Array;
   var map = [];
-  this.watch(function(value, index, state, old) {
+  this.watch(function(value, index, state, old, memo) {
     if (state) {
       for (var i = sorted._length || sorted.length; i > 0; i--)
         if (callback(sorted[i - 1], value) < 0) break;

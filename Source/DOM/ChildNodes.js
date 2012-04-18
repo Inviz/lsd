@@ -28,30 +28,23 @@ LSD.ChildNodes = LSD.Struct({
   }
 }, 'Array');
 LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
-  switch (memo) {
-    case 'collapse': case 'finalize': case 'clean':
-      var moving = true;
-      break;
-    case 'splice': case 'empty':
-      var removing = true;
-  }
+  var moving = memo & this.MOVE, splicing = memo & this.SPLICE, emptying = memo & this.FORWARD;
   var owner = this._owner
-  if ((!state || owner != value.parentNode) && !moving)
-    value[state ? 'set' : 'unset']('parentNode', owner || null, memo);
-  var previous = (!state && value.previousSibling) || this[index - 1] || null, 
+  var prev = (!state && value.previousSibling) || this[index - 1] || null, 
       next = (!state && value.nextSibling) || this[index + 1] || null;
-  if (next && next === previous) next = this[index + 2] || null;
-  if (previous !== value && !moving) {
-    if (previous && (memo !== 'splice' || (!state && !next)))
-      previous.change('nextSibling', state ? value : next, memo);
+  if (next && next === prev) next = this[index + 2] || null;
+  if (owner && owner.onChildSet) owner.onChildSet.apply(owner, arguments);
+  if (prev !== value && (!moving || (memo & this.FIRST && state))) {
+    if (prev && (state || (!splicing || !next)))
+      prev.change('nextSibling', state ? value : next, memo);
     if ((state || old === false))
-      value.change('previousSibling', previous, memo);
-    else if (value.previousSibling == previous)
-      value.unset('previousSibling', previous, memo);
+      value.change('previousSibling', prev, memo);
+    else if (value.previousSibling == prev)
+      value.unset('previousSibling', prev, memo);
   }
   if (next !== value && !moving) {
-    if (next && (memo !== 'splice' || (!state && !previous)))
-      next.change('previousSibling', state ? value : previous, memo);
+    if (next && (state || (!splicing || !prev)))
+      next.change('previousSibling', state ? value : prev, memo);
     if ((state || old === false))
       value.change('nextSibling', next, memo);
     else if (value.nextSibling == next)
@@ -67,14 +60,48 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, memo) {
       if (state || last) owner.change('lastChild', state ? value : this[last - 1]);
       else owner.unset('lastChild', owner.lastChild);
     }
-    if (this._owner.onChildSet) this._owner.onChildSet.apply(this._owner, arguments);
   }
-  
+  if (value.nodeType === 1 && (state || old !== false)) {
+    
+    if (!state) prev = value.previousElementSibling
+    else for (var i = index - 1; prev && (prev.nodeType != 1 || prev == value);) 
+      prev = this[--i];
+    if (!moving && (state || !splicing))
+      if (!state) next = value.nextElementSibling;
+      else for (var i = index + 1; next && (next.nodeType != 1 || next == value);) 
+        next = this[++i];
+    else next = null;
+    if (prev && (!moving || old != null)) {
+      if (state || old === false) {
+        prev.change('nextElementSibling', value, memo);
+      } else if (prev.nextElementSibling === value)
+        if (next) {
+          if (!emptying && !splicing) prev.change('nextElementSibling', next, memo);
+        } else prev.unset('nextElementSibling', value, memo);
+      if (state) value.change('previousElementSibling', prev, memo);
+      else if (value.previousElementSibling)
+        value.unset('previousElementSibling', value.previousElementSibling, memo)
+    } 
+    if (next && (!state || (memo & this.LAST))) {
+      if ((state && !moving) || old === false) {
+        next.change('previousElementSibling', value, memo);
+      } else if (next.previousElementSibling === value)
+        if (prev) {
+          if ((state || !emptying)) next.change('previousElementSibling', prev, memo);
+        } else next.unset('previousElementSibling', value, memo);
+      if (state) {
+        if (!moving) value.change('nextElementSibling', next, memo);
+      } else if (value.nextElementSibling)
+        value.unset('nextElementSibling', value.nextElementSibling, memo)
+    }
+  }
+  if ((!state || owner != value.parentNode) && !moving)
+    value[state ? 'set' : 'unset']('parentNode', owner || null, memo);
   if (owner) if (state) {
     if (index == 0) value.change('sourceIndex', (owner.sourceIndex || 0) + 1);
-    else if (previous) 
-      value.change('sourceIndex', (previous.sourceLastIndex || previous.sourceIndex || 0) + 1, memo);
-  } else if (memo !== 'empty' && !moving) 
+    else if (prev) 
+      value.change('sourceIndex', (prev.sourceLastIndex || prev.sourceIndex || 0) + 1, memo);
+  } else if (!moving && (state || !(memo & this.FORWARD))) 
       value.unset('sourceIndex', value.sourceIndex, memo);
 };
 LSD.ChildNodes.prototype._skip = Object.append({
