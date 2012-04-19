@@ -77,10 +77,18 @@ LSD.Array.prototype._offset = 0;
 LSD.Array.prototype._owning = false;
 
 LSD.Array.prototype.push = function() {
-  for (var i = 0, j = arguments.length; i < j; i++) {
-    if (!this._prefilter || this._prefilter(arguments[i]))
-      this.set(this._length, arguments[i]);
+  var args = Array.prototype.slice.call(arguments);
+  for (var i = 0, j = args.length; i < j; i++) {
+    if (this._prefilter && !this._prefilter(args[i])) {
+      args.splice(i, 1);
+      j--;
+    } else if (this._onSplice && (more = this._onSplice(args[i])) != null) {
+      args.splice.apply(args, [i + 1, 0].concat(more))
+      j += more.length
+    }
   }
+  for (var i = 0, j = args.length; i < j; i++)
+    this.set(this._length, args[i]);
   return this._length;
 };
 LSD.Array.prototype.set = function(key, value, old, meta) {
@@ -167,19 +175,22 @@ LSD.Array.prototype.splice = function(index, offset) {
 */
   var args = Array.prototype.slice.call(arguments, 2),
       arity = args.length,
-      length = this._length
-  if (this._prefilter) for (var j = arity; j--;) if (!this._prefilter(args[j])) {
-    args.splice(j--, 1);
-    arity--;
-  }
+      length = this._length, more
+  if (this._prefilter) for (var j = 0; j < arity; j++) {
+    if (!this._prefilter(args[j])) {
+      args.splice(j, 1);
+      arity--;
+    } else if (this._onSplice && (more = this._onSplice(args[j])) != null) {
+      args.splice.apply(args, [j + 1, 0].concat(more))
+      arity += more.length
+    }
+  }  
   if (index == null) index = 0;
   else if (index < 0) index = length + index;
   if (offset == null) offset = length - index;
   else offset = Math.max(0, Math.min(length - index, offset))
-  if (this._onShift && arity - offset) {
-    offset = this._onShift(index, offset, args, arity - offset);
-    arity = args.length;
-  }
+  if (this._onSplice) for (var i = index; i < offset + index; i++)
+    if ((more = this._onSplice(this[i])) != null) offset += more.length;
   var shift = arity - offset;
   this._shifting = shift;
   var values = [];
@@ -474,7 +485,7 @@ LSD.Array.prototype._hash = function(object) {
     ? object._id
     : typeof object.id != 'undefined'
       ? object.id
-      : typeof object.$id != 'undefined' ? object.$id : null;
+      : object.$id;
 };
 LSD.Array.prototype.clone = function() {
   var clone = new this.constructor;
@@ -493,3 +504,9 @@ LSD.Array.prototype['+'] = LSD.Array.prototype.concat;
 Object.each(Array.prototype, function(fn, method) {
   if (!LSD.Array.prototype[method]) LSD.Array.prototype[method] = fn;
 });
+
+LSD.Array.prototype._skip = Object.append({
+  _onSplice: true,
+  _prefilter: true,
+  _length: true
+}, LSD.Object.prototype._skip);

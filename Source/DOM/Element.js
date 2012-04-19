@@ -472,7 +472,7 @@ LSD.Element.prototype.__properties = {
   LSD.NodeList collections resorts.
 */
   previousElementSibling: function(value, old, meta) {
-    var moving = meta & 0x1
+    var moving = meta & 0x1, splicing = meta & 0x4;
     if (value) {
       value.matches.add('+',  this.tagName, this, true);
       value.matches.add('++', this.tagName, this, true);
@@ -499,11 +499,11 @@ LSD.Element.prototype.__properties = {
     }
   },
   nextElementSibling: function(value, old, meta) {
-    var moving = meta & 0x1, splicing = meta & 0x4;
+    var moving = meta & 0x1, splicing = meta & 0x4, children = this.parentNode && this.parentNode.childNodes;
     if (value) {
       value.matches.add('!+', this.tagName, this, true);
       value.matches.add('++', this.tagName, this, true);
-      if (splicing) 
+      if (splicing && (!children || children[children.length - 1] != value))
         for (var node = value; node; node = node.nextElementSibling) {
           node.matches.add('~~', this.tagName, this, true);
           this.matches.add('~',  node.tagName, node, true);

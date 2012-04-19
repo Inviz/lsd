@@ -267,7 +267,7 @@ LSD.Object.prototype.unset = function(key, value, meta, index, hash) {
   objects with computed properties.
   
    LSD Internally follows the second way of composing properties manually.
-  It's the most metary efficient and LSD provides a few tools that may help
+  It's the most memory efficient and LSD provides a few tools that may help
   in writing repetetive callbacks. Doing it manually may be very peformant,
   but needs tests that handle all possible situations.
   

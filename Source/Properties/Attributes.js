@@ -68,8 +68,8 @@ LSD.Properties.Microdata.prototype.onChange = function(key, value, meta, old) {
     element.mix('nodeValue', value, 'microdata', old);
   }
 }
-LSD.Properties.Microdata.prototype._trigger = 'lsd';
 LSD.Properties.Microdata.prototype._shared = true;
+LSD.Properties.Microdata.prototype._trigger = 'lsd';
 LSD.Properties.Microdata.prototype._script = function(key, value, meta) {
   var storage = this._elements;
   if (!storage) storage = this._elements = {};

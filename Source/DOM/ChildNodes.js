@@ -103,33 +103,18 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, meta) {
   } else if (!moving && (state || !(meta & this.FORWARD))) 
       value.unset('sourceIndex', value.sourceIndex, meta);
 };
-LSD.ChildNodes.prototype._skip = Object.append({
-  _onShift: true,
-  _prefilter: true
-}, LSD.Object.prototype._skip);
-LSD.ChildNodes.prototype._onShift = function(index, offset, args, shift) {
-  if (shift === -1 || shift === 1) {
-    var arg = shift === 1 ? args[0] : this[index], children = arg.childNodes;
-    if (children && children.virtual) offset += children.length;
-  }
-  return offset;
+LSD.ChildNodes.prototype._onSplice = function(value) {
+  var children = value.childNodes;
+  if (children && children.virtual)
+    return children.slice()
 }
 LSD.ChildNodes.Virtual = LSD.Struct({
   imports: {
     parentNode: '.parentNode'
-  },
-  parentNode: function(node, old) {
-    var children = (node || old).childNodes;
-    var index = children.indexOf(this._owner || this);
-    if (node) {
-      var args = [index + 1, 0];
-      for (var i = 0, child; child = this[i++];) args.push(child)
-      children.splice.apply(children, args);
-    }
   }
 }, 'Array');
 LSD.ChildNodes.Virtual.prototype.virtual = true;
-LSD.ChildNodes.Virtual.prototype._onShift = LSD.ChildNodes.prototype._onShift;
+LSD.ChildNodes.Virtual.prototype._onSplice = LSD.ChildNodes.prototype._onSplice;
 LSD.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old) {
   if (old != null) return;
   var subject = (this._owner || this)
