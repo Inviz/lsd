@@ -723,7 +723,7 @@ LSD.Object.prototype.watch = function(key, callback, lazy, meta) {
   rather than a reference to an object, but an id has to be stored
   somewhere, and a reference is often already given.
 */
-LSD.Object.prototype.unwatch = function(key, callback, meta, lazy) {
+LSD.Object.prototype.unwatch = function(key, callback, lazy, meta) {
   var string = typeof key == 'string';
   if (!string && typeof callback == 'undefined') {
     var watchers = this._watchers;
@@ -817,7 +817,7 @@ LSD.Object.prototype._watcher = function(call, key, value, old, meta) {
       start = (dot == null ? call.index == null ? -1 : call.index : dot) + 1;
       dot = call.key.indexOf('.', start)
       if (object && object._watch) {
-        object[i ? '_watch' : '_unwatch'](call.key.substring(start), call.callback, call.lazy);
+        object[i ? '_watch' : '_unwatch'](call.key.substring(start), call.callback, call.lazy, call.meta || meta);
         break;
       } else {
         var subkey = call.key.substring(start, dot == -1 ? call.key.length : dot);

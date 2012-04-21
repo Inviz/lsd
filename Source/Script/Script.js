@@ -222,7 +222,7 @@ LSD.Script.Struct = new LSD.Struct({
     if (this.type == 'variable')
       if (typeof value == 'undefined' && meta !== false && !this.input && this.attached) this.set('executed', true)
       else delete this.executed
-    if ((this.type != 'block' || this.yielder) && this.attached !== false && this.parents)
+    if ((this.type != 'block' || this.yielder || (this.invoked == null && meta !== 'unset')) && this.attached !== false && this.parents)
       for (var i = 0, parent; parent = this.parents[i++];) {
         if (!parent.translating && parent.attached !== false) {
           delete parent.executed;
@@ -258,9 +258,9 @@ LSD.Script.Struct = new LSD.Struct({
           };
           (this.scope._owner || this.scope).matches[value ? 'set' : 'unset'](this.input, this.setter);
         } else {
-          if (!this.setter) var self = this, setter = this.setter = function(value, old) {
-            if (typeof value == 'undefined') return self.unset('value', old);
-            else return self.change('value', value)
+          if (!this.setter) var self = this, setter = this.setter = function(value, old, meta) {
+            if (typeof value == 'undefined') return self.unset('value', old, meta);
+            else return self.change('value', value, meta)
           };
           (this.scope.variables || this.scope)[value ? 'watch' : 'unwatch'](this.name || this.input, this.setter);
         }
@@ -372,7 +372,7 @@ LSD.Script.Struct = new LSD.Struct({
             break loop;
         }
       } else if (arg != null && value && arg.script && typeof result == 'undefined' && !LSD.Script.Keywords[name]) {
-        if (this.hasOwnProperty('value')) this.unset('value', this.value);
+        if (this.hasOwnProperty('value')) this.unset('value', this.value, meta);
         return
       }
     }
@@ -745,11 +745,11 @@ LSD.Script.prototype.invoke = function(args, state, reset) {
   }
   if (state !== true) {
     if (args == null) args = this.invoked;
-    if (args === this.invoked || state == null) this.invoked = false;
+    if (args === this.invoked || state == null) delete this.invoked;
     if (state != null && this.attached != null) this.unset('attached', this.attached);
     if (this.locals && args != null)
       for (var local, i = 0; local = this.locals[i]; i++)
-        this.variables.unset(local.name, args[i]);
+        this.variables.unset(local.name, args[i], 'unset');
   }
   return result;
 };
