@@ -592,7 +592,8 @@ LSD.Script.prototype.callback = function(value, old) {
           object(value);
           break;
         default:
-          this._callback(object, null, value, old);
+          if (object.push) this._callback(object, null, value, old);
+          else this._callback(object, value, null, old);
       }
   }
 };

@@ -360,7 +360,7 @@ LSD.Object.prototype.mix = function(key, value, meta, old, merge, prepend, lazy,
           if ((val = key[prop]) != null && val._ownable === false) this.set(prop, val, meta, prepend);
           else this.mix(prop, val, meta, undefined, merge, prepend, lazy);
     };
-    if (odef) {
+    if (odef && old != null) {
       if (old._unwatch) old._unwatch(this);
       var skip = old._skip;
       for (var prop in old)
@@ -981,21 +981,37 @@ LSD.Object.prototype._onStore = function(key, value, meta, old, name) {
 };
 LSD.Object.prototype._trigger = '_calculated';
 LSD.Object.prototype._script = function(key, expression) {
+  var scripted = (this._scripted || (this._scripted = {}));
   var node = this.nodeType && this || (this._global && this._owner);
   if (this.nodeType) {
-    var script = LSD.Script(expression, null, [this, key]);;
-    if (!this._scripted) this._scripted = {};
+    scripted[key] = LSD.Script(expression, null, [this, key]);;
     node.watch('variables', '_scripted.' + key + '.scope')
+  } else if (key === 'merged') {
+    var merged = (scripted.merged || (scripted.merged = []));
+    for (var i = 0, j = expression.length; i < j; i++)
+      merged.push(LSD.Script(expression, this, this))
   } else {
-    var script = LSD.Script(expression, this, [this, key]);;
+    scripted[key] = LSD.Script(expression, this, [this, key]);;
   }
-  (this._scripted || (this._scripted = {}))[key] = script;
   return this._skip;
 };
 LSD.Object.prototype._unscript = function(key, value, meta) {
   var script = this._scripted[key];
-  script.unset('attached', script.attached, meta);
-  script.unset('value', script.value, meta)
-  delete this._scripted[key]
+  if (key === 'merged') {
+    for (var i = 0, j = script.length; i < j; i++) {
+      for (var k = 0, l = value.length; k < l; k++) {
+        if (script[i].args[0] === value[k]) {
+          script[i].unset('attached', script[i].attached, meta);
+          script[i].unset('value', script[i].value, meta)
+          script.splice(i--, 1);
+          j--;
+        }
+      }
+    }
+  } else {
+    script.unset('attached', script.attached, meta);
+    script.unset('value', script.value, meta)
+    delete this._scripted[key]
+  }
   return this._skip;
 };

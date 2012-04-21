@@ -21,7 +21,7 @@ sources:
   - Source/DOM/Range.js
   - Source/DOM/NodeList.js
   - Source/DOM/ChildNodes.js
-  - Source/Typer/Object.js
+  - Source/Type/Object.js
   - Source/Type/Journal.js
   - Source/Type/Group.js
   - Source/Type/Struct.js
@@ -37,6 +37,7 @@ sources:
   - Source/Properties/Proxies.js
   - Source/Properties/Roles.js
   - Source/Properties/Styles.js
+  - Source/Properties/Microdata.js
   - Source/Script/Script.js
   - Source/Script/Parser.js
   - Source/Script/Helpers.js

@@ -190,7 +190,8 @@ LSD.Array.prototype.splice = function(index, offset) {
   if (offset == null) offset = length - index;
   else offset = Math.max(0, Math.min(length - index, offset))
   if (this._onSplice) for (var i = index; i < offset + index; i++)
-    if ((more = this._onSplice(this[i])) != null) offset += more.length;
+    if ((more = this._onSplice(this[i])) != null) 
+      offset = Math.max(offset, more.length + (i - index + 1))
   var shift = arity - offset;
   this._shifting = shift;
   var values = [];

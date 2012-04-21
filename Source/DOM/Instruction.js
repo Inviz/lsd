@@ -20,21 +20,18 @@ provides:
 */
 
 /*
-  Script nodes like variables and function calls,
-  are objects that really dont have any relation to DOM.
-  
-  But there often is a need to express a conditional block
-  in a template, and then a node that holds a reference
-  to a script doesn't sound like such a bad idea. 
-  
-  Good news is that there is a node type reserved for such
-  use - instructions nodes, that are interpreted as 
-  comments in all modern browsers.
-  
-  Instruction subclasses the whole LSD.Script, reuses 
-  its parser and base object, but on top of that it 
-  includes features of fragment that itself is a
-  transparent node collection proxy.
+  Script nodes like variables and function calls, are objects that really
+  dont have any relation to DOM.
+
+   But there often is a need to express a conditional block in a template,
+  and then a node that holds a reference to a script doesn't sound like such
+  a bad idea.
+
+   Good news is that there is a node type reserved for such use -
+  instructions nodes, that are interpreted as comments in all modern
+  browsers. Instruction subclasses the whole LSD.Script, reuses its parser 
+  and base object, but on top of that it includes features of fragment that 
+  itself is a transparent node collection proxy.
 */
 LSD.Instruction = function() {
   return LSD.Script.apply(this === LSD ? LSD.Instruction : this, arguments);

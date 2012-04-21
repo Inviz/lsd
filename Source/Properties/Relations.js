@@ -219,7 +219,6 @@ LSD.Properties.Relations.Properties = {
   },
   
   callbacks: function(key, value, state) {
-    console.error(key, value)
     if (!this._callbacks) this._callbacks = {};
     var group = (this._callbacks[key] || (this._callbacks[key] = {}));
     for (var name in value) {

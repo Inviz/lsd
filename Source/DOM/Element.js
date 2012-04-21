@@ -292,9 +292,9 @@ LSD.Element.prototype.__properties = {
 */
             while (start != -1) {
               if (exp == null && (start = bit.indexOf('${', start + 1)) > -1) {
-                if (script == null) script = []
-                if (start > 0) script.push(bit.substring(end + 1, start));
+                if (start > 0) (script || (script = [])).push(bit.substring(end + 1, start));
               }
+              if (start > -1 && j === 0) name = false;
               if (exp != null || start > -1) {
                 if ((end = bit.indexOf('}', start + 1)) == -1) {
                   exp = (exp || '') + (start == null ? ' ' + bit : bit.substr(start + 2, len - 2));
@@ -304,7 +304,7 @@ LSD.Element.prototype.__properties = {
                   exp = (exp || '') + bit.substring(start == null ? 0 : start + 2, end);
                 }
               }
-              if (exp != null) script.push(LSD.Script(exp, this));
+              if (exp != null) (script || (script = [])).push(LSD.Script(exp, this));
               if (start == null || (start > -1 && bit.indexOf('${', start + 1) == -1)) {
                 start = -1;
               } else exp = null;
@@ -317,12 +317,22 @@ LSD.Element.prototype.__properties = {
             }
           }
           if (j === 0 && start === -1 && name == null) name = bit;
-          if (script || exp == null)
-            (opts.attributes || (opts.attributes = {}))[name || attr.name] = script
-              ? script.length > 1
-                ? new LSD.Script({name: 'concat', input: script, type: 'function'})
-                : script[0]
-              : attr.value;
+          if (script || exp == null) {
+            var attributes = (opts.attributes || (opts.attributes = {}));
+            if (name === false) {
+              if (!merged) {
+                var merged = attributes.merged = [];
+                merged._calculated = true;
+              }
+              merged.push.apply(merged, script)
+            } else {
+              attributes[name || attr.name] = script
+                ? script.length > 1
+                  ? new LSD.Script({name: 'concat', input: script, type: 'function'})
+                  : script[0]
+                : attr.value;
+            }
+          }
           if (script) name = script = null;
         }
       }
@@ -420,7 +430,7 @@ LSD.Element.prototype.__properties = {
   observers based on DOM events often have race conditions that are hidden
   behind delayed callbacks. LSD can synchronously focus the specific
   subtree and blur previously focused subtree without affecting focused
-  state of common ancestors.
+  state of shared ancestors.
 
    Focusing a subtree instead of a single node is useful for nested
   interfaces like dialog overlays, slide-out panels, multi-window
@@ -560,6 +570,7 @@ LSD.Element.prototype.__properties = {
       this.set('value', this.values);
     } else {
       this.unset('value', this.values);
+      delete this.values;
     }
   },
   nodeValue: function(value, old, meta) {
@@ -581,12 +592,12 @@ LSD.Element.prototype.__properties = {
     if (this.checked === true || typeof this.checked == 'undefined')
       this.set('nodeValue', value, meta, old)
   },
-  /*
-    A change in `textContent` of a text node or explicit override of
-    `textContent` property in node bubbles up to all parent nodes and updates
-    their text content properties. A special `meta` parameter is used to
-    avoid recursion.
-  */
+/*
+  A change in `textContent` of a text node or explicit override of
+  `textContent` property in node bubbles up to all parent nodes and updates
+  their text content properties. A special `meta` parameter is used to
+  avoid recursion.
+*/
   textContent: function(value, old, meta) {
     if (meta !== 'textContent') {
       if (meta !== 'childNodes') {
@@ -609,12 +620,12 @@ LSD.Element.prototype.__properties = {
     }
     if (meta !== 'nodeValue') this.set('nodeValue', value, 'textContent', true, old);
   },
-  /*
-    Different types of elements have different strategies to define value.
-    The strategy may be defined dynamically by providing a
-    `nodeValueProperty` with the name of a property that should be trated as
-    value. If it's not given `textContent` will be used as `nodeValue`.
-  */
+/*
+  Different types of elements have different strategies to define value. The
+  strategy may be defined dynamically by providing a `nodeValueProperty` with
+  the name of a property that should be trated as value. If it's not given
+  `textContent` will be used as `nodeValue`.
+*/
   nodeValueProperty: function(value, old) {
     if (value) this.watch(value, 'nodeValue');
     if (old) this.unwatch(old, 'nodeValue');
@@ -622,14 +633,14 @@ LSD.Element.prototype.__properties = {
   src:    'request.url',
   href:   'request.url',
   action: 'request.url',
-  /*
-    Microdata object is one of inheritable values. When a child node defines
-    its own scope object by using `itemscope` property, the widget will hold
-    links to both object coming from parent node and own object, but only use
-    the latter. If a widget loses the `itemscope` attribute, it'll lose its
-    own scope object and fall back to an object inherited from parent
-    element.
-  */
+/*
+  Microdata object is one of inheritable values. When a child node defines
+  its own scope object by using `itemscope` property, the widget will hold
+  links to both object coming from parent node and own object, but only use
+  the latter. If a widget loses the `itemscope` attribute, it'll lose its
+  own scope object and fall back to an object inherited from parent
+  element.
+*/
   microdata: function(value, old, meta) {
     this.mix('variables', value, meta, old, true);
   },
@@ -874,6 +885,8 @@ LSD.Element.prototype.onChildSet = function(value, index, state, old, meta) {
     children.textContent = text;
   }
 };
+LSD.Element.prototype.nextElementSibling = null;
+LSD.Element.prototype.previousElementSibling = null;
 
 LSD.Document.prototype.mix('states', {
   built:     ['build',      'destroy'],
