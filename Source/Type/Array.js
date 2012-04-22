@@ -362,7 +362,7 @@ LSD.Array.prototype._seeker = function(call, value, index, state, old, meta) {
 LSD.Array.prototype.seek = function(block, callback, state, meta) {
   var array = this._origin || this, limit = this._limit, offset = this._offset;
   if (state !== false && (state = true)) {
-    var watcher = {fn: this._seeker, invoker: this, block: block, callback: callback, meta: meta};
+    block.watcher = {fn: this._seeker, invoker: this, block: block, callback: callback, meta: meta};
   }
   this._position = 0;
   for (var i = 0, result, fn, j = array._length >>> 0; i < j; i++) {
@@ -372,7 +372,7 @@ LSD.Array.prototype.seek = function(block, callback, state, meta) {
       this._position++;
       result = undefined;
     } else {
-      result = array._callback(watcher, array[i], i, state, prev, {limit: this._limit, offset: this._offset});
+      result = array._callback(block.watcher, array[i], i, state, prev, {limit: this._limit, offset: this._offset});
       prev = null;
       if (limit) {
         if (!result) var prev = i;
@@ -388,7 +388,7 @@ LSD.Array.prototype.seek = function(block, callback, state, meta) {
         watchers.splice(j, 1);
         break;
       }
-  } else watchers.push(watcher);
+  } else watchers.push(block.watcher);
   return meta;
 };
 LSD.Array.prototype.uneach = function(block) {

@@ -90,6 +90,7 @@ LSD.Script = function(input, scope, output) {
       if (this.locals) {
         this.variables = new LSD.Journal;
         if (this.scope) this.variables.merge(this.scope.variables || this.scope, true);
+        this.parentScope = this.scope;
         this.scope = this;
       }
     }
@@ -220,7 +221,8 @@ LSD.Script.Struct = new LSD.Struct({
     }
     if (this.output) this.callback(value, old);
     if (this.type == 'variable')
-      if (typeof value == 'undefined' && meta !== false && !this.input && this.attached) this.set('executed', true)
+      if (typeof value == 'undefined' && meta !== false && !this.input && this.attached) 
+        this.set('executed', true)
       else delete this.executed
     if ((this.type != 'block' || this.yielder || (this.invoked == null && meta !== 'unset')) && this.attached !== false && this.parents)
       for (var i = 0, parent; parent = this.parents[i++];) {
@@ -294,6 +296,7 @@ LSD.Script.Struct = new LSD.Struct({
         result = arg.name;
       } else {
         if (arg && (arg.script || arg.type)) {
+          if (!value && typeof arg.value !== 'undefined' && !arg.placeholder) var val = arg.value;
           if (this.origin) origin = this.origin.args[i];
           if (origin && !origin.local && origin.script) {
             var arg = origin;
@@ -333,13 +336,15 @@ LSD.Script.Struct = new LSD.Struct({
                 var index = arg.parents.indexOf(this);
                 if (index > -1) {
                   arg.parents.splice(index, 1);
-                  if (arg.type == 'block' ? this.yielded : arg.parents.length == 0 && arg.attached) arg.unset('attached', true)
+                  if (arg.type == 'block' ? this.yielded : arg.parents.length == 0 && arg.attached) 
+                    arg.unset('attached', true)
                 };
               }
             }
           }
-          this.args[i] = arg
-          if (typeof (result = (arg.type == 'block' ? arg._yieldback : arg.value)) == 'undefined') result = arg.placeholder;
+          this.args[i] = arg;
+          if (typeof (result = (arg.type == 'block' ? arg._yieldback : value ? arg.value : val)) == 'undefined') 
+            result = arg.placeholder;
         } else result = arg;
         if (result && result.chain && result.callChain) {
           args = [];
@@ -356,9 +361,9 @@ LSD.Script.Struct = new LSD.Struct({
           case false:
             for (var k = i + 1; k < j; k++) {
               var argument = this.args[k];
-              if (argument != null && argument.script && argument.attached) {
-                if (typeof argument.executed != 'undefined') argument.unset('executed', argument.executed, false);
-              }
+              if (argument != null && argument.script && argument.attached);
+                if (typeof argument.executed != 'undefined') 
+                  argument.unset('executed', argument.executed, false);
             }
             args = args[args.length - 1];
             break loop;
@@ -618,18 +623,20 @@ LSD.Script.prototype.lookup = function(name, arg, scope, meta) {
   if (arg != null && typeof arg[name] == 'function') 
     return meta !== 'enumerate';
   if (scope != null || (scope = this.scope))
-    for (; scope; scope = scope.parentScope) {
+    for (; scope; ) {
       var method = (scope.methods && scope.methods[name]) || scope[name] || (scope.variables && scope.variables[name]);
       if (typeof method == 'function') return method;
+      scope = scope.hasOwnProperty('parentScope') ? scope.parentScope : scope.scope;
     }
   var method = (this.Script || LSD.Script).Helpers[name];
   if (!method && typeof Object[name] == 'function') method = Object[name];
   return method;
 };
 LSD.Script.prototype.getContext = function() {
-  for (var scope = this.scope, context; scope; scope = scope.parentScope) {
+  for (var scope = this.scope, context; scope;) {
     context = (scope.nodeType && scope.nodeType != 11) ? scope : scope.widget;
     if (context) break;
+    scope = scope.hasOwnProperty('parentScope') ? scope.parentScope : scope.scope;
   }
   this.context = context || false;
   return this.context;
