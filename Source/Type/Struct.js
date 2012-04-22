@@ -200,6 +200,26 @@ LSD.Struct.prototype._onChange = function(key, value, meta, old) {
             this.mix(prop.substring(0, index) + '.' + old, undefined, meta, this[fn]);
         } else this.mix(prop, value, meta, old);
       }
+      break;
+    case 'undefined':  
+      if (this._aggregate && !this._skip[key]) {
+        var odef = typeof old != 'undefined'
+        var storage = (this._stored || (this._stored = {})), group = storage[key];
+        if (!group) group = storage[key] = [];
+        if (vdef) group.push([value, key]);
+        if (odef) for (var i = 0, j = group.length; i < j; i++)
+          if (group[i][1] === old) {
+            group.splice(i, 1);
+            break;
+          }
+        for (var i = 0, j = this.length; i < j; i++) {
+          var obj = this[i];
+          if (vdef) this[i].set(key, value);
+          if (old && (!vdef || obj._journal)) this[i].unset(key, old);
+        }
+        
+        return this._skip;
+      }
   };
   return value;
 };
@@ -218,7 +238,7 @@ LSD.Struct.prototype._getConstructor = function(key) {
     if (type == 'function' && prop.prototype._construct) return prop;
     else return (type == 'string') ? null : false;
   }
-  return this._constructor;
+  return this._constructor
 };
 LSD.Struct.prototype.onBeforeConstruct = function(key) {
   var props = this._properties;

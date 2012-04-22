@@ -407,6 +407,8 @@ LSD.Object.prototype.mix = function(key, value, meta, old, merge, prepend, lazy,
     if (obj == null) {
       if (vdef && !this._skip[name] && !lazy)
         obj = this._construct(name, null, meta);
+      if (obj == null && this.onConstructRefused)
+        this.onConstructRefused(key, value, meta, old, merge, prepend, lazy)
     } else if (obj.push && obj._object !== true) {
       for (var i = 0, j = obj.length; i < j; i++)
         obj[i].mix(subkey, value, meta, old, merge, prepend, lazy);
@@ -785,14 +787,14 @@ LSD.Object.prototype.unwatch = function(key, callback, lazy, meta) {
   In some situations object needs to construct another object and assign it
   by a specific key. It may happen when another object with nested objects
   is merged in, so to make a deep copy of it, the originaal object needs to
-  construct its own copies of objects to hold nested values. Setting a
+  construct its own copies of all objects to hold nested values. Setting a
   nested key like `foo.bar` may also result in building a `foo` object to
   hold the `bar` key with given value.
   
    This internal method uses a dynamic way to figure out the right
   constructor for an object to build. It tries to call a `_getConstructor`
   method first and use a returned value as a constructor. Then it tries to
-  use a constructor of a possibly given value, and finally uses the same
+  use a constructor of a possibly given value, or falls back to use the same
   constructor as the object itself has.
   
    `onBeforeConstruct` hook may provide its own instantiation strategy.
@@ -805,8 +807,11 @@ LSD.Object.prototype._construct = function(name, constructor, meta, value) {
   var constructors = this._constructors;
   if (constructors) var found = constructors[name] || false, instance;
   if (!(constructor = found) && this._getConstructor &&
-      (constructor = this._getConstructor(name)) === false) return null;
-  if (!constructor) constructor = (value && value.constructor) || this.constructor;
+      (constructor = this._getConstructor(name)) === false) return;
+  if (!constructor) constructor = (value && value.constructor);
+  if (!constructor)
+    if (this.constructor.prototype._object === false) return;
+    else constructor = this.constructor;
   if (found === false) constructors[name] = constructor;
   if (!this.onBeforeConstruct || typeof (instance = this.onBeforeConstruct(name, constructor)) == 'undefined') {
     instance = new constructor;

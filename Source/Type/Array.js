@@ -104,13 +104,18 @@ LSD.Array.prototype.set = function(key, value, old, meta) {
       if (typeof fn == 'function') fn.call(this, value, index, true, old, meta);
       else this._callback(fn, value, index, true, old, meta);
     }
-    var stored = this._owner && this._owner._stored;
-    if (stored && (stored = stored[this._reference]) && old == null)
-      for (var i = 0, args; args = stored[i++];) {
-        obj = args[0], mem = args[2];
-        if (value != null && (!mem || !mem._delegate || !mem._delegate(value, key, obj)))
-          if (value.mix) value.mix.apply(value, args); 
-      }
+    if (old == null && value && value.mix) {
+      var stored = this._owner;
+      if (stored && (stored = stored._stored) && (stored = stored[this._reference]))
+        for (var i = 0, a; a = stored[i++];) 
+          value.mix.apply(value, a);
+      if ((stored = this._stored))
+        for (var prop in stored) if (!this._skip[prop])
+          for (var i = 0, a; a = stored[prop][i++];) {
+            if (a.length < 3) value.set(prop, a[0], a[1]);
+            else value.mix(prop + '.' + a[0], a[1], a[2], a[3], a[4], a[5], a[6])
+          }
+    }
     if (this._onSet) this._onSet(value, index, true, old, meta);
     if (this.onSet) this.onSet(value, index, true, old, meta);
     return value;
@@ -129,13 +134,17 @@ LSD.Array.prototype.unset = function(key, value, old, meta) {
       if (typeof fn == 'function') fn.call(this, value, index, false, old, meta);
       else this._callback(fn, value, index, false, old, meta);
     }
-    var stored = this._owner && this._owner._stored;
-    if (stored && (stored = stored[this._reference]))
-      for (var i = 0, args; args = stored[i++];) {
-        obj = args[0], mem = args[2];
-        if (value != null && (!mem || !mem._delegate || !mem._delegate(value, key, undefined, meta, obj)))
-          if (value.mix) value.unmix.apply(value, args); 
-      }
+    if (old == null && value && value.mix) {
+      var stored = this._owner;
+      if (stored && (stored = stored._stored) && (stored = stored[this._reference]))
+        for (var i = 0, a; a = stored[i++];) 
+          value.unmix.apply(value, a);
+      if ((stored = this._stored))
+        for (var prop in stored) if (!this._skip[prop])
+          for (var i = 0, a; a = stored[prop][i++];) 
+            if (a.length < 3) value.unset(prop, a[0], a[1]);
+            else value.unmix(prop + '.' + a[0], a[1], a[2], a[3], a[4], a[5], a[6])
+    }
     if (this._onSet) this._onSet(value, index, false, old, meta);
     if (this.onSet) this.onSet(value, index, false, old, meta);
     return value;
@@ -261,6 +270,29 @@ LSD.Array.prototype.splice = function(index, offset) {
   delete this._shifting;
   return values;
 };
+/*
+  When splice method sets values in array, it also sends an additional
+  argument, a number that can be bitmasked to figure out the type
+  of an operation within a callback. 
+  
+  `MOVE` flag means that the the value was moved within array, e.g. when
+  shifting the tail of array to the left, when some value in the middle
+  was spliced out.
+  
+  When `FORWARD` flag goes together with `MOVE`, it means that new values
+  were added somewhere, so a part of array needs to be shifted right.
+  If a `FORWARD` flag goes without `MOVE`, it means that the value that
+  is getting removed will be overwritten by inserted values.
+  
+  `SPLICE` means that some values were either removed or inserted into
+  array, depending on `state` argument.
+  
+  `FIRST` and `LAST` flags are set when an operation is first or last
+  within it's type. A single `splice()` call may fire multiple
+  callbacks with `FIRST` flag set - one for each type of array
+  manipulation - first item to be spliced, first item to be shifted.
+  
+*/
 LSD.Array.prototype.MOVE = 0x1;
 LSD.Array.prototype.FORWARD = 0x2;
 LSD.Array.prototype.SPLICE = 0x4;
@@ -493,7 +525,6 @@ LSD.Array.prototype.toObject = function(normalize, serializer) {
   return result;
 },
 LSD.Array.prototype._manager = function(callback, value, old) {
-  console.log(1)
   if (value != null) this.push(value);
   if (old != null) {
     var index = this.indexOf(old);
@@ -515,6 +546,12 @@ LSD.Array.prototype.clone = function() {
   for (var i = 0; i < this._length; i++) clone.push(this[i]);
   return clone;
 };
+LSD.Array.prototype.onConstructRefused = function() {
+  for (var i = 0, j = this._length, val; i < j; i++) {
+    if ((val = this[i]) && val.mix)
+      val.mix.apply(val, arguments);
+  }
+}
 LSD.Array.prototype['<<'] = LSD.Array.prototype.push;
 LSD.Array.prototype['+'] = LSD.Array.prototype.concat;
 /*=
@@ -527,9 +564,11 @@ LSD.Array.prototype['+'] = LSD.Array.prototype.concat;
 Object.each(Array.prototype, function(fn, method) {
   if (!LSD.Array.prototype[method]) LSD.Array.prototype[method] = fn;
 });
+LSD.Array.prototype._object = false;
 
 LSD.Array.prototype._skip = Object.append({
   _onSplice: true,
   _prefilter: true,
-  _length: true
+  _length: true,
+  length: true
 }, LSD.Object.prototype._skip);

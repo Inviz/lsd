@@ -16,7 +16,7 @@ requires:
   - LSD.NodeList
 
 provides: 
-  - LSD.Properties.Relations
+  - LSD.Relations
  
 ...
 */
@@ -25,3 +25,4 @@ LSD.Relation = new LSD.Struct({
   match: '_owner.matches.set manager',
   proxy: '_owner.proxies.set manager'
 }, 'NodeList');
+LSD.Relation.prototype._aggregate = true;
