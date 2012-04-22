@@ -133,11 +133,11 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, meta, old, hash
     if (this._owner && this._owner.test(key)) {
       if (vdef)
         if (typeof value == 'function') value(this._owner);
-        else if (value.callback)
+        else if (value.callback || value.bind)
           (value.fn || (value.bind || this._owner)[value.method]).call(value.bind || this._owner, value, this._owner)
       if (odef)
         if (typeof old == 'function') old(undefined, this._owner);
-        else if (old.callback)
+        else if (old.callback || old.bind)
           (old.fn || (old.bind || this._owner)[old.method]).call(old.bind || this._owner, old, undefined, this._owner)
     }
   /*
@@ -155,7 +155,7 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, meta, old, hash
         for (var i = 0, widget; widget = group[i++];) {
           if (!stateful) {
             if (typeof value == 'function') value(widget);
-            else if (value.callback)
+            else if (value.callback || value.bind)
               (value.fn || (value.bind || this)[value.method]).call(value.bind || this, value, widget)
             else widget.mix(value, null, meta)
           } else widget.matches.set(key, value, 'state');

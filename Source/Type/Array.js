@@ -492,6 +492,14 @@ LSD.Array.prototype.toObject = function(normalize, serializer) {
   }
   return result;
 },
+LSD.Array.prototype._manager = function(callback, value, old) {
+  console.log(1)
+  if (value != null) this.push(value);
+  if (old != null) {
+    var index = this.indexOf(old);
+    if (index > -1) this.splice(index, 1);
+  }
+};
 LSD.Array.prototype._sorter = function(a, b) {
   return a > b ? 1 : a < b ? - 1 : 0;
 };

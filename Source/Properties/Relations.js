@@ -22,15 +22,6 @@ provides:
 */
 
 LSD.Relation = new LSD.Struct({
-  match: '_owner.matches.set matcher',
-  proxy: '_owner.proxies.set proxier'
+  match: '_owner.matches.set manager',
+  proxy: '_owner.proxies.set manager'
 }, 'NodeList');
-
-LSD.Relation.prototype._matcher = function(callback, value, old) {
-  if (value != null) this.push(value);
-  if (old != null) {
-    var index = this.indexOf(old);
-    if (index > -1) this.splice(index, 1);
-  }
-};
-

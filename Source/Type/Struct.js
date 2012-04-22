@@ -191,12 +191,15 @@ LSD.Struct.prototype._onChange = function(key, value, meta, old) {
         var index = prop.indexOf(' ');
         if (index > -1) {
           var fn = prop.substring(index + 1);
-          prop = prop.substring(0, index) + '.' + value;
-          if (!(value = this[fn])) value = this[fn] = {
+          if (!this[fn]) this[fn] = {
             fn: this['_' + fn],
             bind: this
           };
+          this.mix(prop.substring(0, index) + '.' + value, this[fn], meta);
+          if (old != null && typeof old != 'object')
+            this.mix(prop.substring(0, index) + '.' + old, undefined, meta, this[fn]);
         }
+      } else {
         this.mix(prop, value, meta, old);
       }
   };

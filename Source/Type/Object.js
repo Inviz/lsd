@@ -411,7 +411,6 @@ LSD.Object.prototype.mix = function(key, value, meta, old, merge, prepend, lazy,
       for (var i = 0, j = obj.length; i < j; i++)
         obj[i].mix(subkey, value, meta, old, merge, prepend, lazy);
     } else if (obj.apply) {
-      console.log(name, [vdef, odef], [value, old])
       if (vdef) this[name](subkey, value);
       if (odef) {
         var negated = LSD.negated[name] || (LSD.negated[name] = LSD.negate(name));
@@ -446,7 +445,8 @@ LSD.Object.prototype.mix = function(key, value, meta, old, merge, prepend, lazy,
         for (var previous, k, object = obj; (subindex = subkey.indexOf('.', previous)) > -1;) {
           k = subkey.substring(previous || 0, subindex)
           if (previous > -1 && typeof object.mix == 'function') {
-            object.mix(subkey.substring(subindex), value, meta, old, merge, prepend, lazy)
+            object.mix(subkey.substring(subindex), value, meta, old, merge, prepend, lazy);
+            break;
           } else if (object[k] != null) object = object[k];
           previous = subindex + 1;
         }
