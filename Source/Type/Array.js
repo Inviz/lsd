@@ -104,6 +104,13 @@ LSD.Array.prototype.set = function(key, value, old, meta) {
       if (typeof fn == 'function') fn.call(this, value, index, true, old, meta);
       else this._callback(fn, value, index, true, old, meta);
     }
+    var stored = this._owner && this._owner._stored;
+    if (stored && (stored = stored[this._reference]) && old == null)
+      for (var i = 0, args; args = stored[i++];) {
+        obj = args[0], mem = args[2];
+        if (value != null && (!mem || !mem._delegate || !mem._delegate(value, key, obj)))
+          if (value.mix) value.mix.apply(value, args); 
+      }
     if (this._onSet) this._onSet(value, index, true, old, meta);
     if (this.onSet) this.onSet(value, index, true, old, meta);
     return value;
@@ -122,6 +129,13 @@ LSD.Array.prototype.unset = function(key, value, old, meta) {
       if (typeof fn == 'function') fn.call(this, value, index, false, old, meta);
       else this._callback(fn, value, index, false, old, meta);
     }
+    var stored = this._owner && this._owner._stored;
+    if (stored && (stored = stored[this._reference]))
+      for (var i = 0, args; args = stored[i++];) {
+        obj = args[0], mem = args[2];
+        if (value != null && (!mem || !mem._delegate || !mem._delegate(value, key, undefined, meta, obj)))
+          if (value.mix) value.unmix.apply(value, args); 
+      }
     if (this._onSet) this._onSet(value, index, false, old, meta);
     if (this.onSet) this.onSet(value, index, false, old, meta);
     return value;

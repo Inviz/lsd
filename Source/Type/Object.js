@@ -86,7 +86,10 @@ LSD.Object.prototype.set = function(key, value, meta, index, hash) {
 */
   if (nonenum !== true && value != null && !value._owner && value._set && this._owning !== false)
     if (meta !== 'reference') {
-      if (value._ownable !== false) value._set('_owner', this);
+      if (value._ownable !== false) {
+        value._reference = key;
+        value._set('_owner', this);
+      }
     } else value._references = (value._references || 0) + 1;
 /*
   Most of the keys that start with `_` underscore do not trigger calls to
@@ -198,7 +201,11 @@ LSD.Object.prototype.unset = function(key, value, meta, index, hash) {
   var vdef = typeof value != 'undefined', old = vdef ? value : this[key];
   if (!hash && vdef && typeof old == 'undefined') return false;
   if (hash == null) delete this[key];
-  if (value != null && value._owner === this && nonenum !== true) value._unset('_owner', this);
+  if (value != null && value._owner === this && nonenum !== true)
+    if (meta !== 'reference') {
+      value._unset('_owner', this);
+      delete value._reference;
+    } else value._references --;
   var changed;
   if (this._onChange && typeof (changed = this._onChange(key, undefined, meta, old, hash)) != 'undefined')
     if (changed === this._skip) return;
@@ -403,8 +410,14 @@ LSD.Object.prototype.mix = function(key, value, meta, old, merge, prepend, lazy,
     } else if (obj.push && obj._object !== true) {
       for (var i = 0, j = obj.length; i < j; i++)
         obj[i].mix(subkey, value, meta, old, merge, prepend, lazy);
+    } else if (obj.apply) {
+      console.log(name, [vdef, odef], [value, old])
+      if (vdef) this[name](subkey, value);
+      if (odef) {
+        var negated = LSD.negated[name] || (LSD.negated[name] = LSD.negate(name));
+        this[negated](subkey, old)
+      }
     } else {
-      var parent = obj._owner;
 /*
   When objects are merged together, nested objects are opted in for a
   copy-on-write merging, that speeds up merging by directly referencing
@@ -416,7 +429,7 @@ LSD.Object.prototype.mix = function(key, value, meta, old, merge, prepend, lazy,
   referenced object.
 */
       if (vdef && old !== obj && this._owning !== false && obj._shared !== true
-      && (parent ? parent !== this : obj._references > 0)) {
+      && (obj._owner ? obj._owner !== this : obj._references > 0)) {
         obj = this._construct(name, null, 'copy')
       } else if (typeof obj.mix == 'function' && obj._ownable !== false) {
         obj.mix(subkey, value, meta, old, merge, prepend, lazy);
@@ -943,6 +956,8 @@ LSD.Object.prototype.has = function(key) {
   to the object itself and still not be used in iterations.
 */
 LSD.Object.prototype._skip = {
+  _references: true,
+  _reference: true,
   _watchers: true,
   _watched: true,
   _ownable: true,

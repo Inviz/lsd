@@ -170,7 +170,7 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, meta, old, hash
             for (var j = 0, result; result = group[j++];) {
               if (!stateful) {
                 if (typeof fn == 'function') fn(undefined, old);
-                else if (typeof fn.callback != 'undefined')
+                else if (fn.callback || fn.bind)
                   (fn.fn || (fn.bind || this)[fn.method]).call(fn.bind || this, fn, undefined, result)
                 else result.mix(undefined, undefined, meta, old)
               } else result.matches.unset(key, old, 'state');

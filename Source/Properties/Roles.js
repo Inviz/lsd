@@ -80,7 +80,7 @@ LSD.Document.prototype.set('roles', new LSD.Roles({
       files: true,
       'if files': {
         '::list': {
-          collection: 'files'
+          'each files': '::file'
         }
       }, 
       'else': {
@@ -189,11 +189,9 @@ LSD.Document.prototype.set('roles', new LSD.Roles({
     }
   },
   
-  body: {
-    dialog: {
-      elements: true,
-      open: false
-    }
+  dialog: {
+    elements: 'Data',
+    open: false
   },
   
   

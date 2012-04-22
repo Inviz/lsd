@@ -36,7 +36,7 @@ LSD.Struct = function(properties, Base, Sub) {
   resemblance to OOP.
 */
   var Struct = function(object) {
-    if (this.Variable) return new Struct(object, arguments[1])
+    if (this.Variable || !this._construct) return new Struct(object, arguments[1])
 /*
   Inherited properties is an internal concept that allows an instance of a class to
   recieve its own copy of a private object from prototype without recursive cloning.
@@ -187,8 +187,18 @@ LSD.Struct.prototype._onChange = function(key, value, meta, old) {
     property back to original alias).
 */
     case 'string':
-      if (typeof value != 'object')
+      if (typeof value != 'object') {
+        var index = prop.indexOf(' ');
+        if (index > -1) {
+          var fn = prop.substring(index + 1);
+          prop = prop.substring(0, index) + '.' + value;
+          if (!(value = this[fn])) value = this[fn] = {
+            fn: this['_' + fn],
+            bind: this
+          };
+        }
         this.mix(prop, value, meta, old);
+      }
   };
   return value;
 };
@@ -255,12 +265,15 @@ LSD.Struct.prototype._link = function(properties, state, external) {
     }
   });
   Struct.prototype.rate = 1;
-  Struct.prototype.tax = 0.15;
+  Struct.prototype.tax = 0.2
   var struct = new Struct;
   expect(struct.total).toBeUndefined();
   struct.set('sum', 200);
-  expect(struct.total).toBeUndefined();
+  expect(struct.total).toBe(200 * 0.85);
   struct.set('sum', 85);
+  expect(struct.total).toBe(85 * 0.85);
+  struct.set('tax', 0.2);
+  expect(struct.total).toBe(85 * 0.8);
 
   LSD.Script is compiled when struct is instantiated and starts observing variables
   from left to right. It starts by expecting `sum`, and only when it gets it, it starts
