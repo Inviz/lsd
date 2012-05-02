@@ -170,8 +170,9 @@ LSD.Script.Struct = new LSD.Struct({
   value: function(value, old, meta) {
     if (this.frozen) return;
     if (this.yielder && this.invoked && this.invoked !== true) {
-      this.yielder(value, this.invoked[0], this.invoked[1], this.invoked[2], this.invoked[3]);
+      this.yielder(value, this.invoked[0], this.invoked[1], this.invoked[2], this.invoked[3], this.invoked[4]);
       delete this.invoked[3];
+      delete this.invoked[4];
     }
     if (this.process) value = this.process(value);
     if (value && value.chain && value.callChain && !value.chained) {
@@ -202,7 +203,7 @@ LSD.Script.Struct = new LSD.Struct({
       value = this.placeholder;
       this.placeheld = true;
     } else if (this.placeheld) delete this.placeheld;
-    if (value != null && value.push && value.watch) {
+    if (value != null && value.push && value._watch) {
       if (!this._enumerator) {
         var self = this;
         this._enumerator = function(val, index, state, old, meta) {
@@ -215,7 +216,7 @@ LSD.Script.Struct = new LSD.Struct({
         value.watch(this._enumerator);
       }  
     }
-    if (old != null && old.push && old.watch && this._enumerated) {
+    if (old != null && old.push && old._watch && this._enumerated) {
       old.unwatch(this._enumerator);
       delete this._enumerated;
     }
@@ -498,7 +499,7 @@ LSD.Script.prototype.Script = LSD.Script.Script = LSD.Script;
   function calls as possible.
 */
 LSD.Script.prototype.toJS = function(options) {
-  var source = this.source || this.input;
+  var source = this.source || this.type == 'block' ? this : this.input;
   if (!source) {
     if (typeof (source = options) == 'string')
       source = LSD.Script.parse(source);
@@ -542,7 +543,7 @@ LSD.Script.prototype.toJS = function(options) {
         var args = [i, 1, 'function('];
         if ((locals = obj.locals))
           args.push(locals.map(function(l) { return l.name }).join(', '));
-        args.push(') { ', obj.value, ' }');
+        args.push(') { ', obj.value || obj.input, ' }');
         stack.splice.apply(stack, args);
         break;
       default:
@@ -687,8 +688,6 @@ LSD.Script.prototype.yield = function(keyword, args, callback, index, old, meta)
       block.yielded = true;
       block.yielder = callback;
       if (meta && (meta.limit || meta.offset)) {
-        args = args.slice();
-        delete args[3];
         this._limit = meta.limit;
         this._offset = meta.offset;
       }
@@ -707,7 +706,7 @@ LSD.Script.prototype.yield = function(keyword, args, callback, index, old, meta)
       return block;
     case 'unyield':
       var block = this.yields && this.yields[index];
-      if (callback) callback.call(this, block ? block.value : this.values ? this.values[index] : null, args[0], args[1], args[2], args[3]);
+      if (callback) callback.call(this, block ? block.value : this.values ? this.values[index] : null, args[0], args[1], args[2], args[3], args[4]);
       if (block) {
         if (callback && block.invoked != null) block.invoke(null, false);
         block.unset('attached', block.attached);

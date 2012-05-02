@@ -269,7 +269,21 @@ LSD.Element.prototype.__properties = {
         }
       } else {
         var start, end, bit, exp, len, name, script;
-        for (var i = 0, attr, attrs = value.attributes; attr = attrs[i++];) {
+        iterate: for (var i = 0, attr, attrs = value.attributes; attr = attrs[i++];) {
+/*
+  Internet Explorer is known to mix properties and attributes together,
+  so we need to filter out those properties that were not specified as
+  attributes. That includes proeprties like `onclick` being null by
+  default, and also extension methods like `inject` in mootools.
+*/
+          var prop = value[attr.name];
+          switch (typeof prop) {
+            case 'string': case 'undefined': case 'boolean':
+              break;
+            default:
+              if (prop === null || prop === attr.value)
+                break iterate;
+          }
           loop: for (var j = 0; j < 2; j++) {
             start = end = undefined;
             bit = j ? attr.value : attr.name;
@@ -875,9 +889,8 @@ LSD.Element.prototype.toElement = function(){
   return this.element;
 };
 LSD.Element.prototype.onChildSet = function(value, index, state, old, meta) {
-  var children = this.childNodes;
-  var moving = meta === 'collapse' || meta === 'finalize' || meta === 'clean';
-  if (meta !== 'empty') {
+  if ((state || !(meta & 0x2)) && !value._followed) {
+    var children = this.childNodes;
     for (var text = '', child, i = 0; child = children[i++];)
       if (child.textContent != null) text += child.textContent;
     this.set('textContent', text, 'childNodes');

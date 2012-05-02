@@ -66,7 +66,8 @@ LSD.Object.prototype.set = function(key, value, meta, index, hash) {
   script doesn't have enough data to compute.
 */
   var nonscript = nonenum === true || value == null || (this._literal && this._literal[key]);
-  if (!nonscript && value[this._trigger] != null) return this._script(key, value, meta);
+  var trigger = this._trigger;
+  if (!nonscript && value[trigger] != null) return this._script(key, value, meta);
 /*
   `hash` argument may disable all mutation caused by the setter, the value by
   the key will not be mofified. May be used by subclasses to implement its
@@ -84,7 +85,7 @@ LSD.Object.prototype.set = function(key, value, meta, index, hash) {
   writing a link (e.g. Arrays dont write a link to its object values, and DOM
   elements dont let any objects write a link either).
 */
-  if (nonenum !== true && value != null && !value._owner && value._set && this._owning !== false)
+  if (nonenum !== true && value != null && value._set && !value._owner && this._owning !== false)
     if (meta !== 'reference') {
       if (value._ownable !== false) {
         value._reference = key;
@@ -115,7 +116,7 @@ LSD.Object.prototype.set = function(key, value, meta, index, hash) {
   may compile given value into expression (e.g. a textnode may find
   interpolations in a given `textContent`).
 */
-  if (!nonscript && value != null && value[this._trigger] != null) {
+  if (!nonscript && value[trigger] != null) {
     if (hash == null) this[key] = old;
     return this._script(key, value, meta);
   }
@@ -861,7 +862,7 @@ LSD.Object.prototype._callback = function(callback, key, value, old, meta, lazy)
     var subject = this, property = callback;
   else if (typeof callback.fn == 'function')
     return (callback.fn || (callback.bind || this)[callback.method]).apply(callback.bind || this, arguments);
-  else if (callback.watch && callback.set)
+  else if (callback._watch && callback.set)
     var subject = callback, property = key;
   else if (callback.push)
     var subject = callback[0], property = callback[1];

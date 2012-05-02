@@ -89,7 +89,7 @@ LSD.Journal.prototype.set = function(key, value, meta, prepend, old, hash) {
     }
     if (vdef)
       if (prepend) {
-        var length = group.unshift(value);
+        var length = group.unshift(value) || group.length;
         if (length > 1) value = group[length - 1];
       } else group.push(value);
     else if (j == null || j == (i == null ? -1 : i)) 

@@ -23,6 +23,7 @@ provides:
 LSD.Textnode = LSD.Struct({
   textContent: function(value, old, meta) {
     if (typeof value != 'undefined') {
+      value = String(value)
       if (!meta || !(meta.push || meta.script)) {
         for (var previous = -1, start, end, bits, substr; (start = value.indexOf('${', previous + 1)) > -1;) {
           if ((end = value.indexOf('}', start)) == -1) continue;

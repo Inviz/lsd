@@ -81,10 +81,14 @@ LSD.Fragment.prototype.node = function(object, parent, meta, nodeType) {
     widget = document.createNode(nodeType, object, this);
   } else if (meta && meta.clone) 
     widget = widget.cloneNode();
-  if (widget.parentNode != parent) parent.appendChild(widget, meta);
+  if (widget.parentNode != parent) {
+    if (meta < -1) widget._followed = true;
+    parent.appendChild(widget, meta);
+    delete widget._followed;
+  }
   if (children && children.length)
-    for (var i = 0, child, array = this.slice.call(children, 0), previous; child = array[i]; i++)
-      this.node(child, widget, meta);
+    for (var i = 0, array = children, j = array.length; i < j; i++)
+      this.node(array[i], widget, i - j);
   return widget;
 };
 /*
@@ -213,7 +217,7 @@ LSD.Fragment.prototype.html = function(object, parent, meta) {
   /*@cc_on document.body.appendChild(this._dummy) @*/
   this._dummy.innerHTML = object.toString();
   /*@cc_on document.body.removeChild(this._dummy) @*/
-  return this.enumerable(this.slice.call(this._dummy.childNodes), parent, meta);
+  return this.enumerable(this._dummy.childNodes, parent, meta);
 };
 /*
   Type checking plays the role of a method dispatcher.

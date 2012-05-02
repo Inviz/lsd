@@ -34,7 +34,7 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, meta) {
       next = (!state && value.nextSibling) || this[index + 1] || null;
   if (next && next === prev) next = this[index + 2] || null;
   if (owner && owner.onChildSet) owner.onChildSet.apply(owner, arguments);
-  if (prev !== value && (!moving || (meta & this.FIRST && state))) {
+  if (prev !== value && (!moving || ((meta & this.FIRST) && state))) {
     if (prev && (state || (!splicing || !next)))
       prev.change('nextSibling', state ? value : next, meta);
     if ((state || moving))
@@ -115,8 +115,8 @@ LSD.ChildNodes.Virtual = LSD.Struct({
 }, 'Array');
 LSD.ChildNodes.Virtual.prototype.virtual = true;
 LSD.ChildNodes.Virtual.prototype._onSplice = LSD.ChildNodes.prototype._onSplice;
-LSD.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old) {
-  if (old != null) return;
+LSD.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old, meta) {
+  if (meta & this.MOVE) return;
   var subject = (this._owner || this)
   var parent = subject.parentNode;
   if (!parent) {
@@ -126,8 +126,6 @@ LSD.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old) {
         value.unset('parentNode', subject);
     return
   };
-  if (value.childNodes && value.childNodes.virtual)
-    value.childNodes[state ? 'set' : 'unset']('parentNode', subject);
   if (parent.insertBefore) {
     if (!state)
       parent.removeChild(value);

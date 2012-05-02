@@ -47,11 +47,11 @@ LSD.RegExp = function(object, callbacks, clean) {
   this.source = source;
 };
 LSD.RegExp.prototype = {
-  exec: function(string, callbacks, memo) {
+  exec: function(string, callbacks, meta) {
     if (typeof callbacks == 'undefined') callbacks = this.callbacks;
     var regexp = this.compiled || (this.compiled = new RegExp(this.source, "g"));
-    var lastIndex = regexp.lastIndex, old = this.stack, res = this.result, groups = this.groups, mem = this.memo;
-    if (memo) this.memo = memo;
+    var lastIndex = regexp.lastIndex, old = this.stack, res = this.result, groups = this.groups, mem = this.meta;
+    if (meta) this.meta = meta;
     regexp.lastIndex = 0;
     for (var match, group, val, args; match = regexp.exec(string);) {
       for (var i = 1, s = null, j = match.length, group = null, val; i <= j; i++) {
@@ -79,9 +79,9 @@ LSD.RegExp.prototype = {
     var result = this.result;
     regexp.lastIndex = lastIndex;
     this.stack = old;
-    this.memo = mem;
+    this.meta = mem;
     this.result = res;
-    if (memo) for (var j = 0, bit; (bit = result[j]) != null; j++) 
+    if (meta) for (var j = 0, bit; (bit = result[j]) != null; j++) 
       if (bit && bit.length == 1) result[j] = bit[0];
     return (result && result.length == 1) ? result[0] : result;
   },
@@ -108,4 +108,4 @@ LSD.RegExp.prototype = {
   },
   insiders:      {},
   callbacks:     {}
-};
+}
