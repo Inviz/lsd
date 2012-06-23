@@ -67,20 +67,16 @@ LSD.Script.Helpers.pluralize = function(count, singular, plural) {
 LSD.Script.Helpers.pluralize_word = function(count, singular, plural) {
   return (count == 1) ? singular : (plural || (singular.pluralize()));
 };
-LSD.Script.Helpers['if'] = function(condition, block) {
-  var result = block.call(block, condition ? 'yield' : 'unyield')
-  if (typeof result == 'undefined') result = null;
-  return result;
+LSD.Script.Helpers['if'] = LSD.Script.Helpers['elsif'] = function(condition, block) {
+  if (block) var result = block.call(block, condition ? 'yield' : 'unyield')
+  return result == null ? condition == null ? null : condition : result; 
 };
 LSD.Script.Helpers['else'] = function(condition, block) {
-  var result = block.call(block, condition ? 'yield' : 'unyield')
-  if (typeof result == 'undefined') result = null;
-  return result;
+  return true;
 };
 LSD.Script.Helpers['unless'] = function(condition, block) {
-  var result = block.call(block, condition ? 'unyield' : 'yield')
-  if (typeof result == 'undefined') result = null;
-  return result;
+  if (block) var result = block.call(block, condition ? 'unyield' : 'yield')
+  return result == null ? condition == null ? null : condition : result;
 };
 /*
   Yield function simply returns the value. It wouldn't do anything special by itself,
@@ -112,8 +108,7 @@ LSD.Script.Helpers['un[]'] = function(object, property) {
 */
    
 LSD.Script.Operators = {
-  '*': 1, '/': 1,
-  '%': 1,
+  '*': 1, '/': 1, '%': 1,
   '+': 2, '-': 2,
   '>': 3, '<': 3,
   '^': 4, '&': 4, '|': 4, 

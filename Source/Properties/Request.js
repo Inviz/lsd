@@ -76,4 +76,4 @@ LSD.Request.URL.prototype.toString = function() {
   
 }
 LSD.Request.URL.prototype._regex = /^(?:(\w+):)?(?:\/\/(?:(?:([^:@\/]*):?([^:@\/]*))?@)?([^:\/?#]*)(?::(\d*))?)?(\.\.?$|(?:[^?#\/]*\/)*)([^?#]*)(?:\?([^#]*))?(?:#(.*))?/;
-LSD.Request.URL.prototype._parts: ['scheme', 'user', 'password', 'host', 'port', 'directory', 'file', 'query', 'fragment'];
+LSD.Request.URL.prototype._parts = ['scheme', 'user', 'password', 'host', 'port', 'directory', 'file', 'query', 'fragment'];

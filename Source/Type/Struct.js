@@ -55,7 +55,7 @@ LSD.Struct = function(properties, Base, Sub) {
 */
     var preconstruct = this._preconstruct;
     if (preconstruct) for (var i = 0, type, constructors = this._constructors; type = preconstruct[i++];) {
-      var constructor = constructors[type] || this._getConstructor(type);
+      var constructor = constructors[type] || (constructors[type] = this._getConstructor(type));
       var obj = this[type] = new constructor;
       obj._owner = this;
       var properties = obj._properties;

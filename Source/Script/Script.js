@@ -41,7 +41,7 @@ provides:
   types of nodes: a function call (which child nodes are arguments) and a leaf
   (value as number, string or selector). Binary operators are implemented as
   functions and first go through a specificity reordering (making
-  multiplication execute before deduction).
+  multiplication execute before subtraction).
 
    The last phase compiles the Abstract Syntax Tree into an object that can be
   passed around and used to retrieve current expression value.
@@ -50,7 +50,9 @@ provides:
 LSD.Script = function(input, scope, output) {
   var regex = this._regexp, type = typeof input;
   if (regex) {
-    if (scope) this.scope = scope;
+    if (scope) {
+      this.scope = scope;
+    }
     if (output)
       if (output.nodeType == 9) this.document = output;
       else this.output = output;
@@ -86,7 +88,7 @@ LSD.Script = function(input, scope, output) {
     if (this.type === 'block') {
       this._yieldback = this.yield.bind(this);
       this._yieldback.block = this;
-      if (!this.origin && this.locals) this.findLocals(this.locals);
+      if (!this.proto && this.locals) this.findLocals(this.locals);
       if (this.locals) {
         this.variables = new LSD.Journal;
         if (this.scope) this.variables.merge(this.scope.variables || this.scope, true);
@@ -223,23 +225,23 @@ LSD.Script.Struct = new LSD.Struct({
     if (this.output) this.callback(value, old);
     if (this.type == 'variable')
       if (typeof value == 'undefined' && meta !== false && !this.input && this.attached) 
-        this.set('executed', true)
+        this.execute(true)
       else delete this.executed
     if ((this.type != 'block' || this.yielder || (this.invoked == null && meta !== 'unset')) && this.attached !== false && this.parents)
       for (var i = 0, parent; parent = this.parents[i++];) {
         if (!parent.translating && parent.attached !== false) {
           delete parent.executed;
-          parent.set('executed', true, meta);
+          parent.execute(true, meta);
         }
       }
     if (this.wrapper && this.wrapper.wrappee)
       this.wrapper.wrappee.onSuccess(value)
-    if (this.onValueChange) this.onValueChange(vaue, old)
+    if (this.onValueChange) this.onValueChange(value, old, meta)
   },
-  attached: function(value, old) {
-    if (!value && typeof this.value != 'undefined') this.unset('value', this.value);
+  attached: function(value, old, meta) {
+    if (!value && typeof this.value != 'undefined') this.unset('value', this.value, meta);
     if (this.yielded || this.type == 'function') {
-      this.change('executed', !!value);
+      this.execute(!!value, meta);
     } else if (this.yields) {
       for (var property in this.yields) {
         var yield = this.yields[property];
@@ -268,149 +270,9 @@ LSD.Script.Struct = new LSD.Struct({
           (this.scope.variables || this.scope)[value ? 'watch' : 'unwatch'](this.name || this.input, this.setter);
         }
       } else this.scope(this.input, this, this.scope, !!value);
-      if (typeof this.value == 'undefined' && !this.input) this.change('executed', value);
+      if (typeof this.value == 'undefined' && !this.input) 
+        this.execute(!!value, meta);
     }
-  },
-/*
-  Functions only deal with data coming from variable tokens or as raw values
-  like strings, numbers and objects. So a function is executed once,
-  when all of its arguments are resolved. A function has its arguments as
-  child nodes in AST, so when a variable argument is changed, it propagates
-  the change up in the tree, and execute the parent function with updated
-  values.
-
-  A value is calculated once and will be recalculated when any of its variable
-  arguments is changed.
-*/
-  executed: function(value, old, meta) {
-    var name = (value || !old) ? this.name : LSD.Script.Revertable[this.name]/* || LSD.Negation[name] */
-    || (LSD.Script.Evaluators[this.name] && this.name) || (!LSD.Script.Operators[this.name] && 'un' + this.name) || old;
-    var val, result, args = [];
-    if (typeof this.evaluator == 'undefined')
-      this.evaluator = LSD.Script.Evaluators[name] || null;
-    if (name)
-      var literal = LSD.Script.Literal[name];
-    if (this.args) loop: for (var i = 0, j = this.args.length, arg, piped = this.prepiped, origin; i < j; i++) {
-      if (typeof (arg = this.args[i]) == 'undefined') continue;
-      if (i === literal) {
-        if (!arg.type || arg.type != 'variable') throw "Unexpected token, argument must be a variable name";
-        result = arg.name;
-      } else {
-        if (arg && (arg.script || arg.type)) {
-          if (!value && typeof arg.value !== 'undefined' && !arg.placeholder) var val = arg.value;
-          if (this.origin) origin = this.origin.args[i];
-          if (origin && !origin.local && origin.script) {
-            var arg = origin;
-            var index = arg.parents.indexOf(this);
-            if (value) {
-              if (i !== null) this.args[i] = arg;
-              if (index == -1) arg.parents.push(this)
-            } else {
-              if (index != -1) arg.parents.splice(index, 1);
-            }
-          } else {
-            if (!arg.script && value) arg = new (this.Script || LSD.Script)(arg, this.scope);
-            if (origin) arg.origin = origin;
-            if (!arg.parents) arg.parents = [];
-            if (value) {
-              if (i !== null) this.args[i] = arg;
-              if (origin && origin.local) arg.local = true;
-              this.translating = true;
-              var pipable = (arg.script && piped !== arg.piped);
-              if (pipable) {
-                arg.prepiped = arg.piped = piped;
-                delete arg.attached;
-                delete arg.executed;
-              }
-              var attachment = arg.parents.indexOf(this) > -1;
-              if (!attachment || pipable) {
-                if (!attachment) arg.parents.push(this);
-                if (arg.type == 'block' ? this.yielded : !arg.attached || pipable) {
-                  delete arg.value;
-                  if (this.scope && !arg.scope) arg.set('scope', this.scope);
-                  arg.set('attached', true);
-                }
-              }
-              this.translating = false;
-            } else {
-              if (arg.parents) {
-                var index = arg.parents.indexOf(this);
-                if (index > -1) {
-                  arg.parents.splice(index, 1);
-                  if (arg.type == 'block' ? this.yielded : arg.parents.length == 0 && arg.attached) 
-                    arg.unset('attached', true)
-                };
-              }
-            }
-          }
-          this.args[i] = arg;
-          if (typeof (result = (arg.type == 'block' ? arg._yieldback : value ? arg.value : val)) == 'undefined') 
-            result = arg.placeholder;
-        } else result = arg;
-        if (result && result.chain && result.callChain) {
-          args = [];
-          break loop;
-        }
-      }
-      args.push(result);
-      piped = this.pipable === false ? null : result
-      if (this.evaluator) {
-        var evaluated = this.evaluator.call(this, result, i == j - 1);
-        switch (evaluated) {
-          case true:
-            break;
-          case false:
-            for (var k = i + 1; k < j; k++) {
-              var argument = this.args[k];
-              if (argument != null && argument.script && argument.attached);
-                if (typeof argument.executed != 'undefined') 
-                  argument.unset('executed', argument.executed, false);
-            }
-            args = args[args.length - 1];
-            break loop;
-          default:
-            if (evaluated != null && evaluated == false && evaluated.failure) {
-              args[args.length - 1] = piped = evaluated.failure;
-              break;
-            } else {
-              args[args.length - 1] = evaluated;
-            }
-            break loop;
-        }
-      } else if (arg != null && value && arg.script && typeof result == 'undefined' && !LSD.Script.Keywords[name]) {
-        if (this.hasOwnProperty('value')) this.unset('value', this.value, meta || 'unset');
-        return
-      }
-    }
-    if (this.context !== false) this.context = this.getContext();
-    if (args == null || LSD.Script.Operators[name] || name == ',' || !(this.piped || this.context)) {
-      this.isContexted = this.isPiped = false;
-    } else {
-      if (this.context) {
-        this.isContexted = true;
-        if (this.context.nodeType && this.context[name] && (args[0] == null || !args[0].nodeType))
-          args.unshift(this.context);
-      }
-      if (this.piped) {
-        this.isPiped = true;
-        if (this.piped.nodeType && this.piped[name] && (args[0] == null || (!args[0].nodeType && !args[0][name]))) {
-          args.unshift(this.piped)
-        } else {
-          args.push(this.piped)
-        }
-      }
-    }
-    if (args == null || !args.push) {
-      this.change('value', args)
-      return args;
-    }
-    if (name) {
-      var method = this.lookup(name, args[0], null, meta);
-      if (method === true) val = args[0][name].apply(args[0], Array.prototype.slice.call(args, 1));
-      else if (method) val = method.apply(this, args);
-      else if (meta === 'enumerate') return;
-    } else val = args[0];
-    this.change('value', val, meta === 'enumerate' ? null : meta);
   },
 
 /*
@@ -471,8 +333,9 @@ LSD.Script.Struct = new LSD.Struct({
   name Aspects in "objective reality". Although instead of overloading a
   method, it overloads a single expression.
 
-   var wrappee = LSD.Script('submit'); var wrapper = LSD.Script('prepare,
-  yield || error, finalize') wrapper.wrap(wrappee).execute();
+   var wrappee = LSD.Script('submit'); 
+   var wrapper = LSD.Script('prepare, yield || error, finalize')
+   wrapper.wrap(wrappee).execute();
 
    In example above, `prepare()` method may return data that will be piped to
   `submit()` call. Then, after submit is executed (synchronously or not), if
@@ -560,7 +423,9 @@ LSD.Script.prototype.toJS = function(options) {
   }
   return stack.join('');
 };
-
+LSD.Script.prototype.eval = function() {
+  return (this.evaled || (this.evaled = eval('(' + this.toJS() + ')')));
+};
 /*
   Scripts are parsed, compiled and executed, but what then? Each script may
   have its own output strategy. Scripts are often resolute it on the fly based
@@ -569,9 +434,6 @@ LSD.Script.prototype.toJS = function(options) {
    Callback method is shared by all LSD.Script primitives, but may be
   overriden.
 */
-LSD.Script.prototype.eval = function() {
-  return (this.evaled || (this.evaled = eval('(' + this.toJS() + ')')));
-};
 LSD.Script.prototype.callback = function(value, old) {
   var object = this.output;
   if (!object) return;
@@ -659,6 +521,151 @@ LSD.Script.prototype.onFailure = function(value) {
   object.failure = value;
   this.change('value', object);
 };
+/*
+  Functions only deal with data coming from variable tokens or as raw values
+  like strings, numbers and objects. So a function is executed once,
+  when all of its arguments are resolved. A function has its arguments as
+  child nodes in AST, so when a variable argument is changed, it propagates
+  the change up in the tree, and execute the parent function with updated
+  values.
+
+  A value is calculated once and will be recalculated when any of its variable
+  arguments is changed.
+*/
+LSD.Script.prototype.execute = function(value, meta) {
+  this.executed = value;
+  var name = value ? this.name : LSD.Script.Revertable[this.name]/* || LSD.Negation[name] */
+  || (LSD.Script.Evaluators[this.name] && this.name) || (!LSD.Script.Operators[this.name] && 'un' + this.name);
+  var val, result, args = [];
+  if (typeof this.evaluator == 'undefined')
+    this.evaluator = LSD.Script.Evaluators[name] || null;
+  if (name)
+    var literal = LSD.Script.Literal[name];
+  if (this.args) loop: for (var i = 0, j = this.args.length, arg, piped = this.prepiped, proto; i < j; i++) {
+    if (typeof (arg = this.args[i]) == 'undefined') continue;
+    if (i === literal) {
+      if (!arg.type || arg.type != 'variable') throw "Unexpected token, argument must be a variable name";
+      result = arg.name;
+    } else {
+      if (arg && (arg.script || arg.type)) {
+        if (!value && typeof arg.value !== 'undefined' && !arg.placeholder) var val = arg.value;
+        if (this.proto) proto = this.proto.args[i];
+        if (proto && !proto.local && proto.script) {
+          var arg = proto;
+          var index = arg.parents.indexOf(this);
+          if (value) {
+            if (i !== null) this.args[i] = arg;
+            if (index == -1) arg.parents.push(this)
+          } else {
+            if (index != -1) arg.parents.splice(index, 1);
+          }
+        } else {
+          if (!arg.script && value) arg = new (this.Script || LSD.Script)(arg, this.scope);
+          if (proto) arg.proto = proto;
+          if (!arg.parents) arg.parents = [];
+          if (value) {
+            if (i !== null) this.args[i] = arg;
+            if (proto && proto.local) arg.local = true;
+            this.translating = true;
+            var pipable = (arg.script && piped !== arg.piped);
+            if (pipable) {
+              arg.prepiped = arg.piped = piped;
+              delete arg.attached;
+              delete arg.executed;
+            }
+            var attachment = arg.parents.indexOf(this) > -1;
+            if (!attachment || pipable) {
+              if (!attachment) arg.parents.push(this);
+              if (arg.type == 'block' ? this.yielded : !arg.attached || pipable) {
+                delete arg.value;
+                if (this.scope && !arg.scope) arg.set('scope', this.scope);
+                arg.set('attached', true);
+              }
+            }
+            this.translating = false;
+          } else {
+            if (arg.parents) {
+              var index = arg.parents.indexOf(this);
+              if (index > -1) {
+                arg.parents.splice(index, 1);
+                if (arg.type == 'block' ? this.yielded : arg.parents.length == 0 && arg.attached) 
+                  arg.unset('attached', true)
+              };
+            }
+          }
+        }
+        this.args[i] = arg;
+        if (typeof (result = (arg.type == 'block' ? arg._yieldback : value ? arg.value : val)) == 'undefined') 
+          result = arg.placeholder;
+      } else result = arg;
+      if (result && result.chain && result.callChain) {
+        args = [];
+        break loop;
+      }
+    }
+    args.push(result);
+    piped = this.pipable === false ? null : result
+    if (this.evaluator) {
+      var evaluated = this.evaluator.call(this, result, i == j - 1);
+      switch (evaluated) {
+        case true:
+          break;
+        case false:
+          for (var k = i + 1; k < j; k++) {
+            var argument = this.args[k];
+            if (argument != null && argument.script && argument.attached);
+              if (argument.executed) 
+                argument.execute(false, false);
+          }
+          args = args[args.length - 1];
+          break loop;
+        default:
+          if (evaluated != null && evaluated == false && evaluated.failure) {
+            args[args.length - 1] = piped = evaluated.failure;
+            break;
+          } else {
+            args[args.length - 1] = evaluated;
+          }
+          break loop;
+      }
+    } else if (arg != null && value && arg.script && typeof result == 'undefined' && !LSD.Script.Keywords[name]) {
+      if (this.hasOwnProperty('value')) this.unset('value', this.value, meta || 'unset');
+      return
+    }
+  }
+  if (this.context !== false) this.context = this.getContext();
+  if (args == null || LSD.Script.Operators[name] || name == ',' || !(this.piped || this.context)) {
+    this.isContexted = this.isPiped = false;
+  } else {
+    if (this.context) {
+      this.isContexted = true;
+      if (this.context.nodeType && this.context[name] && (args[0] == null || !args[0].nodeType))
+        args.unshift(this.context);
+    }
+    if (this.piped) {
+      this.isPiped = true;
+      if (this.piped.nodeType && this.piped[name] && (args[0] == null || (!args[0].nodeType && !args[0][name]))) {
+        args.unshift(this.piped)
+      } else {
+        args.push(this.piped)
+      }
+    }
+  }
+  if (args == null || !args.push) {
+    this.change('value', args)
+    return args;
+  }
+  if (name) {
+    var method = this.lookup(name, args[0], null, meta);
+    if (method === true) val = args[0][name].apply(args[0], Array.prototype.slice.call(args, 1));
+    else if (method) val = method.apply(this, args);
+    else if (meta === 'enumerate') return;
+  } else val = args[0];
+  if (value)
+    this.change('value', val, meta === 'enumerate' ? null : meta);
+  else if (typeof this.value != 'undefined')
+    this.unset('value', this.value);
+}
 LSD.Script.prototype.yield = function(keyword, args, callback, index, old, meta) {
   if (args == null) args = [];
   switch (keyword) {
@@ -683,11 +690,11 @@ LSD.Script.prototype.yield = function(keyword, args, callback, index, old, meta)
         }
       } else if (old != null) this.yields[index] = block;
       if (!block) block = this.yields[index] = this.recycled && this.recycled.pop()
-      || new LSD.Script({type: 'block', locals: this.locals, input: this.input, scope: this.scope, origin: yielded});
+      || new LSD.Script({type: 'block', locals: this.locals, input: this.input, scope: this.scope, proto: yielded});
       var invoked = block.invoked;
       block.yielded = true;
       block.yielder = callback;
-      if (meta && (meta.limit || meta.offset)) {
+      if (typeof meta == 'object' && (meta.limit || meta.offset)) {
         this._limit = meta.limit;
         this._offset = meta.offset;
       }
@@ -744,7 +751,7 @@ LSD.Script.prototype.invoke = function(args, state, reset) {
       delete this.attached;
       this.set('attached', true);
     } else {
-      this.set('executed', true)
+      this.execute(true);
       var result = this.value;
       delete this.executed;
     }

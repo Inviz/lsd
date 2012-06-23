@@ -28,7 +28,7 @@ provides:
     * Local variables finder
     * Units and selectors are parsed correctly
     * Operators precedence fixed at parse time
-    * Optional parenthesis-free method call
+    * Optional parenthesis-free syntax to call methods
     - No array or hash literal syntax yet
 */
 
@@ -85,7 +85,9 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
             }
           } else {
             token = {type: 'variable', name: text};
-            if (meta && meta.locals && meta.locals[text]) token.local = true;
+            var d = text.indexOf('.');
+            var key = d > -1 ? text.substring(0, d) : text
+            if (meta && meta.locals && meta.locals[key]) token.local = true;
             if (tail) token.tail = true;
             scope.push(token);
           }

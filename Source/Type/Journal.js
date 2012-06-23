@@ -137,13 +137,13 @@ LSD.Journal.prototype.unset = function(key, value, meta, prepend, hash) {
       }
     }
     if (length > 1) {
-      if (value != null && value[this._trigger]) {
+      if (value != null && value[this._trigger] && !value._ignore) {
         this._unscript(key, value, meta, index, hash);
         if (--length === 1) return true;
       }
       var val = group[length - 2];
       if (val === this[key]) return false;
-      if (val !== this[key] && (val == null || !val[this._trigger]))
+      if (val !== this[key] && (val == null || !(val[this._trigger] && !value._ignore)))
         return this._set(key, val, meta, index, hash);
     }
   }

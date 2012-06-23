@@ -106,7 +106,7 @@ LSD.Element.prototype.__properties = {
 
      It powers up form controls widget, where datepicker tries to find
     `input.date` role. And if it's not there, it tries `input` which in terms
-    of html is a text input. `input.datetime-local`.
+    of html is a text input.
   */
   role: function(value, old, meta) {
     var roles = (this.document || LSD.Document.prototype).roles
@@ -289,20 +289,16 @@ LSD.Element.prototype.__properties = {
             bit = j ? attr.value : attr.name;
             len = bit.length;
 /*
-  Finds various kind of interpolations in
-  DOM element attributes.
-
-  So far these are all valid interpolations:
+  Finds various kind of interpolations in DOM element attributes.
 
   * <button title="Delete ${person.title}" />
   * <section ${itemscope(person), person.staff && class("staff")}></section>
   * <input type="range" value=${video.time} />
 
-  Browser parses some of those like multiple weird attributes,
-  but those mostly are harmless, except perhaps the ">" character.
-  Following routine glues them together into an expression and
-  compiles an LSD.Script reprensentation of it targetted at
-  the attribute or element
+  Browser parses some of those like multiple weird attributes, but those
+  mostly are harmless, except perhaps ">" character. Following routine
+  glues them together into an expression and compiles an LSD.Script
+  reprensentation of it targetted at the attribute or element.
 */
             while (start != -1) {
               if (exp == null && (start = bit.indexOf('${', start + 1)) > -1) {
@@ -418,8 +414,8 @@ LSD.Element.prototype.__properties = {
             if (attrs[name] === true) element[name] = true;
           }
         }
-        if (classes && classes.className != element.className)
-          element.className = classes.className;
+        if (classes && classes._name != element.className)
+          element.className = classes._name;
       }
       this.set('element', element)
     }
@@ -471,8 +467,8 @@ LSD.Element.prototype.__properties = {
   collection as well. In order to pull this off, each node should know it's
   position in document. That's why LSD.Element is made to maintain a
   `sourceIndex` property that is a number. Each time something happens to the
-  DOM, numbers are updated, callbacks are fired and collections get gently
-  resorted with swaps.
+  DOM, numbers are updated, callbacks are fired and collections are gently
+  resorted.
 */
   sourceIndex: function(value, old, meta) {
     var index = value == null ? old - 1 : value;
@@ -685,10 +681,7 @@ LSD.Element.prototype._inherited = {'drawn': 1, 'built': 1, 'hidden': 1, 'disabl
 LSD.Element.prototype._preconstruct = ['childNodes', 'proxies', 'variables', 'attributes', 'classList', 'events', 'matches', 'relations'];
 LSD.Element.prototype.__initialize = function(/* options, element, selector, document */) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
-  if (this.classList) {
-    this.classes = this.classList;
-    this.childNodes._prefilter = this.proxies._bouncer
-  }
+  if (this.classList) this.classes = this.classList;
   for (var i = arguments.length; --i > -1;) {
     if ((arg = arguments[i])) switch (typeof arg) {
       case 'string':
@@ -702,7 +695,7 @@ LSD.Element.prototype.__initialize = function(/* options, element, selector, doc
           case 9:
             this.document = this.ownerDocument = arg;
             break;
-          case 11:
+          case 11: case 7:
             this.fragment = arg;
             break;
           default:
@@ -778,11 +771,11 @@ LSD.Element.prototype.addEvents = function(events, meta) {
   return this;
 };
 LSD.Element.prototype.removeEvent = function(name, fn, meta) {
-  this.events.mix(name, fn, meta, false);
+  this.events.mix(name, undefined, meta, fn);
   return this;
 };
 LSD.Element.prototype.removeEvents = function(events, meta) {
-  this.events.mix(events, null, meta, false);
+  this.events.mix(undefined, undefined, meta, events);
   return this;
 };
 LSD.Element.prototype.store = function(name, value) {
@@ -889,7 +882,7 @@ LSD.Element.prototype.toElement = function(){
   return this.element;
 };
 LSD.Element.prototype.onChildSet = function(value, index, state, old, meta) {
-  if ((state || !(meta & 0x2)) && !value._followed) {
+  if (((state || !(meta & 0x2))) && !value._followed ) {
     var children = this.childNodes;
     for (var text = '', child, i = 0; child = children[i++];)
       if (child.textContent != null) text += child.textContent;
@@ -898,6 +891,7 @@ LSD.Element.prototype.onChildSet = function(value, index, state, old, meta) {
     children.textContent = text;
   }
 };
+LSD.Element.prototype.textContent = "";
 LSD.Element.prototype.nextElementSibling = null;
 LSD.Element.prototype.previousElementSibling = null;
 

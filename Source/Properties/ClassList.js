@@ -23,7 +23,7 @@ LSD.Properties.ClassList = LSD.Struct({
   _name: '.className'
 }, 'Journal');
 LSD.Properties.ClassList.prototype.onChange = function(key, value, meta, old) {
-  if (key == '_name') return value || old;
+  if (key == '_name') return;
   var owner = this._owner, ns = owner.document || LSD.Document.prototype;
   if ((!meta || meta !== 'states') && ns.states[key])
     owner.mix(key, true, 'classes', old);
@@ -36,7 +36,6 @@ LSD.Properties.ClassList.prototype.onChange = function(key, value, meta, old) {
     if (value != null) owner.matches.add('classes', key, value);
     if (old != null) owner.matches.remove('classes', key, old);
   }
-  return value || old;
 };
 LSD.Properties.ClassList.prototype._name = '';
 LSD.Properties.ClassList.prototype.contains =function(name) {

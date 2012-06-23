@@ -31,10 +31,7 @@ provides:
 
 LSD.Fragment = function(object, parent, document) {
   if (!this.render) return LSD.Fragment.apply(new LSD.Fragment, arguments)
-  if (this.nodeType) {
-    this.childNodes = this;
-    this.variables = new LSD.Journal;
-  }
+  this.childNodes = this;
   switch (arguments.length) {
     case 0: break;
     case 1:
@@ -69,16 +66,17 @@ LSD.Fragment.prototype.render = function(object, parent, meta) {
     * Element node was already an LSD.Element and was cloned
 */
 LSD.Fragment.prototype.node = function(object, parent, meta, nodeType) {
+  if (!parent) parent = this;
   var uid      = object.lsd,
       widget   = object.mix ? object : uid && LSD.UIDs[uid], 
-      children = object.childNodes;
+      children = object.childNodes,
+      fragment = meta && meta.fragment || (parent.nodeType > 6 ? parent : this);
   if (!nodeType) nodeType = object.nodeType || 1;
-  if (!parent) parent = this;
   if (!widget) {
-    if (nodeType === 8 && (widget = this.instruction(object, parent, meta)))
+    if (nodeType === 8 && (widget = fragment.instruction(object, parent, meta)))
       return widget;
-    var document = this.document || (parent && parent.document) || LSD.Document.prototype;
-    widget = document.createNode(nodeType, object, this);
+    var document = fragment.document || (parent && parent.document) || LSD.Document.prototype;
+    widget = document.createNode(nodeType, object, null, fragment);
   } else if (meta && meta.clone) 
     widget = widget.cloneNode();
   if (widget.parentNode != parent) {
@@ -88,7 +86,7 @@ LSD.Fragment.prototype.node = function(object, parent, meta, nodeType) {
   }
   if (children && children.length)
     for (var i = 0, array = children, j = array.length; i < j; i++)
-      this.node(array[i], widget, i - j);
+      fragment.node(array[i], widget, i - j);
   return widget;
 };
 /*
@@ -125,7 +123,6 @@ LSD.Fragment.prototype.instruction = function(object, parent, meta, connect) {
       if (object.charAt(length - 1) == '?') object = object.substring(1, length - 2);
     }
   }
-  if (meta) meta.range = this;
   if (typeof object == 'string') {
     var chr = object.charAt(0);
     switch (chr) {
@@ -139,12 +136,18 @@ LSD.Fragment.prototype.instruction = function(object, parent, meta, connect) {
           return false;
     }
     var instruction = this.node(object, parent, meta, 7), node;
+    if (meta) meta.fragment = instruction;
     if (origin) instruction.set('origin', origin);
     if (chr) instruction.set('mode', chr);
     if (word === 'end') instruction.closed = true;
-    if (LSD.Script.Boundaries[word] && (node = this.connect(instruction, connect))) {
-      node.set('next', instruction);
-      instruction.set('previous', node)
+    if (LSD.Script.Boundaries[word]) {
+      instruction.boundary = true;
+      if ((node = this.connect(instruction, connect))) {
+        if (meta && meta.fragment && word === 'end')
+          meta.fragment = node.fragment;
+        node.set('next', instruction);
+        instruction.set('previous', node)
+      }
     }
     return instruction;
   }
@@ -155,6 +158,7 @@ LSD.Fragment.prototype.instruction = function(object, parent, meta, connect) {
   or a fragment) is rendered.
 */
 LSD.Fragment.prototype.enumerable = function(object, parent, meta) {
+  if (!meta) meta = {};
   for (var i = 0, length = object.length, instruction, previous; i < length; i++)
     this[this.typeOf(object[i])](object[i], parent, meta);
 };
@@ -204,7 +208,7 @@ LSD.Fragment.prototype.string = function(object, parent, meta) {
 };
 /*
   Fragments accept raw html, that gets parsed and each
-  node is translated into a widget separately.
+  node is then translated into a widget.
   Fragment constructor treats strings as html by default,
   although strings in objects and calls to .render() will
   render text nodes instead
@@ -225,9 +229,11 @@ LSD.Fragment.prototype.html = function(object, parent, meta) {
   function that processes object in a appropriate fashion.
 */
 LSD.Fragment.prototype.typeOf = function(object) {
-  if (object) {
-    if (typeof object.nodeType == 'number') return 'node';
-    if ((typeof object.item == 'function' || object.push) && typeof object.length == 'number') return 'enumerable';
+  if (object != null) {
+    if (typeof object.nodeType == 'number') 
+      return 'node';
+    if ((typeof object.item == 'function' || object.push) && typeof object.length == 'number') 
+      return 'enumerable';
   }
   return typeof object;
 };
@@ -241,23 +247,26 @@ LSD.Fragment.prototype.typeOf = function(object) {
   render the fragment instead of outputting the results
 */
 LSD.Fragment.prototype.connect = function(instruction, write) {
-  if (instruction.parentNode == this || instruction.parentNode == this.parentNode) {
-    for (var l = this._length, j = l - 1, node; k == null && (--j > -1);)
-      if ((node = this[j]).nodeType == 7 && !node.next && !node.closed)
+  if (!instruction.parentNode) {
+    for (var fragment = instruction.parentCollection, l = fragment._length, j = l - 1, node; k == null && (--j > -1);)
+      if ((node = fragment[j]).nodeType == 7 && !node.next && !node.closed)
         if (write !== false) 
           for (var k = j + 1; k < l - 1; k++)
-            node.set(k - j - 1, this[k]);
+            node.set(k - j - 1, fragment[k], null, 'connect');
         else break;
   } else {
     for (var node = instruction; node = node.previousSibling;) 
       if (node.nodeType == 7 && !node.next)
         if (write !== false) 
           for (var child = node; (child = child.nextSibling) && child != instruction;)
-            node.push(child);
+            node.set(node._length, child, null, 'connect');
         else break;
   }
   if (!node) throw "Can't find an instruction to connect with " + instruction.name
   node.closed = true;
   return node;
 }
-LSD.Fragment.prototype.R_WORD = /[a-zA-Z][a-zA-Z0-9]*/; 
+LSD.Fragment.prototype.R_WORD = /[a-zA-Z][a-zA-Z0-9]*/;
+LSD.Fragment.prototype._properties.parentNode = function(value, old, meta) {
+  this.mix('variables', value && value.variables, meta, old && old.variables);
+};

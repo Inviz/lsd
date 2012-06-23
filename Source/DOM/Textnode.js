@@ -75,7 +75,7 @@ LSD.Textnode.prototype.__initialize = function() {
             break;
           case 1:
             break;
-          case 11:
+          case 11: case 7:
             this.fragment = arg;
             break;
           default:

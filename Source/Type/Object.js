@@ -65,9 +65,11 @@ LSD.Object.prototype.set = function(key, value, meta, index, hash) {
   computes its value asynchronously. The value stays undefined, while the
   script doesn't have enough data to compute.
 */
-  var nonscript = nonenum === true || value == null || (this._literal && this._literal[key]);
-  var trigger = this._trigger;
-  if (!nonscript && value[trigger] != null) return this._script(key, value, meta);
+  if (nonenum !== true && !(this._literal && this._literal[key])) {
+    var trigger = this._trigger;
+    if (value != null && value[trigger] != null && !value._ignore) 
+      return this._script(key, value, meta);
+  }
 /*
   `hash` argument may disable all mutation caused by the setter, the value by
   the key will not be mofified. May be used by subclasses to implement its
@@ -116,7 +118,7 @@ LSD.Object.prototype.set = function(key, value, meta, index, hash) {
   may compile given value into expression (e.g. a textnode may find
   interpolations in a given `textContent`).
 */
-  if (!nonscript && value[trigger] != null) {
+  if (trigger && value != null && value[trigger] != null && !value._ignore) {
     if (hash == null) this[key] = old;
     return this._script(key, value, meta);
   }
@@ -215,7 +217,7 @@ LSD.Object.prototype.unset = function(key, value, meta, index, hash) {
     if (this.onChange && typeof (changed = this.onChange(key, undefined, meta, old, hash)) != 'undefined')
       if (changed === this._skip) return;
       else value = changed;
-  if (nonenum !== true && value != null && value[this._trigger] != null
+  if (nonenum !== true && value != null && value[this._trigger] != null && !value._ignore
   && (!this._literal || !this._literal[key]))
     return this._unscript(key, value, meta);
   var watchers = this._watchers;
@@ -345,7 +347,7 @@ LSD.Object.prototype.mix = function(key, value, meta, old, merge, prepend, lazy,
   
     // unmix method is an alias to mix that passes value as old value
     this.unmix(object);
-    // these two lines are equal 
+    // is the same as:
     this.mix(undefined, undefined, meta, object)
   
     // mix & observe objects
@@ -474,7 +476,7 @@ LSD.Object.prototype.mix = function(key, value, meta, old, merge, prepend, lazy,
     // controlled mutation creates an observed copy of ref'd object
     this.mix('key.dance', true)               // this.key !== object
 */
-  } else if ((!vdef && typeof old == 'object' && old != null && !old[this._trigger]) 
+  } else if ((!vdef && typeof old == 'object' && old != null && !old[this._trigger] && !old._ignore) 
          || (value != null && typeof value == 'object' && !value.exec && !value.push 
          && !value.nodeType && value[this._trigger] == null && (!value.mix || merge))) {
     var store = this.onStore && (this.onStore.call ? 'onStore' : '_onStore');
@@ -502,7 +504,7 @@ LSD.Object.prototype.mix = function(key, value, meta, old, merge, prepend, lazy,
     var obj = this[key];
     if (obj == null) {
       if (vdef && !this._skip[name])
-        obj = (merge && value && value.mix && this.mix(key, value, 'reference') && value)
+        obj = (merge && value && value.mix && this.set(key, value, 'reference') && value)
              || this._construct(key, null, meta);
 /*
   Objects also support mixing values into arrays. They mix values

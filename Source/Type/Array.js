@@ -44,13 +44,14 @@ LSD.Array = function(arg) {
         this.push(arguments[i]);
     }
   }
-  if (!this.hasOwnProperty('_length')) this.length = this._length = 0;
+  if (!this.hasOwnProperty('_length')) 
+  this.length = this._length = 0;
 };
 
 /*
   LSD.Array uses LSD.Object as its base class like all other objects.
   When a non-integer key is given to `.set()`, `.unset()`, or `.get()`
-  functions, it resorts back to LSD.Object setters.
+  functions, it falls back to LSD.Object setters.
 
   Length property in LSD.Array is maintained and observed that way,
   by re-using LSD.Object capabilities.
@@ -71,7 +72,7 @@ LSD.Array.prototype.length = 0;
 LSD.Array.prototype._length = 0;
 LSD.Array.prototype._offset = 0;
 /*
-  Children option set to false disallows LSD.Array to adopt
+  Children option set to false forbids LSD.Array to reference
   LSD.Objects, thus it does not change their ._owner link.
 */
 LSD.Array.prototype._owning = false;
@@ -82,19 +83,20 @@ LSD.Array.prototype.push = function() {
     if (this._prefilter && !this._prefilter(args[i])) {
       args.splice(i, 1);
       j--;
-    } else if (this._onSplice && (more = this._onSplice(args[i])) != null) {
+    } else if (this._onSplice && (more = this._onSplice(args[i], args)) != null) {
       args.splice.apply(args, [i + 1, 0].concat(more))
       j += more.length
+      i += more.length;
     }
   }
   for (var i = 0, j = args.length; i < j; i++)
-    this.set(this._length, args[i]);
+    this.set(this._length, args[i], null, 'push');
   return this._length;
 };
 LSD.Array.prototype.set = function(key, value, old, meta) {
   var index = parseInt(key);
   if (index != index) {
-    return this._set(key, value, meta);
+    return this._set(key, value, old, meta);
   } else {
     this[index] = value;
     if (index + 1 > this._length) this._set('length', (this._length = index + 1));
@@ -124,7 +126,7 @@ LSD.Array.prototype.set = function(key, value, old, meta) {
 LSD.Array.prototype.unset = function(key, value, old, meta) {
   var index = parseInt(key);
   if (index != index) {
-    return this._unset(key, value, meta);
+    return this._unset(key, value, old, meta);
   } else {
     delete this[index];
     if (index + 1 == this._length) this._set('length', (this._length = index));
@@ -162,9 +164,9 @@ LSD.Array.prototype.indexOf = function(object, from) {
 
 /*
   Splice method is the heart of LSD.Array, since it's a method that abstracts
-  away every change to array that may be appropriate. Methods like `pop`, `shift`,
-  `unshift` all re-use it, because it's the only array method that does shifting
-  of values that happens when more values are added or removed from array.
+  away every possible modification of array. Methods like `pop`, `shift`,
+  `unshift` use `splice`, because it's the only array method that shifts
+  values when more values are added or removed from array.
 
   The goal of this method is to alter the array in a specific order that ensures
   that values are not overwritten in the process. That enables two things:
@@ -176,34 +178,34 @@ LSD.Array.prototype.indexOf = function(object, from) {
       execution by outsourcing it to implementation of the method that changes
       the array.
 
-  An array modification may lead up to 3 sitatuions:
+  An array modification may lead up to 3 outcomes:
 
     1. No shift is needed, when values are replaced
       with other values
 
-    2. It needs to be shifted to the right, when more values
+    2. Array needs to be shifted to the right, when more values
       are inserted than removed
 
-    3. It needs to be shifted to the left, when more values
+    3. Array needs to be shifted to the left, when more values
       are removed than inserted
 
   It is also one of the few methods that prefilter their arguments,
-  before inserting when `_prefilter` hook is set in array definition
+  before inserting if array has defined `_prefilter` hook.
 */
 LSD.Array.prototype.splice = function(index, offset) {
 /*
-  Arguments are normalized and values are filtered, so splice knows
-  upfront the number of inserted values, even if some of them may
-  be filtered out by an optional `_prefilter` function hook.
+  Arguments are filtered before they are used in array modification. 
+  That allows array to allocate or use exactly right amount of space
+  before anything is written.
 */
   var args = Array.prototype.slice.call(arguments, 2),
       arity = args.length,
       length = this._length, more
   if (this._prefilter) for (var j = 0; j < arity; j++) {
     if (!this._prefilter(args[j])) {
-      args.splice(j, 1);
+      args.splice(j--, 1);
       arity--;
-    } else if (this._onSplice && (more = this._onSplice(args[j])) != null) {
+    } else if (this._onSplice && (more = this._onSplice(args[j], args)) != null) {
       args.splice.apply(args, [j + 1, 0].concat(more))
       arity += more.length
     }
@@ -214,7 +216,7 @@ LSD.Array.prototype.splice = function(index, offset) {
   if (offset == null) offset = length - index;
   else offset = Math.max(0, Math.min(length - index, offset))
   if (this._onSplice) for (var i = index; i < offset + index; i++)
-    if ((more = this._onSplice(this[i])) != null) 
+    if ((more = this._onSplice(this[i], args)) != null) 
       offset = Math.max(offset, more.length + (i - index + 1))
   var shift = arity - offset;
   this._shifting = shift;
@@ -224,7 +226,7 @@ LSD.Array.prototype.splice = function(index, offset) {
   But it can only do it safely only to values that will
   be removed because of an `offset` argument of a `splice()`.
   if the offset is equal than the number of inserted
-  values, then no shift is needed (#1).
+  values, then no shift is needed (outcome #1).
 */
   for (var i = 0, bit; i < arity; i++) {
     bit = (i == 0 && this.FIRST) | ((i == arity - 1) && this.LAST);
@@ -233,7 +235,7 @@ LSD.Array.prototype.splice = function(index, offset) {
       this.unset(i + index, this[i + index], null, bit | this.FORWARD);
     } else {
 /*
-  If there is more values to be inserted (#2) than to be removed,
+  If there is more values to be inserted than to be removed (outcome #2),
   splice shifts the array to the right by iterating from end
   to the beginning, ensuring that values are always written in an
   unoccupied spot.
@@ -245,8 +247,8 @@ LSD.Array.prototype.splice = function(index, offset) {
     this.set(i + index, args[i], null, i < offset ? bit : bit | this.SPLICE);
   }
 /*
-  Otherwise, if there are more to be removed, than to inserted (#3),
-  it shifts the array to the left.
+  Otherwise, if there are more to be removed, than to inserted 
+  (outcome #3), it shifts the array to the left.
 */
   if (shift < 0 && index < length)
     for (var s = index + arity - shift, i = s, spliced, old; i < length; i++) {
@@ -287,9 +289,9 @@ LSD.Array.prototype.splice = function(index, offset) {
   array, depending on `state` argument.
   
   `FIRST` and `LAST` flags are set when an operation is first or last
-  within it's type. A single `splice()` call may fire multiple
+  within its type. A single `splice()` call may fire multiple
   callbacks with `FIRST` flag set - one for each type of array
-  manipulation - first item to be spliced, first item to be shifted.
+  manipulation - first item to be removed, first item to be shifted.
   
 */
 LSD.Array.prototype.MOVE = 0x1;

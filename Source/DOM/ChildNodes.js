@@ -32,9 +32,9 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, meta) {
   var owner = this._owner
   var prev = (!state && value.previousSibling) || this[index - 1] || null, 
       next = (!state && value.nextSibling) || this[index + 1] || null;
-  if (next && next === prev) next = this[index + 2] || null;
+  if (next === prev && next) next = this[index + 2] || null;
   if (owner && owner.onChildSet) owner.onChildSet.apply(owner, arguments);
-  if (prev !== value && (!moving || ((meta & this.FIRST) && state))) {
+  if (prev !== value && (!moving || (state && (meta & this.FIRST)))) {
     if (prev && (state || (!splicing || !next)))
       prev.change('nextSibling', state ? value : next, meta);
     if ((state || moving))
@@ -62,11 +62,13 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, meta) {
     }
   }
   if (value.nodeType === 1 && (state || !moving)) {
-    if (!state) prev = value.previousElementSibling
+    if (!state) 
+      prev = value.previousElementSibling
     else for (var i = index - 1; prev && (prev.nodeType != 1 || prev == value);) 
       prev = this[--i];
     if (!moving && (state || !splicing))
-      if (!state) next = value.nextElementSibling;
+      if (!state) 
+        next = value.nextElementSibling;
       else for (var i = index + 1; next && (next.nodeType != 1 || next == value);) 
         next = this[++i];
     else next = null;
@@ -75,9 +77,12 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, meta) {
         prev.change('nextElementSibling', value, meta);
       } else if (prev.nextElementSibling === value)
         if (next) {
-          if (!emptying && !splicing) prev.change('nextElementSibling', next, meta);
-        } else prev.unset('nextElementSibling', value, meta);
-      if (state) value.change('previousElementSibling', prev, meta);
+          if (!emptying && !splicing) 
+            prev.change('nextElementSibling', next, meta);
+        } else 
+          prev.unset('nextElementSibling', value, meta);
+      if (state) 
+        value.change('previousElementSibling', prev, meta);
       else if (value.previousElementSibling)
         value.unset('previousElementSibling', value.previousElementSibling, meta)
     } 
@@ -86,8 +91,10 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, meta) {
         next.change('previousElementSibling', value, meta);
       } else if (next.previousElementSibling === value)
         if (prev) {
-          if ((state || !emptying)) next.change('previousElementSibling', prev, meta);
-        } else next.unset('previousElementSibling', value, meta);
+          if ((state || !emptying)) 
+            next.change('previousElementSibling', prev, meta);
+        } else 
+          next.unset('previousElementSibling', value, meta);
       if (state) {
         if (!moving) value.change('nextElementSibling', next, meta);
       } else if (value.nextElementSibling)
@@ -97,17 +104,40 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, meta) {
   if ((!state || owner != value.parentNode) && !moving)
     value[state ? 'set' : 'unset']('parentNode', owner || null, meta);
   if (owner) if (state) {
-    if (index == 0) value.change('sourceIndex', (owner.sourceIndex || 0) + 1);
+    if (index == 0) 
+      value.change('sourceIndex', (owner.sourceIndex || 0) + 1);
     else if (prev) 
       value.change('sourceIndex', (prev.sourceLastIndex || prev.sourceIndex || 0) + 1, meta);
   } else if (!moving && (state || !(meta & this.FORWARD))) 
       value.unset('sourceIndex', value.sourceIndex, meta);
 };
-LSD.ChildNodes.prototype._onSplice = function(value) {
+LSD.ChildNodes.prototype._onSplice = function(value, args) {
   var children = value.childNodes;
-  if (children && children.virtual)
-    return children.slice()
-}
+  if (value.nodeType == 7 && !value.value) return;
+  if (children && children.virtual) {
+    for (var i = 0, result = [], node; node = children[i++];) {
+      for (var frag = node; frag = frag.fragment;)
+        if (frag.nodeType == 7 && !frag.value) break;
+      if (!frag && args.indexOf(node) == -1 && this._prefilter(node)) 
+        result.push(node);
+    }
+    return result;
+  }
+};
+LSD.ChildNodes.prototype._prefilter = function(node) {
+  if (!this.virtual) {
+    for (var frag = node; frag = frag.fragment;)
+      if (frag.nodeType == 7 && !frag.value) break;
+    if (frag) return false;
+  }
+  var owner = this._owner;
+  if (owner && owner.proxies && !owner.proxies._bouncer(node))
+    return false;
+  if (node.nodeType == 7 && owner && !this.virtual) {
+    node.set('parentNode', owner, 'push')
+  }
+  return true;
+};
 LSD.ChildNodes.Virtual = LSD.Struct({
   imports: {
     parentNode: '.parentNode'
@@ -115,16 +145,18 @@ LSD.ChildNodes.Virtual = LSD.Struct({
 }, 'Array');
 LSD.ChildNodes.Virtual.prototype.virtual = true;
 LSD.ChildNodes.Virtual.prototype._onSplice = LSD.ChildNodes.prototype._onSplice;
+LSD.ChildNodes.Virtual.prototype._prefilter = LSD.ChildNodes.prototype._prefilter;
 LSD.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old, meta) {
   if (meta & this.MOVE) return;
-  var subject = (this._owner || this)
+  var subject = (this._owner || this);
   var parent = subject.parentNode;
   if (!parent) {
     if (value.virtual)
-      if (state) value.set('parentNode', subject);
-      else if (value.parentNode == subject)
-        value.unset('parentNode', subject);
-    return
+      if (state) 
+        value.set('parentCollection', subject);
+      else if (value.parentCollection == subject)
+        value.unset('parentCollection', subject);
+    if (!(parent = this.parentCollection)) return;
   };
   if (parent.insertBefore) {
     if (!state)
