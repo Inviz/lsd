@@ -36,8 +36,9 @@ provides:
 LSD.Instruction = function() {
   return LSD.Script.apply(this === LSD ? LSD.Instruction : this, arguments);
 };
-LSD.Instruction.prototype.initialize = function() {
+LSD.Instruction.prototype.initialize = function(object, parent, meta, fragment) {
   this.childNodes = this;
+  this.fragment = fragment;
 }
 LSD.Instruction.prototype.onValueChange = function(value, old, meta) {
   if (!value && meta != 'push' && typeof meta != 'number') 
@@ -48,7 +49,7 @@ LSD.Instruction.prototype.onValueChange = function(value, old, meta) {
   if (value && meta != 'push' && typeof meta != 'number') 
     this.setChildren(value);
   if (!value) {
-    var fragments = this.childFragments;
+    var fragments = this.childFragments
     if (fragments) for (var i = 0, fragment; fragment = fragments[i++];)
       if (fragment.attached) fragment.unset('attached', fragment.attached);
   }
@@ -76,10 +77,9 @@ LSD.Instruction.prototype.setChildren = function(state) {
     args.unshift(index + 1, 0)
     children.splice.apply(children, args);
   } else {
-    for (var i = 0, j = 0, child; child = this[i++];)
-      if (children.indexOf(child) > -1)
-        j++;
-    if (j) children.splice(index + 1, j);
+    for (var j = this._length, k; --j > -1;)
+      if ((k = children.indexOf(this[j])) > -1) break;
+    if (k > -1) children.splice(index + 1, k - index);
   }
 }
 LSD.Instruction.prototype._properties.next = function(value, old, meta) {
@@ -96,13 +96,5 @@ LSD.Instruction.prototype._properties.parentNode = function(value, old, meta) {
     this.set('scope', value, meta);
     if (!this.attached) this.set('attached', true)
   }
-};
-LSD.Instruction.prototype._properties.parentCollection = function(value, old, meta) {
-  this.mix('variables', value && value.variables, meta, old && old.variables, true);
-  if (!value.childFragments) value.childFragments = [];
-  if (old) {
-    var index = value.childFragments.indexOf(this);
-    if (index > -1) value.childFragments.splice(index, 1);
-  }
-  if (value) value.childFragments.push(this)
+  if (!value && this.attached) this.unset('attached', true)
 };

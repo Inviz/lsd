@@ -56,7 +56,7 @@ LSD.Script = function(input, scope, output) {
     if (output)
       if (output.nodeType == 9) this.document = output;
       else this.output = output;
-    if (this.initialize) this.initialize()
+    if (this.initialize) this.initialize.apply(this, arguments)
     if (typeof input == 'string')
       input = this.Script.parsed && this.Script.parsed[input] || this.Script.parse(input);
     switch (typeof input) {
