@@ -358,8 +358,8 @@ LSD.Element.prototype.__properties = {
       }
       if (!this.fragment && value.childNodes.length) {
         var fragment = new LSD.Fragment;
-        fragment.enumerable(Array.prototype.slice.call(value.childNodes), this)
-        this.fragment = fragment;
+        fragment.add(this);
+        fragment.enumerable(Array.prototype.slice.call(value.childNodes), this);
       }
     }
     if (old && opts) {
@@ -399,7 +399,11 @@ LSD.Element.prototype.__properties = {
       this.fireEvent('beforeDestroy');
       if (this.parentNode) this.dispose();
       var element = this.element;
-      if (element) element.destroy();
+      if (element) 
+        if (element.destroy) 
+          element.destroy();
+        else if (element.parentNode)
+          element.parentNode.removeChild(element);
     }
     if (value) {
       if (this.origin && !this.clone) {
@@ -460,7 +464,7 @@ LSD.Element.prototype.__properties = {
   disabled: function(value, old) {
   },
   root: function(value, old) {
-  },  
+  },
 /*
   Good DOM collections are sorted so nodes in collection are in the order of
   appearance in DOM. When an element is removed from DOM, it is removed from
@@ -478,7 +482,6 @@ LSD.Element.prototype.__properties = {
           !next && (node = node.parentNode); next = node.nextSibling)
         if (next === this.nextSibling && collapse) return;
         else if (value) node.sourceLastIndex = index + i;
-        
       if (next === this.nextSibling && collapse) return;
       else if (next) next.change('sourceIndex', index + ++i, false)
     }
@@ -510,8 +513,9 @@ LSD.Element.prototype.__properties = {
       old.matches.remove('++', this.tagName, this, true);
       if (moving) return;
       if (!old.parentNode) for (var node, i = 0, children = this.parentNode.childNodes; node = children[i++];) {
-         node.matches.remove('~',  this.tagName, this, true);
-         node.matches.remove('~~', this.tagName, this, true);
+        if (node.nodeType != 1) continue
+        node.matches.remove('~',  this.tagName, this, true);
+        node.matches.remove('~~', this.tagName, this, true);
       } else for (var node = old; node; node = node.previousElementSibling) {
         node.matches.remove('~',  this.tagName, this, true);
         node.matches.remove('~~', this.tagName, this, true);
@@ -543,7 +547,8 @@ LSD.Element.prototype.__properties = {
     }
   },
   parentNode: function(value, old, meta) {
-    this.mix('variables', value && value.variables, meta, old && old.variables, true);
+    this.mix('variables', value && (this.fragment && this.fragment != value.fragment && this.fragment.variables || value.variables), 
+                      meta, old && (this.fragment && this.fragment != old.fragment && this.fragment.variables || old.variables), true);
     for (var property in this._inherited) {
       if (value && value[property]) this.set(property, value[property], meta, true);
       if (old && old[property]) this.unset(property, old[property], meta, true);

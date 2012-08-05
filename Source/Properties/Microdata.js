@@ -19,7 +19,7 @@ provides:
 ...
 */
 
-LSD.Properties.Microdata = LSD.Struct();
+LSD.Properties.Microdata = LSD.Struct('Data');
 LSD.Properties.Microdata.prototype.onChange = function(key, value, meta, old) {
   var vdef = typeof value != 'undefined', odef = typeof old != 'undefined';
   if (meta !== 'microdata' && meta !== 'textContent') {

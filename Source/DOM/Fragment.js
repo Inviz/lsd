@@ -65,58 +65,49 @@ LSD.Fragment.prototype.render = function(object, parent, meta) {
     * Element node was already an LSD.Element and was reused
     * Element node was already an LSD.Element and was cloned
 */
-LSD.Fragment.prototype.node = function(object, parent, meta, nodeType) {
+LSD.Fragment.prototype.node = function(node, parent, meta, nodeType) {
   if (!parent) parent = this;
-  var uid      = object.lsd,
-      widget   = object.mix ? object : uid && LSD.UIDs[uid], 
-      children = object.childNodes;
-  if (!nodeType) nodeType = object.nodeType || 1;
+  var uid      = node.lsd,
+      widget   = node.mix ? node : uid && LSD.UIDs[uid], 
+      children = node.childNodes;
+  if (typeof nodeType != 'number') nodeType = node.nodeType || 1;
   if (!widget) {
-    if (nodeType === 8 && (widget = this.instruction(object, parent, meta)))
+    if (nodeType === 8 && (widget = this.instruction(node, parent, meta)))
       return widget;
     var document = this.document || (parent && parent.document) || LSD.Document.prototype;
-    widget = document.createNode(nodeType, object, null, this);
+    widget = document.createNode(nodeType, node, null, this);
   } else if (meta && meta.clone) 
     widget = widget.cloneNode();
-  if (widget.parentNode != parent) {
+  if (parent.childNodes.indexOf(widget) == -1) {
     if (meta < -1) widget._followed = true;
-    parent.appendChild(widget, meta);
+    if (parent && this.nodeType == 7 && this.parentNode == parent) {
+      this.add(widget)
+    } else parent.appendChild(widget, meta);
     delete widget._followed;
   }
   if (children && children.length)
-    for (var i = 0, array = children, j = array.length; i < j; i++)
-      this.node(array[i], widget, i - j);
+    this.enumerable(children, widget, meta);
   return widget;
 };
 /*
-  Instruction is a forgotten type of node that was used
-  to instruct a DOM tree with a special command
-  (XML stylesheets were embedded that way with <? ?> syntax).
-  
-  If a fragment processes a comment it checks if it holds an
-  instruction or not - by finding the first word and trying
-  to find the method with that name. So an `<!-- if a -->`
-  is treated like instruction, parsed and evaluated. 
-  It starts observing variable named "a" and if it finds
-  it as truthy, it triggers output. But if an instruction
-  is paired with another (e.g. `<!-- end -->`) the nodes
-  between them become a conditional fragment. Instruction
-  itself is a fragment, and it gets filled with those nodes.
-  So fragment capabilities of instruction are used when
-  its condition is met and nodes get displayed or hidden.
-  
-  Linked instructions (e.g. if-elsif-else-end) have
-  `next` and `previous` properties that reference 
-  objects in chan and allow chained execution.
+  Instruction is a forgotten type of node that was used to instruct a DOM
+  tree with a special command (XML stylesheets were embedded that way with 
+  `<? ?>` syntax which is not cross-browser).
+
+   If a fragment processes a comment it checks if it holds an instruction or
+  not - by finding the first word and trying to lookup a method with that
+  name. So an `<!-- if a -->` is treated like instruction, parsed and
+  evaluated. It starts observing variable named "a" and if it finds it as
+  truthy, it triggers output. But if an instruction is paired with another
+  (e.g. `<!-- end -->`) the nodes between them become a conditional fragment.
+
+   Linked instructions (e.g. if-elsif-else-end) have `next` and `previous`
+  properties that reference instructions in chain and enable chained execution.
 */
 LSD.Fragment.prototype.instruction = function(object, parent, meta, connect) {
   if (typeof object.nodeType == 'number') {
     var origin = object;
     object = origin.nodeValue;
-/*
-  Instruction supports `<? ?>` syntax for instructions,
-  but be wary that it may not cross-browser compatible.
-*/
     if (object.charAt(0) == '?') {
       var length = object.length;
       if (object.charAt(length - 1) == '?') object = object.substring(1, length - 2);
@@ -141,13 +132,7 @@ LSD.Fragment.prototype.instruction = function(object, parent, meta, connect) {
     if (origin) instruction.set('origin', origin);
     if (chr) instruction.set('mode', chr);
     if (word === 'end') instruction.closed = true;
-    if (boundary) {
-      instruction.boundary = true;
-      if ((node = fragment.connect(instruction, connect))) {
-        node.set('next', instruction);
-        instruction.set('previous', node)
-      }
-    }
+    if (boundary) instruction.boundary = true;
     return instruction;
   }
 };
@@ -159,11 +144,16 @@ LSD.Fragment.prototype.instruction = function(object, parent, meta, connect) {
 LSD.Fragment.prototype.enumerable = function(object, parent, meta) {
   var fragment = this;
   for (var i = 0, length = object.length, instruction, previous; i < length; i++) {
-    var result = fragment[this.typeOf(object[i])](object[i], parent, meta);
-    if (result.nodeType > 6)
-      if (result.name == 'end' || (result.boundary && result.closed)) 
+    var result = fragment[this.typeOf(object[i])](object[i], parent, meta, result);
+    if (result.nodeType > 6 && result.name) {
+      if (result.boundary || result.closed) {
+        fragment.set('next', result);
+        result.set('previous', fragment)
+      }
+      if (result.boundary && result.closed) 
         fragment = result.fragment || this;
       else fragment = result;
+    }
   }
   return fragment;
 };
@@ -191,16 +181,19 @@ LSD.Fragment.prototype.enumerable = function(object, parent, meta) {
   })
   
 */
-LSD.Fragment.prototype.object = function(object, parent, meta) {
-  var skip = object._skip, value, result, bound;
-  var fragment = this;
+LSD.Fragment.prototype.object = function(object, parent, meta, previous) {
+  var skip = object._skip, value, result, bound, fragment = this;
   for (var selector in object) {
     if (!object.hasOwnProperty(selector) || (skip && skip[selector])) continue;
     if (!(result = fragment.instruction(selector, parent, meta, false)))
       result = fragment.node(selector, parent, meta, 1);
-    if (result.nodeType > 6)
-      if (result.name == 'end') fragment = result.fragment || this;
-      else fragment = result;
+    if (result.nodeType > 6) {
+        if (result.boundary || result.closed) {
+          previous.set('next', result);
+          result.set('previous', previous)
+        }
+        fragment = result
+    }
     if ((value = object[selector])) {  
       var type = fragment.typeOf(value);
       if (type == 'string') fragment.node(value, result, meta, 3);
@@ -211,11 +204,12 @@ LSD.Fragment.prototype.object = function(object, parent, meta) {
       }
     }
     if (fragment == result) fragment = this;
+    previous = result;
   }
   if (bound) {
     bound.closed = true;
   }
-  return fragment;
+  return result;
 };
 /*
   A rendered string produces a text node
@@ -254,30 +248,13 @@ LSD.Fragment.prototype.typeOf = function(object) {
   }
   return typeof object;
 };
-/*
-  When fragment encounters instruction that is known
-  to be a boundary of a conditional block, it goes back
-  in stack of rendered nodes and finds the matching
-  instruction to register node range. All nodes between
-  instructions are assigned to the found range so it
-  can be used as a fragment. It also turns instructions
-  render the fragment instead of outputting the results
-*/
-LSD.Fragment.prototype.connect = function(instruction, write) {
-  if (!instruction) debugger
-  var fragment = instruction && instruction.fragment || this.fragment || this;
-  var l = fragment._length
-  var j = l - 1;
-  for (var node; k == null && (--j > -1);)
-    if ((node = fragment[j]).nodeType == 7 && !node.next && !node.closed)
-      if (write !== false) 
-        for (var k = j + 1; k < l - 1; k++)
-          node.set(k - j - 1, fragment[k], null, 'connect');
-      else break;
-  if (!node) throw "Can't find an instruction to connect with " + instruction.name
-  node.closed = true;
-  return node;
-}
+LSD.Fragment.prototype.add = function(object) {
+  console.error('adding', object.tagName, object.textContent, object, object.nodeType, object.name)
+  if (this.indexOf(object) == -1/* && this.parentNode == object.parentNode*/) {
+    this.set(this._length, object, null, false);
+  }
+  object.fragment = this;
+};
 LSD.Fragment.prototype.R_WORD = /[a-zA-Z][a-zA-Z0-9]*/;
 LSD.Fragment.prototype._properties.parentNode = function(value, old, meta) {
   this.mix('variables', value && value.variables, meta, old && old.variables);

@@ -154,9 +154,10 @@ LSD.Script.Evaluators = {
   The logic of those operators is not implemented in LSD.Script
   because the performance is critical
 */
-Object.each(LSD.Script.Operators, function(value, operator) {
-  LSD.Script.Helpers[operator] = new Function('left', 'right', 'return left ' + operator + ' right');
-});
+!function(operators) {
+  for (var operator in operators)
+    LSD.Script.Helpers[operator] = new Function('left', 'right', 'return left ' + operator + ' right');
+}(LSD.Script.Operators)
 /*
   A custom assignment operator. The variable is defined in 
   local scope and will be undefined if expression will be unrolled

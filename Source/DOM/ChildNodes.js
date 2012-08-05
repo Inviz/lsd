@@ -111,25 +111,26 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, meta) {
   } else if (!moving && (state || !(meta & this.FORWARD))) 
       value.unset('sourceIndex', value.sourceIndex, meta);
 };
-LSD.ChildNodes.prototype._onSplice = function(value, args) {
+LSD.ChildNodes.prototype._onSplice = function(value, args, state) {
   var children = value.childNodes;
-  if (value.nodeType == 7 && !value.value) return;
   if (children && children.virtual) {
     for (var i = 0, result = [], node; node = children[i++];) {
-      for (var frag = node; frag = frag.fragment;)
-        if (frag.nodeType == 7 && !frag.value) break;
-      if (!frag && args.indexOf(node) == -1 && this._prefilter(node)) 
-        result.push(node);
+      if (this._prefilter(node)) 
+        if (args.indexOf(node) == -1) {
+          result.push(node);
+          var more = this._onSplice(node, args)
+          if (more) result.push.apply(result, more)
+        }
     }
     return result;
   }
 };
 LSD.ChildNodes.prototype._prefilter = function(node) {
-  if (!this.virtual) {
+  //if (!this.virtual) {
     for (var frag = node; frag = frag.fragment;)
       if (frag.nodeType == 7 && frag.indexOf(node) > -1 && !frag.value) break;
     if (frag) return false;
-  }
+  //}
   var owner = this._owner;
   if (owner && owner.proxies && !owner.proxies._bouncer(node))
     return false;
@@ -149,23 +150,9 @@ LSD.ChildNodes.Virtual.prototype._prefilter = LSD.ChildNodes.prototype._prefilte
 LSD.ChildNodes.Virtual.prototype.onSet = function(value, index, state, old, meta) {
   if (meta & this.MOVE) return;
   var subject = (this._owner || this);
-  var parent = subject.parentNode;
-  if (!parent) {
-    if (value.virtual) {
-      if (!this.childFragments) this.childFragments = [];
-      if (state) {
-        this.childFragments.push(value)
-        value.mix('variables', this && this.variables, meta, undefined, true);
-      } else {
-        value.mix('variables', undefined, meta, this && this.variables, true);
-        if (old) {
-          var index = this.childFragments.indexOf(value);
-          if (index > -1) this.childFragments.splice(index, 1);
-        }
-      }
-    }
-    if (!(parent = this.fragment)) return;
-  };
+  var parent = subject.parentNode || this.fragment;
+  if (!parent) return;
+  if (this.nodeType == 7 && !this.value && state) return;
   if (parent.insertBefore) {
     if (!state)
       parent.removeChild(value);

@@ -13,6 +13,7 @@ requires:
   - LSD.Properties
   - LSD.Struct
   - LSD.Group
+  - Slick/Slick.Parser
 
 provides: 
   - LSD.Module.Matches
@@ -26,7 +27,7 @@ provides:
   use of mixins, a reusable class definition that may be applied on top of the widget role. Both role and mixins are applied when the 
   widget matches specific condition. Widgets can find their role easily, because often the role name matches with the widget tag name, so 
   their condition would be a specific tag name. But mixins may also be triggered with any selector, for example, watching for a specific 
-  pseudo class. LSD.Behavior is used to make mixin observe a selector, so every mixin comes with a pre-defined behavior. Behavior may be 
+  pseudo class. Matches object is used to make mixin observe a selector, so every mixin comes with a pre-defined behavior. Behavior may be 
   also used to apply plain widget options, instead of mixins.        
 */
 
@@ -141,10 +142,10 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, meta, old, hash
           (old.fn || (old.bind || this._owner)[old.method]).call(old.bind || this._owner, old, undefined, this._owner)
     }
   /*
-    Expression may also be matching other node according to its combinator.
-    Expectation is indexed by its combinator & tag and stored in the object.
-    Every time DOM structure changes, this object is notified about all 
-    widgets that match each of combinator-tag pair.
+    Expression may also be matching other node by its combinator.
+    Expectation is stored by its combinator & tag and stored in the object.
+    Every time DOM structure changes, the object is notified about all 
+    widgets that start matching a combinator-tag pair.
   */
   } else {
     var stateful = !!(key.id || key.attributes || key.pseudos || key.classes)
@@ -187,13 +188,13 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, meta, old, hash
 /*
   Advancer callback is called whenever a widget is matched selector expression.
   If an expression was a part of the complex selector and there are more 
-  expressions to be matched, it passes the same selector and callback 
-  with a previously incremented index  to the matches object
+  expressions to be matched, it recursively passes the same selector and 
+  callback with incremented expression index to the matches object
   of a found widget. This makes it match widgets by the next expression in 
   selector. 
   
-  When an element that matches the last expression in a selector is found, 
-  the callback is called.
+  When a widget that matches the last expression in a selector is found, 
+  the callback is fired.
 */
 LSD.Properties.Matches.prototype._advancer = function(call, value, old) {
   if (call.expressions[call.index] == null) {
@@ -248,8 +249,8 @@ LSD.Properties.Matches.prototype._hash = function(expression, value, storage) {
 
 /*
   `add` and `remove` pair of functions are used for speedy 
-  widget registering. It avoids selector parsing, because
-  `combinator` and `tagName` are given in arguments.
+  widget registration. It avoids selector parsing, because
+  `combinator` and `tagName` are explicitely given in arguments.
   
   If `wildcard` argument is given, it will also register 
   the widget with `*` tag by the same combinator.

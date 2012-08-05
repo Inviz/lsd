@@ -62,11 +62,13 @@ LSD.Struct = function(properties, Base, Sub) {
       if (properties && typeof properties._owner == 'function') properties._owner.call(obj, this)
     }
     if (this.__initialize) object = this.__initialize.apply(this, arguments);
-    if (object != null) this.mix(object);
     if (this.initialize) object = this.initialize.apply(this, arguments);
     if (this._imports) this._link(this._imports, true);
     if (this._exports) this._link(this._exports, true, true);
-    if (this._initialize) return this._initialize.apply(this, arguments);
+    if (this._initialize) 
+      var constructed = this._initialize.apply(this, arguments);
+    if (object != null) (constructed || this).mix(object);
+    if (constructed) return constructed
   }
   var constructor = (typeof Base == 'string' ? LSD[Base] : Base) || LSD.Object;
   Struct.struct = true;
@@ -90,10 +92,22 @@ LSD.Struct = function(properties, Base, Sub) {
   }
   return Struct;
 };
-LSD.Struct.implement = function(object) {
-  Object.merge(this.prototype, object);
-  return this;
+LSD.Struct.implement = function(object, host, reverse) {
+  if (!host) host = this.prototype;
+  for (var prop in object) {
+    var value = object[prop];
+    if (typeof value == 'object' && value != null && !value.push && !value.exec) {
+      var hosted = host[prop];
+      if (hosted) {
+        if (!host.hasOwnProperty(prop)) 
+          hosted = host[prop] = LSD.Struct.implement({}, hosted);
+      } else hosted = host[prop] = {}
+      LSD.Struct.implement(value, hosted)
+    } else if (!reverse || !value) host[prop] = value;
+  }
+  return host;
 }
+LSD.Struct.prototype.implement = LSD.Struct.implement;
 /*
   Every property defined in a class properties object will be treated like a property,
   unless it is defined in the Mutators object. Mutators are a hooks that allow some
@@ -101,19 +115,27 @@ LSD.Struct.implement = function(object) {
 */
 LSD.Struct.Mutators = {
 /*
-  Structs are slightly compatible with mootools
-  classes, and can use Extends property to inherit the prototype
-  from given object.
+  Structs are slightly compatible with mootools classes, and can use Extends property
+  to inherit the prototype from given object.
 */
   Extends: function(Klass) {
-    Object.merge(this.prototype, Klass.prototype);
+    if (Klass.push) return LSD.Struct.Mutators.Implements.call(this, Klass);
+    this.implement(Klass.prototype);
+  },
+/*
+  Implements directive mixes in multiple object prototypes in order.
+*/
+  Implements: function(Klasses) {
+    if (!Klasses.push) return LSD.Struct.Mutators.Extends.call(this, Klasses);
+    for (var i = 0, j = Klasses.length; i < j; i++)
+      this.implement(Klasses[i].prototype);
   },
 /*
   LSD does not use options itself, but mootools legacy classes use them extensively.
   Objects given in a Struct definitions will be merged into the prototype.
 */
   options: function(options) {
-    Object.merge(this.prototype, {options: options})
+    this.implement({options: options})
   },
 /*
   Structs allow some mootools-style class events to be defined in a class definition.
@@ -124,7 +146,7 @@ LSD.Struct.Mutators = {
   found in that list will not be iterated over in any of the loops.
 */
   skip: function(methods) {
-    this.prototype._skip = Object.append(methods, LSD.Object.prototype._skip)
+    LSD.Struct.merge({_skip: methods})
   },
   constructor: function(constructor) {
     this._constructor = constructor === true ? this : constructor;
@@ -259,7 +281,7 @@ LSD.Struct.prototype.onBeforeConstruct = function(key) {
 */
 LSD.Struct.prototype._link = function(properties, state, external) {
   for (var name in properties) {
-    var alias = properties[name];
+    var alias = properties[name]
     if (alias.match(this._simple_property)) {
       if (state === false) {
         this._unwatch(properties[name], this);
@@ -280,21 +302,21 @@ LSD.Struct.prototype._link = function(properties, state, external) {
   Dynamic properties may be calculated in run time using on other properties
   values.
 
-  var Struct = new LSD.Struct({
-    imports: {
-      'total': 'sum * rate * (1 - tax)'
-    }
-  });
-  Struct.prototype.rate = 1;
-  Struct.prototype.tax = 0.2
-  var struct = new Struct;
-  expect(struct.total).toBeUndefined();
-  struct.set('sum', 200);
-  expect(struct.total).toBe(200 * 0.85);
-  struct.set('sum', 85);
-  expect(struct.total).toBe(85 * 0.85);
-  struct.set('tax', 0.2);
-  expect(struct.total).toBe(85 * 0.8);
+    var Struct = new LSD.Struct({
+      imports: {
+        'total': 'sum * rate * (1 - tax)'
+      }
+    });
+    Struct.prototype.rate = 1;
+    Struct.prototype.tax = 0.2
+    var struct = new Struct;
+    expect(struct.total).toBeUndefined();
+    struct.set('sum', 200);
+    expect(struct.total).toBe(200 * 0.85);
+    struct.set('sum', 85);
+    expect(struct.total).toBe(85 * 0.85);
+    struct.set('tax', 0.2);
+    expect(struct.total).toBe(85 * 0.8);
 
   LSD.Script is compiled when struct is instantiated and starts observing variables
   from left to right. It starts by expecting `sum`, and only when it gets it, it starts
@@ -308,7 +330,7 @@ LSD.Struct.prototype._linker = function(call, key, value, old, meta) {
     this.mix(call.key, undefined, meta, old);
 };
 LSD.Struct.prototype._unlinked = ['_journal', '_stored'];
-LSD.Struct.prototype._skip = Object.append({
+LSD.Struct.prototype._skip = {
   initialize: true,
   _initialize: true,
   __initialize: true,
@@ -316,5 +338,5 @@ LSD.Struct.prototype._skip = Object.append({
   _linker: true,
   _exports: true,
   _imports: true
-}, LSD.Object.prototype._skip);
+}
 LSD.Struct.prototype._simple_property = /^[a-zA-Z._-]+?$/;

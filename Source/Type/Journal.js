@@ -25,17 +25,17 @@ provides:
   so when the value gets unset, it returns to previous value 
   (that was set before, possibly by a different external object).
   
-  Journal objects are useful in an environment that objects influence each other,
-  some times in a conflicting way, because it provides gentle conflict 
-  resolution based on order of execution. The latest change is more 
+  Journal objects are useful in an environment that objects influence state of
+  each other, in a possibly conflicting way. It provides gentle conflict 
+  resolution based on order in which values were set. The latest change is more 
   important, but it's easy to roll back. It is possible to insert the value
   into the beginning of the journal, or in other words do a reverse merge. 
   Values set in a reverse mode never overwrite values that were already there,
-  and dont fire callbacks for those values. Shadowed values may be used later
-  anyways, when a shadowing value is removed from journal, it picks the previous
-  value. A call to `unset` function  with a value that is on top of the journal
+  and dont fire callbacks for those values. Shadowed values may be used later. 
+  When a shadowing value is removed from journal, journal picks the previous
+  value. A call to `unset` function  with a value that is on top of the stack
   may result in a call to `set` as a side effect, that sets the previous 
-  value in journal. Very handy for objects live merging.
+  value in journal. Very handy for live merging of objects.
   
   Setter method also accepts special `prepend` argument, that specifies
   if the value should be added on top or on the bottom of its stack. 
@@ -103,6 +103,21 @@ LSD.Journal.prototype.set = function(key, value, meta, prepend, old, hash) {
   }
   return !eql
 };
+/*
+  Most of hash table implementations have a simplistic way to delete
+  a key. LSD.Journal's unset function is unique in a way, that a call
+  to `unset` may result in one of 3 cases
+  
+  * Value becomes undefined, like after a `delete object.key` call in
+    javascript. It only happens if there was a single logged value by
+    that key. Callbacks are called and passed that value as a second
+    argument.
+  * Value does not change, if the value being unset was not on top of
+    the stack. Callbacks don't fire.
+  * Value gets reverted to previous value on the stack. Callbacks are
+    fired with both new and old value as arguments.
+  
+*/
 LSD.Journal.prototype.unset = function(key, value, meta, prepend, hash) {
   if (this._hash && hash == null) {
     if ((hash = this._hash(key, value, meta, true)) === true) return true;
@@ -174,4 +189,8 @@ LSD.Journal.prototype.change = function(key, value, meta) {
   if (typeof old != 'undefined') this.unset(key, old, meta)
   return true;
 };
-LSD.Journal.prototype._skip = Object.append({_journal: true}, LSD.Object.prototype._skip);
+LSD.Struct.implement({
+  _skip: {
+    _journal: true
+  }
+}, LSD.Journal.prototype);

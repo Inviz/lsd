@@ -40,7 +40,7 @@ LSD.Group.prototype.set = function(key, value, meta, prepend, old, hash) {
       var group = this[key];
       if (group == null) {
         group = this[key] = new this.__constructor;
-        if (this.onGroup) this.onGroup(key, group)
+        if (this.onGroup) this.onGroup(key, value, true, group)
       }
     }
   } else var group = hash;
@@ -59,7 +59,7 @@ LSD.Group.prototype.unset = function(key, value, meta, prepend, old, hash) {
       var group = this[key];
   } else var group = hash; 
   var length = group.length;
-  if (typeof (this._unset(key, value, meta, index, group)) != 'undefined' && group != null)
+  if (typeof (this._unset(key, value, meta, index, group)) != 'undefined' && group != null) {
     if (prepend) {
       for (var i = 0, j = length; i < j; i++)
         if (group[i] === value) {
@@ -75,5 +75,7 @@ LSD.Group.prototype.unset = function(key, value, meta, prepend, old, hash) {
         }
       if (j == -1) return false;
     }
+    if (!length && this.onGroup) this.onGroup(key, value, false, group)
+  }
   return true;
 };

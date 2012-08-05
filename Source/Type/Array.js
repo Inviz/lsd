@@ -33,7 +33,7 @@ LSD.Array = function(arg) {
   } else {
     var j = arguments.length;
     if (j == 1) {
-      if (arg != null && !arg.match && Type.isEnumerable(arg)) {
+      if (arg != null && !arg.match && typeof arg != 'string' && typeof arg.length == 'number') {
         for (var i = 0, k = arg.length; i < k; i++)
           this.push(arg[i]);
       } else {
@@ -83,7 +83,7 @@ LSD.Array.prototype.push = function() {
     if (this._prefilter && !this._prefilter(args[i])) {
       args.splice(i, 1);
       j--;
-    } else if (this._onSplice && (more = this._onSplice(args[i], args)) != null) {
+    } else if (this._onSplice && (more = this._onSplice(args[i], args, true)) != null) {
       args.splice.apply(args, [i + 1, 0].concat(more))
       j += more.length
       i += more.length;
@@ -112,11 +112,21 @@ LSD.Array.prototype.set = function(key, value, old, meta) {
         for (var i = 0, a; a = stored[i++];) 
           value.mix.apply(value, a);
       if ((stored = this._stored))
-        for (var prop in stored) if (!this._skip[prop])
-          for (var i = 0, a; a = stored[prop][i++];) {
-            if (a.length < 3) value.set(prop, a[0], a[1]);
-            else value.mix(prop + '.' + a[0], a[1], a[2], a[3], a[4], a[5], a[6])
+        for (var prop in stored) if (!this._skip[prop]) {
+          var dot = prop.indexOf('.');
+          var property = dot > -1 ? prop.substring(0, dot) : prop;
+          if (parseInt(property) != property) {
+            for (var i = 0, a; a = stored[prop][i++];) {
+              if (a.length < 3) 
+                value.set(prop, a[0], a[1]);
+              else if (typeof a[0] == 'string')
+                value.mix(prop + '.' + a[0], a[1], a[2], a[3], a[4], a[5], a[6])
+            }
+          } else if (property == key) {
+            for (var i = 0, a; a = stored[prop][i++];) 
+              value.mix((prop ? prop + '.' : '') + a[0], a[1], a[2], a[3], a[4], a[5], a[6])
           }
+        }
     }
     if (this._onSet) this._onSet(value, index, true, old, meta);
     if (this.onSet) this.onSet(value, index, true, old, meta);
@@ -142,10 +152,18 @@ LSD.Array.prototype.unset = function(key, value, old, meta) {
         for (var i = 0, a; a = stored[i++];) 
           value.unmix.apply(value, a);
       if ((stored = this._stored))
-        for (var prop in stored) if (!this._skip[prop])
-          for (var i = 0, a; a = stored[prop][i++];) 
-            if (a.length < 3) value.unset(prop, a[0], a[1]);
-            else value.unmix(prop + '.' + a[0], a[1], a[2], a[3], a[4], a[5], a[6])
+        for (var prop in stored) if (!this._skip[prop]) {
+          if (parseInt(prop) != prop) {
+            for (var i = 0, a; a = stored[prop][i++];) 
+              if (a.length < 3) 
+                value.unset(prop, a[0], a[1]);
+              else if (typeof a[0] == 'string')
+                value.unmix(prop + '.' + a[0], a[1], a[2], a[3], a[4], a[5], a[6])
+          } else if (prop == key) {
+            for (var i = 0, a; a = stored[prop][i++];) 
+              value.unmix(a[0], a[1], a[2], a[3], a[4], a[5], a[6])
+          }
+        }
     }
     if (this._onSet) this._onSet(value, index, false, old, meta);
     if (this.onSet) this.onSet(value, index, false, old, meta);
@@ -205,7 +223,7 @@ LSD.Array.prototype.splice = function(index, offset) {
     if (!this._prefilter(args[j])) {
       args.splice(j--, 1);
       arity--;
-    } else if (this._onSplice && (more = this._onSplice(args[j], args)) != null) {
+    } else if (this._onSplice && (more = this._onSplice(args[j], args, true)) != null) {
       args.splice.apply(args, [j + 1, 0].concat(more))
       arity += more.length
     }
@@ -216,7 +234,7 @@ LSD.Array.prototype.splice = function(index, offset) {
   if (offset == null) offset = length - index;
   else offset = Math.max(0, Math.min(length - index, offset))
   if (this._onSplice) for (var i = index; i < offset + index; i++)
-    if ((more = this._onSplice(this[i], args)) != null) 
+    if ((more = this._onSplice(this[i], args, false)) != null) 
       offset = Math.max(offset, more.length + (i - index + 1))
   var shift = arity - offset;
   this._shifting = shift;
@@ -557,21 +575,14 @@ LSD.Array.prototype.onConstructRefused = function() {
 }
 LSD.Array.prototype['<<'] = LSD.Array.prototype.push;
 LSD.Array.prototype['+'] = LSD.Array.prototype.concat;
-/*=
-  There're not too many methods in a standart javascript Array prototype.
-  Libraries like mootools provide many more useful functions that can be
-  used with array. But internally, those extensions have to rely on
-  simple rules of Array behavior which are easy to emulate. LSD.Array
-  obeys those rules, so those additional extra functions work out of the box.
-*/
-Object.each(Array.prototype, function(fn, method) {
-  if (!LSD.Array.prototype[method]) LSD.Array.prototype[method] = fn;
-});
-LSD.Array.prototype._object = false;
-
-LSD.Array.prototype._skip = Object.append({
-  _onSplice: true,
-  _prefilter: true,
-  _length: true,
-  length: true
-}, LSD.Object.prototype._skip);
+LSD.Array.prototype.slice = Array.prototype.slice;
+LSD.Array.prototype.forEach = Array.prototype.forEach;
+LSD.Struct.implement(Array.prototype, LSD.Array.prototype, true);
+LSD.Struct.implement({
+  _skip: {
+    _onSplice: true,
+    _prefilter: true,
+    _length: true,
+    length: true
+  }
+}, LSD.Array.prototype);

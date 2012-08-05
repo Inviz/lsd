@@ -26,3 +26,4 @@ LSD.Relation = new LSD.Struct({
   proxy: '_owner.proxies.set manager'
 }, 'NodeList');
 LSD.Relation.prototype._aggregate = true;
+LSD.Relation.prototype._object = false;

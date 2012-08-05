@@ -10,13 +10,13 @@ license: Public domain (http://unlicense.org).
 authors: Yaroslaff Fedin
 
 requires:
-  - LSD.Properties
   - LSD.Struct
   - LSD.Group
   - LSD.Array
   - LSD.Document
   - LSD.Element
-  - String.Inflections/String.singularize
+  - LSD.Request
+  - String.Inflections/String.prototype.singularize
 
 provides:
   - LSD.Resource
@@ -35,46 +35,39 @@ provides:
 */
 
 LSD.Resource = LSD.Struct({
-  //Extends: LSD.Properties.Request,
-
-  imports: {
-    'prefix': '.path',
-    'domain': '.domain'
-  },
+  Extends: LSD.URL,
   urls: Object,
   name: '_name',
   _name: function(value, old) {
-    this.change('path', this.prefix ? value ? this.prefix + '/' + value : this.prefix : value || '');
     this.change('singular', value ? value.singularize() : value);
     this.change('foreign_key', this.singular + '_id')
+    this.change('directory', this.prefix ? value ? this.prefix + '/' + value : this.prefix : value || '');
   },
   prefix: function(value, old) {
-    this.change('path', this._name ? value ? value + '/' + this._name : this._name  : value || '');
-  },
-  path: function(value, old) {
-    this.change('url', this.domain ? value ? this.domain + '/' + value : this.domain : value || '');
-  },
-  domain: function(value, old) {
-    this.change('url', value + (this.path ? '/' + this.path : ''))
-  },
-  _origin: function() {
-
+    this.change('directory', this._name ? value ? value + '/' + this._name : this._name  : value || '');
   }
 }, 'Array');
 LSD.Resource.prototype.onChange = function(key, value, meta, old) {
-  if (value != null && value.match === this.match && !this._properties[key]) {
+  if (this._properties[key]) return;
+  if (value != null && value.match === this.match) {
     if (typeof value != 'undefined') value.set('name', key);
     if (typeof old != 'undefined') old.unset('name', key);
+  } else {
+    if (this._parts.indexOf(key) > -1 && meta !== 'composed') {
+      var url = this.toString();
+      this.set('url', url, 'composed', this._composedURL);
+      this._composedURL = url;
+    }
   }
 };
 LSD.Resource.prototype.onStore = true;
 LSD.Resource.prototype._initialize = function() {
-  this.attributes = Object.append({}, this.attributes);
+  this.attributes = LSD.Struct.implement(this.attributes, {});
   var Struct = new LSD.Model(this.attributes);
   Struct.prototype.constructor = Struct;
-  Struct.constructor = LSD.Resource;
+  Struct.constructor = Struct._constructor = LSD.Resource;
   for (var property in this)
-    if (!Struct[property])
+    if (!Struct[property] || property == 'toString')
       Struct[property] = this[property];
   for (var property in LSD.Model.prototype)
     if (!Struct.prototype[property])
@@ -84,17 +77,14 @@ LSD.Resource.prototype._initialize = function() {
   return Struct;
 };
 /*
-  A simple resource router that can transform parameters
-  to what resource really understand. E.g. it can
-  handle requests with `page` parameter, when resource
-  only supports `offset` param. It may also rename
-  parameters, e.g. if a resource accept `p` param,
-  feeding it `param` will work just as well.
+  A simple resource router that can transform parameters to what resource
+  really understand. E.g. it can handle requests with `page` parameter, when
+  resource only supports `offset` param. It may also alias parameters, e.g.
+  if a resource accept `p` param, feeding it `page` will work just as well.
 
-  Backend resources may or may not follow naming conventions
-  on clientside. If naming backend things is out of control,
-  e.g. when using 3d party APIs, one could map real URLs
-  on virtual resources and use the mapped schema.
+   Backend resources may or may not follow naming conventions on clientside.
+  If naming backend things is out of control, e.g. when using 3d party APIs,
+  one could map real URLs on virtual resources and use the mapped schema.
 */
 LSD.Resource.prototype.match = function(url, params) {
   if (!params) params = {};
@@ -318,9 +308,8 @@ LSD.Resource.attributes = {
 };
 
 /*
-  Instance object base structure. Resources are
-  initialized on top of constructors made by
-  this struct.
+  Instance object base structure. Resources are initialized on top of
+  constructors made by this struct.
 */
 
 LSD.Model = function() {
@@ -338,12 +327,12 @@ LSD.Model.prototype.save = function() {
 };
 
 /*
-  Universal perfect world REST scaffolder. Can be overriden
-  to do actions on back end, or emulate them locally.
+  Universal perfect world REST scaffolder. Can be overriden to do actions
+  on back end, or emulate them locally.
 
-  It's more actions than in usual REST implementations,
-  but a developer may stick to regular CRUD and leave
-  those extra methods until he needs it.
+   It's more actions than in usual REST implementations, but a developer
+  may stick to regular CRUD and leave those extra methods until he needs
+  it.
 */
 (LSD.Resource.prototype._collection = {
   index: {
@@ -372,20 +361,23 @@ LSD.Model.prototype.save = function() {
   },
   validate: {
     action: function(params, object) {
-      if (this.validate(params) === false) return 'unprocessable_entity';
+      if (this.validate(params) === false)
+        return 'unprocessable_entity';
     }
   },
   sync: {
     action: function(params, object) {
-      if (this.validate(params) === false) return 'unprocessable_entity';
+      if (this.validate(params) === false)
+        return 'unprocessable_entity';
     }
   }
 });
-Object.each((LSD.Resource.prototype._member = {
+LSD.Resource.prototype._member = {
   show: {
     action: function(params) {
       var object = this.find(params);
-      if (object === false) return 'not_found';
+      if (object === false) 
+        return 'not_found';
       return object;
     }
   },
@@ -419,16 +411,19 @@ Object.each((LSD.Resource.prototype._member = {
       return object.destroy(params)
     }
   }
-}), function(definition, name) {
-  LSD.Model.prototype[name] = function() {
-    return this.dispatch(name, arguments);
-  };
-});
+};
+!function(members) {
+  for (var name in members) !function(name) {
+    LSD.Model.prototype[name] = function() {
+      return this.dispatch(name, arguments);
+    };
+  }(name);
+}(LSD.Resource.prototype._member);
 
 LSD.Resource.prototype.prefix = '';
-LSD.Resource.prototype.path = '';
+LSD.Resource.prototype.directory = '';
 LSD.Resource.prototype.url = '';
-LSD.Resource.prototype.domain = null;
+LSD.Resource.prototype.host = null;
 LSD.Resource.prototype._per_page = 20;
 LSD.Resource.prototype._object = true;
 

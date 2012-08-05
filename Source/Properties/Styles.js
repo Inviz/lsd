@@ -397,7 +397,7 @@ LSD.Styles.Property.index = function(properties, context) {
   return index;
 };
 
-Object.append((LSD.Document.prototype.styles || (LSD.Document.prototype.styles = {})),  {
+LSD.Struct.implement({
   background:           [[['backgroundColor', 'backgroundImage', 'backgroundRepeat',
                           'backgroundAttachment', 'backgroundPositionX', 'backgroundPositionY']], 'multiple'],
   backgroundColor:      ['color', 'transparent', 'inherit'],
@@ -469,7 +469,7 @@ Object.append((LSD.Document.prototype.styles || (LSD.Document.prototype.styles =
   zIndex:               ['integer'],
   cursor:               ['auto', 'crosshair', 'default', 'hand', 'move', 'e-resize', 'ne-resize', 'nw-resize',
                          'n-resize', 'se-resize', 'sw-resize', 's-resize', 'w-resize', 'text', 'wait', 'help']
-});
+}, LSD.Document.prototype.styles || (LSD.Document.prototype.styles = {}));
 
 (function(Styles, CSS) {
   Styles.$root = true;

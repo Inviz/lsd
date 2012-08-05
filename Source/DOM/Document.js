@@ -11,7 +11,6 @@ authors: Yaroslaff Fedin
 
 requires:
   - LSD.Node
-  - Core/DomReady
 
 provides:
   - LSD.Document
@@ -56,6 +55,30 @@ LSD.Document = LSD.Struct({
     if (element && meta !== false && !element.set('focused', true)) {
       if (old) for (; old != element; old = old.parentNode) old.unset('focused', true, element)
     } else if (old) old.unset('focused', true)
+  },
+  body: function(value, old, meta) {
+    var events = this.events;
+    if (events) for (var i in events) if (typeof events[i] == 'object') {
+      var length = events[i].length;
+      if (!length) continue;
+      var def = defs[key], delegates;
+      var name = def.base || key;
+      if (!def.base || !defs[def.base]) {
+        if (value) {
+          if (!vevents) var vevents = value.events;
+          if (!delegates && !(delegates = vevents.delegates))
+            delegates = value.delegates = {};
+          if ((delegates[name] += length) == length)
+            vevents.addListener(value.element, name)
+        }
+        if (old) {
+          if (!oevents) var oevents = old.events;
+          if (odelegates || !(odelegates = old.delegates))
+            if (!(odelegates[name] -= length))
+              oevents.removeListener(old.element, name)
+        }
+      }
+    }
   }
 }, 'Journal')
 LSD.Document.prototype.nodeType = 9;
@@ -80,11 +103,10 @@ LSD.NodeTypes = {
 LSD.Document.prototype.createNode = function(type, element, options, fragment) {
   return new (LSD[LSD.NodeTypes[type]])(element, options, this, fragment);
 };
-Object.each(LSD.NodeTypes, function(value, key) {
-  LSD.Document.prototype['create' + value] = function(element, options, fragment) {
-    return new LSD[value](element, options, this, fragment)
-  }
-})
-Object.each(LSD, function(value, key) {
-  if (typeof value == 'function') value.displayName = 'LSD.' + key;
-})
+!function(types) {
+  for (var key in types) !function(klass) {
+    LSD.Document.prototype['create' + klass] = function(element, options, fragment) {
+      return new LSD[klass](element, options, this, fragment)
+    }
+  }(types[key])
+}(LSD.NodeTypes)

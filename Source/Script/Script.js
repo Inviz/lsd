@@ -177,29 +177,32 @@ LSD.Script.Struct = new LSD.Struct({
       delete this.invoked[4];
     }
     if (this.process) value = this.process(value);
-    if (value && value.chain && value.callChain && !value.chained) {
-      var self = this, complete = function() {
-        delete value.chained;
-        self.onSuccess.apply(self, arguments);
-        if (value.removeEvents) value.removeEvents(events);
-      }
-      if (value.addEvents) {
-        var events = {
-          cancel: function() {
-            delete value.chained;
-            self.onFailure.apply(self, arguments);
-            value.removeEvents(events);
-          }
+    if (value && !value.chained) {
+      var evented = (value.addEvents && value.onSuccess);
+      if (evented || (value.chain && value.callChain)) {
+        var self = this, complete = function() {
+          delete value.chained;
+          self.onSuccess.apply(self, arguments);
+          if (value.removeEvents) value.removeEvents(events);
         }
-        if (value.onFailure) {
-          events.failure = events.cancel;
-          events.success = complete;
-        } else value.complete = complete;
-        value.addEvents(events);
-      } else {
-        value.chain(complete)
+        if (evented) {
+          var events = {
+            cancel: function() {
+              delete value.chained;
+              self.onFailure.apply(self, arguments);
+              value.removeEvents(events);
+            }
+          }
+          if (value.onFailure) {
+            events.failure = events.cancel;
+            events.success = complete;
+          } else events.complete = complete;
+          value.addEvents(events);
+        } else {
+          value.chain(complete)
+        }
+        value.chained = true;
       }
-      value.chained = true;
     }
     if (value == null && this.placeholder) {
       value = this.placeholder;
@@ -598,7 +601,7 @@ LSD.Script.prototype.execute = function(value, meta) {
         if (typeof (result = (arg.type == 'block' ? arg._yieldback : value ? arg.value : val)) == 'undefined') 
           result = arg.placeholder;
       } else result = arg;
-      if (result && result.chain && result.callChain) {
+      if (result && result.chained) {
         args = [];
         break loop;
       }
@@ -725,7 +728,7 @@ LSD.Script.prototype.yield = function(keyword, args, callback, index, old, meta)
         };
         if (this._limit) {
           delete this.yields[index];
-          (this.recycled || (this.recycled = [])).include(block);
+          (this.recycled || (this.recycled = [])).push(block);
         }
       }
       return block;

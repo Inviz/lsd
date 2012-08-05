@@ -46,13 +46,9 @@ LSD.Instruction.prototype.onValueChange = function(value, old, meta) {
   if (this.next && this.parentNode && this.parentNode == this.next.parentNode)
     if (!value && meta !== 'disable') this.next.set('attached', true);
     else if (this.next.attached) this.next.unset('attached', true, 'disable');
-  if (value && meta != 'push' && typeof meta != 'number') 
+    
+  if (value && meta != 'push'/* && typeof meta != 'number'*/) 
     this.setChildren(value);
-  if (!value) {
-    var fragments = this.childFragments
-    if (fragments) for (var i = 0, fragment; fragment = fragments[i++];)
-      if (fragment.attached) fragment.unset('attached', fragment.attached);
-  }
 }
 LSD.Instruction.parse = LSD.Script.parse;
 LSD.Instruction.Script = LSD.Instruction.prototype.Script = LSD.Instruction;
@@ -64,22 +60,30 @@ LSD.Instruction.prototype._ignore = true;
 LSD.Instruction.prototype.setChildren = function(state) {
   var parent = this.parentNode;
   if (!parent) {
-    for (var prev = this; prev = prev.previous;)
-      if (prev.parentNode) parent = prev.parentNode;
+    if (state) {
+      for (var prev = this; prev = prev.previous;)
+        if (prev.parentNode) parent = prev.parentNode;
+    } else {
+      parent = this[0] && this[0].parentNode;
+    }
     if (!parent) return;
   };
   var children = parent.childNodes;
-  var index = children.indexOf(this);
-  if (index < 0) return; 
+  var index = children.indexOf(this), shift = 0;
+  if (index < 0) {
+    if ((!this[0] || (index = children.indexOf(this[0])) < 0)) return
+  } else index ++;
   if (state) {
     if (!this._length || this[0].parentNode == this.parentNode) return;
     var args = this.slice()
-    args.unshift(index + 1, 0)
+    args.unshift(index, 0)
     children.splice.apply(children, args);
   } else {
-    for (var j = this._length, k; --j > -1;)
-      if ((k = children.indexOf(this[j])) > -1) break;
-    if (k > -1) children.splice(index + 1, k - index);
+    for (var j = this._length, k; --j > -1;) {
+      var node = this[j];
+      if ((k = children.indexOf(node)) > -1) break;
+    }
+    if (k > -1) children.splice(index, k - index + 1);
   }
 }
 LSD.Instruction.prototype._properties.next = function(value, old, meta) {
@@ -91,10 +95,11 @@ LSD.Instruction.prototype._properties.previous = function(value, old, meta) {
     this.set('attached', true)
 };
 LSD.Instruction.prototype._properties.parentNode = function(value, old, meta) {
-  this.mix('variables', value && value.variables, meta, old && old.variables, true);
+  this.mix('variables', value && (this.fragment && this.fragment != value.fragment && this.fragment.variables || value.variables), 
+                    meta, old && (this.fragment && this.fragment != old.fragment && this.fragment.variables || old.variables), true);
   if (value && (!this.boundary || (this.previous && this.previous.attached && !this.previous.value))) {
     this.set('scope', value, meta);
     if (!this.attached) this.set('attached', true)
   }
-  if (!value && this.attached) this.unset('attached', true)
+  if (!value && this.attached) this.unset('attached', true, meta)
 };
