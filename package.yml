@@ -27,10 +27,10 @@ sources:
   - Source/Type/Struct.js
   - Source/Type/Array.js
   - Source/Type/Data.js
+  - Source/Type/Storage.js
   - Source/Type/RegExp.js
   - Source/Properties/ClassList.js
   - Source/Properties/Matches.js
-  - Source/Properties/Relations.js
   - Source/Properties/Attributes.js
   - Source/Properties/Events.js
   - Source/Properties/Resource.js

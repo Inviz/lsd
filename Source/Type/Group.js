@@ -1,7 +1,7 @@
 /*
 ---
 
-script: Object.Group.js
+script: Group.js
 
 description: An observable object that groups values by key
 

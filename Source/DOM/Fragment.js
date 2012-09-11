@@ -249,7 +249,6 @@ LSD.Fragment.prototype.typeOf = function(object) {
   return typeof object;
 };
 LSD.Fragment.prototype.add = function(object) {
-  console.error('adding', object.tagName, object.textContent, object, object.nodeType, object.name)
   if (this.indexOf(object) == -1/* && this.parentNode == object.parentNode*/) {
     this.set(this._length, object, null, false);
   }

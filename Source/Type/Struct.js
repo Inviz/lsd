@@ -19,27 +19,25 @@ provides:
 */
 
 /*
-  Struct is a class builder and a combinator of objects.
-  It generates a constructor with an observable prototype.
-  The function recieves additional arguments that specify
-  the base type of object, it builds classes based on
-  LSD.Object by default. A struct class may define its own
-  set of observable property setters, callbacks or
-  data transformers.
+  Struct is a class builder and a combinator of objects. It generates a
+  constructor with an observable object prototype. The function recieves
+  additional arguments that specify the base type of object, it builds classes
+  based on LSD.Object by default. A struct class may define its own set of
+  observable property setters, callbacks or data transformers.
 */
 
 LSD.Struct = function(properties, Base, Sub) {
   if (typeof properties == 'string') Sub = Base, Base = properties, properties = null;
 /*
-  `new LSD.Struct` creates a constructor, that can be used to
-  construct instances of that structure, which bears close
-  resemblance to OOP.
+  `new LSD.Struct` creates a constructor, that can be used to construct
+  instances of that structure, which bears close resemblance to OOP.
 */
   var Struct = function(object) {
     if (this.Variable || !this._construct) return new Struct(object, arguments[1])
 /*
-  Inherited properties is an internal concept that allows an instance of a class to
-  recieve its own copy of a private object from prototype without recursive cloning.
+  Inherited properties is an internal concept that allows an instance of a
+  class to recieve its own copy of a private object from prototype without
+  recursive cloning.
 */
     for (var i = 0, obj = this._unlinked, inherited, group, cloned, value; obj && (inherited = obj[i++]);)
       if ((group = this[inherited])) {
@@ -50,8 +48,8 @@ LSD.Struct = function(properties, Base, Sub) {
         }
       }
 /*
-  A Struct may have a _preconstruct array defined in a prototype that lists all nested
-  property names that should be initialized right away.
+  A Struct may have a _preconstruct array defined in a prototype that lists
+  all nested property names that should be initialized right away.
 */
     var preconstruct = this._preconstruct;
     if (preconstruct) for (var i = 0, type, constructors = this._constructors; type = preconstruct[i++];) {
@@ -103,24 +101,25 @@ LSD.Struct.implement = function(object, host, reverse) {
           hosted = host[prop] = LSD.Struct.implement({}, hosted);
       } else hosted = host[prop] = {}
       LSD.Struct.implement(value, hosted)
-    } else if (!reverse || !value) host[prop] = value;
+    } else if (!reverse || !host[prop] || prop == 'toString') host[prop] = value;
   }
   return host;
 }
 LSD.Struct.prototype.implement = LSD.Struct.implement;
 /*
-  Every property defined in a class properties object will be treated like a property,
-  unless it is defined in the Mutators object. Mutators are a hooks that allow some
-  DSL functions to be added to handle some sugary class definitions.
+  Every property defined in a class properties object will be treated like a
+  property, unless it is defined in the Mutators object. Mutators are a hooks
+  that allow some DSL functions to be added to handle some sugary class
+  definitions.
 */
 LSD.Struct.Mutators = {
 /*
-  Structs are slightly compatible with mootools classes, and can use Extends property
-  to inherit the prototype from given object.
+  Structs are slightly compatible with mootools classes, and can use Extends 
+  property to inherit the prototype from given object.
 */
   Extends: function(Klass) {
     if (Klass.push) return LSD.Struct.Mutators.Implements.call(this, Klass);
-    this.implement(Klass.prototype);
+    this.implement(Klass.prototype, null, true);
   },
 /*
   Implements directive mixes in multiple object prototypes in order.
@@ -128,22 +127,24 @@ LSD.Struct.Mutators = {
   Implements: function(Klasses) {
     if (!Klasses.push) return LSD.Struct.Mutators.Extends.call(this, Klasses);
     for (var i = 0, j = Klasses.length; i < j; i++)
-      this.implement(Klasses[i].prototype);
+      this.implement(Klasses[i].prototype, null, true);
   },
 /*
-  LSD does not use options itself, but mootools legacy classes use them extensively.
-  Objects given in a Struct definitions will be merged into the prototype.
+  LSD does not use options convention, but mootools legacy classes use them
+  extensively. Objects given in a Struct definitions will be merged into the
+  prototype.
 */
   options: function(options) {
     this.implement({options: options})
   },
 /*
-  Structs allow some mootools-style class events to be defined in a class definition.
+  Structs allow some mootools-style class events to be defined in a class 
+  definition.
 */
   events: 'mix',
 /*
-  Structs support property skip list to be extended in a class definition. A property
-  found in that list will not be iterated over in any of the loops.
+  Structs support property skip list to be extended in a class definition. 
+  A property found in that list will not be iterated over in any of the loops.
 */
   skip: function(methods) {
     LSD.Struct.merge({_skip: methods})
@@ -152,13 +153,14 @@ LSD.Struct.Mutators = {
     this._constructor = constructor === true ? this : constructor;
   },
 /*
-  Mutators that have value equal to `true`, will copy a given value into prototype
-  with a prefixed name. E.g. `imports` object will be saved as `prototype._imports`,
-  so struct instance will have a quick prototype access to them
+  Mutators that have value equal to `true`, will copy a given value into
+  prototype with a prefixed name. E.g. `imports` object will be saved as
+  `prototype._imports`, so struct instance will have a quick prototype access
+  to them
 
-  A struct can have up to two constructors, private and public, called in that order.
-  Most of the predefined LSD structs only use a private constructor leaving a public
-  one for third party subclassing.
+   A struct can have up to two constructors, private and public, called in that
+  order. Most of the predefined LSD structs only use a private constructor
+  leaving a public one for third party subclassing.
 */
   _initialize: true,
   initialize: true,
@@ -169,12 +171,9 @@ LSD.Struct.Mutators = {
   get: true
 };
 /*
-  The biggest thing about a Struct instance is how it handles
-  changes. A single struct instance can have up to two property
-  object dictionaries, where properties are being looked up.
-    - An LSD.Object constructor, useful to instantiate nested
-      objects with specific class
-
+  The biggest thing about a Struct instance is how it handles property changes.
+  A single struct instance can have one or two property dictionaries, where 
+  properties are being looked up.
 */
 LSD.Struct.prototype._onChange = function(key, value, meta, old) {
   if (typeof key != 'string') return value;
@@ -191,8 +190,9 @@ LSD.Struct.prototype._onChange = function(key, value, meta, old) {
 */
   switch (typeof prop) {
 /*
-  - A function, that will be called whenever property is set,
-    changed, or unset.
+  - A function, that will be called whenever property is set, changed, or 
+  unset. If it returns value, that value is passed to all following callbacks
+  and assigned to object instead of the original value.
 */
     case 'function':
       if (prop.prototype._set) {
@@ -201,12 +201,11 @@ LSD.Struct.prototype._onChange = function(key, value, meta, old) {
       } else return prop.call(this, value, old, meta);
       break;
 /*
-  - A string, the link to another property in current or
-    a linked object. Works as a one-way setter/getter alias.
-    One-way means that the linked property will not update
-    the aliased property, unless the property is defined
-    circular (there's another alias that links the linked
-    property back to original alias).
+  - A string, the link to another property in current or a linked object.
+    Works as a one-way setter/getter alias. It means that the if a linked
+    property is changed by another callback, the original proeprty will
+    not be updated, unless the linked property is linked back to the original
+    property explicitly.
 */
     case 'string':
       if (typeof value != 'object') {
@@ -246,8 +245,8 @@ LSD.Struct.prototype._onChange = function(key, value, meta, old) {
   return value;
 };
 /*
-  - An LSD.Object constructor, used to instantiate nested
-    objects with specific class
+  - An LSD.Object constructor, used to instantiate nested objects with specific
+  class
 */
 LSD.Struct.prototype._getConstructor = function(key) {
   if (this._properties) {
@@ -255,7 +254,8 @@ LSD.Struct.prototype._getConstructor = function(key) {
     var prop = this._properties[Key] || this._properties[key];
   }
   if (prop == null && this.__properties) prop = this.__properties[key];
-  if (prop && prop !== Object) {
+  if (prop) {
+    if (prop === Object) return prop;
     var type = typeof prop;
     if (type == 'function' && prop.prototype._construct) return prop;
     else return (type == 'string') ? null : false;
@@ -272,12 +272,11 @@ LSD.Struct.prototype.onBeforeConstruct = function(key) {
   }
 };
 /*
-  There's a way to define dynamic properties and two-way links
-  by using `exports` & `imports` object directives. Properties
-  defined in those object, will be defined when object is
-  instantiated, unlike property dictionaries that are lazy in the way
-  that when object is created, it does not iterate the dictionary and
-  only looks it up when actual properties change.
+  There's a way to define dynamic properties and two-way references by using
+  `exports` & `imports` object directives. Properties defined in those objects
+  will be defined when object is instantiated, unlike property dictionaries
+  that are lazy in the way that when object is created, it does not iterate the
+  dictionary and only looks it up when actual properties change.
 */
 LSD.Struct.prototype._link = function(properties, state, external) {
   for (var name in properties) {
@@ -318,10 +317,11 @@ LSD.Struct.prototype._link = function(properties, state, external) {
     struct.set('tax', 0.2);
     expect(struct.total).toBe(85 * 0.8);
 
-  LSD.Script is compiled when struct is instantiated and starts observing variables
-  from left to right. It starts by expecting `sum`, and only when it gets it, it starts
-  paying attention to `rate`, then `tax`. When all variables are found, the result is
-  calculated and assigned to `total` property.
+  LSD.Script is compiled when struct is instantiated. It starts observing
+  variables in expression from left to right. In example above it starts 
+  by observing `sum`, and only when it gets it, it starts observing `rate`
+  and after that `tax` variables. When all variables are found, the result 
+  is calculated and assigned to a property named `total`. 
 */
 LSD.Struct.prototype._linker = function(call, key, value, old, meta) {
   if (typeof value != 'undefined')

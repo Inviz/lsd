@@ -35,7 +35,7 @@ provides:
 */
 
 LSD.Resource = LSD.Struct({
-  Extends: LSD.URL,
+  Implements: LSD.URL,
   urls: Object,
   name: '_name',
   _name: function(value, old) {
@@ -89,7 +89,8 @@ LSD.Resource.prototype._initialize = function() {
 LSD.Resource.prototype.match = function(url, params) {
   if (!params) params = {};
   if (!params.method) params.method = 'get';
-  for (var i = 0, j, k = url.length, bit, id, prev, action, parent = this, resource; (j = url.indexOf('/', i)) > -1 || (j = k); i = j + 1) {
+  var bit, id, prev, action, resource, parent = this;
+  for (var i = 0, j, k = url.length; (j = url.indexOf('/', i)) > -1 || (j = k); i = j + 1) {
     if ((bit = url.substring(i, j)).length === 0) continue;
     if (j == k && parent._collection[bit] || (id != null && parent._member[bit])) {
       action = bit;
@@ -176,7 +177,7 @@ LSD.Resource.prototype.match = function(url, params) {
     }
   }
   return params;
-};
+}
 LSD.Resource.prototype.dispatch = function(params, object) {
   if (typeof params == 'string') params = this.match(params, object);
   if (!params.resource) return false;
@@ -190,6 +191,7 @@ LSD.Resource.prototype.execute = function(name, params) {
 };
 LSD.Resource.prototype._Properties = {
   urls: function(value, state) {
+    
   },
   actions: function() {
 
@@ -290,12 +292,17 @@ LSD.Resource.prototype.form = function(params) {
 LSD.Resource.prototype.build = function(params) {
   return new this(params);
 };
-LSD.Resource.prototype.create = function(params) {
-  this.local.push(this.build(params));
+LSD.Resource.prototype.create = LSD.Resource.prototype.post = function(params) {
+  this.push(params);
 };
-LSD.Resource.prototype.destroy = function(params) {
-  if (params.constructor !== this) params = this.find(params);
-  this.local.splice(this.local.indexOf(params), 1);
+LSD.Resource.prototype.destroy = LSD.Resource.prototype['delete'] = function(params) {
+  this.splice(params, 1);
+};
+LSD.Resource.prototype.update = LSD.Resource.prototype.patch = function(params, update) {
+  this.splice(params, 1, update);
+};
+LSD.Resource.prototype.replace = LSD.Resource.prototype.put = function(params, update) {
+  this.splice(params, 1, update);
 };
 LSD.Resource.prototype.validate = function(params) {
   return true;
@@ -316,8 +323,8 @@ LSD.Model = function() {
   return LSD.Struct.apply(this, arguments);
 }
 LSD.Model.prototype = LSD.Struct();
-LSD.Model.prototype.dispatch = function() {
-  this.constructor.action()
+LSD.Model.prototype.dispatch = function(action, params, options) {
+  return this.constructor[action](params, options)
 };
 LSD.Model.prototype.reload = function() {
   return this.dispatch('show', arguments);
@@ -325,6 +332,15 @@ LSD.Model.prototype.reload = function() {
 LSD.Model.prototype.save = function() {
   return this.dispatch(this._id ? 'update' : 'create', arguments);
 };
+LSD.Model.prototype.toJSON = function() {
+  
+};
+LSD.Model.prototype.toXML = function() {
+  
+};
+LSD.Model.prototype.toHTML = function() {
+  
+}
 
 /*
   Universal perfect world REST scaffolder. Can be overriden to do actions
@@ -341,23 +357,17 @@ LSD.Model.prototype.save = function() {
     }
   },
   search: {
-    url: 'search',
     before: 'index',
     action: function(params, scope) {
       return scope.search(params);
     }
   },
   'new': {
-    action: function(params) {
-      return this.form(params);
-    }
+    action: 'form'
   },
   create: {
     method: 'post',
-    before: 'validate',
-    action: function(params, object) {
-      return this.create(object)
-    }
+    before: 'validate'
   },
   validate: {
     action: function(params, object) {
@@ -383,33 +393,22 @@ LSD.Resource.prototype._member = {
   },
   edit: {
     before: 'show',
-    action: function(params, object) {
-      return this.form(params, object);
-    }
+    action: 'form'
   },
   update: {
     method: 'put',
-    before: ['show', 'validate'],
-    action: function(params, object) {
-      return object.put(params);
-    }
+    before: ['show', 'validate']
   },
   patch: {
     method: 'patch',
-    before: ['show', 'validate'],
-    action: function(params, object) {
-      return object.patch(params);
-    }
+    before: ['show', 'validate']
   },
   'delete': {
     before: 'show'
   },
   destroy: {
     method: 'delete',
-    before: 'show',
-    action: function(params, object) {
-      return object.destroy(params)
-    }
+    before: 'show'
   }
 };
 !function(members) {
@@ -420,10 +419,6 @@ LSD.Resource.prototype._member = {
   }(name);
 }(LSD.Resource.prototype._member);
 
-LSD.Resource.prototype.prefix = '';
-LSD.Resource.prototype.directory = '';
-LSD.Resource.prototype.url = '';
-LSD.Resource.prototype.host = null;
 LSD.Resource.prototype._per_page = 20;
 LSD.Resource.prototype._object = true;
 

@@ -29,7 +29,7 @@ provides:
   like in mootools, they only go so far in empowering standart elements,
   because they still rely on DOM features that are not customizible enough.
 
-   LSD has a different approach of building a "perfect DOM" by reimplementing
+   LSD has a different approach of building a 'perfect DOM' by reimplementing
   all element features in objects that are under full control of a
   programmer. When most of the Element features are implemented in a
   compatible way, the code that works with regular elements may work with
@@ -95,7 +95,7 @@ LSD.Element.prototype.__properties = {
     perform all manipulations on state and only the properties that are
     different between two roles will trigger observer callbacks.
 
-     Role may be a string, to be used as "search terms" for role lookup. LSD
+     Role may be a string, to be used as 'search terms' for role lookup. LSD
     provides a handy mechanism of finding the right class for an element. It
     takes tag name, `type`, `kind` and `id` attributes into account. It tries
     to find the role by tag name, then in looks for a sub-role based on
@@ -291,12 +291,12 @@ LSD.Element.prototype.__properties = {
 /*
   Finds various kind of interpolations in DOM element attributes.
 
-  * <button title="Delete ${person.title}" />
-  * <section ${itemscope(person), person.staff && class("staff")}></section>
-  * <input type="range" value=${video.time} />
+  * <button title='Delete ${person.title}' />
+  * <section ${itemscope(person), person.staff && class('staff')}></section>
+  * <input type='range' value=${video.time} />
 
   Browser parses some of those like multiple weird attributes, but those
-  mostly are harmless, except perhaps ">" character. Following routine
+  mostly are harmless, except perhaps '>' character. Following routine
   glues them together into an expression and compiles an LSD.Script
   reprensentation of it targetted at the attribute or element.
 */
@@ -682,6 +682,9 @@ LSD.Element.prototype.localName = 'div';
 LSD.Element.prototype.tagName = null;
 LSD.Element.prototype.className = '';
 LSD.Element.prototype.nodeType = 1;
+LSD.Element.prototype.textContent = '';
+LSD.Element.prototype.nextElementSibling = null;
+LSD.Element.prototype.previousElementSibling = null;
 LSD.Element.prototype._inherited = {'drawn': 1, 'built': 1, 'hidden': 1, 'disabled': 1, 'root': 1, 'microdata': 1, 'form': 1};
 LSD.Element.prototype._preconstruct = ['childNodes', 'proxies', 'variables', 'attributes', 'classList', 'events', 'matches', 'relations'];
 LSD.Element.prototype.__initialize = function(/* options, element, selector, document */) {
@@ -733,8 +736,8 @@ LSD.Element.prototype.click = function() {
 };
 LSD.Element.prototype.getAttribute = function(name) {
   switch (name) {
-    case "class":           return this.className;
-    case "slick-uniqueid":  return this.lsd;
+    case 'class':           return this.className;
+    case 'slick-uniqueid':  return this.lsd;
     default:                return this.attributes[name];
   }
 };
@@ -803,6 +806,10 @@ LSD.Element.prototype.getElements = function(selector) {
 };
 LSD.Element.prototype.getElement = function(selector) {
   return LSD.Slick.find(this, selector)
+};
+LSD.Element.prototype.getElementsByTagName = function(tagName) {
+  var results = this.matches._results;
+  return results && (results = results[' ']) && results[tagName || '*'];
 };
 LSD.Element.prototype.getSelector = function() {
   var parent = this.parentNode;
@@ -896,9 +903,6 @@ LSD.Element.prototype.onChildSet = function(value, index, state, old, meta) {
     children.textContent = text;
   }
 };
-LSD.Element.prototype.textContent = "";
-LSD.Element.prototype.nextElementSibling = null;
-LSD.Element.prototype.previousElementSibling = null;
 
 LSD.Document.prototype.mix('states', {
   built:     ['build',      'destroy'],

@@ -90,7 +90,7 @@ LSD.Array.prototype.push = function() {
     }
   }
   for (var i = 0, j = args.length; i < j; i++)
-    this.set(this._length, args[i], null, 'push');
+    this.set(this._length, args[i], 'push');
   return this._length;
 };
 LSD.Array.prototype.set = function(key, value, old, meta) {
@@ -219,8 +219,8 @@ LSD.Array.prototype.splice = function(index, offset) {
   var args = Array.prototype.slice.call(arguments, 2),
       arity = args.length,
       length = this._length, more
-  if (this._prefilter) for (var j = 0; j < arity; j++) {
-    if (!this._prefilter(args[j])) {
+  for (var j = 0; j < arity; j++) {
+    if (this._prefilter && !this._prefilter(args[j])) {
       args.splice(j--, 1);
       arity--;
     } else if (this._onSplice && (more = this._onSplice(args[j], args, true)) != null) {
@@ -373,7 +373,8 @@ LSD.Array.prototype._seeker = function(call, value, index, state, old, meta) {
   if (block.block) {
     var result = block(state ? 'yield' : 'unyield', args, call.callback, index, old, meta);
   } else {
-    var result = call.callback(block.apply(block, args), value, index, state, old, meta);
+    var result = block.apply(block, args);
+    if (call.callback) result = call.callback(result, value, index, state, old, meta);
   }
   if (result != null && result.value && (invoker._last == null || invoker._last < index)) invoker._last = index;
   return result;

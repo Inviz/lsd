@@ -25,8 +25,7 @@ LSD.Properties.Events = LSD.Struct({
   'element':      '.element',
   'document':     '.document',
   'window':       '.document.window',
-  'matches':      '.matches',
-  'relations':    '.relations'
+  'matches':      '.matches'
 }, 'Group');
 LSD.Properties.Events.prototype.onGroup = function(key, group, state) {
   var doc = (this._owner.document || LSD.Document.prototype), body = doc.body;

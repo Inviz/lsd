@@ -47,7 +47,7 @@ LSD.Instruction.prototype.onValueChange = function(value, old, meta) {
     if (!value && meta !== 'disable') this.next.set('attached', true);
     else if (this.next.attached) this.next.unset('attached', true, 'disable');
     
-  if (value && meta != 'push'/* && typeof meta != 'number'*/) 
+  if (value && meta != 'push' && typeof meta != 'number') 
     this.setChildren(value);
 }
 LSD.Instruction.parse = LSD.Script.parse;

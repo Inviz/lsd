@@ -51,7 +51,6 @@ LSD.Properties.Attributes.prototype.onChange = function(key, value, meta, old) {
   }
   return value;
 };
-LSD.Properties.Attributes.prototype._global = true;
 LSD.Properties.Variables = LSD.Struct('Journal');
 
 LSD.Document.prototype.mix('attributes', {

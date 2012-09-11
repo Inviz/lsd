@@ -11,6 +11,7 @@ authors: Yaroslaff Fedin
  
 requires:
   - LSD.Array
+  - LSD.Struct
 
 provides:
   - LSD.NodeList
@@ -61,3 +62,10 @@ LSD.NodeList.prototype.fn = function(collection, key, value, old) {
     if (index !== now) collection.move(now, index)
   }
 };
+
+LSD.Relation = new LSD.Struct({
+  match: '_owner.matches.set manager',
+  proxy: '_owner.proxies.set manager'
+}, 'NodeList');
+LSD.Relation.prototype._aggregate = true;
+LSD.Relation.prototype._object = false;

@@ -18,10 +18,12 @@ provides:
 ...
 */
 LSD.Data = function(object) {
-  if (typeof object == 'string') {
-    LSD.Object()
-    this.fromString(object);
-  } else LSD.Object(object)
+  var subject = this.mix ? this : new LSD.Data;
+  if (typeof object == 'string')
+    subject.fromString(object);
+  else if (object) 
+    subject.mix(object);
+  return subject;
 };
 LSD.Data.prototype = new LSD.Object;
 LSD.Data.prototype.constructor = LSD.Data;

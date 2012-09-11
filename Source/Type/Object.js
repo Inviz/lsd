@@ -21,29 +21,30 @@ LSD.Object = function(object) {
   if (object != null) this.mix(object)
 };
 /*
-  Objects in LSD are different from regular objects in the way that LSD
-  objects dont use or define getters at all. Values are precomputed and the
-  good time to format or transform values is just before it was set. Object
-  work with property observers and global listeners. Observing a property
-  replaces some simple uses of Aspect Oriented Programming, an event system,
-  and a pub/sub. It is possible due the fact that Object all methods accept
-  optional third parameter called `meta` that passes additional data all
-  observers of properties affected by the change. It is easy to make
-  dependent properties to know where the change come from, or what kind of
-  change it is and react accordingly - e.g. avoid multiple or circular updates
-  If a `meta` argument is not given, LSD automatically records cascade of 
-  changed properties and prevent circular property callbacks.
+  Objects in LSD are different from regular objects in the way that LSD objects
+  dont use or define getters at all. Values are precomputed and the good time
+  to format or transform values is just before it was set. Object work with
+  property observers and global listeners. Observing a property replaces some
+  simple uses of Aspect Oriented Programming, an event system, and a pub/sub.
+  It is possible because of the fact that all Object methods accept optional
+  third parameter called `meta` that may describe what kind of operation led
+  to the state change. It is easy to make dependent properties to
+  know where the change come from, or what kind of change it is and react
+  accordingly - e.g. avoid multiple or circular updates If a `meta` argument is
+  not given, LSD automatically records cascade of changed properties and
+  prevent circular property callbacks.
 */
 LSD.Object.prototype.constructor = LSD.Object;
 LSD.Object.prototype.set = function(key, value, meta, index, hash) {
 /*
-  The values may be set by keys with types other then string. A special
-  method named `_hash` is called each time and can return either string (a
-  new key for value to be stored with) or anything else (an object, or true).
-  When hash is not string the setter turns into immutable mode and only
-  executes callbacks without changing any keys. A callback may implement its
-  own strategy of storing values, as callbacks recieve result of hashing as
-  the last argument.
+  Values may be set by keys with types other then string. There's special 
+  method named `_hash` that is called when such key is passed to Object 
+  methods. Hashing strategy is chosen based on return value:
+    * A string is used as a new key
+    * `true` aborts setter, no callbacks are invoked
+    * Other values turns object immutable, but still invoke callbacks 
+      and pass the result of hashing. Object does not change its state.
+      So callbacks or superclasses may implement custom storage logic. 
 */
   if (this._hash && hash == null) {
     if ((hash = this._hash(key, value, meta, true)) === true) return true;
@@ -51,17 +52,17 @@ LSD.Object.prototype.set = function(key, value, meta, index, hash) {
   }
   if (typeof key == 'string') var nonenum = this._skip[key];
 /*
-  Object setters accept nested keys, instantiates objects in the path (e.g.
-  setting `post.title` will create a `post` object), and observes changes in 
-  the path (post object may be changed and title property will be unset from 
-  the previous object and set to the new object)
+  Object setters accept nested keys. LSD.Object constructs objects in the 
+  path (e.g. setting `post.title` will create a `post` object), and observes
+  the whole path (post object may be changed and title property will be unset
+  from the previous object and set to the new object)
 */
   if (hash == null && typeof index != 'number') index = key.indexOf('.');
   if (index > -1) return this.mix(key, value, meta, undefined, null, null, null, index);
 /*
   Objects accept special kind of values, compiled LSD.Script expressions.
   They may use other keys in the object as observable variables, call
-  functions and iterate data. Script updates value for the key when it
+  functions, fetch and iterate data. Script updates value for the key when it
   computes its value asynchronously. The value stays undefined, while the
   script doesn't have enough data to compute.
 */
@@ -71,14 +72,13 @@ LSD.Object.prototype.set = function(key, value, meta, index, hash) {
       return this._script(key, value, meta);
   }
 /*
-  `hash` argument may disable all mutation caused by the setter, the value by
-  the key will not be mofified. May be used by subclasses to implement its
-  own mechanism of object mutations.
+  If a setter is given the same value that it had before by the same key,
+  it does not invoke callbacks and return early. If a hash 
 */
   if (hash == null) {
     var old = this[key];
     if (old === value) return false;
-    this[key] = value;
+    this[key] = value;;
   }
 /*
   When objects link to other objects they write a link back to remote object.
@@ -235,7 +235,7 @@ LSD.Object.prototype.unset = function(key, value, meta, index, hash) {
     var watched = this._watched;
     if (watched && (watched = watched[key]))
       for (var i = 0, fn; fn = watched[i++];)
-        if (fn.call) fn.call(this, undefined, old);
+        if (fn.call) fn.call(this, undefined, old, meta);
         else this._callback(fn, key, undefined, old, meta);
     var stored = this._stored && this._stored[key];
     if (stored != null && value != null && value.unmix)
@@ -247,17 +247,17 @@ LSD.Object.prototype.unset = function(key, value, meta, index, hash) {
   return true;
 };
 /*
-  Get method fetches a value by a simple or dot-separated keys. If an
+  Get method fetches a value by a simple or composite keys. If an
   optional construct argument is given, it creates objects in place of
-  missing values.
+  missing properties.
   
-   Despite the fact that older implementation of javascript do not allow
+   Despite the fact that older implementations of JavaScript do not allow
   native getter functions, `get` method in LSD is private and should not be
   used in places other than internals. The reason is that values in LSD are
   precomputed, and can be accessed like regular properties. There's no such
-  thing as a getter method for a property. If a property needs to be set in
-  a right format, it gets transformed, constructed or parsed before it
-  becomes assigned to the object.
+  thing as a getter method for a property in LSD.Object. If a property needs 
+  to be set in a right format, it gets transformed, constructed or parsed 
+  on set before it is assigned to the object.
   
    That also means that composite properties can not be described by a
   simple function that can be only executed when the property was requested.
@@ -268,26 +268,27 @@ LSD.Object.prototype.unset = function(key, value, meta, index, hash) {
      individual observer objects for each variable used in parsed expression
    * or by listening to all properties and reacting to all involved
      properties and running a shared routine that tries to compose property
-     from values it overheard.
+     from values it is observing.
   
-   LSD.Script is fully magical, updates are lazy, happen in the right
-  time and computed properties are always up to date. It's efficient in
-  computation of expression, because it saves intermediate results for every
-  branch of an expression syntax tree. Although it has an overhead of
-  compiled LSD.Script objects that may be inefficient on a large number of
-  objects with computed properties.
-  
-   LSD Internally follows the second way of composing properties manually.
-  It's the most memory efficient and LSD provides a few tools that may help
-  in writing repetetive callbacks. Doing it manually may be very peformant,
-  but needs tests that handle all possible situations.
-  
+  LSD.Script is fully magical, updates are lazy, happen in the right time and
+  computed properties are always up to date. It's efficient in re-computation
+  of expression, because it saves intermediate results for every branch of an
+  expression syntax tree. So when values in expression change, it only
+  recomputes affected parts of an expression. Still, LSD.Script has its own
+  recursive evaluation model that has a large overhead and may be inappropriate
+  in scenarios with many objects.
+
+   LSD internals follow the second way of composing properties manually. It's
+  the most memory efficient and LSD provides a few tools that may help in
+  writing repetetive callbacks. Doing it manually may be very peformant, but
+  needs tests that handle all possible situations.
+
    Another reason why the `get` method is so underused, is because LSD deals
-  with observable objects and `get` function returns the value that was
-  assigned now and does not react on changes to that value. That is why
-  `watch(key, callback)` is more interesting, because it brings up a high
-  level abstraction over the state of an object, hiding all the complexity
-  of object's mutable state.
+  with observable objects and `get` function returns the value that object has
+  at the time of getter invocation. If the value is changed, there's no way to
+  know it for a variable that holds reference to a previous value. That is why
+  `watch(key, callback) ` should be used instead, because it hides all the
+  complexity of mutable state of objects without all the glue code
 */
 LSD.Object.prototype.get = function(key, construct) {
   if (typeof key != 'string') {
@@ -538,19 +539,18 @@ LSD.Object.prototype.mix = function(key, value, meta, old, merge, prepend, lazy,
         obj = this._construct(key, null, 'copy')
       } else {
 /*
-  `mix` accepts two values and both of them are optional. First value is to
-  be set, the second value (fourth argument) is to be unset. Both of them
-  may be given in the same function call. Regular LSD.Objects are not
-  affected by two values together, but objects that journal all side
-  effects like LSD.Journal will use the old value to unset from the stack
-  after the new value will be applied. It is a very useful technique that
-  allows to keep state of a side-effect within a single function call of
-  an observer callback. Callbacks that observe properties are fired with
-  two values, the new and the old one. And if a callback needs to affect
-  another property or an object, `mix` method can be used and given both
-  new and old values. Two arguments cover all possible value manipulations 
-  and `mix` will manage side effects introduced by callbacks and ensure
-  that they will be unrolled in right condition.
+  `mix` accepts two values and both of them are optional. First value is to be
+  set, the second value (fourth argument) is to be unset. Both of them may be
+  given in the same function call. Regular LSD.Objects are not affected by two
+  values together, but objects that journal all side effects like LSD.Journal
+  will use the old value to unset from the stack after the new value will be
+  applied. It is a very useful technique that allows to keep state of a
+  side-effect within a single function call of an observer callback. Callbacks
+  that observe properties are fired with two values, the new and the old one.
+  And if a callback needs to affect another property or an object, `mix` method
+  can be used and given both new and old values. Two arguments cover all
+  possible value manipulations and `mix` will manage side effects introduced by
+  callbacks and ensure that they will be unrolled in right condition.
 */
         if (obj === old) {
           this.set(key, value, meta, prepend)
@@ -576,23 +576,23 @@ LSD.Object.prototype.mix = function(key, value, meta, old, merge, prepend, lazy,
   Unlike most of the hash table and object implementations out there,
   LSD.Object can easily unmix values from the object. The full potential of
   unmixing objects can be explored with LSD.Journal, that allows objects to be
-  mixed on top or to the bottom of the stack (some kind of reverse merge
-  known in ruby).
-  
-   Plain LSD.Object is pretty naive about unmixing properties, it just tries
-  to unset the ones that match the given values. LSD.Journal on the other
-  hand, is pretty strict and never loses a value that was set before, and
-  can easily reset to other values that were set before by the same key.
-  
+  mixed on top or to the bottom of the stack (some kind of reverse merge known
+  in ruby).
+
+   Plain LSD.Object is pretty naive about unmixing properties, it just tries to
+  unset the ones that match the given values. LSD.Journal on the other hand, is
+  pretty strict and never loses a value that was set before, and can easily
+  reset to other values that were set before by the same key.
+
    Different kind of objects often used nested together, so `mix` being a
   recursive function often helps to pass the commands through a number of
   objects of different kinds.
-  
-   `unmix` method has the same argument signature as `mix` function,
-  although it ignores `old` argument and uses `value` instead when calling
-  `mix`. It comes in handy when using stored arguments that may be processed
-  with either state without destructuring or accessing each of function's 8
-  arguments by index.
+
+   `unmix` method has the same argument signature as `mix` function, although
+  it ignores `old` argument and uses `value` instead when calling `mix`. It
+  comes in handy when using stored arguments that may be processed with either
+  state without destructuring or accessing each of function's 8 arguments by
+  index.
 */
 LSD.Object.prototype.unmix = function(key, value, meta, old, merge, prepend, lazy, index) {
   if (typeof key == 'string')
@@ -618,54 +618,54 @@ LSD.Object.prototype.unmerge = function(value, prepend, meta) {
   return this.mix(undefined, undefined, meta, value, true, prepend)
 };
 /*
-  Observing is about passing around the callback and executing it at the
-  right time. What makes observing object practical is the fact that
-  callbacks are called with a new value, the previous value that was
-  overriten and optional data specifying the call source. There may not be a
-  reference to the old value in the object anymore, but it still exists in a
-  call chain of synchronous callbacks arguments. `_callback` method also
-  solves a problem of circular callbacks that may possibling hang execution.
-  The callback record and a reference to a previous value is passed to all
-  callbacks, but not stored or referenced in objects.
+  Observing is all about passing around the callback and executing it at the
+  right time. What makes observing objects practical is the fact that callbacks
+  are called with a new value, the previous value that was overriten and
+  optional data argument describing the mutation. There may not be a reference
+  to the old value in the object anymore, but it still exists in a call chain
+  of synchronous callbacks arguments. `_callback` method also solves a problem
+  of circular callbacks that may possibly hang execution. The callback record
+  and a reference to a previous value is passed to all callbacks, but not
+  stored or referenced in objects.
 
    Another use case for referencing the previous values is that it allows to
   aggregate data from different sources with overlapping keys. The bad way to
-  avoid callbacks be fired multiple times is to surpress execution of
-  callbacks it is known that all values are in place and it's safe to do
-  things. That approach is used in many frameworks based on event loops, but
-  it gives too much control to developer and results in confusion and bugs.
-  It also makes a developer write glue code, and require him to decide
-  **when** it's time to do a batch of changes but in asynchronous code you
-  never know. The better approach is to buffer up values in a dedicated
-  object (e.g. many CSS rules may define a font size of a specific element.
-  But in the end only one declaration is used. An object may hold references
-  to all the values, but decide which to use). When such dedicated object is
-  observed, it fires callbacks when the keys change and it always send
-  reference to previous value allowing a developer to choose the optimal way
-  of transitioning from one value to another in his callback. Will be it be
-  full redraw of a block, notification of child nodes, or a successful cache
-  lookup. It enables "black box" abstractions where objects simply export
-  some properties, but the behavior that makes one properties result in
-  changing other is completely hidden from an uninterested spectator.
-  Everything to make state be separated from the code.
+  avoid callbacks be fired multiple times is to surpress execution of callbacks
+  until it is known that all properties have right value it's safe to proceed.
+  That approach is used in many frameworks that are based on event loops, but
+  it gives too much control to developer and results in confusion and bugs. It
+  also makes a developer write glue code, and require him to decide **when**
+  it's time to do a batch of changes but in asynchronous code you may never
+  know. The better approach is to buffer up values in a dedicated object (e.g.
+  many CSS rules may define a font size of a specific element. But in the end
+  only one declaration is used. An object may hold references to all the
+  values, but decide which to use). When such dedicated object is observed, it
+  fires callbacks when the keys change and it always send reference to previous
+  value allowing a developer to choose the optimal way of transitioning from
+  one value to another in his callback. Will be it be full redraw of a block,
+  notification of child nodes, or a successful cache lookup. It enables "black
+  box" abstractions where objects simply export some properties, but the
+  behavior that makes one properties result in changing other is completely
+  hidden from an uninterested spectator. Everything to separate state from
+  logic.
 
    LSD Objects support two ways of observing values:
 */
 LSD.Object.prototype.watch = function(key, callback, lazy, meta) {
 /*
-  A single argument without a pair is treated like a **Global observer** that
+  * A single argument without a pair is treated like a **Global observer** that
   recieve changes to all properties in an object. It supports different
   kind of callbacks:
 
-  * function - a de-facto standart for callbacks, the most flexible one,
-    for high-order data flows.
-  * Bound object, a simple object with `bind` object and `method`
-    property or a `fn` function. Objects are often used internally, and they
-    are made to link to an external function to avoid creating a needless
-    closure that a functional callback implies.
-  * Another observable object - the most efficient way, since it stores
-    only a reference to another object. It results in "linking" objects
-    together, so changes in observed object will be propagated to argument
+    * function - a de-facto standart for callbacks, the most flexible one,
+      for high-order data flows.
+    * Bound object, a simple object with `bind` object and `method`
+      property or a `fn` function. Objects are often used internally, and they
+      are made to link to an external function to avoid creating a needless
+      closure that a functional callback implies.
+    * Another observable object - the most efficient way, since it stores
+      only a reference to another object. It results in "linking" objects
+      together, so changes in observed object will be propagated to argument
 */
   var string = typeof key == 'string';
   if (!string && typeof callback == 'undefined') {
@@ -674,7 +674,7 @@ LSD.Object.prototype.watch = function(key, callback, lazy, meta) {
     if (callback) watchers.unshift(key)
     else watchers.push(key);
 /*
-  A pair of key and callback allow observing of an **individual property**.
+  * A pair of key and callback allow observing of an **individual property**.
   Unlike global observers, that only listens for public properties, it is
   possible to listen for a private property like `_owner` that links to
   another object that holds the reference to this object. Some objects opt
@@ -684,9 +684,8 @@ LSD.Object.prototype.watch = function(key, callback, lazy, meta) {
   } else {
 /*
   A key is often a string, the name of a property to observe, but it is
-  possible to have a custom hashing function in an object, and then unknown
-  object keys may be hashed down to a functional callback to call, or a
-  stringy key to be used instead.
+  possible to have a custom hashing logic for other types of keys via 
+  `_hash` hook.
 */
     if (!string) {
       var hash = this._hash(key, callback);
@@ -700,7 +699,7 @@ LSD.Object.prototype.watch = function(key, callback, lazy, meta) {
   possible to seemlessly stack observations together. A complex key with dot
   delimeters may be given to a `watch` function and it will start observing
   separate keys. If an object changes somewhere along the path, overriden
-  object gets cleaned from observations, and the new object gets observed.
+  object gets cleaned from observations, and the new object become observed.
   It works with keys of any deepness, and lazy execution ensures that there
   isn't too much junk around.
 */
@@ -795,15 +794,15 @@ LSD.Object.prototype.unwatch = function(key, callback, lazy, meta) {
 /*
   In some situations object needs to construct another object and assign it
   by a specific key. It may happen when another object with nested objects
-  is merged in, so to make a deep copy of it, the originaal object needs to
+  is merged in, so to make a deep copy of it, the original object needs to
   construct its own copies of all objects to hold nested values. Setting a
   nested key like `foo.bar` may also result in building a `foo` object to
   hold the `bar` key with given value.
   
-   This internal method uses a dynamic way to figure out the right
+   A private `_construct` method is a dynamic way to figure out the right
   constructor for an object to build. It tries to call a `_getConstructor`
   method first and use a returned value as a constructor. Then it tries to
-  use a constructor of a possibly given value, or falls back to use the same
+  use a constructor of a given value, or falls back to use the same
   constructor as the object itself has.
   
    `onBeforeConstruct` hook may provide its own instantiation strategy.
@@ -834,7 +833,7 @@ LSD.Object.prototype._construct = function(name, constructor, meta, value) {
   impossible to decouple the program flow to something more reasonable. LSD
   instead provides a public interface to observe deeply properties and not
   bother about saving the state of execution somewhere. Instead of creating
-  closures, for each observed property, lsd links to a single function
+  closures, for each observed property, lsd references a single function
   internally.
 */
 LSD.Object.prototype._watcher = function(call, key, value, old, meta) {
@@ -856,14 +855,15 @@ LSD.Object.prototype._watcher = function(call, key, value, old, meta) {
     }
   }
 };
-LSD.Object.prototype._merger = function(call, name, value, old) {
-  this.mix(name, value, call, old, true, call.prepend);
+LSD.Object.prototype._merger = function(call, name, value, old, meta) {
+  this.mix(name, value, meta, old, true, call.prepend);
 };
 /*
-  All LSD functions that accept callbacks support a diverse scheme of setting 
-  callbacks by using a `_callback` method everywhere to figure out how to
+  All LSD functions that accept callbacks support a various number of callback
+  types by using a shared `_callback` method everywhere to figure out how to
   dispatch the given callback. It adds to consistensy and API richness across
-  all observable structures.
+  all observable structures. It also uses optional `meta` argument to record
+  a trace of all properties affected by callbacks to avoid curcular calls
 */
 LSD.Object.prototype._callback = function(callback, key, value, old, meta, lazy) {
   if (typeof callback == 'string')
@@ -877,7 +877,6 @@ LSD.Object.prototype._callback = function(callback, key, value, old, meta, lazy)
   if (property === true || property == false)
     property = key;
   // check for circular calls
-  // 25.03 - try keeping meta if given without forcing call stack - YF
   if (meta == null) meta = [[this, key]];
   else if (meta.push) {
     for (var i = 0, a; a = meta[i++];)
@@ -890,7 +889,8 @@ LSD.Object.prototype._callback = function(callback, key, value, old, meta, lazy)
   A function that recursively cleans LSD.Objects and returns plain object
   copy of the values. It is used on rare occasions where there needs to be a
   clean snapshot of an object expored to some foreign function (e.g. when
-  passing observable data to a javascript Request object)
+  passing observable data to some native JS API). It works, but it should
+  not be used when it's possible.
 */
 LSD.Object.prototype.toObject = function(normalize, serializer) {
   if (this === LSD.Object || this === LSD)
@@ -967,7 +967,7 @@ LSD.Object.prototype.has = function(key) {
   of object. Some of these properties are skipped naturally by using a
   hasOwnProperty function that filters out all properties that come from the
   prototype of the object. But with this skip map, properties may be assigned
-  to the object itself and still not be used in iterations.
+  to the object itself and still be skipped by iterators.
 */
 LSD.Object.prototype._skip = {
   _references: true,
@@ -1011,7 +1011,7 @@ LSD.Object.prototype._onStore = function(key, value, meta, old, name) {
 LSD.Object.prototype._trigger = '_calculated';
 LSD.Object.prototype._script = function(key, expression) {
   var scripted = (this._scripted || (this._scripted = {}));
-  var node = this.nodeType && this || (this._global && this._owner);
+  var node = this.nodeType && this;
   if (this.nodeType) {
     scripted[key] = LSD.Script(expression, null, [this, key]);;
     node.watch('variables', '_scripted.' + key + '.scope')

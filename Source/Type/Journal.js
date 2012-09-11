@@ -105,15 +105,17 @@ LSD.Journal.prototype.set = function(key, value, meta, prepend, old, hash) {
 };
 /*
   Most of hash table implementations have a simplistic way to delete
-  a key. LSD.Journal's unset function is unique in a way, that a call
-  to `unset` may result in one of 3 cases
+  a key - they just erase the value. LSD.Journal's unset function is 
+  unique in a way, that a call to `unset` may result in one of 3 cases
   
   * Value becomes undefined, like after a `delete object.key` call in
     javascript. It only happens if there was a single logged value by
     that key. Callbacks are called and passed that value as a second
     argument.
   * Value does not change, if the value being unset was not on top of
-    the stack. Callbacks don't fire.
+    the stack. It may also happen if there were two identical values 
+    on top of the stack, so removing the top value falls back to the
+    same value. Callbacks don't fire.
   * Value gets reverted to previous value on the stack. Callbacks are
     fired with both new and old value as arguments.
   
@@ -166,28 +168,42 @@ LSD.Journal.prototype.unset = function(key, value, meta, prepend, hash) {
 };
 /*
   Change method first sets the new value, and triggers all callbacks,
-  and then removes old value from the journal without calling callbacks.
+  and then removes previous value from the journal without calling callbacks.
   
-  The method is useful to alter the state of the object in an 
-  journal-based object and not pollute the journals with changed
-  values. When objects use .change() to mutate the state of an object,
-  even in the case of the conflicting change, no values will be lost
-  in the journal, but only the top value on the journal of them will be used.
+  The method is useful to alter the value by the key in journalized hash
+  from the outside:
+    
+    object.set('a', 1);             // adds value to stack
+    console.log(object._journal.a)  // [1]
+    object.set('a', 2);             // adds another value to the stack
+    console.log(object._journal.a)  // [1, 2]
+    object.change('a', 3);          // changes the value on top of the stack
+    console.log(object._journal.a)  // [1, 3]
   
-  Change method is a helper, but not the best method, because it
-  produces side effect to value journals. It removes a value on top
-  of a journal, but it's often possible to avoid any side-effects
-  whatsoever. When dealing with callbacks and properties
-  handlers it is better to use a pair of `set` & `unset` explicitly
-  because callbacks have a reference to old value and may avoid
-  screwing up the journal. The side effect often stay unnoticed
-  and in some situations is the best thing to do. Use with caution.
+  Change method removes a value on top from the journal, but that may lead to
+  unexpected results, if the top value was set by another entity that does
+  not expect that value to be gone. It's always possible to avoid side-effects
+  completely by unsetting specific value that is known to be given by the party
+  that invokes `change`. It is easy to do within a callback, because callbacks
+  in LSD receive both old and new value:
+  
+    object.watch('a', function(value, old) {
+      object.set('b', value, null, null, old);
+    })
+  
+  The code above is eqivalent of:
+  
+    object.watch('a', function(value, old) {
+      object.set('b', value);
+      object.unset('b', old);
+    })
+    
+  The difference is the first example works with both LSD.Journal and 
+  regular LSD.Object, while the second example would undefine the 
+  `b` property as a side effect in a regular LSD.Object.
 */
 LSD.Journal.prototype.change = function(key, value, meta) {
-  var old = this[key];
-  this.set(key, value, meta);
-  if (typeof old != 'undefined') this.unset(key, old, meta)
-  return true;
+  return this.set(key, value, meta, false, this[key]);
 };
 LSD.Struct.implement({
   _skip: {
