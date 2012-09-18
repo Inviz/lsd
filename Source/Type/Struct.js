@@ -196,7 +196,7 @@ LSD.Struct.Mutators = {
   A single struct instance can have one or two property dictionaries, where 
   properties are being looked up.
 */
-LSD.Struct.prototype._onChange = function(key, value, meta, old) {
+LSD.Struct.prototype._onChange = function(key, value, old, meta) {
   if (typeof key != 'string') return value;
   var props = this._properties, prop;
   if (props) prop = props[key];

@@ -47,7 +47,7 @@ provides:
 */
 
 LSD.Element = new LSD.Struct(LSD.Properties, 'Journal');
-LSD.Element.prototype.onChange = function(key, value, meta, old) {
+LSD.Element.prototype.onChange = function(key, value, old, meta) {
   var ns         = this.document || LSD.Document.prototype,
       states     = ns.states,
       definition = states[key],

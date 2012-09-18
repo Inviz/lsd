@@ -24,7 +24,7 @@ provides:
 
 LSD.Styles = LSD.Struct('Journal');
 
-LSD.Styles.prototype.onChange = function(key, value, meta, old) {
+LSD.Styles.prototype.onChange = function(key, value, old, meta) {
   var style = this.constructor[key];
   if (style) {
     if (value != null && typeof value == 'object') value = String(value);

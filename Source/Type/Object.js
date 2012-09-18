@@ -117,13 +117,13 @@ LSD.Object.prototype.set = function(key, value, meta, old, index, hash) {
   Builtin listeners may reject or transform value.
 */
   var changed;
-  if (this._onChange && typeof (changed = this._onChange(key, value, meta, old, hash)) != 'undefined')
+  if (this._onChange && typeof (changed = this._onChange(key, value, old, meta, hash)) != 'undefined')
     if (changed === this._skip) {
       if (hash == null) this[key] = old;
       return;
     } else value = changed;
   if (index !== -1 || nonenum !== true) {
-    if (this.onChange && typeof (changed = this.onChange(key, value, meta, old, hash)) != 'undefined')
+    if (this.onChange && typeof (changed = this.onChange(key, value, old, meta, hash)) != 'undefined')
       if (changed === this._skip) {
         if (hash == null) this[key] = old;
         return;
@@ -950,7 +950,7 @@ LSD.Object.prototype._skip = {
   LSD.Object.prototype['_' + method] = LSD.Object.prototype[method];
 });
 LSD.Object.prototype.change = LSD.Object.prototype.set;
-LSD.Object.prototype._onStore = function(key, value, meta, old, name) {
+LSD.Object.prototype._onStore = function(key, value, old, meta, name) {
   if (name == null) {
     if (value != null && typeof value == 'object') {
       var skip = value._skip; 

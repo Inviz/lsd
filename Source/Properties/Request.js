@@ -17,7 +17,7 @@ provides:
 */
 
 LSD.URL = new LSD.Struct({})
-LSD.URL.prototype.onChange = function(key, value, meta, old) {
+LSD.URL.prototype.onChange = function(key, value, old, meta) {
   if (this._parts.indexOf(key) > -1)
     this.change('value', this.toString());
 };

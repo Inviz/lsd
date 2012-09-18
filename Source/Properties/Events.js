@@ -86,7 +86,7 @@ LSD.Properties.Events.prototype.dispatch = function(key) {
   when a data flows through one of the sibling modules
 */
 
-LSD.Properties.Events.prototype._delegate = function(object, key, value, meta, old) {
+LSD.Properties.Events.prototype._delegate = function(object, key, value, old, meta) {
   switch (object.nodeType) {
     case 1:
       if (object.lsd) {

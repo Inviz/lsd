@@ -24,7 +24,7 @@ provides:
 */
 
 LSD.Properties.Attributes = LSD.Struct(LSD.attributes, 'Journal');
-LSD.Properties.Attributes.prototype.onChange = function(key, value, meta, old) {
+LSD.Properties.Attributes.prototype.onChange = function(key, value, old, meta) {
   var owner = this._owner, ns = owner.document || LSD.Document.prototype;
   var attribute = ns.attributes && ns.attributes[key]
   var vdef = typeof value != 'undefined', odef = typeof old != 'undefined';

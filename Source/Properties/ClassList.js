@@ -22,7 +22,7 @@ provides:
 LSD.Properties.ClassList = LSD.Struct({
   _name: '.className'
 }, 'Journal');
-LSD.Properties.ClassList.prototype.onChange = function(key, value, meta, old) {
+LSD.Properties.ClassList.prototype.onChange = function(key, value, old, meta) {
   if (key == '_name') return;
   var owner = this._owner, ns = owner.document || LSD.Document.prototype;
   if ((!meta || meta !== 'states') && ns.states[key])

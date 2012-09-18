@@ -73,7 +73,7 @@ LSD.Properties.Matches = LSD.Struct('Group');
    Then, dynamic part kicks in - a node observes its own state and fires
   callbacks when classes, pseudo classes or attributes are changed.
 */
-LSD.Properties.Matches.prototype.onChange = function(key, value, meta, old, hash) {
+LSD.Properties.Matches.prototype.onChange = function(key, value, old, meta, hash) {
   if (typeof key == 'string') 
     key = (this._parsed[key] || (this._parsed[key] = Slick.parse(key)));
   var odef = old !== undefined, vdef = value !== undefined;
