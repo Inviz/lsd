@@ -32,7 +32,7 @@ LSD.Properties.Events.prototype.onGroup = function(key, group, state) {
   if (!body) return;
   var defs = doc.events, def = defs[key], base;
   if (!def || !(base = def.base) || !defs[base]) {
-    var events = body.events, delegates = (events.delegates || events.delegates = {});
+    var events = body.events, delegates = (events.delegates || (events.delegates = {}));
     if (state && ++delegates[key] == 1)
       events.addListener(body.element, key)
     if (!state && --delegates[key] == 0)
@@ -57,12 +57,12 @@ LSD.Properties.Events.prototype.handle = function(event) {
   }
 };
 LSD.Properties.Events.prototype.addListener = function(element, type, fn, meta) {
-  if (!fn) fn = this._handler || this._handler = this.handle.bind(this);
+  if (!fn) fn = this._handler || (this._handler = this.handle.bind(this));
   if (element.addEventListener) element.addEventListener(type, fn, !!meta);
   else element.attachEvent('on' + type, fn);
 }
 LSD.Properties.Events.prototype.removeListener = function(element, type, fn, meta) {
-  if (!fn) fn = this._handler || this._handler = this.handle.bind(this);
+  if (!fn) fn = this._handler || (this._handler = this.handle.bind(this));
   if (element.removeEventListener) element.removeEventListener(type, fn, !!meta);
   else element.detachEvent('on' + type, fn);
 }

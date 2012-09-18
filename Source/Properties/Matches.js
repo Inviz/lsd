@@ -60,23 +60,18 @@ provides:
 LSD.Properties.Matches = LSD.Struct('Group');
 /*
   Matches observes selectors in small bites.
-  
-  Selector expression (e.g. `strong.important`) consists
-  of a part that rarely changes in life time of a node
-  (`strong` tag name) and another part that is dynamic
-  (a class name `important` may be easily removed from 
-  a node)
-  
-  The idea is to split the selector bit to static and dynamic
-  parts. The widget that is *match*ing the selector, groups
-  his matches by tag name. Every node inserted into
-  that element or its children will pick up matches
-  related to it, thus matching static part of a selector
-  - tag name and combinator. 
-  
-  Then, dynamic part kicks in - a node itself observes 
-  the state and fires callbacks when classes, pseudo 
-  classes or attributes are changed.
+
+   Selector expression (e.g. `strong.important`) consists of a part that rarely
+  changes in life time of a node (`strong` tag name) and another part that is
+  dynamic (a class name `important` may be easily removed from a node)
+
+   The idea is to split the selector bit to static and dynamic parts. The
+  widget that is *match*ing the selector, groups his matches by tag name. Every
+  node inserted into that element or its children will pick up matches related
+  to it, thus matching static part of a selector - tag name and combinator.
+
+   Then, dynamic part kicks in - a node observes its own state and fires
+  callbacks when classes, pseudo classes or attributes are changed.
 */
 LSD.Properties.Matches.prototype.onChange = function(key, value, meta, old, hash) {
   if (typeof key == 'string') 

@@ -93,14 +93,18 @@ LSD.Array.prototype.push = function() {
     this.set(this._length, args[i], 'push');
   return this._length;
 };
-LSD.Array.prototype.set = function(key, value, old, meta) {
+LSD.Array.prototype.set = function(key, value, old, meta, extra) {
   var index = parseInt(key);
   if (index != index) {
-    return this._set(key, value, old, meta);
+    return this[this._setter || '_set'](key, value, old, meta, extra);
   } else {
     this[index] = value;
     if (index + 1 > this._length) this._set('length', (this._length = index + 1));
-    var watchers = this.__watchers;
+    if (this._onSet && typeof (set = this._onSet(value, index, true, old, meta)) != 'undefined')
+      this[index] = value = set;
+    if (this.onSet && typeof (set = this.onSet(value, index, true, old, meta)) != 'undefined')
+      this[index] = value = set;
+    var watchers = this.__watchers, changed;
     if (watchers) for (var i = 0, j = watchers.length, fn; i < j; i++) {
       if (!(fn = watchers[i])) continue;
       if (typeof fn == 'function') fn.call(this, value, index, true, old, meta);
@@ -128,15 +132,13 @@ LSD.Array.prototype.set = function(key, value, old, meta) {
           }
         }
     }
-    if (this._onSet) this._onSet(value, index, true, old, meta);
-    if (this.onSet) this.onSet(value, index, true, old, meta);
     return value;
   }
 };
-LSD.Array.prototype.unset = function(key, value, old, meta) {
+LSD.Array.prototype.unset = function(key, value, old, meta, extra) {
   var index = parseInt(key);
   if (index != index) {
-    return this._unset(key, value, old, meta);
+    return this._unset(key, value, old, meta, extra);
   } else {
     delete this[index];
     if (index + 1 == this._length) this._set('length', (this._length = index));

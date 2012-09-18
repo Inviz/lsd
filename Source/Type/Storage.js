@@ -33,13 +33,17 @@ provides:
 */
 
 LSD.Storage = function(value, index, state, old, meta, prefix, storage, self) {
-  if (this instanceof LSD.Storage) {
-    if (value === false) return;
-    storage = function(v, i, s, o, m) {
-      return LSD.Storage.call(this, v, i, s, o, m, value, index, storage)
+  if (this.getAllItems) {
+    if (value === false || (self && this instanceof self)) return;
+    var constructor = function(v, i, s, o, m) {
+      if (this instanceof constructor) {
+        if (v != null) this.prefix = v;
+      } else {
+        return LSD.Storage.call(this, v, i, s, o, m, value, index, constructor)
+      }
     }
-    storage.prototype = new LSD.Storage(false);
-    return storage;
+    constructor.prototype = new LSD.Storage(false);
+    return constructor;
   }
   if (!storage) storage = 'Local';
   if (typeof storage == 'string') storage = LSD.Storage[storage].prototype;
@@ -87,8 +91,7 @@ LSD.Storage = function(value, index, state, old, meta, prefix, storage, self) {
     prefix = index;
   else if (context && context.push && context.prefix != null) 
     prefix = context.prefix;
-  else 
-    prefix = '';
+  else prefix = '';
   if (remove || state === false) {  
     storage.removeItem(index, prefix, callback || context || this, meta, storage);
   } else if (set) {
@@ -97,25 +100,11 @@ LSD.Storage = function(value, index, state, old, meta, prefix, storage, self) {
     var result = storage.getItem(value, prefix, callback || context || this, meta, storage);
     return (result == null) ? undefined : result;
   } else {  
-    if (context.push && context.watch) 
+    if (context.push && context._watch) 
       context.watch(self);
     storage.getAllItems(prefix, callback || context || this, meta, storage);
   }
 };
-LSD.Storage.prototype.callback = function(callback, key, value, meta) {
-  if (callback.set) {
-    if (meta !== 'storage') 
-      callback[typeof value == 'undefined' ? 'unset' : 'set'](key, value, undefined, 'storage');
-  } else if (callback.call) 
-    callback(key, value, meta)
-  else if (typeof value != 'undefined') 
-    callback[key] = value;
-  else {
-    delete callback[key];
-    if (callback.push && callback.length == parseInt(key) + 1)
-      callback.length = key;
-  }
-}
 LSD.Storage.prototype.setItem = function(key, value, prefix, callback, meta) {
   if (callback && callback.push && callback.length <= key)
     this.adapter.setItem(prefix + 'length', key + 1);
@@ -139,7 +128,21 @@ LSD.Storage.prototype.getAllItems = function(prefix, callback, meta) {
   for (var i = 0; i < j; i++) 
     this.getItem(i, prefix, callback, meta);
 };
-
+LSD.Storage.prototype.callback = function(callback, key, value, meta) {
+  if (callback.set) {
+    if (meta !== 'storage') 
+      callback[typeof value == 'undefined' ? 'unset' : 'set'](key, value, undefined, 'storage');
+  } else if (callback.call) 
+    callback.call(this, key, value, meta)
+  else if (typeof value != 'undefined') 
+    callback[key] = value;
+  else {
+    delete callback[key];
+    if (callback.push && callback.length == parseInt(key) + 1)
+      callback.length = key;
+  }
+}
+LSD.Storage.prototype.prefix = '';
 LSD.Storage.Local = new LSD.Storage(undefined, 'Local');
 LSD.Storage.Local.prototype.adapter = localStorage;
 
@@ -179,49 +182,158 @@ LSD.Storage.Cookies.prototype.getItem = function(key, prefix, callback, meta) {
 LSD.Storage.Cookies.prototype.getAllItems = LSD.Storage.Cookies.prototype.getItem;
 
 
-
-//LSD.Storage.IDB = new LSD.Storage(undefined, 'IDB');
-//LSD.Storage.IDB.prototype.database = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB;
-//LSD.Storage.IDB.prototype.transaction = window.IDBTransaction || window.mozDBTransaction  || window.webkitIDBTransaction;
-//LSD.Storage.IDB.prototype.open = function(name, version) {
-//  var request = this.database.open(name, version || 1);
-//  var self = this;
-//  request.onsuccess = function(event) {
-//    return self.onOpenSuccess(event, name);
-//  }
-//  request.onfailure = function(event) {
-//    return self.onOpenError(event, name);
-//  }
-//  request.onupgradeneeded = function(event) {
-//    return self.onUpgradeNeeded(event, name);
-//  }
-//  return request;
-//}
-//LSD.Storage.IDB.prototype.getTransaction = function(name, mode) {
-//  var db = this.database || (this.database = this.open());
-//  return db.transaction(name, mode).objectStore(name);
-//}
-//LSD.Storage.IDB.prototype.onOpenSuccess = function(event, name) {
-//  
-//}
-//LSD.Storage.IDB.prototype.onOpenError = function(event, name) {
-//  
-//}
-//LSD.Storage.IDB.prototype.setItem = function(key, callback, storage, prefix) {
-//  var transaction = this.getTransaction(prefix);
-//  transaction.onsuccess = this
-//}
-//LSD.Storage.IDB.prototype.removeItem = function() {
-//  
-//}
-//LSD.Storage.IDB.prototype.getItem = function() {
-//
-//}
-//LSD.Storage.IDB.prototype.getAllItems = function() {
-//  
-//}
-//
-//LSD.Storage.IDB.prototype.onUpgradeNeeded = function(event, name) {
-//  var db = event.target.result;
-//  db.createObjectStore(name, 1)
-//}
+LSD.Storage.Indexed = new LSD.Storage(undefined, 'Indexed');
+LSD.Storage.Indexed.prototype.database = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB;
+LSD.Storage.Indexed.prototype.transaction = window.IndexedTransaction || window.mozDBTransaction  || window.webkitIndexedTransaction;
+LSD.Storage.Indexed.prototype.databases = {};
+if (navigator.userAgent.indexOf('Chrome') > -1) {
+  LSD.Storage.Indexed.prototype.keyPath = 'key';
+  LSD.Storage.Indexed.prototype.valuePath = 'value';
+}
+LSD.Storage.Indexed.prototype.open = function() {
+  for (var i = 0, j = arguments.length, arg; i < j; i++) {
+    switch (typeof (arg = arguments[i])) {
+      case 'string':
+        var name = arg;
+        break;
+      case 'number':
+        var version = arg;
+        break;
+      case 'function':
+        var callback = arg;
+    }
+  }
+  var db = this.databases[name];
+  if (db) {
+    if (callback) callback.call(this, db)
+    return db;
+  }
+  var self = this;
+  var onUpgrade = function(event) {
+    var db = event.target.source || event.target.result
+    var found, names = db.objectStoreNames;
+    for (var i = 0, id; (id = names[i++]) != null;)
+      if (id == name) break;
+    if (!id) db.createObjectStore(name, {
+      keyPath: self.keyPath,
+      autoIncrement: false
+    }, true)
+    return db;
+  };
+  if (!version) version = 3;
+  var request = this.database.open(name, version, onUpgrade)
+  request.onerror = request.onsuccess = request.onblocked = function(event) {
+    var db = event.target.result
+    if (db.version != version) {
+      var request = db.setVersion(version);;
+      request.onsuccess = function(e) {
+        db = onUpgrade(e);
+        setTimeout(function() {
+          callback.call(self, self.databases[name] = db)
+        }, 0)
+      }
+      return request;
+    } else {
+      return callback.call(self, self.databases[name] = db)
+    }
+  }
+  request.onupgradeneeded = onUpgrade;
+  return request;
+}
+LSD.Storage.Indexed.prototype.openCursor = function() {
+  var self = this;
+  for (var i = 0, j = arguments.length, arg; i < j; i++) {
+    switch (typeof (arg = arguments[i])) {
+      case 'string':
+        if (!prefix) var prefix = arg;
+        break;
+      case 'boolean': case 'number':
+        if (arg) var mode = 'readwrite';
+        break;
+      case 'function':
+        var callback = arg;
+    }
+  }
+  return this.openStore(prefix, mode, function(store) {
+    var cursor = store.openCursor();
+    cursor.onsuccess = cursor.onerror = function(event) {
+      callback.call(self, cursor.result, event);
+    };
+    return cursor;
+  })
+};
+LSD.Storage.Indexed.prototype.openStore = function() {
+  var name = this.prefix, mode, callback;
+  for (var i = 0, j = arguments.length, arg; i < j; i++) {
+    switch (typeof (arg = arguments[i])) {
+      case 'string':
+        if (!name) name = arg;
+        else mode = arg;
+        break;
+      case 'boolean': case 'number':
+        if (arg) mode = 'readwrite';
+        break;
+      case 'function':
+        callback = arg;
+    }
+  }
+  return this.open(name, function(database) {
+    var store = database.transaction([name], mode || 'readonly').objectStore(name);
+    if (callback) callback.call(this, store);
+    return store;
+  })
+};
+LSD.Storage.Indexed.prototype.close = function(name) {
+  if (this.database) this.database.close();
+};
+LSD.Storage.Indexed.prototype.setItem = function(key, value, prefix, callback, meta) {
+  return this.openStore(prefix, true, function(store) {
+    if (this.keyPath) {
+      if (typeof value != 'object') {
+        var obj = {};
+        obj[this.keyPath] = key;
+        obj[this.valuePath] = value;
+      }
+      var request = store.put(obj || value)
+    } else {
+      var request = store.put(value, key)
+    }
+    var self = this;
+    request.onsuccess = request.onerror = function(event) {
+      if (event.type == 'error') return;
+      self.callback(callback, key, value, meta || event)
+    }
+    return request;
+  });
+};
+LSD.Storage.Indexed.prototype.removeItem = function(key, prefix, callback, meta) {
+  return this.openStore(prefix, true, function(store) {
+    var request = store['delete'](key), self = this;
+    request.onsuccess = request.onerror = function(event) {
+      if (event.type == 'error') return;
+      self.callback(callback, key, undefined, meta || event)
+    }
+    return request;
+  });
+};
+LSD.Storage.Indexed.prototype.getItem = function(key, prefix, callback, meta) {
+  return this.openStore(prefix, false, function(store) {
+    var request = store.get(key), self = this;
+    request.onsuccess = request.onerror = function(event) {
+      if (event.type == 'error') return;
+      var result = event.target.result;
+      if (self.valuePath && result) result = result[self.valuePath];
+      self.callback(callback, key, result, meta || event)
+    }
+    return request;
+  });
+};
+LSD.Storage.Indexed.prototype.getAllItems = function(prefix, callback, meta) {
+  return this.openCursor(prefix, function(cursor, event) {
+    if (!cursor) return;
+    else var value = cursor.value;
+    if (this.valuePath && value) value = value[this.valuePath];
+    this.callback(callback, cursor.key, value, meta || event);
+    return cursor['continue']();
+  });
+};

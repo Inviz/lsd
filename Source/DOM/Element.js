@@ -54,8 +54,8 @@ LSD.Element.prototype.onChange = function(key, value, meta, old) {
       stack      = this._journal && this._journal[key];
   if (this._inherited[key] && this.childNodes)
     for (var i = 0, child; child = this.childNodes[i++];) {
-      child.set(key, value, meta, true);
-      if (typeof old != 'undefined') child.unset(key, old, meta, true);
+      child.set(key, value, meta, undefined, true);
+      if (typeof old != 'undefined') child.unset(key, old, meta, undefined, true);
     }
   if (!definition) return
   if (typeof value != 'undefined' && (!stack || stack.length === 1) && typeof this[definition[0]] != 'function') {
@@ -233,9 +233,9 @@ LSD.Element.prototype.__properties = {
   inline: function(value, old, meta) {
     var revert = this.tagName != this.localName;
     if (typeof value != 'undefined')
-      this.set('localName', value ? 'span' : 'div', meta, revert);
+      this.set('localName', value ? 'span' : 'div', meta, undefined, revert);
     if (typeof old != 'undefined')
-      this.unset('localName', old ? 'span' : 'div', meta, revert);
+      this.unset('localName', old ? 'span' : 'div', meta, undefined, revert);
   },
 /*
   LSD.Element writes a single property into a real element that helps to tell
@@ -353,8 +353,8 @@ LSD.Element.prototype.__properties = {
         var val = opts[key];
         if (typeof val == 'object')
           for (var subkey in val)
-            this[key].set(subkey, val[subkey], meta, true);
-        else this.set(key, val, meta, true);
+            this[key].set(subkey, val[subkey], meta, undefined, true);
+        else this.set(key, val, meta, undefined, true);
       }
       if (!this.fragment && value.childNodes.length) {
         var fragment = new LSD.Fragment;
@@ -368,8 +368,8 @@ LSD.Element.prototype.__properties = {
         var val = opts[key];
         if (typeof val == 'object')
           for (var subkey in val)
-            this[key].unset(subkey, val[subkey], meta, true);
-        else this.unset(key, val, meta, true);
+            this[key].unset(subkey, val[subkey], meta, undefined, true);
+        else this.unset(key, val, meta, undefined, true);
       }
       delete this.originated;
     }
@@ -550,8 +550,8 @@ LSD.Element.prototype.__properties = {
     this.mix('variables', value && (this.fragment && this.fragment != value.fragment && this.fragment.variables || value.variables), 
                       meta, old && (this.fragment && this.fragment != old.fragment && this.fragment.variables || old.variables), true);
     for (var property in this._inherited) {
-      if (value && value[property]) this.set(property, value[property], meta, true);
-      if (old && old[property]) this.unset(property, old[property], meta, true);
+      if (value && value[property]) this.set(property, value[property], meta, undefined, true);
+      if (old && old[property]) this.unset(property, old[property], meta, undefined, true);
     }
     for (var i = 0, node, method; i < 2; i++) {
       if (i) node = old, method = 'remove';
@@ -565,7 +565,7 @@ LSD.Element.prototype.__properties = {
         }
       }
     }
-    if (this.firstChild) for (var node = this, x, el; el != this; node = el)
+    if (this.firstChild) for (var node = this, x, el; el != this && node; node = el) {
       if ((x || !(el = node.firstChild)) && (x = !(el = node.nextSibling)))
         x = el = node.parentNode;
       else if (el.nodeType == 1) {
@@ -578,6 +578,7 @@ LSD.Element.prototype.__properties = {
           el.matches.add('!', value.tagName, value, true)
         }
       }
+    }
   },
   multiple: function(value, old) {
     if (value) {
@@ -617,7 +618,7 @@ LSD.Element.prototype.__properties = {
     if (meta !== 'textContent') {
       if (meta !== 'childNodes') {
         if (this.childNodes.length === 1 && this.childNodes[0].nodeType == 3)
-          this.childNodes[0].set('textContent', value, 'textContent', false, old);
+          this.childNodes[0].set('textContent', value, 'textContent', old);
         else if (typeof value != 'undefined' && (value !== '' || this.childNodes.length)) {
           this.childNodes.splice(0, this.childNodes.length, new LSD.Textnode(value));
         }
@@ -628,12 +629,12 @@ LSD.Element.prototype.__properties = {
         if (content != null) {
           for (var text = '', child, i = 0; child = children[i++];)
             if (child.textContent != null) text += child.textContent;
-          node.set('textContent', text, 'textContent', true, content);
+          node.set('textContent', text, 'textContent', content, true);
           children.textContent = text;
         }
       }
     }
-    if (meta !== 'nodeValue') this.set('nodeValue', value, 'textContent', true, old);
+    if (meta !== 'nodeValue') this.set('nodeValue', value, 'textContent', old, true);
   },
 /*
   Different types of elements have different strategies to define value. The

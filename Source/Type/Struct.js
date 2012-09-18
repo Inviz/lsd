@@ -32,8 +32,8 @@ LSD.Struct = function(properties, Base, Sub) {
   `new LSD.Struct` creates a constructor, that can be used to construct
   instances of that structure, which bears close resemblance to OOP.
 */
-  var Struct = function(object) {
-    if (this.Variable || !this._construct) return new Struct(object, arguments[1])
+  var Struct = function() {
+    if (this.Variable || !this._construct) return new Struct(arguments[0], arguments[1])
 /*
   Inherited properties is an internal concept that allows an instance of a
   class to recieve its own copy of a private object from prototype without
@@ -57,20 +57,41 @@ LSD.Struct = function(properties, Base, Sub) {
       var obj = this[type] = new constructor;
       obj._owner = this;
       var properties = obj._properties;
-      if (properties && typeof properties._owner == 'function') properties._owner.call(obj, this)
+      if (properties && typeof properties._owner == 'function')
+        properties._owner.call(obj, this)
     }
-    if (this.__initialize) object = this.__initialize.apply(this, arguments);
-    if (this.initialize) object = this.initialize.apply(this, arguments);
-    if (this._imports) this._link(this._imports, true);
-    if (this._exports) this._link(this._exports, true, true);
-    if (this._initialize) 
-      var constructed = this._initialize.apply(this, arguments);
-    if (object != null) (constructed || this).mix(object);
-    if (constructed) return constructed
+    var object = arguments[0];
+    if (this.__initialize)
+      object = this.__initialize.apply(this, arguments);
+    if (this.initialize)
+      object = this.initialize.apply(this, arguments);
+    if (this._imports)
+      this._link(this._imports, true);
+    if (this._exports)
+      this._link(this._exports, true, true);
+    var subject = this._initialize && this._initialize.apply(this, arguments) || this;
+    if (typeof object == 'object')
+      subject.mix(object);
+    return subject
+  }
+  if (Base && Base.push) {
+    var Chain = Array.prototype.slice.call(Base, 1);
+    Base = Base[0];
   }
   var constructor = (typeof Base == 'string' ? LSD[Base] : Base) || LSD.Object;
-  Struct.struct = true;
   Struct.prototype = new constructor;
+  if (Chain) for (var other, i = 0; other = Chain[i]; i++) {
+    if (typeof other == 'string') other = LSD[other];
+    if (i) var F = function() {};
+    Struct.prototype = i ? (F.prototype = new F) : Struct.prototype;
+    var proto = other.prototype, def = LSD.Object.prototype;;
+    for (var name in proto) {
+      var value = proto[name];
+      if (value != def[name])
+        Struct.prototype[name] = proto[name];
+    }
+  }
+  Struct.struct = true;
   Struct.implement = LSD.Struct.implement;
   Struct.implement(LSD.Struct.prototype);
   Struct.prototype.constructor = Struct;
@@ -233,13 +254,8 @@ LSD.Struct.prototype._onChange = function(key, value, meta, old) {
             group.splice(i, 1);
             break;
           }
-        for (var i = 0, j = this.length; i < j; i++) {
-          var obj = this[i];
-          if (vdef) this[i].set(key, value);
-          if (old && (!vdef || obj._journal)) this[i].unset(key, old);
-        }
-        
-        return this._skip;
+        for (var i = 0, j = this.length; i < j; i++)
+          this[i].set(key, value, meta, old);
       }
   };
   return value;
@@ -277,29 +293,6 @@ LSD.Struct.prototype.onBeforeConstruct = function(key) {
   will be defined when object is instantiated, unlike property dictionaries
   that are lazy in the way that when object is created, it does not iterate the
   dictionary and only looks it up when actual properties change.
-*/
-LSD.Struct.prototype._link = function(properties, state, external) {
-  for (var name in properties) {
-    var alias = properties[name]
-    if (alias.match(this._simple_property)) {
-      if (state === false) {
-        this._unwatch(properties[name], this);
-      } else {
-        this._watch(properties[name], {
-          fn: this._linker,
-          bind: this,
-          callback: this,
-          key: external ? '.' + name : name
-        });
-      }
-    } else {
-      this[state === false ? '_unscript' : '_script'](name, alias)
-    }
-  }
-};
-/*
-  Dynamic properties may be calculated in run time using on other properties
-  values.
 
     var Struct = new LSD.Struct({
       imports: {
@@ -323,11 +316,27 @@ LSD.Struct.prototype._link = function(properties, state, external) {
   and after that `tax` variables. When all variables are found, the result 
   is calculated and assigned to a property named `total`. 
 */
+LSD.Struct.prototype._link = function(properties, state, external) {
+  for (var name in properties) {
+    var alias = properties[name]
+    if (alias.match(this._simple_property)) {
+      if (state === false) {
+        this._unwatch(properties[name], this);
+      } else {
+        this._watch(properties[name], {
+          fn: this._linker,
+          bind: this,
+          callback: this,
+          key: external ? '.' + name : name
+        });
+      }
+    } else {
+      this[state === false ? '_unscript' : '_script'](name, alias)
+    }
+  }
+};
 LSD.Struct.prototype._linker = function(call, key, value, old, meta) {
-  if (typeof value != 'undefined')
-    this.mix(call.key, value, meta);
-  if (old != null && (this._journal || typeof value == 'undefined'))
-    this.mix(call.key, undefined, meta, old);
+  this.mix(call.key, value, meta, old);
 };
 LSD.Struct.prototype._unlinked = ['_journal', '_stored'];
 LSD.Struct.prototype._skip = {

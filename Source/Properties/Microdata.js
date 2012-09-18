@@ -45,8 +45,10 @@ LSD.Properties.Microdata.prototype._script = function(key, value, meta) {
     else group = [group, value];
   } else storage[key] = value;
   value.watch('nodeValue', [this, key]);
+  return true;
 }
 LSD.Properties.Microdata.prototype._unscript = function(key, value, meta) {
   var group = this._elements[key];
   value.unwatch('nodeValue', [this, key]);
+  return true;
 }

@@ -84,6 +84,7 @@ LSD.Textnode.prototype.__initialize = function() {
     }
   }
   if (string != null) this.set('textContent', string);
+  this.uid = LSD.Textnode.uid = (LSD.Textnode.uid || (LSD.Textnode.uid = 0)) + 1;
 }
 
 LSD.Textnode.prototype.nodeType = 3;
