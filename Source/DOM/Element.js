@@ -549,8 +549,12 @@ LSD.Element.prototype.__properties = {
       value && (this.fragment && this.fragment != value.fragment && this.fragment.variables || value.variables), 
       old && (this.fragment && this.fragment != old.fragment && this.fragment.variables || old.variables),
       meta, true);
-    for (var property in this._inherited)
+    for (var property in this._inherited) {
+      var inheriting = value && value[property];
+      var inherited = old && old[property];
+      if (inheriting === inherited) continue;
       this.set(property, value && value[property], old && old[property], meta, true);
+    }
     for (var i = 0, node, method; i < 2; i++) {
       if (i) node = old, method = 'remove';
       else node = value, method = 'add';
