@@ -22,20 +22,29 @@ provides:
 */
 
 LSD.Group = function(object, constructor) {
-  if (typeof object == 'string') { constructor = object, object = null };
+  if (typeof object == 'string') { 
+    constructor = object;
+    object = null;
+  }
   if (constructor) this.__constructor = typeof constructor == 'string' ? LSD[constructor] : constructor;
   if (object != null) this.mix(object)
 };
 LSD.Group.prototype = new LSD.Object;
 LSD.Group.prototype.constructor = LSD.Group;
 LSD.Group.prototype.__constructor = Array;
-LSD.Group.prototype.set = function(key, value, meta, old, prepend, hash) {
-  if (this._hash) {
-    if ((hash = this._hash(key, value, meta, true)) === true) return true;
-    if (typeof hash == 'string' && (key = hash)) hash = null;
+LSD.Group.prototype._hash = function(key, value, old, meta, prepend, index) {
+  if (this.__hash) {
+    var hash = this.__hash(key, value, old, meta);
+    switch (typeof hash) {
+      case 'string':
+        key = hash;
+        hash = null;
+        break;
+      case 'boolean':
+        return hash;
+    }
   }
-  var setting = typeof value != 'undefined';
-  if (hash == null) {
+  if (typeof key == 'string' && hash == null) {
     var index = key.indexOf('.');
     if (index == -1 && !this._skip[key] && !(this._properties && this._properties[key])) {
       var group = this[key];
@@ -43,17 +52,16 @@ LSD.Group.prototype.set = function(key, value, meta, old, prepend, hash) {
         group = this[key] = new this.__constructor;
         if (this.onGroup) this.onGroup(key, value, true, group)
       }
+      return group;
     }
-  } else var group = hash;
-  if (typeof (this._set(key, value, meta, old, index, group)) != 'undefined' && group != null) {
-    if (typeof old != 'undefined') {
-      var i = group.indexOf(old);
-      group.splice(i, 1);
-    }
-    if (setting) {
-      (prepend || value == null) ? group.unshift(value) : group.push(value);
-    }
-  }
-    
-  return true;
+  } else return hash;
 };
+LSD.Group.prototype._finalize = function(key, value, old, meta, prepend, hash) {
+  if (hash == null) return;
+  if (old !== undefined) {
+    var index = hash.indexOf(old);
+    if (index > -1) hash.splice(index, 1);
+  }
+  if (value !== undefined)
+    hash[prepend === true || value == null ? 'unshift' : 'push'](value);
+}

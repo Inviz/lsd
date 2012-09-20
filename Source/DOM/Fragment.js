@@ -256,5 +256,5 @@ LSD.Fragment.prototype.add = function(object) {
 };
 LSD.Fragment.prototype.R_WORD = /[a-zA-Z][a-zA-Z0-9]*/;
 LSD.Fragment.prototype._properties.parentNode = function(value, old, meta) {
-  this.mix('variables', value && value.variables, meta, old && old.variables);
+  this.mix('variables', value && value.variables, old && old.variables, meta);
 };

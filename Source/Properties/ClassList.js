@@ -26,7 +26,7 @@ LSD.Properties.ClassList.prototype.onChange = function(key, value, old, meta) {
   if (key == '_name') return;
   var owner = this._owner, ns = owner.document || LSD.Document.prototype;
   if ((!meta || meta !== 'states') && ns.states[key])
-    owner.mix(key, true, 'classes', old);
+    owner.mix(key, true, old, 'classes');
   var index = (' ' + this._name + ' ').indexOf(' ' + key + ' ');
   if (value && index == -1) this.set('_name', this._name.length ? this._name + ' ' + key : key);
   else if (old && index > -1) this.set('_name', this._name.substring(0, index - 1) + this._name.substring(index + key.length));
@@ -45,5 +45,5 @@ LSD.Properties.ClassList.prototype.add = function(name) {
   return this.set(name, true);
 };
 LSD.Properties.ClassList.prototype.remove = function(name) {
-  return this.unset(name, true);
+  return this.set(name, undefined, true);
 };

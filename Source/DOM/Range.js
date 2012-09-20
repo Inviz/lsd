@@ -131,5 +131,5 @@ LSD.Range.prototype.select = function() {
 };
 // Unselects the range
 LSD.Range.prototype.unselect = function() {
-  this.unset('selection', this.selection);;
+  this.set('selection', undefined, this.selection);;
 };

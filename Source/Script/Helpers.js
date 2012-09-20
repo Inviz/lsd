@@ -167,7 +167,7 @@ LSD.Script.Helpers['='] = LSD.Script.Helpers['define'] = function(name, value) {
   return value;
 };
 LSD.Script.Helpers['undefine'] = function(name, value) {
-  (this.scope.variables || this.scope).unset(name, value);
+  (this.scope.variables || this.scope).set(name, undefined, value);
   return value;
 }
 

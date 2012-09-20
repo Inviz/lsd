@@ -22,8 +22,8 @@ provides:
 LSD.ChildNodes = LSD.Struct({
   _owner: function(value, old) {
     if (old && this._length) {
-      old.unset('firstChild', this[0]);
-      old.unset('lastChild', this[this.length - 1]);
+      old.set('firstChild', undefined, this[0]);
+      old.set('lastChild', undefined, this[this.length - 1]);
     }
   }
 }, 'Array');
@@ -40,7 +40,7 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, meta) {
     if ((state || moving))
       value.change('previousSibling', prev, meta);
     else if (value.previousSibling == prev)
-      value.unset('previousSibling', prev, meta);
+      value.set('previousSibling', undefined, prev, meta);
   }
   if (next !== value && !moving) {
     if (next && (state || (!splicing || !prev)))
@@ -48,17 +48,17 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, meta) {
     if ((state || moving))
       value.change('nextSibling', next, meta);
     else if (value.nextSibling == next)
-      value.unset('nextSibling', next, meta);
+      value.set('nextSibling', undefined, next, meta);
   }
   if (owner) {
     if (index === 0) {
       if (state) owner.change('firstChild', value);
-      else owner.unset('firstChild', owner.firstChild);
+      else owner.set('firstChild', undefined, owner.firstChild);
     }
     var last = this.length - +state;
     if (index === last && !moving) {
       if (state || last) owner.change('lastChild', state ? value : this[last - 1]);
-      else owner.unset('lastChild', owner.lastChild);
+      else owner.set('lastChild', undefined, owner.lastChild);
     }
   }
   if (value.nodeType === 1 && (state || !moving)) {
@@ -80,11 +80,11 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, meta) {
           if (!emptying && !splicing) 
             prev.change('nextElementSibling', next, meta);
         } else 
-          prev.unset('nextElementSibling', value, meta);
+          prev.set('nextElementSibling', undefined, value, meta);
       if (state) 
         value.change('previousElementSibling', prev, meta);
       else if (value.previousElementSibling)
-        value.unset('previousElementSibling', value.previousElementSibling, meta)
+        value.set('previousElementSibling', undefined, value.previousElementSibling, meta)
     } 
     if (next && (!state || (meta & this.LAST))) {
       if ((state && !moving) || moving) {
@@ -94,22 +94,22 @@ LSD.ChildNodes.prototype.onSet = function(value, index, state, old, meta) {
           if ((state || !emptying)) 
             next.change('previousElementSibling', prev, meta);
         } else 
-          next.unset('previousElementSibling', value, meta);
+          next.set('previousElementSibling', undefined, value, meta);
       if (state) {
         if (!moving) value.change('nextElementSibling', next, meta);
       } else if (value.nextElementSibling)
-        value.unset('nextElementSibling', value.nextElementSibling, meta)
+        value.set('nextElementSibling', undefined, value.nextElementSibling, meta)
     }
   }
   if ((!state || owner != value.parentNode) && !moving)
-    value[state ? 'set' : 'unset']('parentNode', owner || null, meta);
+    value.set('parentNode', state && owner || undefined, !state && owner || undefined, meta)
   if (owner) if (state) {
     if (index == 0) 
       value.change('sourceIndex', (owner.sourceIndex || 0) + 1);
     else if (prev) 
       value.change('sourceIndex', (prev.sourceLastIndex || prev.sourceIndex || 0) + 1, meta);
   } else if (!moving && (state || !(meta & this.FORWARD))) 
-      value.unset('sourceIndex', value.sourceIndex, meta);
+      value.set('sourceIndex', undefined, value.sourceIndex, meta);
 };
 LSD.ChildNodes.prototype._onSplice = function(value, args, state) {
   var children = value.childNodes;
@@ -135,7 +135,7 @@ LSD.ChildNodes.prototype._prefilter = function(node) {
   if (owner && owner.proxies && !owner.proxies._bouncer(node))
     return false;
   if (node.nodeType == 7 && owner && !this.virtual) {
-    node.set('parentNode', owner, 'push')
+    node.set('parentNode', owner, undefined, 'push')
   }
   return true;
 };

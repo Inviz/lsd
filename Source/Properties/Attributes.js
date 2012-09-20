@@ -30,7 +30,7 @@ LSD.Properties.Attributes.prototype.onChange = function(key, value, old, meta) {
   var vdef = typeof value != 'undefined', odef = typeof old != 'undefined';
   if (attribute) {
     if (typeof attribute == 'string') {
-      owner.mix(attribute, value, meta, old);
+      owner.mix(attribute, value, old, meta);
     } else if (value){
       var result = attribute.call(owner, value, old);
       if (typeof result != 'undefined') value = result;
@@ -42,9 +42,9 @@ LSD.Properties.Attributes.prototype.onChange = function(key, value, old, meta) {
     else owner.element.removeAttribute(key);
   }
   if (((!meta || meta !== 'states') && ns.states[key]) || owner.__properties[key])
-    owner.mix(key, value, 'attributes', old);
+    owner.mix(key, value, old, 'attributes');
   if (key.substr(0, 5) == 'data-')
-    owner.mix('variables.' + key.substring(5), value, meta, old);
+    owner.mix('variables.' + key.substring(5), value, old, meta);
   if (owner.matches) {
     if (value != null) owner.matches.add('attributes', key, value);
     if (old != null) owner.matches.remove('attributes', key, old);

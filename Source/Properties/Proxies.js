@@ -19,7 +19,7 @@ provides:
 */
 
 LSD.Properties.Proxies = LSD.Struct('Group');
-LSD.Properties.Proxies.prototype._hash = function(key) {
+LSD.Properties.Proxies.prototype.__hash = function(key) {
   switch (key) {
     case '3': case 'textnode': case 'textnodes': case 'text':
       return this[3] || (this[3] = []);

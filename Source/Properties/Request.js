@@ -37,10 +37,10 @@ LSD.URL.prototype.toString = function() {
   if (this.fragment) url += '#' + this.fragment;
   return url;
 }
-LSD.URL.prototype.onChange = function(key, value, meta) {
+LSD.URL.prototype.onChange = function(key, value, old, meta) {
   if (this._parts.indexOf(key) > -1 && meta !== 'composed') {
     var url = this.toString();
-    this.set('url', url, 'composed', this._composedURL);
+    this.set('url', url, this._composedURL, 'composed');
     this._composedURL = url;
   }
 }
@@ -106,7 +106,7 @@ LSD.Request = LSD.Properties.Request = new LSD.Struct({
   url: function(value, old, meta) {
     if (meta !== 'composed') {
       if (value != null) var parsed = this.parse(value);
-      this.mix(parsed, undefined, meta, this._composed);
+      this.mix(parsed, undefined, this._composed, meta);
       this._composed = parsed;
     }
   }
@@ -118,12 +118,12 @@ LSD.Request.prototype.prepare = function () {
   return this[this.transport](true, arguments, false)
 };
 LSD.Request.prototype.onStateChange = function() {
-  this.set('state', this.request.readyState, this.request);
+  this.set('state', this.request.readyState, undefined, this.request);
 };
 LSD.Request.prototype.isSuccess = function() {
   return this.status > 199 && this.status < 300;
 };
-LSD.Request.prototype._hash = function(key, value) {
+LSD.Request.prototype._hash = function(key) {
   var first = key.charAt(0);
   if (first != '_' && first === first.toUpperCase())
     return 'headers.' + key;

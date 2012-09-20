@@ -90,7 +90,7 @@ LSD.Properties.Events.prototype._delegate = function(object, key, value, old, me
   switch (object.nodeType) {
     case 1:
       if (object.lsd) {
-        object.events.mix(key, value, meta, old)
+        object.events.mix(key, value, old, meta)
       } else {
         if (typeof value != 'undefined') Element.addEvents(object, key, value);
         if (typeof old != 'undefined') Element.removeEvents(object, key, old);

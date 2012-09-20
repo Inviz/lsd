@@ -49,16 +49,16 @@ LSD.Resource = LSD.Struct({
     var associated = this._associated;
     if (associated) 
       for (var association, i = 0; association = associated[i++];)
-        association.set('foreignKey', value, meta, old, true);
+        association.set('foreignKey', value, old, meta, true);
   },
   singular: function(value, old, meta) {
     var associated = this._associated;
     if (associated) 
       for (var association, i = 0; association = associated[i++];)
-        association.set('as', value, meta, old, true);
+        association.set('as', value, old, meta, true);
   }
 }, ['Journal', 'Array']);
-LSD.Resource.prototype.onChange = function(key, value, meta, old) {
+LSD.Resource.prototype.onChange = function(key, value, old, meta) {
   if (this._properties[key]) return;
   var associations = this._associations, keys = this._foreignKeys;
   if (value != null && value.match === this.match) {
@@ -70,7 +70,7 @@ LSD.Resource.prototype.onChange = function(key, value, meta, old) {
     }
     if (typeof old != 'undefined') {
       delete old.parent;
-      old.unset('title', key);
+      old.set('title', undefined, key);
       if (!value) delete associations[key];
     }
   } else {
@@ -228,10 +228,10 @@ LSD.Resource.prototype.unregister = function(resource, object, name) {
   if (index > -1) this._associated.splice(index, 1);
   var index = object._associated[key].indexOf(resource);
   if (index > -1) object._associated[key].splice(index, 1);
-  if (this.exportKey) resource.unset('foreignKey', this.exportKey, undefined, undefined, true)
-  if (this.singular) resource.unset('as', this.singular, undefined, undefined, true)
-  association.unset('object', object);
-  object.unset(name, resource);
+  if (this.exportKey) resource.set('foreignKey', undefined, this.exportKey, undefined, true)
+  if (this.singular) resource.set('as', undefined, this.singular, undefined, true)
+  association.set('object', undefined, object);
+  object.set(name, undefined, resource);
 }
 LSD.Resource.prototype._Properties = {
   urls: function(value, state) {
@@ -385,13 +385,10 @@ LSD.Model.prototype.onChange = function(key, value, old, meta) {
   if (oldResource) resource.unregister(value, this, key);
   
   var foreign = this._foreign && this._foreign[key];
-  if (foreign) {
-    for (var i = 0, foreigner; foreigner = foreign[i++];) {
-      for (var j = 0, model; model = foreigner[j++];) {
-        model.set(foreigner.foreignKey, value, meta, old, true);
-      }
-    }
-  }
+  if (foreign)
+    for (var i = 0, foreigner; foreigner = foreign[i++];)
+      for (var j = 0, model; model = foreigner[j++];)
+        model.set(foreigner.foreignKey, value, old, meta, true);
 };
 LSD.Model.prototype.dispatch = function(action, params, options) {
   return this.constructor[action](params, options)
@@ -421,7 +418,7 @@ LSD.Association.prototype._properties = {
   as: function(value, old) {
     if (this.object) for (var model, i = 0; model = this[i++];) {
       if (value != null) model.set(value, this.object);
-      if (old != null) model.unset(old, this.object);
+      if (old != null) model.set(old, undefined, this.object);
     }
   },
   foreignKey: function(value, old) {
@@ -429,7 +426,7 @@ LSD.Association.prototype._properties = {
     var id = key && this.object[key]
     if (id != null) for (var model, i = 0; model = this[i++];) {
       if (value != null) model.set(value, id);
-      if (old != null) model.unset(old, id);
+      if (old != null) model.set(old, undefined, id);
     }
   },
   object: function(value, old) {
@@ -445,8 +442,8 @@ LSD.Association.prototype.onSet = function(value, index, state, meta) {
     if (link != null) value.set(link, object);
     if (key != null) value.set(this.foreignKey, object[key]);
   } else {
-    if (link != null) value.unset(link, object);
-    if (key != null) value.unset(this.foreignKey, object[key]);
+    if (link != null) value.set(link, undefined, object);
+    if (key != null) value.set(this.foreignKey, undefined, object[key]);
   }
   return value;
 };

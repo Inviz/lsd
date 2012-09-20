@@ -53,8 +53,8 @@ LSD.Document = LSD.Struct({
 */
   activeElement: function(element, old, meta) {
     if (element && meta !== false && !element.set('focused', true)) {
-      if (old) for (; old != element; old = old.parentNode) old.unset('focused', true, element)
-    } else if (old) old.unset('focused', true)
+      if (old) for (; old != element; old = old.parentNode) old.set('focused', undefined, true, element)
+    } else if (old) old.set('focused', undefined, true)
   },
   body: function(value, old, meta) {
     var events = this.events;

@@ -55,14 +55,22 @@ LSD.Journal = function(object) {
 };
 
 LSD.Journal.prototype = new LSD.Object;
-LSD.Journal.prototype.constructor = LSD.Journal,
-LSD.Journal.prototype.set = function(key, value, meta, old, prepend, hash) {
-  if (this._hash && hash == null) {
-    if ((hash = this._hash(key, value, meta, true)) === true) return true;
-    if (typeof hash == 'string' && (key = hash)) hash = null;
+LSD.Journal.prototype.constructor = LSD.Journal;
+LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
+  if (this.__hash) {
+    var hash = this.__hash(key, value, old, meta);
+    switch (typeof hash) {
+      case 'string':
+        key = hash;
+        hash = null;
+        break;
+      case 'boolean':
+        return hash;
+      case 'object':
+        if (hash != null) var group = hash;
+    }
   }
   if (hash == null) var index = key.indexOf('.');
-  else if (typeof hash == 'object') group = hash;
   if (index === -1) {
     var journal = this._journal;
     if (!journal) journal = this._journal = {};
@@ -71,8 +79,8 @@ LSD.Journal.prototype.set = function(key, value, meta, old, prepend, hash) {
   }
 /*
   Most of hash table implementations have a simplistic way to delete
-  a key - they just erase the value. LSD.Journal's unset function is 
-  unique in a way, that a call to `unset` may result in one of 3 cases
+  a key - they just erase the value. LSD.Journal's unset function 
+  call may result in one of 3 cases
 
   * Value becomes undefined, like after a `delete object.key` call in
     javascript. It only happens if there was a single logged value by
@@ -85,33 +93,39 @@ LSD.Journal.prototype.set = function(key, value, meta, old, prepend, hash) {
   * Value gets reverted to previous value on the stack. Callbacks are
     fired with both new and old value as arguments.
 */
+  if (!group) return;
   var vdef = typeof value != 'undefined', odef = typeof old != 'undefined';
-  if (group != null) {
-    var j = group.length
-    if (!vdef && !odef)
-      odef = typeof (old = group[j - 1]) != 'undefined';
-    if (odef) for (var j = group.length, i = prepend ? -1 : j;; ) {
-      if (prepend ? ++i == j : --i < 0) break;
-      if (group[i] === old) {
-        group.splice(i, 1);
-        break;
-      }
+  var j = group.length
+  if (!vdef && !odef)
+    odef = typeof (old = group[j - 1]) != 'undefined';
+  if (odef) for (var j = group.length, i = prepend ? -1 : j;; ) {
+    if (prepend ? ++i == j : --i < 0) break;
+    if (group[i] === old) {
+      group.splice(i, 1);
+      break;
     }
-    if (old && old[this._trigger] && !old._ignore) {
-      this._unscript(key, old, meta)
-    }
-    old = this[key];
-    if (vdef)
-      if (prepend) {
-        j = group.unshift(value) || group.length;
-        value = group[j - 1];
-      } else group.push(value);
-    else if (i < 0 || i == j) 
-      return false;
-    else if ((value = group[j - 2]) && value[this._trigger] && !value._ignore)
-      value = undefined;
   }
-  return this._set(key, value, meta, old, index, hash);
+  if (old && old[this._trigger] && !old._ignore) {
+    this._unscript(key, old, meta)
+  }
+  if (vdef)
+    if (prepend) {
+      j = group.unshift(value) || group.length;
+      value = group[j - 1];
+      if (j !== 1) return true;
+    } else {
+      group.push(value);
+      if (odef && old !== this[key])
+        return this._set(key, value, undefined, meta, false, index, null);
+    }
+  else if (i < 0 || i == j) 
+    return false;
+  else {
+    if ((value = group[j - 2]) && value[this._trigger] && !value._ignore)
+      value = undefined;
+    if (odef) 
+      return this._set(key, value, undefined, meta, false, index, null);
+  }
 };
 /*
   LSD.Journal is a subclass of LSD.Object and thus it inherits a method
@@ -137,14 +151,12 @@ LSD.Journal.prototype.set = function(key, value, meta, old, prepend, hash) {
   in LSD receive both old and new value:
   
     object.watch('a', function(value, old, meta) {
-      object.set('b', value, meta, old);
+      object.set('b', value, old, meta);
     })
 */
-LSD.Journal.prototype.change = function(key, value, meta) {
-  return this.set(key, value, meta, this[key]);
+LSD.Journal.prototype.change = function(key, value, meta, prepend) {
+  return this.set(key, value, this[key], meta, prepend);
 };
-LSD.Journal.prototype.__set = LSD.Journal.prototype.set;
-LSD.Journal.prototype._setter = '__set';
 LSD.Struct.implement({
   _skip: {
     _journal: true

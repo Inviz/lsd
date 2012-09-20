@@ -163,7 +163,7 @@ LSD.Script.Struct = new LSD.Struct({
 
   },
   scope: function(value, old) {
-    if (this.attached) this.unset('attached', this.attached)
+    if (this.attached) this.set('attached', undefined, this.attached)
     if (value) this.set('attached', true);
   },
   placeholder: function(value, old) {
@@ -214,7 +214,7 @@ LSD.Script.Struct = new LSD.Struct({
         this._enumerator = function(val, index, state, old, meta) {
           if (meta === 'collapse' || meta === 'empty') return;
           delete self.value;
-          self.set('value', value, 'enumerate');
+          self.set('value', value, undefined, 'enumerate');
           self.value = value;
         }
         this._enumerated = true;
@@ -242,7 +242,7 @@ LSD.Script.Struct = new LSD.Struct({
     if (this.onValueChange) this.onValueChange(value, old, meta)
   },
   attached: function(value, old, meta) {
-    if (!value && typeof this.value != 'undefined') this.unset('value', this.value, meta);
+    if (!value && typeof this.value != 'undefined') this.set('value', undefined, this.value, meta);
     if (this.yielded || this.type == 'function') {
       this.execute(!!value, meta);
     } else if (this.yields) {
@@ -267,7 +267,7 @@ LSD.Script.Struct = new LSD.Struct({
           (this.scope._owner || this.scope).matches[value ? 'set' : 'unset'](this.input, this.setter);
         } else {
           if (!this.setter) var self = this, setter = this.setter = function(value, old, meta) {
-            if (typeof value == 'undefined') return self.unset('value', old, meta);
+            if (typeof value == 'undefined') return self.set('value', undefined, old, meta);
             else return self.change('value', value, meta)
           };
           (this.scope.variables || this.scope)[value ? 'watch' : 'unwatch'](this.name || this.input, this.setter);
@@ -456,7 +456,7 @@ LSD.Script.prototype.callback = function(value, old) {
     default:
       switch (typeof object) {
         case 'string':
-          if (typeof value == 'undefined' && typeof old != 'undefined') this.scope.unset(object, old)
+          if (typeof value == 'undefined' && typeof old != 'undefined') this.scope.set(object, undefined, old)
           else this.scope[typeof old != 'undefined' ? 'change' : 'set'](object, value);
           break;
         case 'function':
@@ -592,7 +592,7 @@ LSD.Script.prototype.execute = function(value, meta) {
               if (index > -1) {
                 arg.parents.splice(index, 1);
                 if (arg.type == 'block' ? this.yielded : arg.parents.length == 0 && arg.attached) 
-                  arg.unset('attached', true)
+                  arg.set('attached', undefined, true)
               };
             }
           }
@@ -632,7 +632,7 @@ LSD.Script.prototype.execute = function(value, meta) {
           break loop;
       }
     } else if (arg != null && value && arg.script && typeof result == 'undefined' && !LSD.Script.Keywords[name]) {
-      if (this.hasOwnProperty('value')) this.unset('value', this.value, meta || 'unset');
+      if (this.hasOwnProperty('value')) this.set('value', undefined, this.value, meta || 'unset');
       return
     }
   }
@@ -667,7 +667,7 @@ LSD.Script.prototype.execute = function(value, meta) {
   if (value)
     this.change('value', val, meta === 'enumerate' ? null : meta);
   else if (typeof this.value != 'undefined')
-    this.unset('value', this.value);
+    this.set('value', undefined, this.value);
 }
 LSD.Script.prototype.yield = function(keyword, args, callback, index, old, meta) {
   if (args == null) args = [];
@@ -704,7 +704,7 @@ LSD.Script.prototype.yield = function(keyword, args, callback, index, old, meta)
       block.invoke(args, true, !!invoked);
       if (invoked && block.locals)
         for (var local, i = 0; local = block.locals[i]; i++)
-          block.variables.unset(local.name, invoked[i]);
+          block.variables.set(local.name, undefined, invoked[i]);
       if (callback) callback.block = block;
       if ((this._limit || this._offset) && !block.value) {
         var recycled = this.recycled;
@@ -719,7 +719,7 @@ LSD.Script.prototype.yield = function(keyword, args, callback, index, old, meta)
       if (callback) callback.call(this, block ? block.value : this.values ? this.values[index] : null, args[0], args[1], args[2], args[3], args[4]);
       if (block) {
         if (callback && block.invoked != null) block.invoke(null, false);
-        block.unset('attached', block.attached);
+        block.set('attached', undefined, block.attached);
         delete block.yielder;
         delete block.yielded;
         if (callback) {
@@ -762,10 +762,10 @@ LSD.Script.prototype.invoke = function(args, state, reset) {
   if (state !== true) {
     if (args == null) args = this.invoked;
     if (args === this.invoked || state == null) delete this.invoked;
-    if (state != null && this.attached != null) this.unset('attached', this.attached);
+    if (state != null && this.attached != null) this.set('attached', undefined, this.attached);
     if (this.locals && args != null)
       for (var local, i = 0; local = this.locals[i]; i++)
-        this.variables.unset(local.name, args[i], 'unset');
+        this.variables.set(local.name, undefined, args[i], 'unset');
   }
   return result;
 };

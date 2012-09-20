@@ -95,7 +95,7 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, old, meta, hash
         callback: value,
         expressions: expressions
       });
-      if (odef) this.unset(expressions[meta], old);
+      if (odef) this.set(expressions[meta], undefined, old);
       if (j == 1 || expressions == key) break;
     }
     if (j > 1 || l > 1) return this._skip;
@@ -147,14 +147,14 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, old, meta, hash
     if (vdef) {
       hash.push([key, value, stateful]);
       if (this._results) {
-        var group = this._hash(key, null, this._results);
+        var group = this.__hash(key, null, null, null, this._results);
         for (var i = 0, widget; widget = group[i++];) {
           if (!stateful) {
             if (typeof value == 'function') value(widget);
             else if (value.callback || value.bind)
               (value.fn || (value.bind || this)[value.method]).call(value.bind || this, value, widget)
-            else widget.mix(value, null, meta)
-          } else widget.matches.set(key, value, 'state');
+            else widget.mix(value, undefined, undefined, meta)
+          } else widget.matches.set(key, value, undefined, 'state');
         }
       }
     }
@@ -162,14 +162,14 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, old, meta, hash
       if (hash) for (var i = hash.length, fn; i--;) {
         if ((fn = hash[i]) && (fn = fn[1]) && (fn === old || fn.callback === old)) {
           if (this._results) {
-            var group = this._hash(key, null, this._results);
+            var group = this.__hash(key, null, null, null, this._results);
             for (var j = 0, result; result = group[j++];) {
               if (!stateful) {
                 if (typeof fn == 'function') fn(undefined, old);
                 else if (fn.callback || fn.bind)
                   (fn.fn || (fn.bind || this)[fn.method]).call(fn.bind || this, fn, undefined, result)
-                else result.mix(undefined, undefined, meta, old)
-              } else result.matches.unset(key, old, 'state');
+                else result.mix(undefined, undefined, old, meta)
+              } else result.matches.set(key, undefined, old, 'state');
             }
           }
           hash.splice(i, 1);
@@ -196,8 +196,8 @@ LSD.Properties.Matches.prototype._advancer = function(call, value, old) {
     if (typeof call.callback == 'function') call.callback(value, old);
     else this._callback(call.callback, value, old)
   } else {
-    if (value) value.matches.set(call.expressions, call.callback, call.index);
-    if (old) old.matches.unset(call.expressions, call.callback, call.index);
+    if (value) value.matches.set(call.expressions, call.callback, undefined, call.index);
+    if (old) old.matches.set(call.expressions, undefined, call.callback, call.index);
   }
 };
 /*
@@ -212,14 +212,14 @@ LSD.Properties.Matches.prototype._advancer = function(call, value, old) {
   the array of expression from left to right and handles each expression separately
   storing a callback that advances the selector to the next expression. 
 */
-LSD.Properties.Matches.prototype._hash = function(expression, value, storage) {
+LSD.Properties.Matches.prototype.__hash = function(expression, value, old, meta, storage) {
   if (typeof expression == 'string') {
     if (this._skip[expression]) return;
     expression = (this._parsed[expression] || (this._parsed[expression] = Slick.parse(expression))).expressions[0][0]
   }
   var tag = expression.tag;
-  if (!tag) return false;
-  if (storage == null) storage = value != null && value.lsd 
+  if (!tag) return expression;
+  if (storage == null) storage = (value && value.lsd || old && old.lsd) 
     ? this._results || (this._results = {}) 
     : this._callbacks || (this._callbacks = {});
   var combinator = expression.combinator || ' ';
@@ -276,7 +276,7 @@ LSD.Properties.Matches.prototype.add = function(combinator, tag, value, wildcard
             if (typeof item[1] == 'function') item[1](value);
             else this._callback(item[1], value);
           } else {
-            value.matches.set(item[0], item[1], 'state');
+            value.matches.set(item[0], item[1], undefined, 'state');
           }
         }
       }
@@ -307,7 +307,7 @@ LSD.Properties.Matches.prototype.remove = function(combinator, tag, value, wildc
           if (item[2] === false) {
             if (typeof item[1] == 'function') item[1](undefined, value);
             else this._callback(item[1], undefined, value);
-          } else value.matches.unset(item[0], item[1], 'state');
+          } else value.matches.set(item[0], undefined, item[1], 'state');
         }
       }
     }

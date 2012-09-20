@@ -237,10 +237,10 @@ LSD.Struct.prototype._onChange = function(key, value, old, meta) {
             fn: this['_' + fn],
             bind: this
           };
-          this.mix(prop.substring(0, index) + '.' + value, this[fn], meta);
+          this.mix(prop.substring(0, index) + '.' + value, this[fn], undefined, meta);
           if (old != null && typeof old != 'object')
-            this.mix(prop.substring(0, index) + '.' + old, undefined, meta, this[fn]);
-        } else this.mix(prop, value, meta, old);
+            this.mix(prop.substring(0, index) + '.' + old, undefined, this[fn], meta);
+        } else this.mix(prop, value, old, meta);
       }
       break;
     case 'undefined':  
@@ -255,7 +255,7 @@ LSD.Struct.prototype._onChange = function(key, value, old, meta) {
             break;
           }
         for (var i = 0, j = this.length; i < j; i++)
-          this[i].set(key, value, meta, old);
+          this[i].set(key, value, old, meta);
       }
   };
   return value;
@@ -336,7 +336,7 @@ LSD.Struct.prototype._link = function(properties, state, external) {
   }
 };
 LSD.Struct.prototype._linker = function(call, key, value, old, meta) {
-  this.mix(call.key, value, meta, old);
+  this.mix(call.key, value, old, meta);
 };
 LSD.Struct.prototype._unlinked = ['_journal', '_stored'];
 LSD.Struct.prototype._skip = {

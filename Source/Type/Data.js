@@ -34,7 +34,7 @@ LSD.Data.prototype.fromString = LSD.Data.fromString = function(string, state, me
     var pos = bit.indexOf('=');
     var key = bit.substring(0, pos == -1 ? bit.length : pos);
     var value = pos == -1 ? null : bit.substring(pos + 1);
-    object[state === false ? 'unset' : 'set'](key, value, meta);
+    object.set(key, state !== false && value || undefined, state === false && value || undefined, meta);
     if ((start = delimeter + 1) == 0) return object;
   }
 }
@@ -63,7 +63,7 @@ LSD.Data.prototype.toString = LSD.Data.toString = function(prefix) {
   A custom hashing function for LSD.Object that handles
   query-string-esque keys like `a[b]` and `a[][d]`.
 */
-LSD.Data.prototype._hash = function(key, value, meta, state) {
+LSD.Data.prototype._hash = function(key, value, old, meta) {
   for (var l, r, start = 0, obj = this, hash, subkey, name, index, empty;;) {
     if ((l = key.indexOf('[', start)) == -1) {
       return (hash ? hash + '.' : '') + (name == null ? key : name);
@@ -73,7 +73,7 @@ LSD.Data.prototype._hash = function(key, value, meta, state) {
       subkey = key.substring(l + 1, r);
       var empty = subkey === '';
       if (!empty) index = parseInt(subkey) == subkey;
-      if (state) {
+      if (typeof value != 'undefined') {
         if (!obj[name]) {
           constructor = empty || index ? new LSD.Array : new this.constructor;
           if (array && name === '') name = obj.push(constructor) - 1;

@@ -31,7 +31,7 @@ LSD.Properties.Microdata.prototype.onChange = function(key, value, old, meta) {
     if (typeof storage[key] == 'undefined' ? !vdef || value === element.nodeValue : !odef) return;
     if (vdef) storage[key] = value;
     else delete storage[key];
-    element.mix('nodeValue', value, 'microdata', old);
+    element.mix('nodeValue', value, old, 'microdata');
   }
 }
 LSD.Properties.Microdata.prototype._shared = true;

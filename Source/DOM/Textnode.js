@@ -42,8 +42,7 @@ LSD.Textnode = LSD.Struct({
         if (content != null) {
           for (var text = '', child, i = 0; child = children[i++];)
             if (child.textContent != null) text += child.textContent;
-          node.set('textContent', text, 'textContent');
-          node.unset('textContent', content, 'textContent');
+          node.set('textContent', text, content, 'textContent');
           children.textContent = text;
         }
       }
@@ -53,7 +52,7 @@ LSD.Textnode = LSD.Struct({
     return new LSD.Script({type: 'function', name: 'concat', input: bits, pipable: false});
   },
   parentNode: function(value, old, meta) {
-    this.mix('variables', value && value.variables, meta, old && old.variables, true);
+    this.mix('variables', value && value.variables, old && old.variables, meta, true);
   }
 }, 'Journal');
 LSD.Textnode.implement(LSD.Node.prototype);

@@ -45,7 +45,7 @@ LSD.Instruction.prototype.onValueChange = function(value, old, meta) {
     this.setChildren(value);
   if (this.next && this.parentNode && this.parentNode == this.next.parentNode)
     if (!value && meta !== 'disable') this.next.set('attached', true);
-    else if (this.next.attached) this.next.unset('attached', true, 'disable');
+    else if (this.next.attached) this.next.set('attached', undefined, true, 'disable');
     
   if (value && meta != 'push' && typeof meta != 'number') 
     this.setChildren(value);
@@ -95,11 +95,13 @@ LSD.Instruction.prototype._properties.previous = function(value, old, meta) {
     this.set('attached', true)
 };
 LSD.Instruction.prototype._properties.parentNode = function(value, old, meta) {
-  this.mix('variables', value && (this.fragment && this.fragment != value.fragment && this.fragment.variables || value.variables), 
-                    meta, old && (this.fragment && this.fragment != old.fragment && this.fragment.variables || old.variables), true);
+  this.mix('variables', 
+          value && (this.fragment && this.fragment != value.fragment && this.fragment.variables || value.variables), 
+          old && (this.fragment && this.fragment != old.fragment && this.fragment.variables || old.variables), 
+          meta, true);
   if (value && (!this.boundary || (this.previous && this.previous.attached && !this.previous.value))) {
-    this.set('scope', value, meta);
+    this.set('scope', value, undefined, meta);
     if (!this.attached) this.set('attached', true)
   }
-  if (!value && this.attached) this.unset('attached', true, meta)
+  if (!value && this.attached) this.set('attached', undefined, true, meta)
 };

@@ -96,7 +96,7 @@ LSD.Array.prototype.push = function() {
 LSD.Array.prototype.set = function(key, value, old, meta, extra) {
   var index = parseInt(key);
   if (index != index) {
-    return this[this._setter || '_set'](key, value, old, meta, extra);
+    return this['_set'](key, value, old, meta, extra);
   } else {
     this[index] = value;
     if (index + 1 > this._length) this._set('length', (this._length = index + 1));
