@@ -146,9 +146,11 @@ LSD.Styles.Type.color.prototype = {
     return this.toRGB();
   }
 };
-for (var method in Color.prototype)
-  if (!LSD.Styles.Type.color.prototype[method])
-    LSD.Styles.Type.color.prototype[method] = Color.prototype[method];
+!function(proto) {
+  for (var method in proto)
+    if (!LSD.Styles.Type.color.prototype[method])
+      LSD.Styles.Type.color.prototype[method] = proto[method];
+}(Color.prototype);
 /*
   Length is a combination of a number and a unit. Browsers dont treat regular
   numbers like lengths, except for IE where it defaults to pixels. For easier

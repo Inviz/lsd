@@ -37,10 +37,14 @@ provides:
 LSD.Resource = LSD.Struct({
   Implements: LSD.URL,
   urls: Object,
-  title: function(value, old) {
+  title: function(value, old, meta) {
+    if (value) value = value.toLowerCase();
     this.change('singular', value ? value.singularize() : value);
     this.change('exportKey', this.singular + '_id')
     this.change('directory', this.prefix ? value ? this.prefix + '/' + value : this.prefix : value || '');
+    if (this.collection)
+      this.set('through', this.getThroughName(value, this.collection), this.getThroughName(old, this.collection), meta, true)
+    return value;
   },
   prefix: function(value, old) {
     this.change('directory', this.title ? value ? value + '/' + this.title : this.title  : value || '');
@@ -56,20 +60,52 @@ LSD.Resource = LSD.Struct({
     if (associated) 
       for (var association, i = 0; association = associated[i++];)
         association.set('as', value, old, meta, true);
+  },
+  parent: function(value, old) {
+    this.set('root', value && value.root || value, old && old.root || old);
+  },
+  root: function(value, old) {
+    for (var key in this._associations)
+      this._associations[key].set('root', value || this, old || this);
+    var through = this.through;
+    if (through)
+      this.set('intermediate', this.getIntermediate(value, through), this.getIntermediate(old, through));
+  },
+  collection: function(value, old, meta) {
+    var title = this.title;
+    if (title)
+      this.set('through', this.getThroughName(value, title), this.getThroughName(old, title), meta, true)
+  },
+  through: function(value, old, meta) {
+    var root = this.root;
+    if (root) {
+      this.set('intermediate', this.getIntermediate(root, value), this.getIntermediate(root, old));
+    }
+  },
+  intermediate: function(value, old) {
+    console.error('inter', value, old)
+  },
+  left: function(value, old) {
+    this.set('leftKey', value && value.exportKey, old && old.exportKey);
+    this.set('leftName', value && value.singular, old && old.singular);
+  },
+  right: function(value, old) {
+    this.set('rightKey', value && value.exportKey, old && old.exportKey);
+    this.set('rightName', value && value.singular, old && old.singular);
   }
 }, ['Journal', 'Array']);
 LSD.Resource.prototype.onChange = function(key, value, old, meta) {
   if (this._properties[key]) return;
   var associations = this._associations, keys = this._foreignKeys;
   if (value != null && value.match === this.match) {
-    if (!associations) associations = this._associations = {};
+    if (!associations) associations = this._associations = {}
     if (typeof value != 'undefined') {
-      value.parent = this;
+      value.set('parent', this);
       value.set('title', key);
       associations[key] = value;
     }
     if (typeof old != 'undefined') {
-      delete old.parent;
+      value.set('parent', undefined, this);
       old.set('title', undefined, key);
       if (!value) delete associations[key];
     }
@@ -281,7 +317,7 @@ LSD.Resource.prototype.limit = function(params) {
     break;
   }
   if (this.source || (this.implementation && this.implementation.limit)) {
-    collection._set('_limit', number);
+    collection.set('_limit', number);
   }
   return LSD.Array.prototype.limit.call(this, limit || this._per_page, params)
 };
@@ -293,7 +329,7 @@ LSD.Resource.prototype.offset = function(params) {
   }
   var collection = this.source || (this.implementation && this.implementation.offset) ? this : new this.constructor;
   if (collection !== this) collection.origin = this;
-  collection._set('_offset', offset);
+  collection.set('_offset', offset);
   return collection;
 };
 LSD.Resource.prototype.paginate = function(params) {
@@ -362,7 +398,26 @@ LSD.Resource.attributes = {
 LSD.Resource.prototype.onSet = function(value, index, state, meta) {
   if (meta & 0x1) return;
   if (state && !value.set) return this(value);
+};
+LSD.Resource.prototype.getIntermediate = function(root, name) {
+  if (root == null || name == null) return;
+  if (root[name]) return root[name];
+  var resource = root._construct(name, true);;
+  resource.set('left', this);
+  resource.set('right', this.parent);
+  console.log(this.singular, this.collection, 'getting intermediate')
+  resource._intermediate = true;
+  return resource;
 }
+LSD.Resource.prototype.getThroughName = function(left, right) {
+  if (left == null || right == null) return;
+  if (left > right) {
+    var memo = left;
+    left = right;
+    right = memo;
+  }
+  return left + '_' + right;
+};
 /*
   Instance object base structure.
 */
@@ -384,11 +439,12 @@ LSD.Model.prototype.onChange = function(key, value, old, meta) {
   var oldResource = old && old.resource;
   if (oldResource) resource.unregister(value, this, key);
   
-  var foreign = this._foreign && this._foreign[key];
+  var foreign = this._foreign && this._foreign[key], fKey
   if (foreign)
     for (var i = 0, foreigner; foreigner = foreign[i++];)
-      for (var j = 0, model; model = foreigner[j++];)
-        model.set(foreigner.foreignKey, value, old, meta, true);
+      if ((fKey = foreigner.foreignKey))
+        for (var j = 0, model; model = foreigner[j++];)
+          model.set(fKey, value, old, meta, true);
 };
 LSD.Model.prototype.dispatch = function(action, params, options) {
   return this.constructor[action](params, options)
@@ -437,13 +493,43 @@ LSD.Association.prototype.onSet = function(value, index, state, meta) {
   if (meta & 0x1) return;
   var resource = this.resource, object = this.object, origin = object.constructor;
   if (state && !value.set) value = new resource(value);
-  var key = origin.key, link = this.as;
+  var key = origin.key, link = this.as, ref = resource.collection;
+  if (ref) {
+    var collection = value[ref];
+    var intermediate = resource.intermediate;
+  }
   if (state) {
-    if (link != null) value.set(link, object);
-    if (key != null) value.set(this.foreignKey, object[key]);
+    if (ref) {
+      if (collection.indexOf(object) == -1) {
+        collection.push(object)
+        if (intermediate) {
+          var linker = new intermediate;
+          linker.set(intermediate.leftKey, value);
+          linker.set(intermediate.rightKey, object);
+          intermediate.push(linker);
+        }
+      }
+    } else {
+      if (link) value.set(link, object);
+      if (key) value.set(this.foreignKey, object[key]);
+    }
   } else {
-    if (link != null) value.set(link, undefined, object);
-    if (key != null) value.set(this.foreignKey, undefined, object[key]);
+    if (ref) {
+      var i = collection.indexOf(object);
+      if (i > -1) {
+        collection.splice(i, 1);
+        for (var i = 0, j = intermediate._length, linker; i < j; i++) {
+          var linker = intermediate[i];
+          if (linker && linker[intermediate.leftKey] == value && linker[intermediate.rightKey] == object) {
+            intermediate.splice(i, 1);
+            break;
+          }
+        }
+      }
+    } else {
+      if (link) value.set(link, undefined, object);
+      if (key) value.set(this.foreignKey, undefined, object[key]);
+    }
   }
   return value;
 };
@@ -452,8 +538,7 @@ LSD.Association.prototype.onSet = function(value, index, state, meta) {
   on back end, or emulate them locally.
 
    It's more actions than in usual REST implementations, but a developer
-  may stick to regular CRUD and leave those extra methods until he needs
-  it.
+  may stick to regular CRUD and leave those extra methods alone.
 */
 LSD.Resource.prototype._collection = {
   index: {

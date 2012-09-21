@@ -72,8 +72,8 @@ LSD.Array.prototype.length = 0;
 LSD.Array.prototype._length = 0;
 LSD.Array.prototype._offset = 0;
 /*
-  Children option set to false forbids LSD.Array to reference
-  LSD.Objects, thus it does not change their ._owner link.
+  This option set to false forbids LSD.Array to reference
+  LSD.Objects, thus it does not affect their `._owner` link.
 */
 LSD.Array.prototype._owning = false;
 

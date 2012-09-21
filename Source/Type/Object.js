@@ -46,7 +46,7 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
       and pass the result of hashing. Object does not change its state.
       So callbacks or superclasses may implement custom storage logic. 
 */
-  if (this._hash && hash === undefined) {
+  if (hash === undefined && this._hash) {
     var hash = this._hash(key, value, old, meta, prepend, index);
     switch (typeof hash) {
       case 'boolean':
@@ -84,9 +84,9 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
         + (old != null && old[trigger] != null && !old._ignore && this._unscript(key, old, meta))) 
       return false;
   }
-  var deleting = typeof value == 'undefined';
+  var deleting = value === undefined
   if (hash == null) {
-    if (typeof old == 'undefined')
+    if (old === undefined)
       old = this[key];  
     if (value === this[key]) 
       return false;
@@ -316,7 +316,7 @@ LSD.Object.prototype.get = function(key, construct) {
 */
 LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy, index) {
   if (!meta && this._delegate) meta = this;
-  var vdef = typeof value != 'undefined', odef = typeof old != 'undefined';
+  var vdef = value !== undefined, odef = old !== undefined;
 /*
     // mix an object
     this.mix(object)
@@ -401,7 +401,6 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
       if (vdef) this[name](subkey, value);
       if (odef) {
         var negated = LSD.negated[name] || (LSD.negated[name] = LSD.negate(name));
-        debugger
         this.unset(subkey, old)
       }
     } else {
@@ -459,7 +458,7 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
     // controlled mutation creates an observed copy of ref'd object
     this.mix('key.dance', true)               // this.key !== object
 */
-  } else if ((!vdef && typeof old == 'object' && old != null && !old[this._trigger] && !old._ignore) 
+  } else if ((!vdef && old != null && typeof old == 'object' && !old[this._trigger] && !old._ignore) 
          || (value != null && typeof value == 'object' && !value.exec && !value.push 
          && !value.nodeType && value[this._trigger] == null && (!value.mix || merge))) {
     var store = this.onStore && (this.onStore.call ? 'onStore' : '_onStore');
