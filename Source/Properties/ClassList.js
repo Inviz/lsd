@@ -38,7 +38,7 @@ LSD.Properties.ClassList.prototype.onChange = function(key, value, old, meta) {
   }
 };
 LSD.Properties.ClassList.prototype._name = '';
-LSD.Properties.ClassList.prototype.contains =function(name) {
+LSD.Properties.ClassList.prototype.contains = function(name) {
   return this[name];
 };
 LSD.Properties.ClassList.prototype.add = function(name) {

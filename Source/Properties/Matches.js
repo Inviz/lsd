@@ -315,3 +315,4 @@ LSD.Properties.Matches.prototype.remove = function(combinator, tag, value, wildc
 }
 LSD.Properties.Matches.prototype._types = {pseudos: 1, classes: 1, attributes: 1};
 LSD.Properties.Matches.prototype._parsed = {};
+LSD.Properties.Matches.prototype._composite = false;

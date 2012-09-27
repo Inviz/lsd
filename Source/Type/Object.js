@@ -46,6 +46,8 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
       and pass the result of hashing. Object does not change its state.
       So callbacks or superclasses may implement custom storage logic. 
 */
+  var stringy = typeof key == 'string';
+  
   if (hash === undefined && this._hash) {
     var hash = this._hash(key, value, old, meta, prepend, index);
     switch (typeof hash) {
@@ -56,7 +58,6 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
         hash = undefined;
     }
   }
-  var skip = this._skip, stringy = typeof key == 'string';
 /*
   Object setters accept composite keys. LSD.Object constructs objects in the 
   path (e.g. setting `post.title` will create a `post` object), and observes
@@ -66,10 +67,11 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
   if (stringy && hash === undefined) {
     if (typeof index != 'number')
       index = key.indexOf('.');
-    var nonenum = skip[key];
   }
   if (index > -1) 
     return this.mix(key, value, old, meta, null, null, null, index);
+  var skip = this._skip;
+  var nonenum = skip[key];
 /*
   Objects accept special kind of values, compiled LSD.Script expressions.
   They may use other keys in the object as observable variables, call

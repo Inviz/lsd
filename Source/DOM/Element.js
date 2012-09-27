@@ -50,12 +50,15 @@ LSD.Element = new LSD.Struct(LSD.Properties, 'Journal');
 LSD.Element.prototype.onChange = function(key, value, old, meta) {
   var ns         = this.document || LSD.Document.prototype,
       states     = ns.states,
-      definition = states[key],
-      stack      = this._journal && this._journal[key];
-  if (this._inherited[key] && this.childNodes)
-    for (var i = 0, child; child = this.childNodes[i++];)
+      definition = states[key];
+  if (this._inherited[key]) {
+    var children = this.childNodes;
+    if (children) for (var i = 0, child; child = children[i++];)
       child.set(key, value, old, meta, true);
+  }
   if (!definition) return
+  var stack      = this._journal;
+  if (stack) stack = stack[key];
   if (typeof value != 'undefined' && (!stack || stack.length === 1) && typeof this[definition[0]] != 'function') {
     var compiled = states._compiled || (states._compiled = {});
     var methods = compiled[key];
