@@ -284,7 +284,7 @@ LSD.Struct.prototype.onBeforeConstruct = function(key) {
   if (typeof property == 'string') {
     if (!(this._observed || (this._observed = {}))[key])
       this.watch(property, (this._observed[key] = [this, key]), false);
-    return typeof this[key] == 'undefined' ? this.get(property, true) || null: this[key]
+    return typeof this[key] == 'undefined' ? this.get(property, true) || null : this[key]
   }
 };
 /*
@@ -300,7 +300,7 @@ LSD.Struct.prototype.onBeforeConstruct = function(key) {
       }
     });
     Struct.prototype.rate = 1;
-    Struct.prototype.tax = 0.2
+    Struct.prototype.tax = 0.15
     var struct = new Struct;
     expect(struct.total).toBeUndefined();
     struct.set('sum', 200);

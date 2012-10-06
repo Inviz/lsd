@@ -50,7 +50,7 @@ LSD.Resource = LSD.Struct({
 */
   plural: function(value, old, meta) {
     if (value) value = value.toLowerCase();
-    this.change('singular', value ? value.singularize() : value);
+    this.change('singular', value ? value.singularize() : value, undefined, 'plural');
     this.change('exportKey', this.singular + '_id')
     this.change('directory', this.prefix ? value ? this.prefix + '/' + value : this.prefix : value || '');
     if (this.collection)
@@ -65,6 +65,8 @@ LSD.Resource = LSD.Struct({
     if (associated) 
       for (var association, i = 0; association = associated[i++];)
         association.set('as', value, old, meta, true);
+    if (meta !== 'plural')
+      this.set('plural', value && value.pluralize(), old && old.pluralize())
   },
 /*
   Directory location of a resource
@@ -122,10 +124,9 @@ LSD.Resource = LSD.Struct({
     }
   },
 /*
-  Actual resource that links models in a M:M association
+  Resource instance that links models in a M:M association
 */
   intermediate: function(value, old) {
-    console.error('inter', value, old)
   },
 /*
   First resource in a M:M association
@@ -149,7 +150,10 @@ LSD.Resource.prototype.onChange = function(key, value, old, meta) {
     if (!associations) associations = this._associations = {}
     if (typeof value != 'undefined') {
       value.set('parent', this);
-      value.set('plural', key);
+      var plural = key.pluralize();
+      value.set('multiple', key === plural);
+      value.set(key === plural ? 'plural' : 'singular', key);
+      if (!value.multiple) this.prototype._constructors[key] = value;
       associations[key] = value;
     }
     if (typeof old != 'undefined') {
@@ -168,7 +172,8 @@ LSD.Resource.prototype.onChange = function(key, value, old, meta) {
 LSD.Resource.prototype.key = 'id';
 LSD.Resource.prototype.onStore = true;
 LSD.Resource.prototype._initialize = function() {
-  this.attributes = LSD.Struct.implement(this.attributes, {});
+  this.attributes = LSD.Struct.implement(this.attributes, {}); 
+  LSD.Struct.implement(this.constructor.attributes, this.attributes);
   var Struct = new LSD.Model(this.attributes), proto = Struct.prototype;
   proto.constructor = Struct;
   Struct.constructor = Struct._constructor = LSD.Resource;
@@ -176,9 +181,10 @@ LSD.Resource.prototype._initialize = function() {
   for (var property in this)
     if (!Struct[property] || property == 'toString')
       Struct[property] = this[property];
-  for (var property in LSD.Model.prototype)
-    if (!proto[property])
-      proto[property] = LSD.Model.prototype[property];
+  var Model = LSD.Model.prototype;
+  for (var property in Model)
+    if (!proto[property] || property == '_skip')
+      proto[property] = Model[property];
   delete Struct._owning;
   delete Struct._ownable;
   return Struct;
@@ -194,17 +200,16 @@ LSD.Resource.prototype._initialize = function() {
   one could map real URLs on virtual resources and use the mapped schema.
 */
 LSD.Resource.prototype.match = function(url, params) {
-  if (!params) params = {};
-  if (!params.method) params.method = 'get';
   var bit, id, prev, action, resource, parent = this;
   for (var i = 0, j, k = url.length; (j = url.indexOf('/', i)) > -1 || (j = k); i = j + 1) {
     if ((bit = url.substring(i, j)).length === 0) continue;
-    if (j == k && parent._collection[bit] || (id != null && parent._member[bit])) {
+    var definition = j == k && parent._collection[bit] || ((id != null || bit === url) && parent._member[bit]);
+    if (definition) {
       action = bit;
     } else {
       if ((resource = parent.get(bit))) parent = resource;
       if (id != null) {
-        params[parent._owner.exportKey] = id;
+        (params || (params = {}))[parent._owner.exportKey] = id;
         id = null;
       }
       if (!resource) {
@@ -214,14 +219,12 @@ LSD.Resource.prototype.match = function(url, params) {
     }
     if (j == k) break;
   }
-  if (parent) {
+  if (parent && parent.resource) {
+    if (!params) params = {};
     if (id && !resource) params.id = id;
     if (!action) switch(params.method) {
       case 'post':
         action = 'create';
-        break;
-      case 'get':
-        action = params.id ? 'show' : 'index';
         break;
       case 'delete':
         action = 'destroy';
@@ -231,7 +234,13 @@ LSD.Resource.prototype.match = function(url, params) {
         break;
       case 'patch':
         action = 'patch';
+      case 'options':
+        action = 'options';
+        break;
+      default:
+        action = params.id ? 'show' : 'index';
     }
+    if (!params.method) params.method = 'get';
     params.action = action;
     params.resource = parent;
     var url = parent.urls;
@@ -285,16 +294,33 @@ LSD.Resource.prototype.match = function(url, params) {
   }
   return params;
 }
-LSD.Resource.prototype.dispatch = function(params, object) {
-  if (typeof params == 'string') params = this.match(params, object);
-  if (!params.resource) return false;
-  return params.url ? params : params.resource.execute(params.action, params);
+LSD.Resource.prototype.dispatch = function(request, options, model, arg) {
+  if (typeof request == 'string')
+    request = this.match(request, options) || request;
+  return (request.resource || this).execute(request, model, arg);
 };
-LSD.Resource.prototype.execute = function(name, params) {
-  var method = this._collection[name];
-  if (method.action) {
-    return method.action.call(this, params);
+LSD.Resource.prototype.execute = function(params, model, arg) {
+  var name = typeof params == 'string' ? params : params.action;
+  var collection = this._collection[name];
+  var definition = collection || this._member[name];
+  if (definition) {
+    if (model) model.saving = true;
+    if (definition.before) {
+      //if (this.execute(definition.before, model)) {}
+    }
+    var action = definition.action || this[name];
+    if (typeof action == 'string') action = this[action];
+    if (action) var result = action.call(this, model, arg);
+    if (definition.after) {
+      if (this.dispatch(definition.after, undefined, model)) {
+        
+      }
+    }
+    if (model) delete model.saving;
+  } else if (model && typeof model[name] == 'function') {
+    model[name](arg)
   }
+  return params;
 };
 LSD.Resource.prototype.associate = function(association, object, name) {
   (this._associated || (this._associated = [])).push(association);
@@ -306,7 +332,7 @@ LSD.Resource.prototype.associate = function(association, object, name) {
     association.set('foreignKey', this.exportKey)
   if (this.singular)
     association.set('as', this.singular, undefined, undefined, true)
-  object.set(name, association);
+  object.set(name, association, undefined, 'associate');
 }
 LSD.Resource.prototype.deassociate = function(association, object, name) {
   var index = this._associated.indexOf(association);
@@ -319,7 +345,7 @@ LSD.Resource.prototype.deassociate = function(association, object, name) {
   if (this.singular)
     association.set('as', undefined, this.singular, undefined, true)
   association.set('object', undefined, object);
-  object.set(name, undefined, association);
+  object.set(name, undefined, association, 'associate');
 }
 LSD.Resource.prototype._Properties = {
   urls: function(value, state) {
@@ -391,7 +417,7 @@ LSD.Resource.prototype.paginate = function(params) {
   return this;
 };
 LSD.Resource.prototype.page = function(params) {
-  for (var param in this._dictionary.page) if (params[param]) {
+  if (params) for (var param in this._dictionary.page) if (params[param]) {
       var page = params[param];
       break;
     }
@@ -431,7 +457,7 @@ LSD.Resource.prototype.destroy = LSD.Resource.prototype['delete'] = function(par
   this.resource.splice(params, 1);
 };
 LSD.Resource.prototype.update = LSD.Resource.prototype.patch = function(params, update) {
-  this.resource.splice(params, 1, update);
+  //this.resource.splice(params, 1, update);
 };
 LSD.Resource.prototype.replace = LSD.Resource.prototype.put = function(params, update) {
   this.resource.splice(params, 1, update);
@@ -447,15 +473,19 @@ LSD.Resource.attributes = {
 };
 LSD.Resource.prototype.onSet = function(value, index, state, meta) {
   if (meta & 0x1) return;
-  if (state && !value.set) return this(value);
+  var subject = state && value.set ? value : new this(value);
+  if (subject.isNew()) subject.setTemporalKey();
+  return subject;
 };
+LSD.Resource.prototype.getTemporalKey = function() {
+  return Math.random();
+}
 LSD.Resource.prototype.getIntermediate = function(root, name) {
   if (root == null || name == null) return;
   if (root[name]) return root[name];
-  var resource = root._construct(name, true);;
+  var resource = root._construct(name, true);
   resource.set('left', this);
   resource.set('right', this.parent);
-  console.log(this.singular, this.collection, 'getting intermediate')
   resource._intermediate = true;
   return resource;
 }
@@ -468,6 +498,7 @@ LSD.Resource.prototype.getThroughName = function(left, right) {
   }
   return left + '_' + right;
 };
+
 /*
   Instance object base structure.
 */
@@ -475,36 +506,69 @@ LSD.Resource.prototype.getThroughName = function(left, right) {
 LSD.Model = function() {
   return LSD.Struct.apply(this, arguments);
 }
-LSD.Model.prototype = LSD.Struct('Journal');
+LSD.Model.prototype = LSD.Struct(LSD.Resource.attributes, 'Journal');
+LSD.Model.prototype._owning = false;
 LSD.Model.prototype._initialize = function() {
   var associatee = this, resource = this.constructor;
   var associations = resource._associations;
-  if (associations) for (var name in associations)
-    this.set(name, new LSD.Association(associations[name]))
+  if (associations) for (var name in associations) {
+    var association = associations[name];
+    if (association.multiple)
+      this.set(name, new LSD.Association(association))
+  }
 };
 LSD.Model.prototype.onChange = function(key, value, old, meta) {
-  var resource = this.constructor
-  var valueResource = value && value.resource;
-  if (valueResource) resource.associate(value, this, key);
-  var oldResource = old && old.resource;
-  if (oldResource) resource.deassociate(value, this, key);
-  var foreign = this._foreign && this._foreign[key], fKey
-  if (foreign)
-    for (var i = 0, foreigner; foreigner = foreign[i++];) {
-      if ((fKey = foreigner.foreignKey))
-        for (var j = 0, model; model = foreigner[j++];)
-          model.set(fKey, value, old, meta, true);
+  var resource = this.constructor, association = resource._associations;
+  if (association && (association = association[key])) {
+    if (!association.multiple) {
+      if (value) {
+        value.set(this.constructor.singular, this);
+        this.watch(this.constructor.key, [value, this.constructor.exportKey])
+      }
+      if (old) {
+        old.unset(this.constructor.singular, this);
+        this.unwatch(this.constructor.key, [old, this.constructor.exportKey])
+      }
     }
+  }
+  if (meta !== 'associate') {
+    var valueResource = value && value.resource;
+    if (valueResource) resource.associate(value, this, key);
+    var oldResource = old && old.resource;
+    if (oldResource) resource.deassociate(value, this, key);
+  }
+  var foreign = this._foreign && this._foreign[key], fKey
+  if (foreign) for (var i = 0, foreigner; foreigner = foreign[i++];) {
+    if ((fKey = foreigner.foreignKey))
+      for (var j = 0, model; model = foreigner[j++];)
+        model.set(fKey, value, old, meta, true);
+  }
+  return value;
 };
-LSD.Model.prototype.dispatch = function(action, params, options) {
-  return this.constructor[action](params, options)
-};
-LSD.Model.prototype.reload = function() {
-  return this.dispatch('show', arguments);
-};
+LSD.Model.prototype.associate = function() {
+  var skip = this._skip;
+  for (var property in this) if (!skip[property]) {
+    var value = this[property];
+    if (value.set) {
+      if (value.push)
+        for (var i = 0, j = value.length; i < j; i++) {
+          var val = value[i];
+          if (!val.saving && val.save) val.save()
+        }
+      else
+        if (!value.saving && value.save) value.save()
+    }
+  }
+}
 LSD.Model.prototype.save = function() {
-  return this.dispatch(this._id ? 'update' : 'create', arguments);
+  return this.constructor.dispatch(this.isNew() ? 'create' : 'update', undefined, this, arguments);
 };
+LSD.Model.prototype.setTemporalKey = function() {
+  this.set(this.constructor.key, this.constructor.getTemporalKey())
+}
+LSD.Model.prototype.isNew = function() {
+  return this._id == null;
+}
 LSD.Model.prototype.toJSON = function() {
   
 };
@@ -514,6 +578,9 @@ LSD.Model.prototype.toXML = function() {
 LSD.Model.prototype.toHTML = function() {
   
 };
+LSD.Model.prototype._skip = LSD.Struct.implement(LSD.Journal.prototype._skip, {
+  resource: true
+})
 LSD.Association = function(resource) {
   if (!(this instanceof LSD.Association))
     return new LSD.Association(resource)
@@ -544,9 +611,9 @@ LSD.Association.prototype.build = function() {
   var model = this.resource.build.apply(this.resource, arguments);
   this.push(model)
   return model;
-}
+};
 
-LSD.Association.prototype.onSet = function(value, index, state, meta) {
+LSD.Association.prototype.onSet = function(value, index, state, old, meta) {
   if (meta & 0x1) return;
   var resource = this.resource, object = this.object, origin = object.constructor;
   if (state && !value.set) value = new resource(value);
@@ -561,7 +628,6 @@ LSD.Association.prototype.onSet = function(value, index, state, meta) {
     var leftKey = intermediate[lefty ? 'leftKey' : 'rightKey'];
     var rightName = intermediate[lefty ? 'rightName' : 'leftName'];
     var rightKey = intermediate[lefty ? 'rightKey' : 'leftKey'];
-    if (!state) debugger
   }
   if (state) {
     if (ref) {
@@ -628,16 +694,17 @@ LSD.Resource.prototype._collection = {
   },
   create: {
     method: 'post',
-    before: 'validate'
+    before: 'validate',
+    after: 'associate'
   },
   validate: {
-    action: function(params, object) {
+    action: function(params) {
       if (this.validate(params) === false)
         return 'unprocessable_entity';
     }
   },
   sync: {
-    action: function(params, object) {
+    action: function(params) {
       if (this.validate(params) === false)
         return 'unprocessable_entity';
     }
@@ -650,7 +717,8 @@ LSD.Resource.prototype._member = {
       if (object === false) 
         return 'not_found';
       return object;
-    }
+    },
+    alias: 'reload'
   },
   edit: {
     before: 'show',
@@ -658,7 +726,8 @@ LSD.Resource.prototype._member = {
   },
   update: {
     method: 'put',
-    before: ['show', 'validate']
+    before: ['show', 'validate'],
+    after: 'associate'
   },
   patch: {
     method: 'patch',
@@ -675,8 +744,10 @@ LSD.Resource.prototype._member = {
 !function(members) {
   for (var name in members) !function(name) {
     LSD.Model.prototype[name] = function() {
-      return this.dispatch(name, arguments);
+      return this.constructor.dispatch(name, undefined, this, arguments);
     };
+    var alias = members[name].alias;
+    if (alias) LSD.Model.prototype[alias] = LSD.Model.prototype[name];
   }(name);
 }(LSD.Resource.prototype._member);
 
