@@ -108,12 +108,12 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
       if (meta !== 'reference') {
         if (value._ownable !== false) {
           value._reference = key;
-          value._set('_owner', this);
+          value.set('_owner', this);
         }
       } else value._references = (value._references || 0) + 1;
     if (old != null && old._owner === this)
       if (meta !== 'reference') {
-        old._unset('_owner', this);
+        old.set('_owner', undefined, this);
         delete old._reference;
       } else old._references --;
   }
@@ -221,7 +221,7 @@ LSD.Object.prototype.unset = function(key, value, meta, old, index, hash) {
   return this.set(key, old, value, meta, index, hash);
 };
 LSD.Object.prototype._unset = function(key, value, meta, old, index, hash) {
-  return this._set(key, old, value, meta, index, hash);
+  return this.set(key, old, value, meta, index, hash);
 };
 /*
   Get method fetches a value by a simple or composite keys. If an

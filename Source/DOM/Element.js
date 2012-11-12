@@ -59,7 +59,7 @@ LSD.Element.prototype.onChange = function(key, value, old, meta) {
   if (!definition) return
   var stack      = this._journal;
   if (stack) stack = stack[key];
-  if (typeof value != 'undefined' && (!stack || stack.length === 1) && typeof this[definition[0]] != 'function') {
+  if (value !== undefined && (!stack || stack.length < 2) && typeof this[definition[0]] != 'function') {
     var compiled = states._compiled || (states._compiled = {});
     var methods = compiled[key];
     if (!methods) {
@@ -71,7 +71,7 @@ LSD.Element.prototype.onChange = function(key, value, old, meta) {
         return this.change(key, false, meta);
       };
     }
-    for (var method in methods) this._set(method, methods[method]);
+    for (var method in methods) this.set(method, methods[method]);
   }
   if (value || old)
     if ((ns.attributes[key]) !== Boolean) {
@@ -81,9 +81,9 @@ LSD.Element.prototype.onChange = function(key, value, old, meta) {
       if (meta !== 'attributes')
         this.attributes.mix(key, value, old, 'states');
     }
-  if (stack && stack.length === 0) {
+  if (value === undefined) {
     var methods = states._compiled[key];
-    for (var method in methods) this._unset(method, methods[method]);
+    for (var method in methods) this.set(method, undefined, methods[method]);
   }
 };
 LSD.Element.prototype.__properties = {
@@ -251,7 +251,7 @@ LSD.Element.prototype.__properties = {
   used as a source of a tag name and attributes. When a `clone` property is
   set to true, the origin will not be used or altered. LSD.Element will
   create its own copy of an origin to use as its element. If `clone` is not
-  set, origin will be used as an element.
+  set, given element will be used to reflect state of the widget.
 */
   origin: function(value, old, meta) {
     if (!meta) meta = 'origin';
@@ -259,7 +259,7 @@ LSD.Element.prototype.__properties = {
     if (value && !originated) {
       opts = this.originated = {};
       if (value.tagName)
-        var tag = opts.tagName = opts.localName = value.tagName.toLowerCase();
+        var tag = opts.tagName = value.tagName.toLowerCase();
       if (value.lsd) {
         var attributes = value.attributes, skip = attributes._skip;
         for (var attribute in attributes) {
@@ -596,10 +596,10 @@ LSD.Element.prototype.__properties = {
   },
   nodeValue: function(value, old, meta) {
     if (meta === 'textContent') return;
-    var vtype = typeof value, otype = typeof old, prop = this.nodeValueProperty;
-    if (vtype !== 'undefined' && (prop || vtype !== 'object'))
+    var prop = this.nodeValueProperty;
+    if (value !== undefined && (prop || typeof value !== 'object'))
       this.set(prop || 'textContent', value, undefined, 'nodeValue');
-    if (otype !== 'undefined' && (prop || otype !== 'object'))
+    if (old !== undefined && (prop || typeof old !== 'object'))
       this.set(prop || 'textContent', undefined, old, 'nodeValue');
   },
   date: Date,
@@ -901,7 +901,7 @@ LSD.Element.prototype.toElement = function(){
   return this.element;
 };
 LSD.Element.prototype.onChildSet = function(value, index, state, old, meta) {
-  if (((state || !(meta & 0x2))) && !value._followed ) {
+  if ((( (!(meta & 0x2)))) && !value._followed ) {
     var children = this.childNodes;
     for (var text = '', child, i = 0; child = children[i++];)
       if (child.textContent != null) text += child.textContent;
@@ -929,7 +929,7 @@ LSD.Document.prototype.mix('states', {
   invoked:   ['invoke',     'revoke']
 })
 
-LSD.Element.prototype._set('built', false);
-LSD.Element.prototype._set('hidden', false);
-LSD.Element.prototype._set('disabled', false);
-LSD.Element.prototype._set('focused', false);
+LSD.Element.prototype.set('built', false);
+LSD.Element.prototype.set('hidden', false);
+LSD.Element.prototype.set('disabled', false);
+LSD.Element.prototype.set('focused', false);

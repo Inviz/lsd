@@ -71,12 +71,7 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
     }
   }
   if (hash == null) var index = key.indexOf('.');
-  if (index === -1) {
-    var journal = this._journal;
-    if (!journal) journal = this._journal = {};
-    var group = journal[key];
-    if (!group) group = journal[key] = []
-  }
+  if (index > -1) return;
 /*
   Most of hash table implementations have a simplistic way to delete
   a key - they just erase the value. LSD.Journal's unset function 
@@ -86,45 +81,74 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
     javascript. It only happens if there was a single logged value by
     that key. Callbacks are called and passed that value as a second
     argument.
+  * Value is reverted to previous value on the stack. Callbacks are
+    fired with both new and old value as arguments.
   * Value does not change, if the value being unset was not on top of
     the stack. It may also happen if there were two identical values 
     on top of the stack, so removing the top value falls back to the
     same value. Callbacks don't fire.
-  * Value gets reverted to previous value on the stack. Callbacks are
-    fired with both new and old value as arguments.
 */
-  if (!group) return;
-  var vdef = typeof value != 'undefined', odef = typeof old != 'undefined';
-  var j = group.length
-  if (!vdef && !odef)
-    odef = typeof (old = group[j - 1]) != 'undefined';
-  if (odef) for (var j = group.length, i = prepend ? -1 : j;; ) {
-    if (prepend ? ++i == j : --i < 0) break;
-    if (group[i] === old) {
-      group.splice(i, 1);
-      break;
+  var current = this[key];
+  var journal = this._journal;
+  if (journal) {
+    var group = journal[key];
+    if (group) {
+      var j = group.length;
+      if (j && value === undefined && old === undefined)
+        old = group[j - 1];
     }
-  }
-  if (old && old[this._trigger] && !old._ignore) {
-    this._unscript(key, old, meta)
-  }
-  if (vdef)
-    if (prepend) {
-      j = group.unshift(value) || group.length;
-      value = group[j - 1];
-      if (j !== 1) return true;
-    } else {
-      group.push(value);
-      if (odef && old !== this[key])
-        return this._set(key, value, undefined, meta, false, index, null);
+  }  
+  if (old !== undefined) {
+    var erasing = old === current;
+    if (j) for (var i = prepend ? -1 : j;; ) {
+      if (prepend ? ++i == j : --i < 0) break;
+      if (group[i] === old) {
+        group.splice(i, 1);
+        if (i == j - 1) erasing = true;
+        break;
+      }
     }
-  else if (i < 0 || i == j) 
-    return false;
-  else {
-    if ((value = group[j - 2]) && value[this._trigger] && !value._ignore)
+    if (old && old[this._trigger] && !old._ignore)
+      this._unscript(key, old, meta)
+  } else old = current;
+  if (value !== undefined) {
+    if (group || (current !== undefined && !erasing && this.hasOwnProperty(key))) {
+      if (!group) {
+        if (!journal) journal = this._journal = {};
+        group = journal[key] = [current];
+      }
+      if (prepend) {
+        j = group.unshift(value) || group.length;
+        value = group[j - 1];
+        if (j !== 1) return true;
+      } else {
+        group.push(value);
+        if (!erasing) old = undefined;
+      }
+    }
+    if (this.set(key, value, old, meta, prepend, index, null)) {
+/*
+  If a given value was transformed and the journal was not initialized yet,
+  create a journal and write the given value
+*/
+      if (!group && this[key] !== value) {
+        if (!journal) journal = this._journal = {};
+        group = journal[key] = [value];
+      }
+      return true;
+    } else return false;
+  } else {
+    if (j != null) {
+      if (i < 0 || i === j) return false;
+      else if (!erasing) return true;
+      else if (value === undefined) {
+        if (j > 1) value = group[j];
+        else return;
+      };
+    } else if (old !== current) return false;
+    if (j && (value = group[j - 2]) && value[this._trigger] && !value._ignore)
       value = undefined;
-    if (odef) 
-      return this._set(key, value, undefined, meta, false, index, null);
+    return this.set(key, value, undefined, meta, prepend, index, null);
   }
 };
 /*

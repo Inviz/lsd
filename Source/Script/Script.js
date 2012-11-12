@@ -764,8 +764,9 @@ LSD.Script.prototype.invoke = function(args, state, reset) {
     if (args === this.invoked || state == null) delete this.invoked;
     if (state != null && this.attached != null) this.set('attached', undefined, this.attached);
     if (this.locals && args != null)
-      for (var local, i = 0; local = this.locals[i]; i++)
+      for (var local, i = 0; local = this.locals[i]; i++) {
         this.variables.set(local.name, undefined, args[i], 'unset');
+      }
   }
   return result;
 };
