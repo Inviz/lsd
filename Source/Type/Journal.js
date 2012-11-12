@@ -112,7 +112,7 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
       this._unscript(key, old, meta)
   } else old = current;
   if (value !== undefined) {
-    if (group || (current !== undefined && !erasing && (this.hasOwnProperty(key)))) {
+    if (group || (current !== undefined && !erasing && this.hasOwnProperty(key))) {
       if (!group) {
         if (!journal) journal = this._journal = {};
         group = journal[key] = [current];
@@ -126,7 +126,11 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
         if (!erasing) old = undefined;
       }
     }
-    if (this._set(key, value, old, meta, prepend, index, null)) {
+    if (this.set(key, value, old, meta, prepend, index, null)) {
+/*
+  If a given value was transformed and the journal was not initialized yet,
+  create a journal and write the given value
+*/
       if (!group && this[key] !== value) {
         if (!journal) journal = this._journal = {};
         group = journal[key] = [value];
@@ -144,7 +148,7 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
     } else if (old !== current) return false;
     if (j && (value = group[j - 2]) && value[this._trigger] && !value._ignore)
       value = undefined;
-    return this._set(key, value, undefined, meta, prepend, index, null);
+    return this.set(key, value, undefined, meta, prepend, index, null);
   }
 };
 /*

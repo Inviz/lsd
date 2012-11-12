@@ -71,7 +71,7 @@ LSD.Element.prototype.onChange = function(key, value, old, meta) {
         return this.change(key, false, meta);
       };
     }
-    for (var method in methods) this._set(method, methods[method]);
+    for (var method in methods) this.set(method, methods[method]);
   }
   if (value || old)
     if ((ns.attributes[key]) !== Boolean) {
@@ -83,7 +83,7 @@ LSD.Element.prototype.onChange = function(key, value, old, meta) {
     }
   if (value === undefined) {
     var methods = states._compiled[key];
-    for (var method in methods) this._unset(method, methods[method]);
+    for (var method in methods) this.set(method, undefined, methods[method]);
   }
 };
 LSD.Element.prototype.__properties = {
