@@ -251,7 +251,7 @@ LSD.Element.prototype.__properties = {
   used as a source of a tag name and attributes. When a `clone` property is
   set to true, the origin will not be used or altered. LSD.Element will
   create its own copy of an origin to use as its element. If `clone` is not
-  set, origin will be used as an element.
+  set, given element will be used to reflect state of the widget.
 */
   origin: function(value, old, meta) {
     if (!meta) meta = 'origin';
@@ -596,10 +596,10 @@ LSD.Element.prototype.__properties = {
   },
   nodeValue: function(value, old, meta) {
     if (meta === 'textContent') return;
-    var vtype = typeof value, otype = typeof old, prop = this.nodeValueProperty;
-    if (vtype !== 'undefined' && (prop || vtype !== 'object'))
+    var prop = this.nodeValueProperty;
+    if (value !== undefined && (prop || typeof value !== 'object'))
       this.set(prop || 'textContent', value, undefined, 'nodeValue');
-    if (otype !== 'undefined' && (prop || otype !== 'object'))
+    if (old !== undefined && (prop || typeof old !== 'object'))
       this.set(prop || 'textContent', undefined, old, 'nodeValue');
   },
   date: Date,
@@ -929,7 +929,7 @@ LSD.Document.prototype.mix('states', {
   invoked:   ['invoke',     'revoke']
 })
 
-LSD.Element.prototype._set('built', false);
-LSD.Element.prototype._set('hidden', false);
-LSD.Element.prototype._set('disabled', false);
-LSD.Element.prototype._set('focused', false);
+LSD.Element.prototype.set('built', false);
+LSD.Element.prototype.set('hidden', false);
+LSD.Element.prototype.set('disabled', false);
+LSD.Element.prototype.set('focused', false);
