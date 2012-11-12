@@ -154,8 +154,7 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
   var watchers = this._watchers;
   if (watchers && nonenum !== true) for (var i = 0, j = watchers.length, watcher, fn; i < j; i++) {
     if ((watcher = watchers[i]) == null) continue;
-    if (typeof watcher == 'function') watcher.call(this, key, value, old, meta, hash);
-    else this._callback(watcher, key, value, old, meta, hash);
+    this._callback(watcher, key, value, old, meta, hash);
   }
 /*
   An alternative to listening for all properties, is to watch a specific
@@ -168,7 +167,7 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
     var watched = this._watched;
     if (watched && (watched = watched[key]))
       for (var i = 0, fn; fn = watched[i++];)
-        if (fn.call) fn.call(this, value, old, meta);
+        if (typeof fn == 'function') fn.call(this, value, old, meta);
         else this._callback(fn, key, value, old, meta, hash);
 /*
   When an LSD.Object is mixed with a nested object, it builds missing objects
@@ -839,14 +838,20 @@ LSD.Object.prototype._merger = function(call, name, value, old, meta) {
   a trace of all properties affected by callbacks to avoid curcular calls
 */
 LSD.Object.prototype._callback = function(callback, key, value, old, meta, lazy) {
-  if (typeof callback == 'string')
-    var subject = this, property = callback;
-  else if (typeof callback.fn == 'function')
-    return (callback.fn || (callback.bind || this)[callback.method]).apply(callback.bind || this, arguments);
-  else if (callback._watch && callback.set)
-    var subject = callback, property = key;
-  else if (callback.push)
-    var subject = callback[0], property = callback[1];
+  switch (typeof callback) {
+    case 'function':
+      return callback.call(this, key, value, old, meta, lazy);
+    case 'string':
+      var subject = this, property = callback;
+      break;
+    default:
+      if (typeof callback.fn == 'function')
+        return (callback.fn || (callback.bind || this)[callback.method]).apply(callback.bind || this, arguments);
+      else if (callback._watch && callback.set)
+        var subject = callback, property = key;
+      else if (callback.push)
+        var subject = callback[0], property = callback[1];
+  }
   if (property === true || property == false)
     property = key;
   // check for circular calls

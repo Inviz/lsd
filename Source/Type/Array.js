@@ -76,7 +76,49 @@ LSD.Array.prototype._offset = 0;
   LSD.Objects, thus it does not affect their `._owner` link.
 */
 LSD.Array.prototype._owning = false;
-
+LSD.Array.prototype._hash = function(key, value, old, meta, from) {
+  var index = parseInt(key);
+  if (index != key) return;
+  this[index] = value;
+  if (index + 1 > this._length && value !== undefined) 
+    this.set('length', (this._length = index + 1));
+  var set;
+  if (value === undefined) delete this[index];
+  if (this._onSet && (set = this._onSet(index, value, old, old, meta, from)) !== undefined)
+    if (value !== undefined) this[index] = value = set;
+  if (this.onSet && (set = this.onSet(index, value, old, meta, from)) !== undefined)
+    if (value !== undefined) this[index] = value = set;
+  var watchers = this.__watchers, changed;
+  if (watchers) for (var i = 0, j = watchers.length, callback; i < j; i++) {
+    if (!(callback = watchers[i])) continue;
+    if (typeof callback == 'function') callback.call(this, value, index)
+    else this._callback(callback, index, value, old, meta, from);
+  }
+  var subject = value || old;
+  if (from == null && subject && subject.mix) {
+    var stored = this._owner;
+    if (stored && (stored = stored._stored) && (stored = stored[this._reference]))
+      for (var i = 0, a; a = stored[i++];) 
+        subject[value ? 'mix' : 'unmix'].apply(subject, a);
+    if ((stored = this._stored))
+      for (var prop in stored) if (!this._skip[prop]) {
+        var dot = prop.indexOf('.');
+        var property = dot > -1 ? prop.substring(0, dot) : prop;
+        if (parseInt(property) != property) {
+          for (var i = 0, a; a = stored[prop][i++];) {
+            if (a.length < 3) 
+              subject[value ? 'set' : 'unset'](prop, a[0], a[1]);
+            else if (typeof a[0] == 'string')
+              subject[value ? 'mix' : 'unmix'](prop + '.' + a[0], a[1], a[2], a[3], a[4], a[5], a[6])
+          }
+        } else if (property == key) {
+          for (var i = 0, a; a = stored[prop][i++];) 
+            subject[value ? 'mix' : 'unmix']((prop ? prop + '.' : '') + a[0], a[1], a[2], a[3], a[4], a[5], a[6])
+        }
+      }
+  }
+  return true;
+};
 LSD.Array.prototype.push = function() {
   var args = Array.prototype.slice.call(arguments);
   for (var i = 0, j = args.length; i < j; i++) {
@@ -90,87 +132,8 @@ LSD.Array.prototype.push = function() {
     }
   }
   for (var i = 0, j = args.length; i < j; i++)
-    this.set(this._length, args[i], 'push');
+    this.set(this._length, args[i], undefined, 'push');
   return this._length;
-};
-LSD.Array.prototype.set = function(key, value, old, meta, extra) {
-  var index = parseInt(key);
-  if (index != index) {
-    return this['_set'](key, value, old, meta, extra);
-  } else {
-    this[index] = value;
-    if (index + 1 > this._length) this._set('length', (this._length = index + 1));
-    if (this._onSet && typeof (set = this._onSet(value, index, true, old, meta)) != 'undefined')
-      this[index] = value = set;
-    if (this.onSet && typeof (set = this.onSet(value, index, true, old, meta)) != 'undefined')
-      this[index] = value = set;
-    var watchers = this.__watchers, changed;
-    if (watchers) for (var i = 0, j = watchers.length, fn; i < j; i++) {
-      if (!(fn = watchers[i])) continue;
-      if (typeof fn == 'function') fn.call(this, value, index, true, old, meta);
-      else this._callback(fn, value, index, true, old, meta);
-    }
-    if (old == null && value && value.mix) {
-      var stored = this._owner;
-      if (stored && (stored = stored._stored) && (stored = stored[this._reference]))
-        for (var i = 0, a; a = stored[i++];) 
-          value.mix.apply(value, a);
-      if ((stored = this._stored))
-        for (var prop in stored) if (!this._skip[prop]) {
-          var dot = prop.indexOf('.');
-          var property = dot > -1 ? prop.substring(0, dot) : prop;
-          if (parseInt(property) != property) {
-            for (var i = 0, a; a = stored[prop][i++];) {
-              if (a.length < 3) 
-                value.set(prop, a[0], a[1]);
-              else if (typeof a[0] == 'string')
-                value.mix(prop + '.' + a[0], a[1], a[2], a[3], a[4], a[5], a[6])
-            }
-          } else if (property == key) {
-            for (var i = 0, a; a = stored[prop][i++];) 
-              value.mix((prop ? prop + '.' : '') + a[0], a[1], a[2], a[3], a[4], a[5], a[6])
-          }
-        }
-    }
-    return value;
-  }
-};
-LSD.Array.prototype.unset = function(key, value, old, meta, extra) {
-  var index = parseInt(key);
-  if (index != index) {
-    return this._unset(key, value, old, meta, extra);
-  } else {
-    delete this[index];
-    if (index + 1 == this._length) this._set('length', (this._length = index));
-    var watchers = this.__watchers;
-    if (watchers) for (var i = 0, j = watchers.length, fn; i < j; i++) {
-      if (!(fn = watchers[i])) continue;
-      if (typeof fn == 'function') fn.call(this, value, index, false, old, meta);
-      else this._callback(fn, value, index, false, old, meta);
-    }
-    if (old == null && value && value.mix) {
-      var stored = this._owner;
-      if (stored && (stored = stored._stored) && (stored = stored[this._reference]))
-        for (var i = 0, a; a = stored[i++];) 
-          value.unmix.apply(value, a);
-      if ((stored = this._stored))
-        for (var prop in stored) if (!this._skip[prop]) {
-          if (parseInt(prop) != prop) {
-            for (var i = 0, a; a = stored[prop][i++];) 
-              if (a.length < 3) 
-                value.unset(prop, a[0], a[1]);
-              else if (typeof a[0] == 'string')
-                value.unmix(prop + '.' + a[0], a[1], a[2], a[3], a[4], a[5], a[6])
-          } else if (prop == key) {
-            for (var i = 0, a; a = stored[prop][i++];) 
-              value.unmix(a[0], a[1], a[2], a[3], a[4], a[5], a[6])
-          }
-        }
-    }
-    if (this._onSet) this._onSet(value, index, false, old, meta);
-    if (this.onSet) this.onSet(value, index, false, old, meta);
-    return value;
-  }
 };
 LSD.Array.prototype.indexOf = function(object, from) {
   var hash = this._hash && typeof object == 'object' && object != null ? this._hash(object) : object;
@@ -189,14 +152,12 @@ LSD.Array.prototype.indexOf = function(object, from) {
   values when more values are added or removed from array.
 
   The goal of this method is to alter the array in a specific order that ensures
-  that values are not overwritten in the process. That enables two things:
+  that values are not overwritten in the process. That means two things:
 
     - No intermediate values are stored when array modifications take place
 
     - Iterator-like separation of concerns, when observable array callbacks
-      only receive bare minimum of arguments and not handle order of
-      execution by outsourcing it to implementation of the method that changes
-      the array.
+      only receive bare minimum of arguments and called in specific order.
 
   An array modification may lead up to 3 outcomes:
 
@@ -252,19 +213,19 @@ LSD.Array.prototype.splice = function(index, offset) {
     bit = (i == 0 && this.FIRST) | ((i == arity - 1) && this.LAST);
     if (i < offset) {
       values.push(this[i + index]);
-      this.unset(i + index, this[i + index], null, bit | this.FORWARD);
+      this.set(i + index, this[i + index], undefined, bit | this.FORWARD, null);
     } else {
 /*
-  If there is more values to be inserted than to be removed (outcome #2),
+  If there are more values to be inserted than to be removed (outcome #2),
   splice shifts the array to the right by iterating from end
   to the beginning, ensuring that values are always written in an
   unoccupied spot.
 */
       if (i == offset)
         for (var j = length, k = index + arity - shift; --j >= k;)
-          this.set(j + shift, this[j], j, bit | this.MOVE | this.FORWARD)
+          this.set(j + shift, this[j], this[j + shift], bit | this.MOVE | this.FORWARD, j)
     }
-    this.set(i + index, args[i], null, i < offset ? bit : bit | this.SPLICE);
+    this.set(i + index, args[i], this[i + index], i < offset ? bit : bit | this.SPLICE, null);
   }
 /*
   Otherwise, if there are more to be removed, than to inserted 
@@ -275,17 +236,17 @@ LSD.Array.prototype.splice = function(index, offset) {
       bit = ((i == index + arity - shift) && this.FIRST) | ((i === length - 1) && this.LAST);
       spliced = i - s < offset - arity;
       if (spliced) values.push(this[i + shift])
-      this.unset(i + shift, this[i + shift], null, bit | (spliced ? this.FORWARD : this.MOVE));
-      this.set(i + shift, this[i], i, bit | this.MOVE);
+      this.set(i + shift, undefined, this[i + shift], bit | (spliced ? this.FORWARD : this.MOVE), null);
+      this.set(i + shift, this[i], undefined, bit | this.MOVE, i);
     }
   this._set('length', (this._length = length + shift));  
   for (var i = this._length; i < length; i++)  {
     bit = ((i === this._length) && this.FIRST) | ((i === length - 1) && this.LAST);
     if (values.length < - shift) {
       values.push(this[i])
-      this.unset(i, this[i], null, bit | this.SPLICE);
+      this.set(i, undefined, this[i], bit | this.SPLICE, null);
     } else {
-      this.unset(i, this[i], null, bit | this.MOVE);
+      this.set(i, undefined, this[i], bit | this.MOVE, null);
     }
   }
   delete this._shifting;
@@ -328,18 +289,14 @@ LSD.Array.prototype.move = function(from, to, meta) {
   if (from === to) return true;
   var value = this[from];
   if (from > to)
-    for (var i = from; --i > to;)
-      this.set(i, this[i + 1], i + 1, 'collapse');
-  else
-    for (var i = from; i < to; i++)
-      this.set(i, this[i + 1], i + 1, 'collapse');
+    for (var i = from; from > to ? --i > to : i < to; from > to || i++)
+      this.set(i, this[i + 1], this[i], 'collapse', i + 1);
   var j = from > to ? to : to - 1;
-  if (j !== from) this.set(j, value, from, 'move');
+  if (j !== from) this.set(j, value, undefined, 'move', from);
 };
 LSD.Array.prototype.pop = function() {
   return this.splice(-1, 1)[0];
-},
-
+};
 LSD.Array.prototype.shift = function() {
   return this.splice(0, 1)[0]
 };
@@ -349,41 +306,35 @@ LSD.Array.prototype.unshift = function() {
 };
 LSD.Array.prototype.watch = function(callback, fn, meta) {
   if (typeof fn != 'undefined') return this._watch(callback, fn);
-  for (var i = 0, j = this._length >>> 0; i < j; i++) {
-    if (callback.call) callback.call(this, this[i], i, true);
-    else this._callback(callback, this[i], i, true);
-  }
-  var watchers = this.__watchers;
-  if (!watchers) watchers = this.__watchers = [];
-  watchers.push(callback);
+  for (var i = 0, j = this._length >>> 0; i < j; i++)
+    this._callback(callback, this[i], i);
+  (this.__watchers || (this.__watchers = [])).push(callback);
 };
 LSD.Array.prototype.unwatch = function(callback, fn, meta) {
   if (typeof fn != 'undefined') return this._watch(callback, fn);
-  for (var i = 0, j = this._length >>> 0; i < j; i++) {
-    if (callback.call) callback.call(this, this[i], i, false);
-    else this._callback(callback, this[i], i, false);
-  }
+  for (var i = 0, j = this._length >>> 0; i < j; i++)
+    this._callback(callback, this[i], i, false);
   var watchers = this.__watchers;
   var index = watchers.indexOf(callback);
   watchers.splice(index, 1);
 };
-LSD.Array.prototype._seeker = function(call, value, index, state, old, meta) {
-  var args = this.slice.call(arguments, 1), block = call.block, invoker = call.invoker, array = call.meta, length = array && array.length;
-  if (state && index > invoker._last && length >= invoker._limit && (array[length - 1] !== array[length - 1 + this._shifting]))
+LSD.Array.prototype._seeker = function(call, index, value, old, meta, from) {
+  var args = [value, index, old, meta, from], block = call.block, invoker = call.invoker, array = call.meta, length = array && array.length;
+  if (value !== undefined && index > invoker._last && length >= invoker._limit && (array[length - 1] !== array[length - 1 + this._shifting]))
     return;
   if (index < invoker._position) return;
   if (block.block) {
-    var result = block(state ? 'yield' : 'unyield', args, call.callback, index, old, meta);
+    var result = block(value !== undefined ? 'yield' : 'unyield', args, call.callback, index, meta, from);
   } else {
     var result = block.apply(block, args);
-    if (call.callback) result = call.callback(result, value, index, state, old, meta);
+    if (call.callback) result = call.callback(result, index, value, old, meta, from);
   }
   if (result != null && result.value && (invoker._last == null || invoker._last < index)) invoker._last = index;
   return result;
 };
 LSD.Array.prototype.seek = function(block, callback, state, meta) {
   var array = this._origin || this, limit = this._limit, offset = this._offset;
-  if (state !== false && (state = true)) {
+  if (state !== false) {
     block.watcher = {fn: this._seeker, invoker: this, block: block, callback: callback, meta: meta};
   }
   this._position = 0;
@@ -394,7 +345,8 @@ LSD.Array.prototype.seek = function(block, callback, state, meta) {
       this._position++;
       result = undefined;
     } else {
-      result = array._callback(block.watcher, array[i], i, state, prev, {limit: this._limit, offset: this._offset});
+      debugger
+      result = array._callback(block.watcher, i, array[i], undefined, {limit: this._limit, offset: this._offset}, prev);
       prev = null;
       if (limit) {
         if (!result) var prev = i;
@@ -422,33 +374,33 @@ LSD.Array.prototype.each = function(callback) {
 LSD.Array.prototype.filter = function(callback, plain) {
   var filtered = plain ? [] : new LSD.Array;
   var shifts = [], spliced = 0, origin = this;
-  return this.seek(callback, function(result, value, index, state, old, meta) {
+  return this.seek(callback, function(result, index, value, old, meta, from) {
     var splicing = meta & 0x4, moving = meta & 0x1;
     if (origin._position) index -= origin._position - (origin._origin && origin._origin._shifting || 0)
     for (var i = shifts.length; i <= index + 1; i++)
       shifts[i] = (shifts[i - 1]) || 0
     var shift = shifts[index];
-    if (state && (old != null) && shifts[old + 1] > shifts[old])
-      for (var i = old + 1, j = Math.max(shifts.length, index); i < j; i++)
+    if (value !== undefined && (from != null) && shifts[from + 1] > shifts[from])
+      for (var i = from + 1, j = Math.max(shifts.length, index); i < j; i++)
         shifts[i]--;
     else
       var diff = shifts[index + 1] - shift;
-    if (state ? result ? diff : !diff : diff)
-      for (var i = index + 1, j = shifts.length, k = (state && !result ? 1 : -1); i < j; i++)
+    if (value !== undefined ? result ? diff : !diff : diff)
+      for (var i = index + 1, j = shifts.length, k = (value !== undefined && !result ? 1 : -1); i < j; i++)
         shifts[i] += k;
-    if (result && state) {
+    if (result && value !== undefined) {
       var current = filtered[index - shift];
-      if (index < 0 && old) {
-        filtered.set ? filtered.unset(old, value) : delete filtered[old];
-      } else if ((splicing || moving) && !diff && ((!spliced || index - shift > 0 || (filtered[index - shift] !== value && old > index)))) {
+      if (index < 0 && from) {
+        filtered.set ? filtered.set(from, undefined, value) : delete filtered[from];
+      } else if ((splicing || moving) && !diff && ((!spliced || index - shift > 0 || (filtered[index - shift] !== value && from > index)))) {
         filtered.set ? filtered.set(index - shift, value) : filtered[index - shift] = value;
       } else {
         filtered.splice(index - shift, 0, value);
       }
-      if ((old != null || !splicing) && spliced > 0) spliced--;
-    } else if (old == null && state ^ result && (!state || meta == null || splicing)) {
+      if ((from != null || !splicing) && spliced > 0) spliced--;
+    } else if (from == null && (value !== undefined ^ result) && (value === undefined || meta == null || splicing)) {
       filtered.splice(index - shift, 1);
-      if (index - shift == 0 && (old != null || !splicing)) spliced++;
+      if (index - shift == 0 && (from != null || !splicing)) spliced++;
     }
     if (callback.block) callback.block.update(filtered);
     return filtered;
@@ -557,13 +509,6 @@ LSD.Array.prototype._manager = function(callback, value, old) {
 };
 LSD.Array.prototype._sorter = function(a, b) {
   return a > b ? 1 : a < b ? - 1 : 0;
-};
-LSD.Array.prototype._hash = function(object) {
-  return typeof object._id != 'undefined'
-    ? object._id
-    : typeof object.id != 'undefined'
-      ? object.id
-      : object.$id;
 };
 LSD.Array.prototype.clone = function() {
   var clone = new this.constructor;

@@ -669,20 +669,20 @@ LSD.Script.prototype.execute = function(value, meta) {
   else if (typeof this.value != 'undefined')
     this.set('value', undefined, this.value);
 }
-LSD.Script.prototype.yield = function(keyword, args, callback, index, old, meta) {
+LSD.Script.prototype.yield = function(keyword, args, callback, index, meta, from) {
   if (args == null) args = [];
   switch (keyword) {
     case 'yield':
       if (!this.yields) this.yields = {};
       if (!this.values) this.values = {};
-      if (old == null || old === false) {
+      if (from == null || from === false) {
         var block = this.yields[index];
       } else {
-        var yielded = this.yields[old];
+        var yielded = this.yields[from];
         if (yielded) {
-          var block = this.yields[index] = this.yields[old];
-          this.values[old] = block.value;
-          delete this.yields[old];
+          var block = this.yields[index] = this.yields[from];
+          this.values[from] = block.value;
+          delete this.yields[from];
         }
       }
       if (!block) {
@@ -691,7 +691,7 @@ LSD.Script.prototype.yield = function(keyword, args, callback, index, old, meta)
           if (yielded.invoked) break;
           else yielded = null;
         }
-      } else if (old != null) this.yields[index] = block;
+      } else if (from != null) this.yields[index] = block;
       if (!block) block = this.yields[index] = this.recycled && this.recycled.pop()
       || new LSD.Script({type: 'block', locals: this.locals, input: this.input, scope: this.scope, proto: yielded});
       var invoked = block.invoked;
