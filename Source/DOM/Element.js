@@ -59,7 +59,7 @@ LSD.Element.prototype.onChange = function(key, value, old, meta) {
   if (!definition) return
   var stack      = this._journal;
   if (stack) stack = stack[key];
-  if (typeof value != 'undefined' && (!stack || stack.length === 1) && typeof this[definition[0]] != 'function') {
+  if (value !== undefined && (!stack || stack.length < 2) && typeof this[definition[0]] != 'function') {
     var compiled = states._compiled || (states._compiled = {});
     var methods = compiled[key];
     if (!methods) {
@@ -81,7 +81,7 @@ LSD.Element.prototype.onChange = function(key, value, old, meta) {
       if (meta !== 'attributes')
         this.attributes.mix(key, value, old, 'states');
     }
-  if (stack && stack.length === 0) {
+  if (value === undefined) {
     var methods = states._compiled[key];
     for (var method in methods) this._unset(method, methods[method]);
   }
@@ -259,7 +259,7 @@ LSD.Element.prototype.__properties = {
     if (value && !originated) {
       opts = this.originated = {};
       if (value.tagName)
-        var tag = opts.tagName = opts.localName = value.tagName.toLowerCase();
+        var tag = opts.tagName = value.tagName.toLowerCase();
       if (value.lsd) {
         var attributes = value.attributes, skip = attributes._skip;
         for (var attribute in attributes) {
@@ -901,7 +901,7 @@ LSD.Element.prototype.toElement = function(){
   return this.element;
 };
 LSD.Element.prototype.onChildSet = function(value, index, state, old, meta) {
-  if (((state || !(meta & 0x2))) && !value._followed ) {
+  if ((( (!(meta & 0x2)))) && !value._followed ) {
     var children = this.childNodes;
     for (var text = '', child, i = 0; child = children[i++];)
       if (child.textContent != null) text += child.textContent;
