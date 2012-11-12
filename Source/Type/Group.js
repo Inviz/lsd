@@ -56,7 +56,7 @@ LSD.Group.prototype._hash = function(key, value, old, meta, prepend, index) {
     }
   } else return hash;
 };
-LSD.Group.prototype._finalize = function(key, value, old, meta, prepend, hash) {
+LSD.Group.prototype._finalize = function(key, value, old, meta, prepend, hash, val) {
   if (hash == null) return;
   if (old !== undefined) {
     var index = hash.indexOf(old);

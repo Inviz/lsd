@@ -97,7 +97,12 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
       if (j && value === undefined && old === undefined)
         old = group[j - 1];
     }
-  }  
+  }
+/*
+  When Journal setter is given an old value, it removes it from the
+  journal. If a new value is not given and the old value was on top
+  of the stack, it falls back to a previous value in the stack.
+*/
   if (old !== undefined) {
     var erasing = old === current;
     if (j) for (var i = prepend ? -1 : j;; ) {
@@ -123,20 +128,8 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
         if (j !== 1) return true;
       } else {
         group.push(value);
-        if (!erasing) old = undefined;
       }
     }
-    if (this.set(key, value, old, meta, prepend, index, null)) {
-/*
-  If a given value was transformed and the journal was not initialized yet,
-  create a journal and write the given value
-*/
-      if (!group && this[key] !== value) {
-        if (!journal) journal = this._journal = {};
-        group = journal[key] = [value];
-      }
-      return true;
-    } else return false;
   } else {
     if (j != null) {
       if (i < 0 || i === j) return false;
@@ -151,6 +144,16 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
     return this.set(key, value, undefined, meta, prepend, index, null);
   }
 };
+/*
+  If a given value was transformed and the journal was not initialized yet,
+  create a journal and write the given value
+*/
+LSD.Journal.prototype._finalize = function(key, value, old, meta, prepend, hash, val) {
+  if (val === value) return;
+  var journal = this._journal;
+  var group = journal && journal[key];
+  if (!group) (journal || (this._journal = {}))[key] = [val]
+}
 /*
   LSD.Journal is a subclass of LSD.Object and thus it inherits a method
   named `change` that is an alias to `set` with predefined `old` argument.

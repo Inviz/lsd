@@ -124,7 +124,7 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
   the skipped properties is defined in `_skip` object in the end of a file. 
   Builtin listeners may reject or transform value.
 */
-  var changed;
+  var changed, val = value;;
   if (this._onChange && (changed = this._onChange(key, value, old, meta, hash)) !== undefined)
     if (changed === skip) {
       if (hash == null) this[key] = old;
@@ -136,7 +136,7 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
         if (hash == null) this[key] = old;
         return;
       } else value = changed;
-  if (this._finalize) this._finalize(key, value, old, meta, prepend, hash)
+  if (this._finalize) this._finalize(key, value, old, meta, prepend, hash, val)
 /*
   Global object listeners (and so custom property handlers in structs) 
   may compile given value into expression (e.g. a textnode may find
