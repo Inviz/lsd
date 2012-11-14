@@ -20,42 +20,6 @@ provides:
  
 ...
 */
-
-/*
-  The best way to customize widget behavior, is to define a widget role. The role may be further extended or reused by widgets with the 
-  matching tag name. But a widget can only have one role at time. There is a way to provide additional customizations to widget through 
-  use of mixins, a reusable class definition that may be applied on top of the widget role. Both role and mixins are applied when the 
-  widget matches specific condition. Widgets can find their role easily, because often the role name matches with the widget tag name, so 
-  their condition would be a specific tag name. But mixins may also be triggered with any selector, for example, watching for a specific 
-  pseudo class. Matches object is used to make mixin observe a selector, so every mixin comes with a pre-defined behavior. Behavior may be 
-  also used to apply plain widget options, instead of mixins.        
-*/
-
-/*
-  Provides additional behavor for LSD Widgets. 
-
-  There are several ways to define a new behavior (commands). For a complete list of commands, refer Widget guide.
-      
-  As pseudo:
-
-    LSD.Behavior.define(':submittable', 'submittable')
-  
-  As pseudo containing certain attributes:
-
-    LSD.Behavior.define(':form[acttion], [src], [href]', 'request')
-  
-  As an object containing certain attributes
-
-    LSD.Behavior.define('[scrollable]', 'scrollable')
-
-  Submitable, Request and Scrollable in the given examples are retrieved from LSD.Mixin object (they are LSD.Mixin.Submitable, LSD.Mixin.Request,
-  LSD. Mixin.Scrollable).
-
-  You can also specify a concerete class:
-
-    LSD.Behavior.define('[scrollable]', LSD.Mixin.Scrollable)
-
-*/
   
 LSD.Properties.Matches = LSD.Struct('Group');
 /*
@@ -230,7 +194,7 @@ LSD.Properties.Matches.prototype.__hash = function(expression, value, old, meta,
   return array;
 };
 /*
-  Matches structure join two different worlds together. It allows
+  Matches structure joins two different worlds together. It allows
   to observe widgets and fire `callback` when certain `widget` 
   matches the `selector`. And when it stops matching, it fires 
   callback again with different arguments.
@@ -239,13 +203,12 @@ LSD.Properties.Matches.prototype.__hash = function(expression, value, old, meta,
       complex selectors
     * It registers sibling nodes with simple selectors, so all
       simple combinator selector queries are precomputed. 
-    
 */
 
 /*
-  `add` and `remove` pair of functions are used for speedy 
-  widget registration. It avoids selector parsing, because
-  `combinator` and `tagName` are explicitely given in arguments.
+  `add` and `remove` functions are used for speedy widget registration. 
+  It avoids selector parsing, because `combinator` and `tagName` 
+  are provided given explicitly in arguments.
   
   If `wildcard` argument is given, it will also register 
   the widget with `*` tag by the same combinator.
