@@ -693,8 +693,8 @@ LSD.Element.prototype.textContent = '';
 LSD.Element.prototype.nextElementSibling = null;
 LSD.Element.prototype.previousElementSibling = null;
 LSD.Element.prototype._inherited = {'drawn': 1, 'built': 1, 'hidden': 1, 'disabled': 1, 'root': 1, 'microdata': 1, 'form': 1};
-LSD.Element.prototype._preconstruct = ['childNodes', 'proxies', 'variables', 'attributes', 'classList', 'events', 'matches', 'relations'];
-LSD.Element.prototype.__initialize = function(/* options, element, selector, document */) {
+LSD.Element.prototype._preconstruct = ['childNodes', 'proxies', 'variables', 'attributes', 'classList', 'events', 'matches'];
+LSD.Element.prototype.__initialize = function(options, element, selector, document) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
   if (this.classList) this.classes = this.classList;
   for (var i = arguments.length; --i > -1;) {
@@ -714,12 +714,12 @@ LSD.Element.prototype.__initialize = function(/* options, element, selector, doc
             this.fragment = arg;
             break;
           default:
-            var options = arg;
+            var opts = arg;
         }
     }
   }
   if (origin) this.set('origin', origin);
-  return options;
+  return opts;
 };
 LSD.Element.prototype.setRoleBit = function(key, value) {
   var bits = (this.roleBits || (this.roleBits = {})), autorole = this.autorole;

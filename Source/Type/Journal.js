@@ -25,11 +25,11 @@ provides:
   so when the value gets unset, it returns to previous value 
   (that was set before, possibly by a different external object).
   
-  Journal objects are useful in an environment that objects influence state of
-  each other, in a possibly conflicting way. It provides gentle conflict 
+  Journal objects are useful in an environment where objects influence state of
+  each other, in a possibly circular way. It provides gentle conflict 
   resolution based on order in which values were set. The latest change is more 
   important, but it's easy to roll back. It is possible to insert the value
-  into the beginning of the journal, or in other words do a reverse merge. 
+  into the beginning of the journal, or reverse merge objects persistently. 
   Values set in a reverse mode never overwrite values that were already there,
   and dont fire callbacks for those values. Shadowed values may be used later. 
   When a shadowing value is removed from journal, journal picks the previous
@@ -37,17 +37,15 @@ provides:
   may result in a call to `set` as a side effect, that sets the previous 
   value in journal. Very handy for live merging of objects.
   
-  Setter method also accepts special `prepend` argument, that specifies if the
-  value should be added on top or on the bottom of its stack. Unlike regular
-  LSD.Object, setter of LSD.Journal optionally accepts `old` value that will
-  be removed from the stack. It's a nice little convention that makes all the
-  difference. All callbacks in LSD accept both new and an old value, so when
-  both values are fed to setter, it handles side effects and ensures that a
-  single callback wrote a single value to the journal.
-
-   It should be noted that Journal does not accept `undefined` as values and
-  ignores them. It is possible to give an `undefined` value and a defined
-  `old` value, so a call to `_unset` method will be issued instead.
+  Setter method also accepts special `prepend` argument. When true it adds
+  values to the bottom of the stack. When number, it writes the value into 
+  a separate section of a journal by that index. 
+  
+  Journal setters optionally accepts `old` value that will be removed from 
+  the stack. It's a nice little convention that makes all the difference. 
+  All callbacks in LSD accept both new and an old value, so when both values 
+  are fed to setter, it handles side effects and ensures that a single 
+  callback wrote a single value to the journal.
 */
 
 LSD.Journal = function(object) {
@@ -94,63 +92,86 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
     var group = journal[key];
     if (group) {
       var j = group.length;
-      if (j && value === undefined && old === undefined)
-        old = group[j - 1];
+      if (j && value === undefined)
+        for (var k = j; old === undefined && --k > -1;)
+          old = group[k];
+      var positioned = group.position
     }
+  }
+  if (typeof prepend == 'number') {
+    var position = prepend;
+    prepend = false;
   }  
+  if (positioned == null) positioned = -1;
+/*
+  When Journal setter is given an old value, it removes it from the
+  journal. If a new value is not given and the old value was on top
+  of the stack, it falls back to a previous value from the stack.
+*/  
   if (old !== undefined) {
     var erasing = old === current;
-    if (j) for (var i = prepend ? -1 : j;; ) {
-      if (prepend ? ++i == j : --i < 0) break;
-      if (group[i] === old) {
-        group.splice(i, 1);
-        if (i == j - 1) erasing = true;
-        break;
-      }
-    }
+    if (j)
+      if (position == null) {
+        for (var i = prepend ? positioned : j;; ) {
+          if (prepend ? ++i == j : --i < positioned + 1) break;
+          if (group[i] === old) {
+            group.splice(i, 1);
+            if (i == j - 1) erasing = true;
+            break;
+          }
+        }
+      } else if (group[position] === old)
+        delete group[position];
     if (old && old[this._trigger] && !old._ignore)
       this._unscript(key, old, meta)
   } else old = current;
   if (value !== undefined) {
-    if (group || (current !== undefined && !erasing && this.hasOwnProperty(key))) {
+    if (group || position != null || (current !== undefined && !erasing && this.hasOwnProperty(key))) {
       if (!group) {
         if (!journal) journal = this._journal = {};
         group = journal[key] = [current];
       }
-      if (prepend) {
-        j = group.unshift(value) || group.length;
-        value = group[j - 1];
-        if (j !== 1) return true;
+      if (position != null) {
+        if (position > positioned) {
+          for (var i = j; --i > positioned;)
+            group[i + position - positioned] = group[i];
+          group.position = position;
+        }
+        group[position] = value;
+      } else if (prepend) {
+        group.splice(positioned + 1, 0, value);
+        if (group.length > positioned + 2) return true;
       } else {
         group.push(value);
-        if (!erasing) old = undefined;
       }
     }
-    if (this.set(key, value, old, meta, prepend, index, null)) {
-/*
-  If a given value was transformed and the journal was not initialized yet,
-  create a journal and write the given value
-*/
-      if (!group && this[key] !== value) {
-        if (!journal) journal = this._journal = {};
-        group = journal[key] = [value];
-      }
-      return true;
-    } else return false;
   } else {
     if (j != null) {
-      if (i < 0 || i === j) return false;
+      if (i < positioned + 1 || i === j) return false;
       else if (!erasing) return true;
       else if (value === undefined) {
-        if (j > 1) value = group[j];
-        else return;
+        if (j > 1) {
+          for (var k = j; k > -1; k--)
+            if ((value = group[k]) !== undefined)
+              break;
+        } else return;
       };
     } else if (old !== current) return false;
-    if (j && (value = group[j - 2]) && value[this._trigger] && !value._ignore)
+    if (j && value && value[this._trigger] && !value._ignore)
       value = undefined;
     return this.set(key, value, undefined, meta, prepend, index, null);
   }
 };
+/*
+  If a given value was transformed and the journal was not initialized yet,
+  create a journal and write the given value
+*/
+LSD.Journal.prototype._finalize = function(key, value, old, meta, prepend, hash, val) {
+  if (val === value) return;
+  var journal = this._journal;
+  var group = journal && journal[key];
+  if (!group) (journal || (this._journal = {}))[key] = [val]
+}
 /*
   LSD.Journal is a subclass of LSD.Object and thus it inherits a method
   named `change` that is an alias to `set` with predefined `old` argument.
