@@ -38,13 +38,13 @@ LSD.Group.prototype._hash = function(key, value, old, meta, prepend, index) {
     switch (typeof hash) {
       case 'string':
         key = hash;
-        hash = null;
+        hash = undefined;
         break;
       case 'boolean':
         return hash;
     }
   }
-  if (typeof key == 'string' && hash == null) {
+  if (typeof key == 'string' && hash === undefined) {
     var index = key.indexOf('.');
     if (index == -1 && !this._skip[key] && !(this._properties && this._properties[key])) {
       var group = this[key];

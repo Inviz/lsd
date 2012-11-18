@@ -218,11 +218,10 @@ LSD.Fragment.prototype.string = function(object, parent, meta) {
   return this.node(object, parent, meta, 3);
 };
 /*
-  Fragments accept raw html, that gets parsed and each
-  node is then translated into a widget.
-  Fragment constructor treats strings as html by default,
-  although strings in objects and calls to .render() will
-  render text nodes instead
+  Fragments accept raw html, that gets parsed and each node is then translated
+  into a widget. Fragment constructor treats strings as html by default,
+  although strings in objects or calls to .render() will render text nodes
+  instead.
 */
 LSD.Fragment.prototype.html = function(object, parent, meta) {
   if (!this._dummy) {
@@ -235,9 +234,9 @@ LSD.Fragment.prototype.html = function(object, parent, meta) {
   return this.enumerable(this._dummy.childNodes, parent, meta);
 };
 /*
-  Type checking plays the role of a method dispatcher.
-  Each possible type of input has a corresponding
-  function that processes object in a appropriate fashion.
+  Type checking plays the role of a method dispatcher. Each possible type of
+  input has a corresponding function that processes object in a appropriate
+  fashion.
 */
 LSD.Fragment.prototype.typeOf = function(object) {
   if (object != null) {

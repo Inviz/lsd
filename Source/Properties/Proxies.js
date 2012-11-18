@@ -29,6 +29,8 @@ LSD.Properties.Proxies.prototype.__hash = function(key) {
       return this.all || (this.all = [])
     // case 'content': case 'unrelated':
     // return this.content || this.content 
+    case '_owner':
+      return;
     default:  
       if (typeof key == 'string') {
         var object = this._selectors || (this._selectors = {});

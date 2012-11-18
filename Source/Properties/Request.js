@@ -59,7 +59,7 @@ LSD.Request = LSD.Properties.Request = new LSD.Struct({
   Extends: LSD.URL,
   
   state: function(state, old, meta) {
-    if (typeof state == 'number') state = object._states[state];
+    if (typeof state == 'number') state = this._states[state];
     switch (state) {
       case 'unsent':
         break;
@@ -84,7 +84,7 @@ LSD.Request = LSD.Properties.Request = new LSD.Struct({
     
   },
   
-  response: function(response) {
+  response: function(response, old, meta, chunk) {
     if (response.charAt(0) == '{') {
       var type = this.object.getHeader && this.object.getResponseHeader('Content-Type')
       if (!type || type.indexOf('json') > -1) return eval(response)
@@ -99,7 +99,7 @@ LSD.Request = LSD.Properties.Request = new LSD.Struct({
   
   headers: LSD.Struct({
     Accept: function(value) {
-      return this._formats[value] || value;
+      return this._owner._formats[value] || value;
     }
   }, 'Journal'),
   

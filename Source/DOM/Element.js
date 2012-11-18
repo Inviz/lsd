@@ -109,25 +109,35 @@ LSD.Element.prototype.__properties = {
     `input.date` role. And if it's not there, it tries `input` which in terms
     of html is a text input.
   */
-  role: function(value, old, meta) {
-    var roles = (this.document || LSD.Document.prototype).roles
-    if (!roles) return;
-    if (typeof value == 'string')
-      value = typeof roles[value] == 'undefined' ? roles.get(value) : roles[value];
-    if (typeof old == 'string') old = roles[old] || undefined;
-    this.mix(value, null, old, meta, false, true);
+  role: function(value, old, meta, prepend) {
+    if (typeof prepend == 'number' && prepend != 5) {
+      var group = this._journal.role, role;
+      for (var i = 0, j = Math.min(group.position, 4) + 1; i < j; i++) {
+        var subrole = group[i];
+        if (subrole)
+          role = (role || '') + (role && role.length ? '-' : '') + subrole;
+      }
+      this.set('role', role, group[5], meta, 5);
+    } else {
+      var roles = (this.document || LSD.Document.prototype).roles
+      if (!roles) return;
+      if (typeof value == 'string')
+        value = typeof roles[value] == 'undefined' ? roles.get(value) : roles[value];
+      if (typeof old == 'string') old = roles[old] || undefined;
+      this.mix(value, null, old, meta, false, true);
+    }
   },
 
   type: function(value, old, meta) {
-    this.setRoleBit(1, value);
+    this.set('role', value, old, meta, 1);
   },
 
   kind: function(value, old, meta) {
-    this.setRoleBit(2, value);
+    this.set('role', value, old, meta, 2);
   },
 
   id: function(value, old, meta) {
-    this.setRoleBit(3, value);
+    this.set('role', value, old, meta, 3);
   },
 /*
   Tag name is an element role category. Most of the categories have only
@@ -213,7 +223,7 @@ LSD.Element.prototype.__properties = {
           if (old) el.matches.remove('!>', old, this);
         }
       }
-    this.setRoleBit(0, value);
+    this.set('role', value, old, meta, 0);
   },
 /*
   Each widget builds its own element, and it's good when tag name of a
@@ -453,12 +463,9 @@ LSD.Element.prototype.__properties = {
 */
   focused: function(value, old, meta) {
     if (meta === this) return;
-    if (value)
-      this.mix('parentNode.focused', value, undefined, meta || this);
+    this.mix('parentNode.focused', value, old, meta || this);
     if (value && !meta && this.ownerDocument)
       this.ownerDocument.change('activeElement', this, false);
-    if (old)
-      this.mix('parentNode.focused', undefined, old, meta || this);
   },
   rendered: function(value, old) {
   },
@@ -684,19 +691,25 @@ LSD.Element.prototype.__properties = {
 
   }
 };
+LSD.Element.prototype._chunked = {
+  role: true
+}
 LSD.Element.implement(LSD.Node.prototype)
+LSD.Element.prototype.nodeType = 1;
 LSD.Element.prototype.localName = 'div';
 LSD.Element.prototype.tagName = null;
 LSD.Element.prototype.className = '';
-LSD.Element.prototype.nodeType = 1;
 LSD.Element.prototype.textContent = '';
 LSD.Element.prototype.nextElementSibling = null;
 LSD.Element.prototype.previousElementSibling = null;
 LSD.Element.prototype._inherited = {'drawn': 1, 'built': 1, 'hidden': 1, 'disabled': 1, 'root': 1, 'microdata': 1, 'form': 1};
-LSD.Element.prototype._preconstruct = ['childNodes', 'proxies', 'variables', 'attributes', 'classList', 'events', 'matches'];
+LSD.Element.prototype._preconstruct = ['childNodes', 'variables', 'attributes', 'classList', 'events', 'matches', 'styles'];
 LSD.Element.prototype.__initialize = function(options, element, selector, document) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
-  if (this.classList) this.classes = this.classList;
+  if (this.classList)
+    this.classes = this.classList;
+  if (this.styles)
+    this.style = this.styles;
   for (var i = arguments.length; --i > -1;) {
     if ((arg = arguments[i])) switch (typeof arg) {
       case 'string':
@@ -720,15 +733,6 @@ LSD.Element.prototype.__initialize = function(options, element, selector, docume
   }
   if (origin) this.set('origin', origin);
   return opts;
-};
-LSD.Element.prototype.setRoleBit = function(key, value) {
-  var bits = (this.roleBits || (this.roleBits = {})), autorole = this.autorole;
-  bits[key] = value;
-  for (var i = 0, role; i < 4; i++)
-    if (bits[i]) role = (role ? role + '-' : '') + bits[i];
-  this.autorole = role;
-  this.set('role', role)
-  if (autorole != null) this.set('role', undefined, autorole)
 };
 LSD.Element.prototype.click = function() {
   switch (this.type) {
@@ -900,8 +904,8 @@ LSD.Element.prototype.toElement = function(){
   if (!this.built) this.build();
   return this.element;
 };
-LSD.Element.prototype.onChildSet = function(value, index, state, old, meta) {
-  if ((( (!(meta & 0x2)))) && !value._followed ) {
+LSD.Element.prototype.onChildSet = function(index, value, old, meta, from) {
+  if (!(meta & 0x2) && !(value || old)._followed) {
     var children = this.childNodes;
     for (var text = '', child, i = 0; child = children[i++];)
       if (child.textContent != null) text += child.textContent;

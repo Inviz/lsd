@@ -57,7 +57,7 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
         key = hash;
         hash = undefined;
     }
-  }
+  } else if (hash === false) hash = undefined;
 /*
   Object setters accept composite keys. LSD.Object constructs objects in the 
   path (e.g. setting `post.title` will create a `post` object), and observes
@@ -87,7 +87,7 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
       return false;
   }
   var deleting = value === undefined
-  if (hash == null) {
+  if (hash === undefined) {
     if (old === undefined)
       old = this[key];  
     if (value === this[key]) 
@@ -125,25 +125,25 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
   Builtin listeners may reject or transform value.
 */
   var changed, val = value;;
-  if (this._onChange && (changed = this._onChange(key, value, old, meta, hash)) !== undefined)
+  if (this._onChange && (changed = this._onChange(key, value, old, meta, prepend, hash)) !== undefined)
     if (changed === skip) {
-      if (hash == null) this[key] = old;
+      if (hash === undefined) this[key] = old;
       return;
     } else value = changed;
   if (index !== -1 || nonenum !== true)
-    if (this.onChange && (changed = this.onChange(key, value, old, meta, hash)) !== undefined)
+    if (this.onChange && (changed = this.onChange(key, value, old, meta, prepend, hash)) !== undefined)
       if (changed === skip) {
-        if (hash == null) this[key] = old;
+        if (hash === undefined) this[key] = old;
         return;
       } else value = changed;
   if (this._finalize) this._finalize(key, value, old, meta, prepend, hash, val)
 /*
   Global object listeners (and so custom property handlers in structs) 
   may compile given value into expression (e.g. a textnode may find
-  interpolations in a given `textContent`).
+  interpolations in `textContent` property).
 */
   if (trigger && value != null && value[trigger] != null && !value._ignore) {
-    if (hash == null) this[key] = old;
+    if (hash === undefined) this[key] = old;
     return this._script(key, value, meta);
   }
 /*
@@ -154,25 +154,24 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
   var watchers = this._watchers;
   if (watchers && nonenum !== true) for (var i = 0, j = watchers.length, watcher, fn; i < j; i++) {
     if ((watcher = watchers[i]) == null) continue;
-    this._callback(watcher, key, value, old, meta, hash);
+    this._callback(watcher, key, value, old, meta, prepend, hash, val);
   }
 /*
   An alternative to listening for all properties, is to watch a specific
   property. Callback observers recieve key, new and old value on each property
-  change
-  
+  change. 
 */  
   if (stringy && !(index > -1)) {
-    if (!deleting && hash == null && this[key] !== value) this[key] = value;
+    if (!deleting && hash === undefined && this[key] !== value) this[key] = value;
     var watched = this._watched;
     if (watched && (watched = watched[key]))
       for (var i = 0, fn; fn = watched[i++];)
-        if (typeof fn == 'function') fn.call(this, value, old, meta);
-        else this._callback(fn, key, value, old, meta, hash);
+        if (typeof fn == 'function') fn.call(this, value, old, meta, prepend, hash, val);
+        else this._callback(fn, key, value, old, meta, prepend, hash, val);
 /*
-  When an LSD.Object is mixed with a nested object, it builds missing objects
-  to apply nested values. But it also observes those object for changes, so
-  if it changes it could re-apply the specific sub-tree of original nested
+  When an LSD.Object is mixed with a deep object, it builds missing objects
+  to apply nested values. It also observes those objects for changes, so
+  if any of them change it could re-apply the specific sub-tree of original nested
   object. Observing happens passively by storing links to sub-trees for each
   property that has nested object. When an object changes, it looks if it has
   any values stored for it to apply.
@@ -217,10 +216,10 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
   key, deals with ownership reference, transforms values, notifies 
   observers, fires callbacks and processes stored arguments
 */
-LSD.Object.prototype.unset = function(key, value, meta, old, index, hash) {
+LSD.Object.prototype.unset = function(key, value, old, meta, index, hash) {
   return this.set(key, old, value, meta, index, hash);
 };
-LSD.Object.prototype._unset = function(key, value, meta, old, index, hash) {
+LSD.Object.prototype._unset = function(key, value, old, meta, index, hash) {
   return this.set(key, old, value, meta, index, hash);
 };
 /*
@@ -662,7 +661,7 @@ LSD.Object.prototype.watch = function(key, callback, lazy, meta) {
     if (!string) {
       var hash = this._hash(key, callback);
       if (typeof hash == 'string') key = hash
-      else if (hash == null) return;
+      else if (hash === undefined) return;
       else if (typeof hash.push == 'function') return hash.push(callback)
       else return hash.watch(key, callback);
     }
@@ -731,7 +730,7 @@ LSD.Object.prototype.unwatch = function(key, callback, lazy, meta) {
     if (!string) {
       var hash = this._hash(key, callback);
       if (typeof hash == 'string') key = hash
-      else if (hash == null) return;
+      else if (hash === undefined) return;
       else if (typeof hash.splice == 'function') {
         for (var i = hash.length, fn; i--;) {
           if ((fn = hash[i]) == callback || fn.callback == callback) {
@@ -847,7 +846,7 @@ LSD.Object.prototype._callback = function(callback, key, value, old, meta, lazy)
     default:
       if (typeof callback.fn == 'function')
         return (callback.fn || (callback.bind || this)[callback.method]).apply(callback.bind || this, arguments);
-      else if (callback._watch && callback.set)
+      else if (typeof callback._watch == 'function')
         var subject = callback, property = key;
       else if (callback.push)
         var subject = callback[0], property = callback[1];
@@ -861,7 +860,9 @@ LSD.Object.prototype._callback = function(callback, key, value, old, meta, lazy)
       if (a[0] == this && a[1] == property) return;
     meta.push([this, key]);
   }
-  subject.mix(property, value, old, meta, true);
+  var chunked = subject._chunked;
+  if (typeof lazy != 'number' || (chunked && chunked[property]))
+    subject.mix(property, value, old, meta, true, lazy);
 };
 /*
   A function that recursively cleans LSD.Objects and returns plain object

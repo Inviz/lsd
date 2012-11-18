@@ -22,88 +22,108 @@ provides:
   Storage API is simple, yet effective. It uses reverse `value`, `key` signature
   to be compatible with array iterators and callbacks. 
 
- * `LSD.Storage.Cookies(value, index)` to set a value by index
- * `LSD.Storage.Cookies(undefined, index)` to unset a value by index
- * `LSD.Storage.Cookies(array)` to sync array with storage (store values from array 
+ * `LSD.Storage.get(key) to get value by key
+ * `LSD.Storage(key, value)` to set a value by key
+ * `LSD.Storage(key)` to unset a value by key
+ * `LSD.Storage(array)` to sync array with storage (store values from array 
    and fetch values from cookies, use array values in case of conflicts)
  * `array.watch(LSD.Storage.Cookies)` to use it as a callback (won't retrieve values 
    from storage initially, but will save changes in array)
- * `[1,2,3].forEach(LSD.Storage.Cookies)` to store values from native array. 
- * `LSD.Storage.Cookies([])` to populate a native array with values from cookies
+ * `[1,2,3].forEach(LSD.Storage)` to store values from native array. 
+ * `LSD.Storage([])` to populate a native array with values from cookies
+ * `new LSD.Storage('clients')` create a storage with prefix
+ * `new LSD.Storage.Cookies` create a storage with specific adapter
 */
 
-LSD.Storage = function(value, index, state, old, meta, prefix, storage, self) {
+LSD.Storage = function(key, value, old, meta, prefix, storage, get, self, length) {
+  if (length == null) {
+    length = arguments.length;
+    var initial = true;
+  }
   if (this.getAllItems) {
-    if (value === false || (self && this instanceof self)) return;
-    var constructor = function(v, i, s, o, m) {
+    if (!length) return;
+    var constructor = function(k, v, o, m, p) {
       if (this instanceof constructor) {
-        if (v != null) this.prefix = v;
+        return LSD.Storage.call(this, undefined, undefined, undefined, undefined,
+                                      k != null ? k : prefix, 
+                                      v != null ? v : storage, 
+                                      o != null ? o : get, 
+                                      constructor, arguments.length)
       } else {
-        return LSD.Storage.call(this, v, i, s, o, m, value, index, constructor)
+        if (this.LSD)
+          var s = k, k = v, v = s;
+        return LSD.Storage.call(this, k, v, o, m, key, value, get, constructor, arguments.length)
       }
     }
-    constructor.prototype = new LSD.Storage(false);
-    return constructor;
+    return !initial ? constructor : LSD.Storage.initialize(constructor, true);
   }
   if (!storage) storage = 'Local';
-  if (typeof storage == 'string') storage = LSD.Storage[storage].prototype;
+  if (typeof storage == 'string') 
+    storage = LSD.Storage[storage].prototype;
   var prototype = this.prototype;
-  var context = (!prototype || !prototype.setItem) && this !== LSD && this;
-  var external = state == null
-  switch (typeof old) {
-    case 'function':
-      var callback = old;
-      break;
-    case 'object':
-      var context = old;
+  var context = (!prototype || !prototype.setItem) && this !== LSD && !this.LSD && this;
+  if ((length != null ? length : (length = arguments.length)) > 4) {
+    switch (typeof prefix) {
+      case 'function':
+        var callback = prefix;
+        break;
+      case 'object':
+        var context = prefix;
+    }
+    var set = value !== undefined;
+  } else {
+    for (var i = 0, j = length, arg; i < j; i++) {
+      switch (typeof (arg = arguments[i])) {
+        case 'function':
+          var callback = arg;
+          break;
+        case 'object':
+          var context = arg;
+          break;
+        case 'undefined':
+          if (i == 1)
+            var single = true;
+          break;
+        case 'string': case 'number':
+          if (i == 1) 
+            var single = true;
+          else if (i == 0 && !context) 
+            var set = false;
+          if (context || callback || (i > 1 && set != null)) {
+            var prefix = arg;
+          } else if (i == 1 && callback !== key)
+            var set = true;
+      }
+    }
   }
-  switch (typeof index) {
-    case 'string': case 'number':
-      if (external && context) prefix = index;
-      else if (meta === false) return;
-      else var single = true;
-      break;
-    case 'function':
-      var callback = index;
-  }
-  switch (typeof value) {
-    case 'object': 
-      var context = value;
-      break;
-    case 'function':
-      var callback = value;
-      break;
-    case 'string': case 'number':
-      if (external && context) prefix = value;
-      if (single) var set = true;
-      break;
-    case 'undefined':
-      if (single) var remove = true;
-  }
-  if (set || remove) switch (typeof state) {
-    case 'string':
-      prefix = state;
-      break;
-    case 'function':
-      var callback = state;
-  }
-  if (prefix == null) if (single && ((callback && callback === value) || external && context)) 
-    prefix = index;
-  else if (context && context.push && context.prefix != null) 
-    prefix = context.prefix;
-  else prefix = '';
-  if (remove || state === false) {  
-    storage.removeItem(index, prefix, callback || context || this, meta, storage);
-  } else if (set) {
-    storage.setItem(index, value, prefix, callback || context || this, meta, storage);
-  } else if (!context && (!callback || callback !== value)) {
-    var result = storage.getItem(value, prefix, callback || context || this, meta, storage);
+  if (prefix == null) if (single && ((callback && callback === key) || (context && context === key))) 
+    prefix = value;
+  else
+    prefix = context && context.push && context.prefix || ''
+  if (set != null && !get) {
+    if (set) {
+      storage.setItem(key, value, prefix, callback || context || this, meta, storage);
+    } else {
+      storage.removeItem(key, prefix, callback || context || this, meta, storage);
+    }
+  } else if (!context && (!callback || callback !== key)) {
+    var result = storage.getItem(key, prefix, callback || context || this, meta, storage);
     return (result == null) ? undefined : result;
   } else {  
     if (context.push && context._watch) 
       context.watch(self);
     storage.getAllItems(prefix, callback || context || this, meta, storage);
   }
+};
+LSD.Storage.initialize = function(storage, proto) {
+  if (!storage) storage = this;
+  if (proto) storage.prototype = new LSD.Storage;
+  storage._object = true;
+  storage.set = storage;
+  storage.get = new storage(undefined, undefined, true);
+  storage.setItem = storage.set                          
+  storage.getItem = storage.get;
+  return storage;
 };
 LSD.Storage.prototype.setItem = function(key, value, prefix, callback, meta) {
   if (callback && callback.push && callback.length <= key)
@@ -119,7 +139,7 @@ LSD.Storage.prototype.removeItem = function(key, prefix, callback, meta) {
 };
 LSD.Storage.prototype.getItem = function(key, prefix, callback, meta) {
   var value = this.adapter.getItem(prefix + key);
-  if (value == null) value = undefined;
+  if (value === null) value = undefined;
   if (callback) this.callback(callback, '' + key, value, meta);
   return value;
 }
@@ -129,7 +149,7 @@ LSD.Storage.prototype.getAllItems = function(prefix, callback, meta) {
     this.getItem(i, prefix, callback, meta);
 };
 LSD.Storage.prototype.callback = function(callback, key, value, meta) {
-  if (callback.set) {
+  if (callback._watch) {
     if (meta !== 'storage') 
       callback[typeof value == 'undefined' ? 'unset' : 'set'](key, value, undefined, 'storage');
   } else if (callback.call) 
@@ -337,3 +357,4 @@ LSD.Storage.Indexed.prototype.getAllItems = function(prefix, callback, meta) {
     return cursor['continue']();
   });
 };
+LSD.Storage.initialize();

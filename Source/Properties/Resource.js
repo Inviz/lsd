@@ -471,9 +471,9 @@ LSD.Resource.attributes = {
   },
   'id': '_id'
 };
-LSD.Resource.prototype.onSet = function(value, index, state, meta) {
-  if (meta & 0x1) return;
-  var subject = state && value.set ? value : new this(value);
+LSD.Resource.prototype.onSet = function(index, value, old, meta) {
+  if (meta & 0x1 || !value) return;
+  var subject = value.set ? value : new this(value);
   if (subject.isNew()) subject.setTemporalKey();
   return subject;
 };
@@ -613,13 +613,13 @@ LSD.Association.prototype.build = function() {
   return model;
 };
 
-LSD.Association.prototype.onSet = function(value, index, state, old, meta) {
+LSD.Association.prototype.onSet = function(index, value, old, meta) {
   if (meta & 0x1) return;
   var resource = this.resource, object = this.object, origin = object.constructor;
-  if (state && !value.set) value = new resource(value);
+  var model = value ? (value.set ? value : new resource(value)) : old;
   var key = origin.key, link = this.as, ref = resource.collection;
   if (ref) {
-    var collection = value[ref];
+    var collection = model[ref];
     var intermediate = resource.intermediate;
     var lefty = intermediate.left == this.resource;
     var left = intermediate[lefty ? 'left' : 'right'];
@@ -629,22 +629,22 @@ LSD.Association.prototype.onSet = function(value, index, state, old, meta) {
     var rightName = intermediate[lefty ? 'rightName' : 'leftName'];
     var rightKey = intermediate[lefty ? 'rightKey' : 'leftKey'];
   }
-  if (state) {
+  if (value) {
     if (ref) {
       if (collection.indexOf(object) == -1) {
         collection.push(object)
         if (intermediate) {
           var linker = new intermediate;
-          linker.set(leftName, value);
+          linker.set(leftName, model);
           linker.set(rightName, object);
-          value.watch(left.key, [linker, leftKey]);
+          model.watch(left.key, [linker, leftKey]);
           object.watch(right.key, [linker, rightKey]);
           intermediate.push(linker);
         }
       }
     } else {
-      if (link) value.set(link, object);
-      if (key) value.set(this.foreignKey, object[key]);
+      if (link) model.set(link, object);
+      if (key) model.set(this.foreignKey, object[key]);
     }
   } else {
     if (ref) {
@@ -653,22 +653,22 @@ LSD.Association.prototype.onSet = function(value, index, state, old, meta) {
         collection.splice(i, 1);
         for (var i = 0, j = intermediate._length, linker; i < j; i++) {
           var linker = intermediate[i];
-          if (linker && linker[leftName] == value && linker[rightName] == object) {
+          if (linker && linker[leftName] == model && linker[rightName] == object) {
             intermediate.splice(i, 1);
-            linker.unset(leftName, value);
+            linker.unset(leftName, model);
             linker.unset(rightName, object);
-            value.unwatch(left.key, [linker, leftKey]);
+            model.unwatch(left.key, [linker, leftKey]);
             object.unwatch(right.key, [linker, rightKey]);
             break;
           }
         }
       }
     } else {
-      if (link) value.set(link, undefined, object);
-      if (key) value.set(this.foreignKey, undefined, object[key]);
+      if (link) model.set(link, undefined, object);
+      if (key) model.set(this.foreignKey, undefined, object[key]);
     }
   }
-  return value;
+  return model;
 };
 /*
   Universal perfect world REST scaffolder. Can be overriden to do actions

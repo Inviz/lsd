@@ -60,7 +60,7 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
     switch (typeof hash) {
       case 'string':
         key = hash;
-        hash = null;
+        hash = index = undefined;
         break;
       case 'boolean':
         return hash;
@@ -68,7 +68,8 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
         if (hash != null) var group = hash;
     }
   }
-  if (hash == null) var index = key.indexOf('.');
+  if (hash === undefined && typeof index != 'number') 
+    index = key.indexOf('.');
   if (index > -1) return;
 /*
   Most of hash table implementations have a simplistic way to delete
@@ -101,7 +102,9 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
   if (typeof prepend == 'number') {
     var position = prepend;
     prepend = false;
-  }  
+  }    
+  var chunked = this._chunked;
+  if (chunked) chunked = chunked[key];
   if (positioned == null) positioned = -1;
 /*
   When Journal setter is given an old value, it removes it from the
@@ -110,57 +113,77 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
 */  
   if (old !== undefined) {
     var erasing = old === current;
-    if (j)
-      if (position == null) {
-        for (var i = prepend ? positioned : j;; ) {
-          if (prepend ? ++i == j : --i < positioned + 1) break;
-          if (group[i] === old) {
-            group.splice(i, 1);
-            if (i == j - 1) erasing = true;
-            break;
-          }
+    if (j && position == null)
+      for (var i = prepend ? positioned : j;; ) {
+        if (prepend ? ++i == j : --i < positioned + 1) break;
+        if (group[i] === old) {
+          group.splice(i, 1);
+          if (i == j - 1) erasing = true;
+          break;
         }
-      } else if (group[position] === old)
-        delete group[position];
+      }
     if (old && old[this._trigger] && !old._ignore)
       this._unscript(key, old, meta)
   } else old = current;
+  if (position != null) {
+    if (!group) {
+      if (!journal) journal = this._journal = {};
+      group = journal[key] = [current];
+    }
+    if (position > positioned) {
+      for (var i = j; --i > positioned;)
+        group[i + position - positioned] = group[i];
+      group.position = position;
+    }
+    if (value !== undefined) 
+      group[position] = value;
+    else
+      delete group[position];
+    if (!chunked && j)
+      for (var k = j; --k > -1;)
+        if (group[k] !== undefined)
+          if (value === undefined) {
+            value = group[k]
+            break;
+          } else if (k > position) return true;
+          
+    if (chunked) 
+      return null;
+    else if (k > -1)
+      return this.set(key, value, undefined, meta, prepend, index, false);
+    else
+      return;
+  }
   if (value !== undefined) {
-    if (group || position != null || (current !== undefined && !erasing && this.hasOwnProperty(key))) {
+    if (group || (current !== undefined && !erasing && this.hasOwnProperty(key))) {
       if (!group) {
         if (!journal) journal = this._journal = {};
         group = journal[key] = [current];
       }
-      if (position != null) {
-        if (position > positioned) {
-          for (var i = j; --i > positioned;)
-            group[i + position - positioned] = group[i];
-          group.position = position;
-        }
-        group[position] = value;
-      } else if (prepend) {
+      if (prepend) {
         group.splice(positioned + 1, 0, value);
-        if (group.length > positioned + 2) return true;
+        if (group.length > positioned + 2)
+          return true;
       } else {
         group.push(value);
       }
     }
   } else {
     if (j != null) {
-      if (i < positioned + 1 || i === j) return false;
-      else if (!erasing) return true;
-      else if (value === undefined) {
-        if (j > 1) {
-          for (var k = j; k > -1; k--)
-            if ((value = group[k]) !== undefined)
-              break;
-        } else return;
-      };
-    } else if (old !== current) return false;
-    if (j && value && value[this._trigger] && !value._ignore)
-      value = undefined;
-    return this.set(key, value, undefined, meta, prepend, index, null);
+      if (i < positioned + 1 || i === j)
+        return false;
+      else if (!erasing)
+        return true;
+      else if (j > 1) {
+        for (var k = j; k > -1; k--)
+          if ((value = group[k]) !== undefined && (!value || !value[this._trigger] || !value._ignore))
+            break;
+      } else return;
+    } else if (old !== current) 
+      return false;
+    return this.set(key, value, undefined, meta, prepend, index, false);
   }
+    
 };
 /*
   If a given value was transformed and the journal was not initialized yet,

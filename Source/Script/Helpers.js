@@ -32,7 +32,11 @@ LSD.Script.Helpers.count = function(elements) {
 
 LSD.Script.Helpers.concat = function() {
   return Array.prototype.join.call(arguments, '')
-},
+};
+
+LSD.Script.Helpers['debugger'] = function() {
+  debugger
+};
 
 
 

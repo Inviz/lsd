@@ -33,7 +33,8 @@ LSD.Styles.prototype.onChange = function(key, value, old, meta) {
     key = style.property;
     if (value === false) return this._skip;
     if (styles.type == 'simple') {
-      if (this._owner.element) this._owner.element[style] = value;
+      if (this._owner.element)
+        this._owner.element[style] = value;
     } else {
       for (var property in value) this.style[property] = value[property];
     }

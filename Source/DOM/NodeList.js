@@ -52,11 +52,13 @@ LSD.NodeList.prototype.indexFor = function(value, criteria) {
   return i;
 };
 LSD.NodeList.prototype._sortBy = 'sourceIndex';
-LSD.NodeList.prototype._observeIndex = function(value, index, state, old) {
-  if (old == null) value[state ? 'watch' : 'unwatch'](this._sortBy, this)
+LSD.NodeList.prototype._observeIndex = function(value, index, old, meta, from) {
+  if (from == null) 
+    if (value) value.watch(this._sortBy, this)
+    else old.unwatch(this._sortBy, this)
   return value;
 };
-LSD.NodeList.prototype.fn = function(collection, key, value, old) {
+LSD.NodeList.prototype.fn = function(collection, key, value, old, meta) {
   if (value != null && old != null) {
     var index = collection.indexFor(this), now = collection.indexOf(this);
     if (index !== now) collection.move(now, index)

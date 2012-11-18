@@ -196,7 +196,7 @@ LSD.Struct.Mutators = {
   A single struct instance can have one or two property dictionaries, where 
   properties are being looked up.
 */
-LSD.Struct.prototype._onChange = function(key, value, old, meta) {
+LSD.Struct.prototype._onChange = function(key, value, old, meta, extra) {
   if (typeof key != 'string') return value;
   var props = this._properties, prop;
   if (props) prop = props[key];
@@ -219,7 +219,7 @@ LSD.Struct.prototype._onChange = function(key, value, old, meta) {
       if (prop.prototype._set) {
         if (vdef && typeof this[key] == 'undefined')
           this._construct(key, prop, meta)
-      } else return prop.call(this, value, old, meta);
+      } else return prop.call(this, value, old, meta, extra);
       break;
 /*
   - A string, the link to another property in current or a linked object.
@@ -250,7 +250,7 @@ LSD.Struct.prototype._onChange = function(key, value, old, meta) {
         if (!group) group = storage[key] = [];
         if (vdef) group.push([value, key]);
         if (odef) for (var i = 0, j = group.length; i < j; i++)
-          if (group[i][1] === old) {
+          if (group[i][0] === old) {
             group.splice(i, 1);
             break;
           }
