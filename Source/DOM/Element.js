@@ -110,14 +110,15 @@ LSD.Element.prototype.__properties = {
     of html is a text input.
   */
   role: function(value, old, meta, prepend) {
-    if (typeof prepend == 'number' && prepend != 5) {
+    if (typeof prepend == 'number' && isFinite(prepend)) {
       var group = this._journal.role, role;
       for (var i = 0, j = Math.min(group.position, 4) + 1; i < j; i++) {
         var subrole = group[i];
         if (subrole)
           role = (role || '') + (role && role.length ? '-' : '') + subrole;
       }
-      this.set('role', role, group[5], meta, 5);
+      var index = (group.before || 0) + (group.after || 0) + group.position;
+      this.set('role', role, group.after, meta, Infinity);
     } else {
       var roles = (this.document || LSD.Document.prototype).roles
       if (!roles) return;

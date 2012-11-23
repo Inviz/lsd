@@ -87,25 +87,28 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
     on top of the stack, so removing the top value falls back to the
     same value. Callbacks don't fire.
 */
-  var current = this[key];
   var journal = this._journal;
   if (journal) {
     var group = journal[key];
     if (group) {
+      var positioned = group.position;
+      var before = group.hasOwnProperty('before')
+      var after = group.hasOwnProperty('after');
       var j = group.length;
       if (j && value === undefined)
         for (var k = j; old === undefined && --k > -1;)
           old = group[k];
-      var positioned = group.position
     }
   }
   if (typeof prepend == 'number') {
     var position = prepend;
     prepend = false;
   }    
-  var chunked = this._chunked;
+  var chunked = this._chunked, current = this[key];
   if (chunked) chunked = chunked[key];
   if (positioned == null) positioned = -1;
+  if (before) positioned ++;
+  if (after) positioned ++;
 /*
   When Journal setter is given an old value, it removes it from the
   journal. If a new value is not given and the old value was on top
@@ -125,40 +128,67 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
     if (old && old[this._trigger] && !old._ignore)
       this._unscript(key, old, meta)
   } else old = current;
+/*
+  Journal setters accept a position at which the value should be written in
+  journal. Positioned values are inserted in the beginning of the stack before
+  regular values and may only be unset with the same position argument. In
+  addition to regular numerical indecies, setters accept Infinity and
+  -Infinity positions that insert a value after/before other indexed values.
+
+  That adds up to 5 distinct sections in the journal. Journal can have multiple
+  indexed, prepended or appended values. But only one value for Infinity and
+  one for -Infinity positions.
+  
+  [-Infinity, ... 0, 1, 2 .., Infinity, ... true .., false ...]
+*/
   if (position != null) {
     if (!group) {
       if (!journal) journal = this._journal = {};
-      group = journal[key] = [current];
+      group = journal[key] = [];
+      if (current !== undefined) group.push(current);
     }
-    if (position > positioned) {
-      for (var i = j; --i > positioned;)
-        group[i + position - positioned] = group[i];
-      group.position = position;
+    if (isFinite(position)) {
+      if (position > positioned - (before || 0) - (after || 0)) {
+        group.position = position;
+      }
+      if (after) positioned --;
+      if (before) position ++;
+    } else if (position > 0) {
+      position = (positioned || 0) + +(value !== undefined && !after);
+      group.after = value;
+    } else {
+      position = 0;
+      group.before = value;
     }
-    if (value !== undefined) 
+    var diff = position - positioned;
+    if (diff > 0) {
+      for (var i = j, k = positioned; --i > k;)
+        group[i + diff] = group[i];
+    }
+    if (value !== undefined) {
+      if (diff > 0) j += diff;
       group[position] = value;
-    else
+    } else
       delete group[position];
-    if (!chunked && j)
+    if (chunked) 
+      return null;
+    if (j)
       for (var k = j; --k > -1;)
         if (group[k] !== undefined)
           if (value === undefined) {
             value = group[k]
             break;
           } else if (k > position) return true;
-          
-    if (chunked) 
-      return null;
-    else if (k > -1)
+    if (k > -1)
       return this.set(key, value, undefined, meta, prepend, index, false);
-    else
-      return;
+    return;
   }
   if (value !== undefined) {
     if (group || (current !== undefined && !erasing && this.hasOwnProperty(key))) {
       if (!group) {
         if (!journal) journal = this._journal = {};
-        group = journal[key] = [current];
+        group = journal[key] = [];
+        if (current !== undefined) group.push(current);
       }
       if (prepend) {
         group.splice(positioned + 1, 0, value);
