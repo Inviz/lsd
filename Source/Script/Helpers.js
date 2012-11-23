@@ -80,7 +80,7 @@ LSD.Script.Helpers['else'] = function(condition, block) {
 };
 LSD.Script.Helpers['unless'] = function(condition, block) {
   if (block) var result = block.call(block, condition ? 'unyield' : 'yield')
-  return result == null ? condition == null ? null : condition : result;
+  return result == null ? condition != null ? null : !condition : !result;
 };
 /*
   Yield function simply returns the value. It wouldn't do anything special by itself,
