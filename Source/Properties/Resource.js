@@ -50,7 +50,8 @@ LSD.Resource = LSD.Struct({
 */
   plural: function(value, old, meta) {
     if (value) value = value.toLowerCase();
-    this.change('singular', value ? value.singularize() : value, undefined, 'plural');
+    if (meta !== 'singular')
+      this.set('singular', value && value.singularize(), old && old.singularize(), 'plural');
     this.change('exportKey', this.singular + '_id')
     this.change('directory', this.prefix ? value ? this.prefix + '/' + value : this.prefix : value || '');
     if (this.collection)
@@ -66,7 +67,7 @@ LSD.Resource = LSD.Struct({
       for (var association, i = 0; association = associated[i++];)
         association.set('as', value, old, meta, true);
     if (meta !== 'plural')
-      this.set('plural', value && value.pluralize(), old && old.pluralize())
+      this.set('plural', value && value.pluralize(), old && old.pluralize(), 'plural')
   },
 /*
   Directory location of a resource

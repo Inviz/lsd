@@ -27,7 +27,8 @@ provides:
 */
 
 LSD.Struct = function(properties, Base, Sub) {
-  if (typeof properties == 'string') Sub = Base, Base = properties, properties = null;
+  if (typeof properties == 'string' || properties && properties.push) 
+    Sub = Base, Base = properties, properties = null;
 /*
   `new LSD.Struct` creates a constructor, that can be used to construct
   instances of that structure, which bears close resemblance to OOP.
@@ -82,13 +83,15 @@ LSD.Struct = function(properties, Base, Sub) {
   Struct.prototype = new constructor;
   if (Chain) for (var other, i = 0; other = Chain[i]; i++) {
     if (typeof other == 'string') other = LSD[other];
-    if (i) var F = function() {};
-    Struct.prototype = i ? (F.prototype = new F) : Struct.prototype;
     var proto = other.prototype, def = LSD.Object.prototype;;
     for (var name in proto) {
       var value = proto[name];
-      if (value != def[name])
-        Struct.prototype[name] = proto[name];
+      if (value != def[name]) {
+        for (var p = name; p.charAt(0) == '_' && Struct.prototype[p] !== undefined  ;) {
+          p = '_' + p;
+        }
+        Struct.prototype[p] = value;
+      }
     }
   }
   Struct.struct = true;
@@ -102,7 +105,7 @@ LSD.Struct = function(properties, Base, Sub) {
     Struct.prototype._properties = properties;
     for (var name in properties) {
       var mutator = LSD.Struct.Mutators[name];
-      if (typeof properties[name] != 'undefined' && mutator) {
+      if (mutator && typeof properties[name] != 'undefined') {
         if (typeof mutator == 'function') {
           LSD.Struct.Mutators[name].call(Struct, properties[name]);
         } else Struct.prototype[mutator === true ? 'set' : mutator]('_' + name, properties[name]);

@@ -47,15 +47,25 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
       So callbacks or superclasses may implement custom storage logic. 
 */
   var stringy = typeof key == 'string';
-  
   if (hash === undefined && this._hash) {
-    var hash = this._hash(key, value, old, meta, prepend, index);
-    switch (typeof hash) {
-      case 'boolean':
-        return hash;
-      case 'string':
-        key = hash;
-        hash = undefined;
+    if (this.__hash) {
+      switch (typeof (hash = this.__hash(key, value, old, meta, prepend, index))) {
+        case 'boolean':
+          return hash;
+        case 'string':
+          key = hash;
+          hash = undefined;
+      }
+    }
+    if (hash === undefined) {
+      hash = this._hash(key, value, old, meta, prepend, index);
+      switch (typeof hash) {
+        case 'boolean':
+          return hash;
+        case 'string':
+          key = hash;
+          hash = undefined;
+      }
     }
   } else if (hash === false) hash = undefined;
 /*
