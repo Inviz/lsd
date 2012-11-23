@@ -163,7 +163,7 @@ LSD.Script.Struct = new LSD.Struct({
 
   },
   scope: function(value, old) {
-    if (this.attached) this.set('attached', undefined, this.attached)
+    if (old && this.attached) this.set('attached', undefined, this.attached)
     if (value) this.set('attached', true);
   },
   placeholder: function(value, old) {
