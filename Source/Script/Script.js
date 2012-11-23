@@ -268,7 +268,7 @@ LSD.Script.Struct = new LSD.Struct({
         } else {
           if (!this.setter) var self = this, setter = this.setter = function(value, old, meta) {
             if (typeof value == 'undefined') return self.set('value', undefined, old, meta);
-            else return self.change('value', value, meta)
+            else return self.change('value', value, undefined, meta)
           };
           (this.scope.variables || this.scope)[value ? 'watch' : 'unwatch'](this.name || this.input, this.setter);
         }
@@ -457,7 +457,7 @@ LSD.Script.prototype.callback = function(value, old) {
       switch (typeof object) {
         case 'string':
           if (typeof value == 'undefined' && typeof old != 'undefined') this.scope.set(object, undefined, old)
-          else this.scope[typeof old != 'undefined' ? 'change' : 'set'](object, value);
+          else this.scope.set(object, value, old);
           break;
         case 'function':
           object(value);
@@ -665,7 +665,7 @@ LSD.Script.prototype.execute = function(value, meta) {
     else if (meta === 'enumerate') return;
   } else val = args[0];
   if (value)
-    this.change('value', val, meta === 'enumerate' ? null : meta);
+    this.change('value', val, undefined, meta === 'enumerate' ? null : meta);
   else if (typeof this.value != 'undefined')
     this.set('value', undefined, this.value);
 }

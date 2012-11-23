@@ -66,7 +66,8 @@ LSD.Data.prototype.toString = LSD.Data.toString = function(prefix) {
 LSD.Data.prototype._hash = function(key, value, old, meta) {
   for (var l, r, start = 0, obj = this, hash, subkey, name, index, empty;;) {
     if ((l = key.indexOf('[', start)) == -1) {
-      return (hash ? hash + '.' : '') + (name == null ? key : name);
+      if (hash) return hash + '.' + (name == null ? key : name)
+      return
     } else {
       if ((r = key.indexOf(']', l)) == -1) return;
       if (name == null) name = key.substring(start, l);

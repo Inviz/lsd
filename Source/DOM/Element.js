@@ -65,10 +65,10 @@ LSD.Element.prototype.onChange = function(key, value, old, meta) {
     if (!methods) {
       compiled[key] = methods = {};
       methods[definition[0]] = function(meta) {
-        return this.change(key, true, meta);
+        return this.change(key, true, undefined, meta);
       };
       methods[definition[1]] = function(meta) {
-        return this.change(key, false, meta);
+        return this.change(key, false, undefined, meta);
       };
     }
     for (var method in methods) this.set(method, methods[method]);
@@ -466,7 +466,7 @@ LSD.Element.prototype.__properties = {
     if (meta === this) return;
     this.mix('parentNode.focused', value, old, meta || this);
     if (value && !meta && this.ownerDocument)
-      this.ownerDocument.change('activeElement', this, false);
+      this.ownerDocument.change('activeElement', this, undefined, false);
   },
   rendered: function(value, old) {
   },
@@ -492,7 +492,7 @@ LSD.Element.prototype.__properties = {
         if (next === this.nextSibling && collapse) return;
         else if (value) node.sourceLastIndex = index + i;
       if (next === this.nextSibling && collapse) return;
-      else if (next) next.change('sourceIndex', index + ++i, false)
+      else if (next) next.change('sourceIndex', index + ++i, undefined, false)
     }
   },
 /*
@@ -559,7 +559,7 @@ LSD.Element.prototype.__properties = {
     this.mix('variables', 
       value && (this.fragment && this.fragment != value.fragment && this.fragment.variables || value.variables), 
       old && (this.fragment && this.fragment != old.fragment && this.fragment.variables || old.variables),
-      meta, true);
+      undefined, true);
     for (var property in this._inherited) {
       var inheriting = value && value[property];
       var inherited = old && old[property];

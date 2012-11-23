@@ -239,8 +239,8 @@ LSD.Journal.prototype._finalize = function(key, value, old, meta, prepend, hash,
       object.set('b', value, old, meta);
     })
 */
-LSD.Journal.prototype.change = function(key, value, meta, prepend) {
-  return this.set(key, value, this[key], meta, prepend);
+LSD.Journal.prototype.change = function(key, value, old, meta, prepend) {
+  return this.set(key, value, old === undefined ? this[key] : old, meta, prepend);
 };
 LSD.Struct.implement({
   _skip: {
