@@ -163,11 +163,7 @@ LSD.Resource.prototype.onChange = function(key, value, old, meta) {
       if (!value) delete associations[key];
     }
   } else {
-    if (this._parts.indexOf(key) > -1 && meta !== 'composed') {
-      var url = this.toString();
-      this.change('url', url, 'composed', this._composedURL);
-      this._composedURL = url;
-    }
+    LSD.URL.prototype.onChange.apply(this, arguments);
   }
 };
 LSD.Resource.prototype.key = 'id';
