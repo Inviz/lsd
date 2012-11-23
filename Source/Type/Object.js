@@ -37,34 +37,38 @@ LSD.Object = function(object) {
 LSD.Object.prototype.constructor = LSD.Object;
 LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash) {
 /*
-  Values may be set by keys with types other then string. There's special 
-  method named `_hash` that is called when such key is passed to Object 
-  methods. Hashing strategy is chosen based on return value:
-    * A string is used as a new key
-    * `true` aborts setter, no callbacks are invoked
-    * Other values turns object immutable, but still invoke callbacks 
-      and pass the result of hashing. Object does not change its state.
-      So callbacks or superclasses may implement custom storage logic. 
+  Objects may have a special `_hash` hook method that is invoked every time
+  setter is called. It may do various things depending on the return value.
+  
+    * `undefined` value makes setter proceed as usual.
+    * A string or number is used as a new key. In that case a hook may be used
+      as a way to hash or transform keys. 
+    * `true` or `false` aborts setter, no callbacks are invoked. Useful for 
+      structs that need to extend or override the way setters work.
+    * Other values make object invoke onChange callbacks 
+      without changing the state of an object. So callbacks or superclasses 
+      may implement custom storage logic. It is also possible to use an object
+      as an immutable message dispatcher that way.
+      
+  A single object can have multiple hashing hooks. Each additional hashing 
+  function should be prefixed with underscore (like `__hash` and `___hash`). 
+  The hasher that is prefixed the most is called first.
+ 
 */
   var stringy = typeof key == 'string';
-  if (hash === undefined && this._hash) {
-    if (this.__hash) {
-      switch (typeof (hash = this.__hash(key, value, old, meta, prepend, index))) {
-        case 'boolean':
-          return hash;
-        case 'string':
-          key = hash;
-          hash = undefined;
-      }
-    }
-    if (hash === undefined) {
-      hash = this._hash(key, value, old, meta, prepend, index);
+  if (hash === undefined) {
+    for (var hasher = '_hash'; this[hasher];)
+      hasher = '_' + hasher;
+    hasher: for (; hasher != '_hash' && (hasher = hasher.substring(1));) {
+      hash = this[hasher](key, value, old, meta, prepend, index);
       switch (typeof hash) {
         case 'boolean':
           return hash;
-        case 'string':
+        case 'string': case 'number':
           key = hash;
           hash = undefined;
+        case 'object':
+          break hasher;
       }
     }
   } else if (hash === false) hash = undefined;
