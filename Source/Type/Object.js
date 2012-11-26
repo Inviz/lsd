@@ -56,22 +56,26 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
  
 */
   var stringy = typeof key == 'string';
-  if (hash === undefined) {
-    for (var hasher = '_hash'; this[hasher];)
-      hasher = '_' + hasher;
-    hasher: for (; hasher != '_hash' && (hasher = hasher.substring(1));) {
-      hash = this[hasher](key, value, old, meta, prepend, index);
-      switch (typeof hash) {
-        case 'boolean':
-          return hash;
-        case 'string': case 'number':
-          key = hash;
-          hash = undefined;
-        case 'object':
-          break hasher;
-      }
-    }
-  } else if (hash === false) hash = undefined;
+  switch (hash) {
+    case undefined:
+      for (var hasher = '_hash'; this[hasher];)
+        hasher = '_' + hasher;
+      hasher: for (; hasher != '_hash' && (hasher = hasher.substring(1));) {
+        hash = this[hasher](key, value, old, meta, prepend, index);
+        switch (typeof hash) {
+          case 'boolean':
+            return hash;
+          case 'string': case 'number':
+            key = hash;
+            hash = undefined;
+          case 'object':
+            break hasher;
+        }
+      };
+      break;
+    case false:
+      hash = undefined;
+  }
 /*
   Object setters accept composite keys. LSD.Object constructs objects in the 
   path (e.g. setting `post.title` will create a `post` object), and observes
