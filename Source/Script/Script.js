@@ -91,7 +91,7 @@ LSD.Script = function(input, scope, output) {
       if (!this.proto && this.locals) this.findLocals(this.locals);
       if (this.locals) {
         this.variables = new LSD.Journal;
-        if (this.scope) this.variables.merge(this.scope.variables || this.scope, true);
+        if (this.scope) this.mix('variables', this.scope.variables || this.scope, undefined, undefined, true);
         this.parentScope = this.scope;
         this.scope = this;
       }
@@ -763,12 +763,6 @@ LSD.Script.prototype.invoke = function(args, state, reset) {
         this.variables.set(local.name, undefined, args[i], 'unset');
   }
   return result;
-};
-LSD.Script.prototype.setVariables = function(value, old, meta) {
-  this.mix('variables', 
-           value && value.variables, 
-           old && old.variables,
-           value, true);
 };
 LSD.Script.prototype.findLocals = function(locals) {
   var map = {};

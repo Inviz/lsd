@@ -96,10 +96,7 @@ LSD.Instruction.prototype._properties.previous = function(value, old, meta) {
     this.set('attached', true)
 };
 LSD.Instruction.prototype._properties.parentNode = function(value, old, meta) {
-  this.mix('variables', 
-          value && (this.fragment && this.fragment != value.fragment && this.fragment.variables || value.variables), 
-          old && (this.fragment && this.fragment != old.fragment && this.fragment.variables || old.variables), 
-          meta, true);
+  this.setVariables(value, old, meta);
   if (value && (!this.boundary || (this.previous && this.previous.attached && !this.previous.value))) {
     this.set('scope', value, undefined, meta);
     if (!this.attached) this.set('attached', true)

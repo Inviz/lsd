@@ -556,10 +556,7 @@ LSD.Element.prototype.__properties = {
     }
   },
   parentNode: function(value, old, meta) {
-    this.mix('variables', 
-      value && (this.fragment && this.fragment != value.fragment && this.fragment.variables || value.variables), 
-      old && (this.fragment && this.fragment != old.fragment && this.fragment.variables || old.variables),
-      undefined, true);
+    this.setVariables(value, old, meta);
     for (var property in this._inherited) {
       var inheriting = value && value[property];
       var inherited = old && old[property];

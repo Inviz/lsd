@@ -254,6 +254,6 @@ LSD.Fragment.prototype.add = function(object) {
   object.fragment = this;
 };
 LSD.Fragment.prototype.R_WORD = /[a-zA-Z][a-zA-Z0-9]*/;
-LSD.Fragment.prototype._properties.parentNode = function(value, old, meta) {
-  this.mix('variables', value && value.variables, old && old.variables, meta);
-};
+LSD.Fragment.prototype._properties = LSD.Struct.implement(LSD.Fragment.prototype._properties, {
+  parentNode: LSD.Node.prototype.setVariables
+});
