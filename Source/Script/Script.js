@@ -242,7 +242,9 @@ LSD.Script.Struct = new LSD.Struct({
     if (this.onValueChange) this.onValueChange(value, old, meta)
   },
   attached: function(value, old, meta) {
-    if (!value && typeof this.value != 'undefined') this.set('value', undefined, this.value, meta);
+    var scope = this.scope;
+    if (!value && typeof this.value != 'undefined') 
+      this.set('value', undefined, this.value, meta);
     if (this.yielded || this.type == 'function') {
       this.execute(!!value, meta);
     } else if (this.yields) {
@@ -253,8 +255,8 @@ LSD.Script.Struct = new LSD.Struct({
           else this.yield('unyield', null, null, property);
         }
       }
-    } else if (this.scope != null && (!this.type || this.type == 'variable' || this.type == 'selector')) {
-      if (typeof this.scope != 'function') {
+    } else if (scope != null && (!this.type || this.type == 'variable' || this.type == 'selector')) {
+      if (typeof scope != 'function') {
         if (this.type === 'selector') {
           if (!this.setter) var self = this, setter = this.setter = function(value, old) {
             if (!self.value) self.set('value', new LSD.NodeList);
@@ -264,13 +266,16 @@ LSD.Script.Struct = new LSD.Struct({
               if (index > -1) self.value.splice(index, 1);
             }
           };
-          (this.scope._owner || this.scope).matches[value ? 'set' : 'unset'](this.input, this.setter);
+          (scope._owner || scope).matches[value ? 'set' : 'unset'](this.input, this.setter);
         } else {
           if (!this.setter) var self = this, setter = this.setter = function(value, old, meta) {
             if (typeof value == 'undefined') return self.set('value', undefined, old, meta);
             else return self.change('value', value, undefined, meta)
           };
-          (this.scope.variables || this.scope)[value ? 'watch' : 'unwatch'](this.name || this.input, this.setter);
+          var key = this.name || this.input;
+          if (scope.nodeType || scope.variables)
+            key = 'variables.' + key;
+          scope[value ? 'watch' : 'unwatch'](key, this.setter);
         }
       } else 
         this.scope(this.input, this, this.scope, !!value);
@@ -746,7 +751,7 @@ LSD.Script.prototype.invoke = function(args, state, reset) {
       this.prepiped = args[0];
       if (this.locals)
         for (var local, i = 0; local = this.locals[i]; i++)
-          this.variables.set(local.name, args[i]);
+          this.set('variables.' + local.name, args[i]);
     }
     delete this.frozen;
     if (state != null) {
