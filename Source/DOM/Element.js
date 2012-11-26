@@ -630,7 +630,7 @@ LSD.Element.prototype.__properties = {
   avoid recursion.
 */
   textContent: function(value, old, meta) {
-    if (meta !== 'textContent') {
+    if (meta !== 'textContent' && meta !== 'push') {
       if (meta !== 'childNodes') {
         if (this.childNodes.length === 1 && this.childNodes[0].nodeType == 3)
           this.childNodes[0].set('textContent', value, old, 'textContent');
