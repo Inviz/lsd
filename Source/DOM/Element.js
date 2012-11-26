@@ -709,7 +709,7 @@ LSD.Element.prototype.textContent = '';
 LSD.Element.prototype.nextElementSibling = null;
 LSD.Element.prototype.previousElementSibling = null;
 LSD.Element.prototype._inherited = {'drawn': 1, 'built': 1, 'hidden': 1, 'disabled': 1, 'root': 1, 'microdata': 1, 'form': 1};
-LSD.Element.prototype._preconstruct = ['childNodes', 'variables', 'attributes', 'classList', 'events', 'matches', 'styles'];
+LSD.Element.prototype._preconstruct = ['childNodes', 'attributes', 'classList', 'events', 'matches', 'styles'];
 LSD.Element.prototype.__initialize = function(options, element, selector, document) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
   if (this.classList)
