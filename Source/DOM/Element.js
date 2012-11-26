@@ -612,8 +612,10 @@ LSD.Element.prototype.__properties = {
   },
   date: Date,
   name: function(value, old) {
-    if (value) this.watch('nodeValue', 'form.' + value);
-    if (old) this.unwatch('nodeValue', 'form.' + old);
+    if (value)
+      this.watch('nodeValue', 'form.' + value);
+    if (old)
+      this.unwatch('nodeValue', 'form.' + old);
   },
   form: function(value, old) {
   },
@@ -647,7 +649,8 @@ LSD.Element.prototype.__properties = {
         }
       }
     }
-    if (meta !== 'nodeValue') this.set('nodeValue', value, old, 'textContent', true);
+    if (meta !== 'nodeValue') 
+      this.set('nodeValue', value, old, 'textContent', true);
   },
 /*
   Different types of elements have different strategies to define value. The
@@ -679,8 +682,10 @@ LSD.Element.prototype.__properties = {
     this.set('nodeValue', value, old, meta);
   },
   itemprop: function(value, old, meta) {
-    if (value) this.mix('parentNode.microdata.' + value, this, undefined, meta, true);
-    if (old) this.mix('parentNode.microdata.' + old, undefined, this, meta, true);
+    if (value) 
+      this.mix('parentNode.microdata.' + value, this, undefined, meta, true);
+    if (old)
+      this.mix('parentNode.microdata.' + old, undefined, this, meta, true);
   },
   itemtype: function(value, old) {
 

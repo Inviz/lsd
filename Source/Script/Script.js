@@ -272,7 +272,8 @@ LSD.Script.Struct = new LSD.Struct({
           };
           (this.scope.variables || this.scope)[value ? 'watch' : 'unwatch'](this.name || this.input, this.setter);
         }
-      } else this.scope(this.input, this, this.scope, !!value);
+      } else 
+        this.scope(this.input, this, this.scope, !!value);
       if (typeof this.value == 'undefined' && !this.input) 
         this.execute(!!value, meta);
     }
@@ -764,11 +765,16 @@ LSD.Script.prototype.invoke = function(args, state, reset) {
     if (args === this.invoked || state == null) delete this.invoked;
     if (state != null && this.attached != null) this.set('attached', undefined, this.attached);
     if (this.locals && args != null)
-      for (var local, i = 0; local = this.locals[i]; i++) {
+      for (var local, i = 0; local = this.locals[i]; i++)
         this.variables.set(local.name, undefined, args[i], 'unset');
-      }
   }
   return result;
+};
+LSD.Script.prototype.setVariables = function(value, old, meta) {
+  this.mix('variables', 
+           value && value.variables, 
+           old && old.variables,
+           value, true);
 };
 LSD.Script.prototype.findLocals = function(locals) {
   var map = {};
