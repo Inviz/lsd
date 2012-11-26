@@ -41,13 +41,14 @@ LSD.Instruction.prototype.initialize = function(object, parent, meta, fragment) 
   this.fragment = fragment;
 }
 LSD.Instruction.prototype.onValueChange = function(value, old, meta) {
-  if (!value && meta != 'push' && typeof meta != 'number') 
+  var changing = meta != 'push' && meta != 'pushed' && typeof meta != 'number';
+  if (!value && changing) 
     this.setChildren(value);
   if (this.next && this.parentNode && (this.parentNode == this.next.parentNode))
     if (!value && meta !== 'disable') this.next.set('attached', true);
     else if (this.next.attached) this.next.set('attached', undefined, true, 'disable');
     
-  if (value && meta != 'push' && typeof meta != 'number') 
+  if (value && changing) 
     this.setChildren(value);
 }
 LSD.Instruction.parse = LSD.Script.parse;
