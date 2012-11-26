@@ -1008,7 +1008,7 @@ LSD.Object.prototype._trigger = '_calculated';
 LSD.Object.prototype._script = function(key, expression) {
   var scripted = (this._scripted || (this._scripted = {}));
   var node = this.nodeType && this;
-  if (this.nodeType) {
+  if (node) {
     scripted[key] = LSD.Script(expression, null, [this, key]);;
     node.watch('variables', '_scripted.' + key + '.scope')
   } else if (key === 'merged') {
