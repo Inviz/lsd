@@ -167,11 +167,17 @@ LSD.Script.Evaluators = {
   local scope and will be undefined if expression will be unrolled
 */
 LSD.Script.Helpers['='] = LSD.Script.Helpers['define'] = function(name, value) {
-  (this.scope.variables || this.scope).set(name, value);
+  var scope = this.scope;
+  if (scope.nodeType || scope.script)
+    name = 'variables.' + name;
+  scope.set(name, value);
   return value;
 };
 LSD.Script.Helpers['undefine'] = function(name, value) {
-  (this.scope.variables || this.scope).set(name, undefined, value);
+  var scope = this.scope;
+  if (scope.nodeType || scope.script)
+    name = 'variables.' + name;
+  scope.set(name, undefined, value);
   return value;
 }
 
