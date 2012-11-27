@@ -34,8 +34,6 @@ LSD.Properties.Microdata.prototype.onChange = function(key, value, old, meta) {
     element.mix('nodeValue', value, old, 'microdata');
   }
 }
-LSD.Properties.Microdata.prototype._shared = true;
-LSD.Properties.Microdata.prototype._trigger = 'lsd';
 LSD.Properties.Microdata.prototype._script = function(key, value, meta) {
   var storage = this._elements;
   if (!storage) storage = this._elements = {};
@@ -52,3 +50,9 @@ LSD.Properties.Microdata.prototype._unscript = function(key, value, meta) {
   value.unwatch('nodeValue', [this, key]);
   return true;
 }
+LSD.Properties.Microdata.prototype._shared = true;
+LSD.Properties.Microdata.prototype._trigger = 'lsd';
+LSD.Properties.Microdata.prototype._skip = LSD.Struct.implement(LSD.Properties.Microdata.prototype._skip, {
+  _values: true,
+  _elements: true
+})
