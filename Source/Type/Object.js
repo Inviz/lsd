@@ -36,6 +36,7 @@ LSD.Object = function(object) {
 */
 LSD.Object.prototype.constructor = LSD.Object;
 LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash) {
+  if (this._owner && this._owner.tagName == 'details' && this._reference == 'microdata' && key == 'name') debugger;
 /*
   Objects may have a special `_hash` hook method that is invoked every time
   setter is called. It may do various things depending on the return value.
@@ -195,18 +196,23 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
   any values stored for it to apply.
 */
     var stored = this._stored, mem, obj, same;
-    if (stored && (stored = stored[key])) for (var i = 0, args; args = stored[i++];) {
-      obj = args[0], mem = args[3];
-      if (obj === value) continue;
-      if (value != null && (!mem || !mem._delegate || !mem._delegate(value, key, obj)))
-        if (value.mix) value.mix.apply(value, args);
-        else if (typeof value == 'object' && args[1] == null) 
-          for (var p in obj) value[p] = obj[p];
-        else value[args[0]] = args[1];
-      if (old != null && typeof old == 'object' && meta !== 'copy' && obj !== old 
-      && (!mem || !mem._delegate || !mem._delegate(old, key, undefined, obj, meta)))
-        if (old.unmix) old.unmix.apply(old, args);
-    }
+    if (stored && (stored = stored[key])) 
+      for (var i = 0, args; args = stored[i++];) {
+        obj = args[0], mem = args[3];
+        if (obj === value) continue;
+        if (value != null && (!mem || !mem._delegate || !mem._delegate(value, key, obj)))
+          if (value.mix)
+            value.mix.apply(value, args);
+          else if (typeof value == 'object' && args[1] == null) 
+            for (var p in obj)
+              value[p] = obj[p];
+          else
+            value[args[0]] = args[1];
+        if (old != null && typeof old == 'object' && meta !== 'copy' && obj !== old 
+        && (!mem || !mem._delegate || !mem._delegate(old, key, undefined, obj, meta)))
+          if (old.unmix)
+            old.unmix.apply(old, args);
+      }
   }
   return true;
 };
@@ -235,9 +241,6 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
   observers, fires callbacks and processes stored arguments
 */
 LSD.Object.prototype.unset = function(key, value, old, meta, index, hash) {
-  return this.set(key, old, value, meta, index, hash);
-};
-LSD.Object.prototype._unset = function(key, value, old, meta, index, hash) {
   return this.set(key, old, value, meta, index, hash);
 };
 /*
@@ -287,18 +290,20 @@ LSD.Object.prototype._unset = function(key, value, old, meta, index, hash) {
 LSD.Object.prototype.get = function(key, construct, meta) {
   if (typeof key != 'string') {
     var hash = this._hash(key);
-    if (typeof hash != 'string') return hash
-    else key = hash;
+    if (typeof hash != 'string')
+      return hash
+    else
+      key = hash;
   }
   for (var dot, start, result, object = this; dot != -1;) {
     start = (dot == null ? -1 : dot) + 1;
     dot = key.indexOf('.', start)
-    var subkey = (dot == -1 && !start) ? key : key.substring(start, dot == -1 ? key.length : dot);
-    if (!subkey) subkey = '_owner';
+    var subkey = ((dot == -1 && !start) ? key : key.substring(start, dot == -1 ? key.length : dot)) || '_owner';
     if (object === this) {
       result = this[subkey];
     } else {
-      if (construct == null) construct = this._eager || false;
+      if (construct == null)
+        construct = this._eager || false;
       result = typeof object.get == 'function' ? object.get(subkey, construct) : object[subkey];
     }
     if (typeof result == 'undefined' && construct && !object._skip[subkey])
@@ -400,13 +405,15 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
     var store = this.onStore && (this.onStore.call ? 'onStore' : '_onStore');
     if (store && this[store] && this[store](name, value, old, meta, prepend, subkey) === false) return;
     var storage = (this._stored || (this._stored = {}));
-    var group = storage[name] || (storage[name] = []);
-    if (vdef) group.push([subkey, value, undefined, meta, merge, prepend, lazy]);
-    if (odef) for (var i = 0, j = group.length; i < j; i++)
-      if (group[i][1] === old) {
-        group.splice(i, 1);
-        break;
-      }
+    var group = (storage[name] || (storage[name] = []));
+    if (vdef) 
+      group.push([subkey, value, undefined, meta, merge, prepend, lazy]);
+    if (odef) 
+      for (var i = 0, j = group.length; i < j; i++)
+        if (group[i][1] === old) {
+          group.splice(i, 1);
+          break;
+        }
     var obj = this[name];
     if (obj == null) {
       if (vdef && !this._skip[name] && !lazy)
@@ -421,10 +428,11 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
       else for (var i = 0, j = obj.length; i < j; i++)
         obj[i].mix(subkey, value, old, meta, merge, prepend, lazy);
     } else if (obj.apply) {
-      if (vdef) this[name](subkey, value);
+      if (vdef) 
+        this[name](subkey, value);
       if (odef) {
         var negated = LSD.negated[name] || (LSD.negated[name] = LSD.negate(name));
-        this.unset(subkey, old)
+        this[negated](subkey, old)
       }
     } else {
 /*
@@ -440,7 +448,7 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
       if (vdef && old !== obj && this._owning !== false && obj._shared !== true
       && (obj._owner ? obj._owner !== this : obj._references > 0)) {
         obj = this._construct(name, null, 'copy', obj)
-      } else if (typeof obj.mix == 'function' && obj._ownable !== false) {
+      } else if (obj.mix && obj._ownable !== false) {
         obj.mix(subkey, value, old, meta, merge, prepend, lazy);
       } else {
 /*
@@ -457,13 +465,15 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
           if (previous > -1 && typeof object.mix == 'function') {
             object.mix(subkey.substring(subindex), value, old, meta, merge, prepend, lazy);
             break;
-          } else if (object[k] != null) object = object[k];
+          } else if (object[k] != null) 
+            object = object[k];
           previous = subindex + 1;
         }
         k = subkey.substring(previous);
         if (typeof object.mix == 'function')
           object.mix(k, value, old, meta, merge, prepend, lazy)
-        else object[k] = value;
+        else
+          object[k] = value;
       }
     }
 /*
@@ -663,10 +673,7 @@ LSD.Object.prototype.watch = function(key, callback, lazy, meta) {
 */
   var string = typeof key == 'string';
   if (!string && typeof callback == 'undefined') {
-    var watchers = this._watchers;
-    if (!watchers) watchers = this._watchers = [];
-    if (callback) watchers.unshift(key)
-    else watchers.push(key);
+    (this._watchers || (this._watchers = []))[callback ? 'unshift' : 'push'](key)
 /*
   * A pair of key and callback allow observing of an **individual property**.
   Unlike global observers, that only listens for public properties, it is
@@ -683,10 +690,14 @@ LSD.Object.prototype.watch = function(key, callback, lazy, meta) {
 */
     if (!string) {
       var hash = this._hash(key, callback);
-      if (typeof hash == 'string') key = hash
-      else if (hash === undefined) return;
-      else if (typeof hash.push == 'function') return hash.push(callback)
-      else return hash.watch(key, callback);
+      if (typeof hash == 'string') 
+        key = hash
+      else if (hash === undefined)
+        return;
+      else if (typeof hash.push == 'function')
+        return hash.push(callback)
+      else
+        return hash.watch(key, callback);
     }
 /*
   The upside of having a consistent observable environment is that it is
