@@ -861,8 +861,7 @@ LSD.Object.prototype._watcher = function(call, key, value, old, meta) {
   }
 };
 LSD.Object.prototype._merger = function(call, name, value, old, meta) {
-  if (call.bind !== this || value !== this)
-    this.mix(name, value, old, meta, true, call.prepend);
+  this.mix(name, value, old, meta, true, call.prepend);
 };
 /*
   All LSD functions that accept callbacks support a various number of callback
