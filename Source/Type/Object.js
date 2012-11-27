@@ -284,7 +284,7 @@ LSD.Object.prototype._unset = function(key, value, old, meta, index, hash) {
   `watch(key, callback) ` should be used instead, because it hides all the
   complexity of mutable state of objects without all the glue code
 */
-LSD.Object.prototype.get = function(key, construct) {
+LSD.Object.prototype.get = function(key, construct, meta) {
   if (typeof key != 'string') {
     var hash = this._hash(key);
     if (typeof hash != 'string') return hash
@@ -439,7 +439,7 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
 */
       if (vdef && old !== obj && this._owning !== false && obj._shared !== true
       && (obj._owner ? obj._owner !== this : obj._references > 0)) {
-        obj = this._construct(name, null, 'copy')
+        obj = this._construct(name, null, 'copy', obj)
       } else if (typeof obj.mix == 'function' && obj._ownable !== false) {
         obj.mix(subkey, value, old, meta, merge, prepend, lazy);
       } else {
@@ -817,7 +817,7 @@ LSD.Object.prototype._construct = function(name, constructor, meta, value) {
   if (found === false) constructors[name] = constructor;
   if (!this.onBeforeConstruct || typeof (instance = this.onBeforeConstruct(name, constructor)) == 'undefined') {
     instance = new constructor;
-    this.set(name, instance, undefined, this._delegate && !meta ? this : meta);
+    this.set(name, instance, value, this._delegate && !meta ? this : meta);
   }
   return instance;
 };
