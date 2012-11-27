@@ -531,9 +531,9 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
 */
       if (meta === 'copy') {
         this.set(key, value, old, meta, prepend)
-      } else if (vdef && obj !== old && (obj._owner ? obj._owner !== this : obj._references > 0) 
-             && this._owning !== false && (!meta || !meta._delegate) && obj._shared !== true) {
-        obj = this._construct(key, null, 'copy')
+      } else if (vdef && obj !== old && ((obj._reference && key !== obj._reference) || (obj._owner ? obj._owner !== this : obj._references > 0))
+             && this._owning !== false && (!meta || !meta._delegate) && ((obj._reference && key !== obj._reference) || obj._shared !== true)) {
+        obj = this._construct(key, null, 'copy', obj)
       } else {
 /*
   `mix` accepts two values and both of them are optional. First value is to be
@@ -551,7 +551,8 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
 */
         if (obj === old) {
           this.set(key, value, old, meta, prepend)
-        } else obj.mix(value, null, old, meta, merge, prepend)
+        } else if (obj !== value) 
+          obj.mix(value, null, old, meta, merge, prepend)
       }
     } else {
       if (vdef) for (var prop in value) 
