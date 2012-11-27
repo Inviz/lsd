@@ -590,6 +590,12 @@ LSD.Element.prototype.__properties = {
       }
     }
   },
+  variables: function(value, old, meta) {
+    if (meta === 'variables') return;
+    for (var child, i = 0, children = this.childNodes; child = children[i++];)
+      if (child.nodeType != 3 && (!child.fragment || child.fragment == this.fragment))
+        child.mix('variables', value, old, this, true);
+  },
   multiple: function(value, old) {
     if (value) {
       if (!this.values) this.set('values', new LSD.Array);
