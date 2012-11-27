@@ -74,10 +74,8 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, old, meta, extr
       var storage = this._state || (this._state = {});
       if (values) for (var j = 0, val; (val = values[j++]) && (val = val.key || val.value);) {
         if (vdef) {
-          var kind = storage[type];
-          if (!kind) kind = storage[type] = {};
-          var group = kind[val];
-          if (!group) group = kind[val] = [];
+          var kind = storage[type] || (storage[type] = {});
+          var group = kind[val] || (kind[val] = []);
           group.push([key, value, true]);
         }
         if (odef) {

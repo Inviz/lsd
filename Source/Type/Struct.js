@@ -249,8 +249,8 @@ LSD.Struct.prototype._onChange = function(key, value, old, meta, extra) {
     case 'undefined':  
       if (this._aggregate && !this._skip[key]) {
         var odef = typeof old != 'undefined'
-        var storage = (this._stored || (this._stored = {})), group = storage[key];
-        if (!group) group = storage[key] = [];
+        var storage = (this._stored || (this._stored = {}))
+        var group = storage[key] || (storage[key] = []);
         if (vdef) group.push([value, key]);
         if (odef) for (var i = 0, j = group.length; i < j; i++)
           if (group[i][0] === old) {
