@@ -374,8 +374,9 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
           else
             this.mix(prop, val, undefined, meta, merge, prepend, lazy);
     };
-    if (odef && old != null && typeof old == 'object') {
-      if (old._unwatch) old._unwatch(this);
+    if (old && typeof old == 'object') {
+      if (old._unwatch) 
+        old._unwatch(this);
       var skip = old._skip;
       for (var prop in old)
         if (old.hasOwnProperty(prop) && (unstorable == null || !unstorable[prop]) && (skip == null || !skip[prop]))
@@ -541,10 +542,12 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
 */
       if (meta === 'copy') {
         this.set(key, value, old, meta, prepend)
-      } else if (vdef && obj !== old && ((obj._reference && key !== obj._reference) || (obj._owner ? obj._owner !== this : obj._references > 0))
-             && this._owning !== false && (!meta || !meta._delegate) && ((obj._reference && key !== obj._reference) || obj._shared !== true)) {
-        obj = this._construct(key, null, 'copy', obj)
       } else {
+        var ref = obj._reference, owner = obj._owner;
+        if (vdef && obj !== old && (!meta || !meta._delegate) && (ref && ref !== key 
+        || (owner ? owner !== this : obj._references > 0) && obj._shared !== true))
+          obj = this._construct(key, null, 'copy', obj)
+        else {
 /*
   `mix` accepts two values and both of them are optional. First value is to be
   set, the second value (fourth argument) is to be unset. Both of them may be
@@ -559,10 +562,11 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
   possible value manipulations and `mix` will manage side effects introduced by
   callbacks and ensure that they will be unrolled in right condition.
 */
-        if (obj === old) {
-          this.set(key, value, old, meta, prepend)
-        } else if (obj !== value) 
-          obj.mix(value, null, old, meta, merge, prepend)
+          if (obj === old)
+            this.set(key, value, old, meta, prepend)
+          else if (obj !== value) 
+            obj.mix(value, null, old, meta, merge, prepend)
+        }
       }
     } else {
       if (vdef) for (var prop in value) 
