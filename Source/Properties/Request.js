@@ -36,7 +36,7 @@ LSD.URL.prototype.toString = function() {
   if (this.query) url += '?' + this.query;
   if (this.fragment) url += '#' + this.fragment;
   return url;
-}
+};
 LSD.URL.prototype.onChange = function(key, value, old, meta) {
   if (this._parts.indexOf(key) > -1 && meta !== 'composed') {
     var url = this.toString();
