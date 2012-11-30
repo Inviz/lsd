@@ -561,7 +561,7 @@ LSD.Element.prototype.__properties = {
       var inheriting = value && value[property];
       var inherited = old && old[property];
       if (inheriting === inherited) continue;
-      this.set(property, value && value[property], old && old[property], meta, true);
+      this.set(property, inheriting, inherited, meta, true);
     }
     for (var i = 0, node, method; i < 2; i++) {
       if (i) node = old, method = 'remove';
@@ -584,7 +584,7 @@ LSD.Element.prototype.__properties = {
           el.matches.remove('!', old.tagName, old, true)
         }
         if (value) {
-          value.matches.add(' ', el.tagname, el, true);
+          value.matches.add(' ', el.tagName, el, true);
           el.matches.add('!', value.tagName, value, true)
         }
       }
