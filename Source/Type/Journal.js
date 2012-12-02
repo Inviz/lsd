@@ -54,7 +54,8 @@ LSD.Journal = function(object) {
 
 LSD.Journal.prototype = new LSD.Object;
 LSD.Journal.prototype.constructor = LSD.Journal;
-LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
+LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index, get) {
+  if (get) return;
   if (typeof index != 'number') 
     index = key.indexOf('.');
   if (index > -1) return;

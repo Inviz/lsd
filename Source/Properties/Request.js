@@ -122,7 +122,7 @@ LSD.Request.prototype.onStateChange = function() {
 LSD.Request.prototype.isSuccess = function() {
   return this.status > 199 && this.status < 300;
 };
-LSD.Request.prototype._hash = function(key) {
+LSD.Request.prototype.__hash = function(key) {
   var first = key.charAt(0);
   if (first != '_' && first === first.toUpperCase())
     return 'headers.' + key;

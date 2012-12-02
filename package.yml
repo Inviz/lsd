@@ -29,6 +29,7 @@ sources:
   - Source/Type/Data.js
   - Source/Type/Storage.js
   - Source/Type/RegExp.js
+  - Source/Type/Date.js
   - Source/Properties/ClassList.js
   - Source/Properties/Matches.js
   - Source/Properties/Attributes.js

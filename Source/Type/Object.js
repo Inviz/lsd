@@ -36,7 +36,6 @@ LSD.Object = function(object) {
 */
 LSD.Object.prototype.constructor = LSD.Object;
 LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash) {
-  if (this._owner && this._owner.tagName == 'details' && this._reference == 'microdata' && key == 'name') debugger;
 /*
   Objects may have a special `_hash` hook method that is invoked every time
   setter is called. It may do various things depending on the return value.
@@ -66,9 +65,15 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
         switch (typeof hash) {
           case 'boolean':
             return hash;
-          case 'string': case 'number':
+          case 'string': 
+            key = hash
+            hash = undefined;
+            stringy = true;
+            break;
+          case 'number':
             key = hash;
             hash = undefined;
+            break;
           case 'object':
             break hasher;
         }
@@ -288,12 +293,24 @@ LSD.Object.prototype.unset = function(key, value, old, meta, index, hash) {
   complexity of mutable state of objects without all the glue code
 */
 LSD.Object.prototype.get = function(key, construct, meta) {
-  if (typeof key != 'string') {
-    var hash = this._hash(key);
-    if (typeof hash != 'string')
-      return hash
-    else
-      key = hash;
+  for (var hasher = '_hash'; this[hasher];)
+    hasher = '_' + hasher;
+  var stringy = typeof key == 'string';
+  hasher: for (; hasher != '_hash' && (hasher = hasher.substring(1));) {
+    var hash = this[hasher](key, undefined, undefined, meta, undefined, undefined, true);
+    switch (typeof hash) {
+      case 'boolean':
+        return hash;
+      case 'string': case 'number':
+        key = hash;
+        hash = undefined;
+      case 'object':
+        break hasher;
+    }
+  };
+  if (stringy && hash === undefined) {
+    if (typeof index != 'number')
+      index = key.indexOf('.');
   }
   for (var dot, start, result, object = this; dot != -1;) {
     start = (dot == null ? -1 : dot) + 1;

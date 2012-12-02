@@ -156,7 +156,7 @@ LSD.Resource.prototype.onChange = function(key, value, old, meta) {
       var plural = key.pluralize();
       value.set('multiple', key === plural);
       value.set(key === plural ? 'plural' : 'singular', key);
-      if (!value.multiple) this.prototype._constructors[key] = value;
+      if (key !== plural) this.prototype._constructors[key] = value;
       associations[key] = value;
     }
     if (typeof old != 'undefined') {
@@ -498,18 +498,48 @@ LSD.Resource.prototype.getThroughName = function(left, right) {
   }
   return left + '_' + right;
 };
-LSD.Resource.Property = function(to, from, model) {
-  to = this.toString = (typeof to == 'string' ? model && model[to] || this[to] : to) || this.toString;  
-  from = this.fromString = (typeof from == 'string' ? model && model[from] || this[from] : from) || this.fromString;
-  var property = function() {
-    return from.apply(this, arguments)
+LSD.Resource.Property = function(from, to) {
+  var def = Object.prototype.toString;
+  var property = function(value) {
+    if (arguments.length == 0) value = this;
+    for (var i = 0, fn, own; fn = from.push ? from[i++] : (i++ == 0 && from); ) {
+      if (typeof fn == 'string')
+        fn = value && (own = value[fn]) && own !== def && own || property[fn];
+      if (fn == property.fromString)
+        fn = property._fromString;
+      if (fn)
+        if (fn == Array && typeof value == 'number')
+          return [value];
+        else if (!(value instanceof fn))
+          value = fn.call(this, value);
+    }
+    return value;
   };
+  var proto = LSD.Resource.Property.prototype;
+  for (var name in proto)
+    property[name] = proto[name];
+  property.fromString = property;
+  if (to) {
+    property.toString = function(value) {
+      if (arguments.length == 0) value = this;
+      for (var i = 0, fn, own; fn = to.push ? to[i++] : (i++ == 0 && to); ) {
+        if (typeof fn == 'string')
+          fn = value && (own = value[fn]) && own !== def && own || property[fn];
+        if (fn == property.toString)
+          fn = property._toString;
+        if (fn && !(value instanceof fn))
+          value = fn.call(this, value);
+      }
+      return value;
+    };
+  }
   return property;
 };
-
-LSD.Resource.Property.prototype.toJSON = function(object) {
-  if (this instanceof LSD.Resource.Model) var options = object;
-  if (arguments.length == 0 || this instanceof LSD.Resource.Model) object = this;
+LSD.Resource.Property.prototype.toJSON = function(object, options) {
+  if (this instanceof LSD.Resource.Model)
+    options = object;
+  if (arguments.length == 0 || this instanceof LSD.Resource.Model)
+    object = this;
   var skip = object && object._skip;
   switch (typeof object) {
     case 'string':
@@ -521,39 +551,47 @@ LSD.Resource.Property.prototype.toJSON = function(object) {
       var bits = [];
       if (object.push) {
         for (var i = 0, j = object._length || object.length; i < j; i++) {
-          bits.push(LSD.Resource.Model.prototype.toJSON(object[i]));
+          bits.push(LSD.Resource.Model.prototype.toJSON(object[i], options));
         }
         return '[' + bits.join(', ') + ']';
       } else {
-        if (object != this) {
-          if (!options) return;
-          if (options.push) {
-            if (options.indexOf(property) == -1) return;
-          } else if (typeof options == 'string') {
-            if (options != property) return;
-          } else if (!options[property])
-            return;
-        }
         for (var property in object)
-          if (object.hasOwnProperty(property) && (!skip || !skip[property]))
-            bits.push('"' + property + '": ' + LSD.Resource.Model.prototype.toJSON(object[property]))
+          if (object.hasOwnProperty(property) && (!skip || !skip[property])) {
+            var value = object[property];
+            if (typeof value == 'object') {
+              if (!options) continue;
+              if (options.push) {
+                if (options.indexOf(property) == -1) return;
+              } else if (typeof options == 'string') {
+                if (options != property) return;
+              } else if (!options[property])
+                return;
+            }
+            bits.push('"' + property + '": ' + LSD.Resource.Model.prototype.toJSON(value, options && options[property]))
+          }
         return '{' + bits.join(', ') + '}'
       }
   }
 };
-LSD.Resource.Property.prototype.fromJSON = function(string) {
-  return JSON.parse(string)
+LSD.Resource.Property.prototype.fromJSON = function(value) {
+  if (typeof value == 'string')
+    return JSON.parse(value);
+  return value;
 };
+LSD.Resource.Property.prototype._toString = 
 LSD.Resource.Property.prototype.toString = LSD.Resource.Property.prototype.toJSON;
+LSD.Resource.Property.prototype._fromString = 
 LSD.Resource.Property.prototype.fromString = LSD.Resource.Property.prototype.fromJSON;
 
-LSD.Resource.Property.Integer = new LSD.Resource.Property(Number, parseInt);
-LSD.Resource.Property.Number  = new LSD.Resource.Property(Number, parseFloat);
-LSD.Resource.Property.Float   = new LSD.Resource.Property(Number, parseFloat);
+LSD.Resource.Property.Integer = new LSD.Resource.Property(parseInt);
+LSD.Resource.Property.Number  = new LSD.Resource.Property(parseFloat);
+LSD.Resource.Property.Float   = new LSD.Resource.Property(parseFloat);
 LSD.Resource.Property.String  = new LSD.Resource.Property(String);
-LSD.Resource.Property.Object  = new LSD.Resource.Property('toString', 'fromString');
-LSD.Resource.Property.JSON    = new LSD.Resource.Property('toJSON', 'fromJSON');
-LSD.Resource.Property.XML     = new LSD.Resource.Property('toXML', 'fromXML');
+LSD.Resource.Property.Object  = new LSD.Resource.Property(['fromString', Object]);
+LSD.Resource.Property.Date    = new LSD.Resource.Property(['fromString', Date]);
+LSD.Resource.Property.Array   = new LSD.Resource.Property(['fromString', Array])
+LSD.Resource.Property.JSON    = new LSD.Resource.Property('fromJSON', 'toJSON');
+LSD.Resource.Property.XML     = new LSD.Resource.Property('fromXML', 'toXML');
 
 
 LSD.Resource.Validation = function(condition, validator) {
@@ -603,12 +641,13 @@ LSD.Resource.Validation.Present = new LSD.Resource.Validation(function(value, va
   Instance object base structure.
 */
 
-LSD.Resource.Model = function() {
-  return LSD.Struct.apply(this, arguments);
+LSD.Resource.Model = function(argument) {
+  return LSD.Struct.call(this, argument);
 }
 LSD.Resource.Model.prototype = LSD.Struct(LSD.Resource.attributes, 'Journal');
 LSD.Resource.Model.prototype._owning = false;
-LSD.Resource.Model.prototype._initialize = function() {
+LSD.Resource.Model.prototype.__initialize = function(object) {
+  if (typeof object == 'string') object = this.fromString(object);
   var associatee = this, resource = this.constructor;
   var associations = resource._associations;
   if (associations) for (var name in associations) {
@@ -616,6 +655,7 @@ LSD.Resource.Model.prototype._initialize = function() {
     if (association.multiple)
       this.set(name, new LSD.Resource.Association(association))
   }
+  return object;
 };
 LSD.Resource.Model.prototype.onChange = function(key, value, old, meta) {
   var resource = this.constructor, association = resource._associations;
@@ -633,9 +673,15 @@ LSD.Resource.Model.prototype.onChange = function(key, value, old, meta) {
   }
   if (meta !== 'associate') {
     var valueResource = value && value.resource;
-    if (valueResource) resource.associate(value, this, key);
     var oldResource = old && old.resource;
-    if (oldResource) resource.deassociate(value, this, key);
+    if (valueResource) 
+      resource.associate(value, this, key);
+    else if (oldResource && value && value.push) {
+      old.push[value.push ? 'apply' : 'call'](old, value);
+      return this._skip;
+    }
+    if (oldResource)
+      oldResource.deassociate(value, this, key);
   }
   var foreign = this._foreign && this._foreign[key], fKey
   if (foreign) for (var i = 0, foreigner; foreigner = foreign[i++];) {
@@ -645,10 +691,14 @@ LSD.Resource.Model.prototype.onChange = function(key, value, old, meta) {
   } else {
     var properties = this.constructor.properties;
     var property = properties && properties[key];
-    if (property) value = this.cast(key, value, property);
+    if (property) 
+      value = this.cast(key, value, property);
   }
   return value;
 };
+/*
+  Save associated models
+*/
 LSD.Resource.Model.prototype.associate = function() {
   var skip = this._skip;
   for (var property in this) 
@@ -658,14 +708,32 @@ LSD.Resource.Model.prototype.associate = function() {
         if (value.push)
           for (var i = 0, j = value.length; i < j; i++) {
             var val = value[i];
-            if (!val.saving && val.save) val.save()
+            if (!val.saving && val.save)
+              val.save()
           }
         else
-          if (!value.saving && value.save) value.save()
+          if (!value.saving && value.save)
+            value.save()
       }
     }
 }
+/*
+  Transform and validate value of a property according to its definition
+*/
 LSD.Resource.Model.prototype.cast = function(key, value, property) {
+  switch (property) {
+    case Boolean:
+      property = 'Boolean';
+      break;
+    case Number:
+      property = 'Number';
+      break;
+    case Object: case Array:
+      property = 'Object';
+      break;
+    case Date:
+      property = 'Date';
+  }
   switch (typeof property) {
     case 'string':
       property = LSD.Resource.Property[property];
@@ -775,8 +843,10 @@ LSD.Resource.Association.prototype.onSet = function(index, value, old, meta) {
         }
       }
     } else {
-      if (link) model.set(link, object);
-      if (key) model.set(this.foreignKey, object[key]);
+      if (link)
+        model.set(link, object);
+      if (key)
+        model.set(this.foreignKey, object[key]);
     }
   } else {
     if (ref) {
@@ -796,8 +866,10 @@ LSD.Resource.Association.prototype.onSet = function(index, value, old, meta) {
         }
       }
     } else {
-      if (link) model.set(link, undefined, object);
-      if (key) model.set(this.foreignKey, undefined, object[key]);
+      if (link)
+        model.set(link, undefined, object);
+      if (key)
+        model.set(this.foreignKey, undefined, object[key]);
     }
   }
   return model;

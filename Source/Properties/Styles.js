@@ -22,13 +22,15 @@ provides:
 ...
 */
 
-LSD.Styles = LSD.Struct('Journal');
+LSD.Styles = LSD.Properties.Styles = LSD.Struct('Journal');
 
 LSD.Styles.prototype.onChange = function(key, value, old, meta) {
   var style = this.constructor[key];
   if (style) {
-    if (value != null && typeof value == 'object') value = String(value);
-    if (typeof value == 'string') value = this.constructor.parse(value);
+    if (value != null && typeof value == 'object')
+      value = String(value);
+    if (typeof value == 'string')
+      value = this.constructor.parse(value);
     value = style[value.push ? 'apply' : 'call'](this, value);
     key = style.property;
     if (value === false) return this._skip;

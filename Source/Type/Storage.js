@@ -64,7 +64,7 @@ LSD.Storage = function(key, value, old, meta, prefix, storage, get, self, length
     storage = LSD.Storage[storage].prototype;
   var prototype = this.prototype;
   var context = (!prototype || !prototype.setItem) && this !== LSD && !this.LSD && this;
-  if ((length != null ? length : (length = arguments.length)) > 4) {
+  if ((length != null ? length : (length = arguments.length)) > 4 && this !== LSD) {
     switch (typeof prefix) {
       case 'function':
         var callback = prefix;
@@ -74,7 +74,7 @@ LSD.Storage = function(key, value, old, meta, prefix, storage, get, self, length
     }
     var set = value !== undefined;
   } else {
-    for (var i = 0, j = length, arg; i < j; i++) {
+    for (var i = 0, j = Math.min(4, length), arg; i < j; i++) {
       switch (typeof (arg = arguments[i])) {
         case 'function':
           var callback = arg;

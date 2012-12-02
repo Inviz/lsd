@@ -44,8 +44,8 @@ LSD.Array = function(arg) {
         this.push(arguments[i]);
     }
   }
-  if (!this.hasOwnProperty('_length')) 
-    this.length = this._length = 0;
+  if (!this._length ||  this._length < j) 
+    this.length = this._length = j;
 };
 
 /*
@@ -76,7 +76,8 @@ LSD.Array.prototype._offset = 0;
   LSD.Objects, thus it does not affect their `._owner` link.
 */
 LSD.Array.prototype._owning = false;
-LSD.Array.prototype._hash = function(key, value, old, meta, from) {
+LSD.Array.prototype._hash = function(key, value, old, meta, from, i, get) {
+  if (get) return;
   var index = parseInt(key);
   if (index != key) return;
   old = this[index];
@@ -140,11 +141,14 @@ LSD.Array.prototype.push = function() {
   return this._length;
 };
 LSD.Array.prototype.indexOf = function(object, from) {
-  var hash = this._hash && typeof object == 'object' && object != null ? this._hash(object) : object;
+  for (var hasher = '_hash'; this[hasher];)
+    hasher = '_' + hasher;
+  for (; hasher != '_hash' && (hasher = hasher.substring(1));)
+    var hash = this[hasher](hash || object, undefined, undefined, undefined, undefined, undefined, true);
   var length = this._length >>> 0;
   for (var i = (from < 0) ? Math.max(0, length + from) : from || 0; i < length; i++) {
     var value = this[i];
-    if (value === object || (this._hash && hash != null && value != null && this._hash(value) == hash)) return i;
+    if (value === object/* || (this._hash && hash != null && value != null && this._hash(value) == hash)*/) return i;
   }
   return -1;
 };
