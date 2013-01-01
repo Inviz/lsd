@@ -244,7 +244,19 @@ LSD.Journal.prototype._finalize = function(key, value, old, meta, prepend, hash,
     })
 */
 LSD.Journal.prototype.change = function(key, value, old, meta, prepend) {
-  return this.set(key, value, old === undefined ? this[key] : old, meta, prepend);
+  if (old === undefined) {
+    var group = this._journal;
+    if (group && (group = group[key])) {
+      for (var j = group.length; --j;) {
+        var val = group[j];
+        if (val !== undefined) {
+          old = val;
+          break;
+        }
+      }
+    } else old = this[key];
+  }
+  return this.set(key, value, old, meta, prepend);
 };
 LSD.Struct.implement({
   _skip: {
