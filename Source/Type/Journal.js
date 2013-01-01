@@ -133,7 +133,10 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index, ge
     if (!group) {
       if (!journal) journal = this._journal = {};
       group = journal[key] = [];
-      if (current !== undefined) group.push(current);
+      if (current !== undefined) {
+        group.push(current);
+        j = 1;
+      }
     }
     if (isFinite(position)) {
       if (position > positioned - (before || 0) - (after || 0)) {
