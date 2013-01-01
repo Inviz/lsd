@@ -176,7 +176,7 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
       token = null;
     } else {
       var whitespaced = found[names.whitespace];
-      if (!whitespaced && !found[names.comma]) {
+      if (!whitespaced && !found[names.comma] && !found[names.semicolon]) {
         if (!functioned && (token || getter)) {
           // something[key].method 123
           if (!token) {
@@ -238,7 +238,8 @@ Parser.prototype.parse = LSD.Script.prototype.parse = LSD.Script.parse = functio
       else args = null;
     }
     if (!whitespaced && getter && !tail) getter = null
-    if (found[names.comma] || found[name.semicolon] || (token && scope[scope.length - 1] != token && !tail)) token = null;
+    if (found[names.comma] || found[names.semicolon] || (token && scope[scope.length - 1] != token && !tail)) 
+      token = null;
     if (!operator && text && stack.length) {
       var pop = stack[stack.length - 1]
       if (pop && pop.stack) scope = pop.stack;
@@ -340,7 +341,7 @@ var rSquare = "(?:[^\\[\\]]|\\[(?:[^\\[\\]]|\\[(?:[^\\[\\]]|\\[(?:[^\\[\\]]|\\[[
 ;(Parser.stringDouble = x(/"((?:[^"]|\\")*)"/)).names = ['dstring']
 ;(Parser.stringSingle = x(/'((?:[^']|\\')*)'/)).names = ['sstring']
 ;(Parser.string = x([Parser.stringSingle, OR, Parser.stringDouble]))
-;(Parser.token = x(/(?:(\.)\s*)?([^$,\s\/().\[\]]+)/)).names = ['token_tail', 'token']
+;(Parser.token = x(/(?:(\.)\s*)?([^$,;\s\/().\[\]]+)/)).names = ['token_tail', 'token']
 
 Parser.tokenize = x
 (
