@@ -36,6 +36,7 @@ LSD.Struct = function(properties, Base, Sub) {
   var Struct = function() {
     if (!(this instanceof Struct))
       return new Struct(arguments[0], arguments[1])
+    Struct.instances.push(this);
 /*
   Inherited properties is an internal concept that allows an instance of a
   class to recieve its own copy of a private object from prototype without
@@ -82,6 +83,7 @@ LSD.Struct = function(properties, Base, Sub) {
   }
   var constructor = (typeof Base == 'string' ? LSD[Base] : Base) || LSD.Object;
   Struct.prototype = new constructor;
+  if (!Struct.instances) Struct.instances = [];
   if (Chain) for (var other, i = 0; other = Chain[i]; i++) {
     if (typeof other == 'string') other = LSD[other];
     var proto = other.prototype, def = LSD.Object.prototype;;
