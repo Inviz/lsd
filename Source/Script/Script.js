@@ -59,6 +59,7 @@ LSD.Script = function(input, scope, output) {
     if (this.initialize) this.initialize.apply(this, arguments)
     if (typeof input == 'string')
       input = this.Script.parsed && this.Script.parsed[input] || this.Script.parse(input);
+    this.source = input;
     switch (typeof input) {
       case 'object':
         if (input.push) {
@@ -97,7 +98,7 @@ LSD.Script = function(input, scope, output) {
       }
     }
   } else {
-    if (input.script) {
+    if (input._calculated && input._mix) {
       if (output) input.set('output', output);
       if (scope) {
         input.set('scope', scope);
@@ -107,7 +108,7 @@ LSD.Script = function(input, scope, output) {
     } else {
       var Script = (this.Script || LSD.Script)
       var result = new Script(input, scope, output);
-      if (result.script) {
+      if (result._calculated) {
         if (scope || input.scope) result.set('attached', true);
       } else if (output) Script.callback(output, result);
       return result;
@@ -359,17 +360,41 @@ LSD.Script.prototype.Script = LSD.Script.Script = LSD.Script;
   that can be used on a hot code and not observe any variables with as few
   function calls as possible.
 */
-LSD.Script.prototype.toJS = function(options) {
-  var source = this.source || this.type == 'block' ? this : this.input;
-  if (!source) {
-    if (typeof (source = options) == 'string')
-      source = LSD.Script.parse(source);
-    options = arguments[1];
-  } else if (source.length === 1) source = source[0];
+LSD.Script.prototype.getVariables = function(source, variables) {
+  if (this.source) {
+    variables = source;
+    source = this.source;
+  }
+  if (typeof source == 'string')
+    source = LSD.Script.parse(source);
+  if (!variables) variables = [];
+  switch (source && source.type) {
+    case 'variable':
+      if (variables.indexOf(source.name) == -1)
+        variables.push(source.name)
+      break;
+    case 'block': case 'function':
+      LSD.Script.getVariables(source.value || source.input, variables);
+      break;
+    default:
+      if (source && source.push)
+        for (var i = 0, j = source.length; i < j; i++)
+          LSD.Script.getVariables(source[i], variables);
+  }
+  return variables;
+}
+LSD.Script.prototype.toJS = function(source, options) {
+  if (this.source) {
+    options = source;
+    source = this.source;
+  }
+  if (typeof source == 'string')
+    source = LSD.Script.parse(source);
   var get = options && options.get || this._compiled_get;
   var call = options && options.call || this._compiled_call;
   var op = options && options.op || this._compiled_op;
   var context = options && options.context || (this._compiled_context && this);
+  var returning = options && (options === true || options.returning);
   switch (typeof source) {
     case 'string': return '"' + source + '"';
     case 'number': case 'boolean': return String(source);
@@ -386,7 +411,7 @@ LSD.Script.prototype.toJS = function(options) {
         break;
       case 'function':
         // with call option function calls will be dispatched through a single funciton
-        var args = obj.value, arg, k = args.length
+        var args = obj.value, k = args.length
         if (LSD.Script.Operators[obj.name] && (!call || !op)) {
           var delimeter = ' ' + obj.name + ' ';
           stack[i] = ''
@@ -395,7 +420,7 @@ LSD.Script.prototype.toJS = function(options) {
           stack.splice(i + 1, 0, ')');
         }
         for (var j = 0; j < k; j++) {
-          arg = args[j];
+          var arg = args[j];
           stack.splice(i + 1 + j * 2, 0, typeof arg == 'string' ? '"' + arg + '"' : arg);
           if (j + 1 < k) stack.splice(i + j * 2 + 2, 0, delimeter || ', ');
         }
@@ -404,15 +429,19 @@ LSD.Script.prototype.toJS = function(options) {
         var args = [i, 1, 'function('];
         if ((locals = obj.locals))
           args.push(locals.map(function(l) { return l.name }).join(', '));
-        args.push(') { ', obj.value || obj.input, ' }');
+        args.push(') { ', obj.source || obj.value || obj.input, ' }');
         stack.splice.apply(stack, args);
         break;
       default:
         if (obj != null && obj.push) {
           for (var j = 0, arg, k = obj.length; j < k; j++) {
             arg = obj[j]
-            stack.splice(i + j * 3 - +(j > 0), + (j == 0), (j + 1 == k ? 'return ' : ''), (typeof arg == 'string' ? '"' + arg + '"' : arg));
-            if (j > 0) stack.splice(i + j * 3 - +(j > 0), 0, '; ');
+            var index = i + j * 3 - +(j > 0);
+            stack.splice(index, + (j == 0), 
+                        (j + 1 == k && arg.name != 'return' ? 'return ' : ''), 
+                        (typeof arg == 'string' ? '"' + arg + '"' : arg));
+            if (j > 0)
+              stack.splice(index, 0, '; ');
           }
         } else {
           stack[i] = String(obj)
@@ -421,8 +450,12 @@ LSD.Script.prototype.toJS = function(options) {
   }
   return stack.join('');
 };
-LSD.Script.prototype.eval = function() {
-  return (this.evaled || (this.evaled = eval('(' + this.toJS() + ')')));
+LSD.Script.prototype.toFunction = function(source, options) {
+  var subject = this.toJS ? this : LSD.Script;
+  return new Function(subject.toJS(source, options));
+}
+LSD.Script.prototype.eval = function(options) {
+  return (this.evaled || (this.evaled = eval('(' + this.toJS(options) + ')')));
 };
 /*
   Scripts are parsed, compiled and executed, but what then? Each script may
@@ -503,7 +536,7 @@ LSD.Script.prototype.getContext = function() {
   return this.context;
 };
 LSD.Script.prototype.Script = LSD.Script;
-LSD.Script.prototype.script = LSD.Script.prototype._calculated = true;
+LSD.Script.prototype._calculated = true;
 LSD.Script.prototype._literal = LSD.Script.prototype._properties;
 LSD.Script.prototype._ownable = false;
 LSD.Script.prototype._owning = false;
@@ -511,6 +544,8 @@ LSD.Script.prototype._compiled_call = 'dispatch';
 LSD.Script.prototype._regexp = /^[a-zA-Z0-9-_.]+$/;
 LSD.Script.compile = LSD.Script.prototype.compile;
 LSD.Script.toJS = LSD.Script.prototype.toJS;
+LSD.Script.toFunction = LSD.Script.prototype.toFunction;
+LSD.Script.getVariables = LSD.Script.prototype.getVariables;
 LSD.Script.prototype.onSuccess = function(value) {
   this.change('value', value);
 };
@@ -545,10 +580,10 @@ LSD.Script.prototype.execute = function(value, meta) {
       if (!arg.type || arg.type != 'variable') throw "Unexpected token, argument must be a variable name";
       result = arg.name;
     } else {
-      if (arg && (arg.script || arg.type)) {
+      if (arg && (arg._calculated || arg.type)) {
         if (!value && typeof arg.value !== 'undefined' && !arg.placeholder) var val = arg.value;
         if (this.proto) proto = this.proto.args[i];
-        if (proto && !proto.local && proto.script) {
+        if (proto && !proto.local && proto._calculated) {
           var arg = proto;
           var index = arg.parents.indexOf(this);
           if (value) {
@@ -558,14 +593,14 @@ LSD.Script.prototype.execute = function(value, meta) {
             if (index != -1) arg.parents.splice(index, 1);
           }
         } else {
-          if (!arg.script && value) arg = new (this.Script || LSD.Script)(arg, this.scope);
+          if (!arg._calculated && value) arg = new (this.Script || LSD.Script)(arg, this.scope);
           if (proto) arg.proto = proto;
           if (!arg.parents) arg.parents = [];
           if (value) {
             if (i !== null) this.args[i] = arg;
             if (proto && proto.local) arg.local = true;
             this.translating = true;
-            var pipable = (arg.script && piped !== arg.piped);
+            var pipable = (arg._calculated && piped !== arg.piped);
             if (pipable) {
               arg.prepiped = arg.piped = piped;
               delete arg.attached;
@@ -611,7 +646,7 @@ LSD.Script.prototype.execute = function(value, meta) {
         case false:
           for (var k = i + 1; k < j; k++) {
             var argument = this.args[k];
-            if (argument != null && argument.script && argument.attached);
+            if (argument != null && argument._calculated && argument.attached);
               if (argument.executed) 
                 argument.execute(false, false);
           }
@@ -626,7 +661,7 @@ LSD.Script.prototype.execute = function(value, meta) {
           }
           break loop;
       }
-    } else if (arg != null && value && arg.script && typeof result == 'undefined' && !LSD.Script.Keywords[name]) {
+    } else if (arg != null && value && arg._calculated && typeof result == 'undefined' && !LSD.Script.Keywords[name]) {
       if (this.hasOwnProperty('value')) this.set('value', undefined, this.value, meta || 'unset');
       return
     }

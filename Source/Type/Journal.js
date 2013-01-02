@@ -75,6 +75,9 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index, ge
     on top of the stack, so removing the top value falls back to the
     same value. Callbacks don't fire.
 */
+  var property = this._properties;
+  if (property && (property = property[key]) && property.journal === false)
+    return;
   var journal = this._journal;
   if (journal) {
     var group = journal[key];
@@ -92,8 +95,7 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index, ge
     var position = prepend;
     prepend = false;
   }    
-  var chunked = this._chunked, current = this[key];
-  if (chunked) chunked = chunked[key];
+  var chunked = property && property.chunked, current = this[key];
   if (positioned == null) positioned = -1;
   if (before) positioned ++;
   if (after) positioned ++;
@@ -127,7 +129,7 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index, ge
   indexed, prepended or appended values. But only one value for Infinity and
   one for -Infinity positions.
   
-  [-Infinity, ... 0, 1, 2 .., Infinity, ... true .., false ...]
+  [-Infinity, ... 0, 1, 2 .., Infinity, ... 'prepended' .., 'regular' ...]
 */
   if (position != null) {
     if (!group) {
@@ -259,7 +261,7 @@ LSD.Journal.prototype.change = function(key, value, old, meta, prepend) {
   return this.set(key, value, old, meta, prepend);
 };
 LSD.Struct.implement({
-  _skip: {
+  _nonenumerable: {
     _journal: true
   }
 }, LSD.Journal.prototype);

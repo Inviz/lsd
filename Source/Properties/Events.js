@@ -57,14 +57,20 @@ LSD.Properties.Events.prototype.handle = function(event) {
   }
 };
 LSD.Properties.Events.prototype.addListener = function(element, type, fn, meta) {
-  if (!fn) fn = this._handler || (this._handler = this.handle.bind(this));
-  if (element.addEventListener) element.addEventListener(type, fn, !!meta);
-  else element.attachEvent('on' + type, fn);
+  if (!fn) 
+    fn = this._handler || (this._handler = this.handle.bind(this));
+  if (element.addEventListener) 
+    element.addEventListener(type, fn, !!meta);
+  else 
+    element.attachEvent('on' + type, fn);
 }
 LSD.Properties.Events.prototype.removeListener = function(element, type, fn, meta) {
-  if (!fn) fn = this._handler || (this._handler = this.handle.bind(this));
-  if (element.removeEventListener) element.removeEventListener(type, fn, !!meta);
-  else element.detachEvent('on' + type, fn);
+  if (!fn) 
+    fn = this._handler || (this._handler = this.handle.bind(this));
+  if (element.removeEventListener) 
+    element.removeEventListener(type, fn, !!meta);
+  else
+    element.detachEvent('on' + type, fn);
 }
 LSD.Properties.Events.prototype.fire = function(key, a, b, c, d, e) {
   var collection = this[key];

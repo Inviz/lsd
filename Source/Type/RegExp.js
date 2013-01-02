@@ -1,20 +1,18 @@
 /*
 ---
+script: RegExp.js
 
-  script: RegExp.js
+description: Parser builder with groupping capabilities and grammar helpers
 
-  description: Parser builder with groupping capabilities and grammar helpers
+license: Public domain (http://unlicense.org).
 
-  license: Public domain (http://unlicense.org).
+authors: Yaroslaff Fedin
 
-  authors: Yaroslaff Fedin
+requires:
+  - LSD
 
-  requires:
-    - LSD
-
-  provides:
-    - LSD.RegExp
-
+provides:
+  - LSD.RegExp
 ...
 */
 LSD.RegExp = function(object, callbacks, clean) {

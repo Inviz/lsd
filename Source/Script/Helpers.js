@@ -168,14 +168,14 @@ LSD.Script.Evaluators = {
 */
 LSD.Script.Helpers['='] = LSD.Script.Helpers['define'] = function(name, value) {
   var scope = this.scope;
-  if (scope.nodeType || scope.script)
+  if (scope.nodeType || scope._calculated)
     name = 'variables.' + name;
   scope.set(name, value);
   return value;
 };
 LSD.Script.Helpers['undefine'] = function(name, value) {
   var scope = this.scope;
-  if (scope.nodeType || scope.script)
+  if (scope.nodeType || scope._calculated)
     name = 'variables.' + name;
   scope.set(name, undefined, value);
   return value;

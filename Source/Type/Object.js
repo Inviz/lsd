@@ -18,7 +18,7 @@ provides:
 ...
 */
 LSD.Object = function(object) {
-  if (object != null) this.mix(object)
+  if (object != null) this._mix(object)
 };
 /*
   Objects in LSD are different from regular objects in the way that LSD objects
@@ -93,8 +93,8 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
       index = key.indexOf('.');
   }
   if (index > -1) 
-    return this.mix(key, value, old, meta, null, null, null, index);
-  var skip = this._skip;
+    return this._mix(key, value, old, meta, null, null, null, index);
+  var skip = this._nonenumerable;
   var nonenum = skip[key];
 /*
   Objects accept special kind of values, compiled LSD.Script expressions.
@@ -132,12 +132,12 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
       if (meta !== 'reference') {
         if (value._ownable !== false) {
           value._reference = key;
-          value.set('_owner', this);
+          value._set('_owner', this);
         }
       } else value._references = (value._references || 0) + 1;
     if (old != null && old._owner === this)
       if (meta !== 'reference') {
-        old.set('_owner', undefined, this);
+        old._set('_owner', undefined, this);
         delete old._reference;
       } else old._references --;
   }
@@ -145,7 +145,7 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
 /*
   Most of the keys that start with `_` underscore do not trigger calls to
   global object listeners. But they can be watched individually. A list of
-  the skipped properties is defined in `_skip` object in the end of a file. 
+  the skipped properties is defined in `._nonenumerable` object in the end of a file. 
   Builtin listeners may reject or transform value.
 */
   var changed, val = value;;
@@ -206,8 +206,8 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
         obj = args[0], mem = args[3];
         if (obj === value) continue;
         if (value != null && (!mem || !mem._delegate || !mem._delegate(value, key, obj)))
-          if (value.mix)
-            value.mix.apply(value, args);
+          if (value._mix)
+            value._mix.apply(value, args);
           else if (typeof value == 'object' && args[1] == null) 
             for (var p in obj)
               value[p] = obj[p];
@@ -215,8 +215,8 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
             value[args[0]] = args[1];
         if (old != null && typeof old == 'object' && meta !== 'copy' && obj !== old 
         && (!mem || !mem._delegate || !mem._delegate(old, key, undefined, obj, meta)))
-          if (old.unmix)
-            old.unmix.apply(old, args);
+          if (old._unmix)
+            old._unmix.apply(old, args);
       }
   }
   return true;
@@ -246,7 +246,7 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, index, hash)
   observers, fires callbacks and processes stored arguments
 */
 LSD.Object.prototype.unset = function(key, value, old, meta, index, hash) {
-  return this.set(key, old, value, meta, index, hash);
+  return this._set(key, old, value, meta, index, hash);
 };
 /*
   Get method fetches a value by a simple or composite keys. If an
@@ -323,7 +323,7 @@ LSD.Object.prototype.get = function(key, construct, meta) {
         construct = this._eager || false;
       result = typeof object.get == 'function' ? object.get(subkey, construct) : object[subkey];
     }
-    if (typeof result == 'undefined' && construct && !object._skip[subkey])
+    if (typeof result == 'undefined' && construct && !object._nonenumerable[subkey])
       result = object._construct(subkey, undefined, meta)
     if (typeof result != 'undefined') {
       if (dot != -1) object = result;
@@ -383,24 +383,24 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
         callback: this,
         prepend: prepend
       });
-      var skip = key._skip;
+      var skip = key._nonenumerable;
       for (var prop in key)
         if (key.hasOwnProperty(prop) && (unstorable == null || !unstorable[prop]) && (skip == null || !skip[prop]))
           if ((val = key[prop]) != null && val._ownable === false)
-            this.set(prop, val, undefined, meta, prepend);
+            this._set(prop, val, undefined, meta, prepend);
           else
-            this.mix(prop, val, undefined, meta, merge, prepend, lazy);
+            this._mix(prop, val, undefined, meta, merge, prepend, lazy);
     };
     if (old && typeof old == 'object') {
       if (old._unwatch) 
         old._unwatch(this);
-      var skip = old._skip;
+      var skip = old._nonenumerable;
       for (var prop in old)
         if (old.hasOwnProperty(prop) && (unstorable == null || !unstorable[prop]) && (skip == null || !skip[prop]))
           if ((val = old[prop]) != null && val._ownable === false)
-            this.set(prop, undefined, val, meta, prepend);
+            this._set(prop, undefined, val, meta, prepend);
           else
-            this.mix(prop, undefined, val, meta, merge, prepend, lazy);
+            this._mix(prop, undefined, val, meta, merge, prepend, lazy);
     }
     return this;
   }
@@ -420,8 +420,7 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
   if (index > -1) {
     var name = key.substr(key.lastIndexOf('.', index - 1) + 1, index) || '_owner';
     var subkey = key.substring(index + 1);
-    var store = this.onStore && (this.onStore.call ? 'onStore' : '_onStore');
-    if (store && this[store] && this[store](name, value, old, meta, prepend, subkey) === false) return;
+    if (this.onStore && this.onStore(name, value, old, meta, prepend, subkey) === false) return;
     var storage = (this._stored || (this._stored = {}));
     var group = (storage[name] || (storage[name] = []));
     if (vdef) 
@@ -434,7 +433,7 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
         }
     var obj = this[name];
     if (obj == null) {
-      if (vdef && !this._skip[name] && !lazy)
+      if (vdef && !this._nonenumerable[name] && !lazy)
         obj = this._construct(name, null, meta);
       if (obj == null && this.onConstructRefused)
         this.onConstructRefused(key, value, meta, old, merge, prepend, lazy)
@@ -442,9 +441,9 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
       var subindex = subkey.indexOf('.');
       var prop = (subindex > -1) ? subkey.substring(0, subindex) : subkey;
       if (parseInt(prop) == prop)
-        obj.mix(subkey, value, old, meta, merge, prepend, lazy)
+        obj._mix(subkey, value, old, meta, merge, prepend, lazy)
       else for (var i = 0, j = obj.length; i < j; i++)
-        obj[i].mix(subkey, value, old, meta, merge, prepend, lazy);
+        obj[i]._mix(subkey, value, old, meta, merge, prepend, lazy);
     } else if (obj.apply) {
       if (vdef) 
         this[name](subkey, value);
@@ -466,8 +465,8 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
       if (vdef && old !== obj && this._owning !== false && obj._shared !== true
       && (obj._owner ? obj._owner !== this : obj._references > 0)) {
         obj = this._construct(name, null, 'copy', obj)
-      } else if (obj.mix && obj._ownable !== false) {
-        obj.mix(subkey, value, old, meta, merge, prepend, lazy);
+      } else if (obj._mix && obj._ownable !== false) {
+        obj._mix(subkey, value, old, meta, merge, prepend, lazy);
       } else {
 /*
   A composite key given to a `mix` method affects an outside object be it
@@ -480,16 +479,16 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
 */
         for (var previous, k, object = obj; (subindex = subkey.indexOf('.', previous)) > -1;) {
           k = subkey.substring(previous || 0, subindex)
-          if (previous > -1 && typeof object.mix == 'function') {
-            object.mix(subkey.substring(subindex), value, old, meta, merge, prepend, lazy);
+          if (previous > -1 && object._mix) {
+            object._mix(subkey.substring(subindex), value, old, meta, merge, prepend, lazy);
             break;
           } else if (object[k] != null) 
             object = object[k];
           previous = subindex + 1;
         }
         k = subkey.substring(previous);
-        if (typeof object.mix == 'function')
-          object.mix(k, value, old, meta, merge, prepend, lazy)
+        if (object._mix)
+          object._mix(k, value, old, meta, merge, prepend, lazy)
         else
           object[k] = value;
       }
@@ -511,9 +510,8 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
 */
   } else if ((!vdef && old != null && typeof old == 'object' && !old[this._trigger] && !old._ignore)
          || (value != null && typeof value == 'object' && !value.exec && !value.push
-         && !value.nodeType && value[this._trigger] == null && (!value.mix || merge))) {
-    var store = this.onStore && (this.onStore.call ? 'onStore' : '_onStore');
-    if (store && this[store] && this[store](key, value, meta, old, prepend) === false) return;
+         && !value.nodeType && value[this._trigger] == null && (!value._mix || merge))) {
+    if (this.onStore && this.onStore(key, value, meta, old, prepend) === false) return;
     var storage = (this._stored || (this._stored = {}));
     var group = storage[key] || (storage[key] = []);
     if (vdef) group.push([value, null, undefined, meta, merge, prepend, lazy, index]);
@@ -535,8 +533,8 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
 */
     var obj = this[key];
     if (obj == null) {
-      if (vdef && !this._skip[key])
-        obj = (merge && value && value.mix && this.set(key, value, undefined, 'reference') && value)
+      if (vdef && !this._nonenumerable[key])
+        obj = (merge && value && value._mix && this._set(key, value, undefined, 'reference') && value)
              || this._construct(key, null, meta);
 /*
   Objects also support mixing values into arrays. They mix values
@@ -548,8 +546,8 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
     } else if (obj.push && obj._object !== true) {
       for (var i = 0, j = obj.length; i < j; i++)
         if (!meta || !meta._delegate || !meta._delegate(obj[i], key, value, old, meta))
-          obj[i].mix(value, null, old, meta, merge, prepend, lazy);
-    } else if (obj.mix) {
+          obj[i]._mix(value, null, old, meta, merge, prepend, lazy);
+    } else if (obj._mix) {
 /*
   When object is merged into another object by some key, it will be first
   referenced directly avoiding a full blown copy of an object. If an outside
@@ -558,7 +556,7 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
   a referenced object and a side effect from the mutation.
 */
       if (meta === 'copy') {
-        this.set(key, value, old, meta, prepend)
+        this._set(key, value, old, meta, prepend)
       } else {
         var ref = obj._reference, owner = obj._owner;
         if (vdef && obj !== old && (!meta || !meta._delegate) && (ref && ref !== key 
@@ -580,9 +578,9 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
   callbacks and ensure that they will be unrolled in right condition.
 */
           if (obj === old)
-            this.set(key, value, old, meta, prepend)
+            this._set(key, value, old, meta, prepend)
           else if (obj !== value) 
-            obj.mix(value, null, old, meta, merge, prepend)
+            obj._mix(value, null, old, meta, merge, prepend)
         }
       }
     } else {
@@ -593,7 +591,7 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
           delete old[prop];
     }
   } else {
-    this.set(key, value, old, meta, prepend);
+    this._set(key, value, old, meta, prepend);
   }
   return this;
 };
@@ -621,9 +619,9 @@ LSD.Object.prototype.mix = function(key, value, old, meta, merge, prepend, lazy,
 */
 LSD.Object.prototype.unmix = function(key, value, old, meta, merge, prepend, lazy, index) {
   if (typeof key == 'string')
-    return this.mix(key, undefined, value, meta, merge, prepend, lazy, index);
+    return this._mix(key, undefined, value, meta, merge, prepend, lazy, index);
   else
-    return this.mix(undefined, undefined, key, meta, merge, prepend, lazy, index)
+    return this._mix(undefined, undefined, key, meta, merge, prepend, lazy, index)
 };
 /*
   Merge method is an alias to mix with some arguments predefined. It does
@@ -633,14 +631,14 @@ LSD.Object.prototype.unmix = function(key, value, old, meta, merge, prepend, laz
   object should be merged to the bottom or on top.
 */
 LSD.Object.prototype.merge = function(value, prepend, meta, old) {
-  return this.mix(value, undefined, old, meta, true, prepend)
+  return this._mix(value, undefined, old, meta, true, prepend)
 };
 /*
   Unmerge method unmixes the object and unsubscribes current object from
   changes in the given object.
 */
 LSD.Object.prototype.unmerge = function(value, prepend, meta) {
-  return this.mix(undefined, undefined, value, meta, true, prepend)
+  return this._mix(undefined, undefined, value, meta, true, prepend)
 };
 /*
   Observing is all about passing around the callback and executing it at the
@@ -831,7 +829,7 @@ LSD.Object.prototype.unwatch = function(key, callback, lazy, meta) {
   use a constructor of a given value, or falls back to use the same
   constructor as the object itself has.
   
-   `onBeforeConstruct` hook may provide its own instantiation strategy.
+   `_onBeforeConstruct` hook may provide its own instantiation strategy.
   Object may have a `_constructors` object, possibly shared with other
   objects via prototype, that holds the cache of resolved constructors for
   each key. It may also be used as a dictionary of constructors without help
@@ -847,9 +845,9 @@ LSD.Object.prototype._construct = function(name, constructor, meta, value) {
     if (this.constructor.prototype._object === false) return;
     else constructor = this.constructor;
   if (found === false) constructors[name] = constructor;
-  if (!this.onBeforeConstruct || typeof (instance = this.onBeforeConstruct(name, constructor)) == 'undefined') {
+  if (!this._onBeforeConstruct || typeof (instance = this._onBeforeConstruct(name, constructor)) == 'undefined') {
     instance = new constructor;
-    this.set(name, instance, value, this._delegate && !meta ? this : meta);
+    this._set(name, instance, value, this._delegate && !meta ? this : meta);
   }
   return instance;
 };
@@ -882,7 +880,7 @@ LSD.Object.prototype._watcher = function(call, key, value, old, meta) {
   }
 };
 LSD.Object.prototype._merger = function(call, name, value, old, meta) {
-  this.mix(name, value, old, meta, true, call.prepend);
+  this._mix(name, value, old, meta, true, call.prepend);
 };
 /*
   All LSD functions that accept callbacks support a various number of callback
@@ -915,9 +913,12 @@ LSD.Object.prototype._callback = function(callback, key, value, old, meta, lazy)
       if (a[0] == this && a[1] == property) return;
     meta.push([this, key]);
   }
-  var chunked = subject._chunked;
-  if (typeof lazy != 'number' || (chunked && chunked[property]))
-    subject.mix(property, value, old, meta, true, lazy);
+  if (typeof lazy == 'number') {  
+    var prop = subject._properties;
+    if (!prop || !(prop = prop[property]) || !prop.chunked)
+      return;
+  }  
+  subject._mix(property, value, old, meta, true, lazy);
 };
 /*
   A function that recursively cleans LSD.Objects and returns plain object
@@ -973,7 +974,7 @@ LSD.Object.prototype.toObject = function(normalize, serializer) {
     return obj.toString();
   } else if (!obj.indexOf && typeof obj == 'object') {
     var object = {};
-    var skip = obj._skip;
+    var skip = obj._nonenumerable;
     for (var key in obj)
       if (obj.hasOwnProperty(key) && (skip == null || !skip[key])) {
         var val = obj[key];
@@ -994,55 +995,22 @@ LSD.toObject = LSD.Object.toObject = LSD.Object.prototype.toObject;
   it inlined, but it's the best way to tell private property from public. 
 */
 LSD.Object.prototype.has = function(key) {
-  return this.hasOwnProperty(key) && !this._skip[key];
+  return this.hasOwnProperty(key) && !this._nonenumerable[key];
 };
-/*
-  A dictionary of internal keys that get skipped when iterating over all keys
-  of object. Some of these properties are skipped naturally by using a
-  hasOwnProperty function that filters out all properties that come from the
-  prototype of the object. But with this skip map, properties may be assigned
-  to the object itself and still be skipped by iterators.
-*/
-LSD.Object.prototype._skip = {
-  _references: true,
-  _reference: true,
-  _watchers: true,
-  _watched: true,
-  _ownable: true,
-  _owning: true,
-  _stored: true,
-  _owner: true,
-  _hash: true,
-  _skip: true
+LSD.Object.prototype.forEach = function(callback, bind) {
+  for (var property in this)
+    if (this.hasOwnProperty(property) && !this._nonenumerable[property])
+      callback.call(bind || this, this[property], property);
 };
-['get', 'set', 'mix', 'unmix', 'watch', 'unwatch', 'merge', 'unmerge'].forEach(function(method) {
-  LSD.Object.prototype['_' + method] = LSD.Object.prototype[method];
-});
+LSD.Object.prototype.getKeys = function() {
+  var keys = [];
+  for (var property in this)
+    if (this.hasOwnProperty(property) && !this._nonenumerable[property])
+      keys.push(property);
+  return keys;
+};
 LSD.Object.prototype.change = LSD.Object.prototype.set;
-LSD.Object.prototype._onStore = function(key, value, old, meta, name) {
-  if (name == null) {
-    if (value != null && typeof value == 'object') {
-      var skip = value._skip; 
-      for (var prop in value) {
-        if (value.hasOwnProperty(prop) && (skip == null || !skip[prop])) {
-          var property = this._Properties[prop];
-          if (property != null) property.call(this, key, value[prop], true);
-        }
-      }
-    }
-    if (old != null && typeof old == 'object') {
-      var skip = old._skip; 
-      for (var prop in old) {
-        if (old.hasOwnProperty(prop) && (skip == null || !skip[prop])) {
-          var property = this._Properties[prop];
-          if (property != null) property.call(this, key, old[prop], false);
-        }
-      }
-    }
-  }
-};
-LSD.Object.prototype._trigger = '_calculated';
-LSD.Object.prototype._script = function(key, expression) {
+LSD.Object.prototype.script = function(key, expression) {
   var scripted = (this._scripted || (this._scripted = {}));
   var node = this.nodeType && this;
   if (node) {
@@ -1055,9 +1023,9 @@ LSD.Object.prototype._script = function(key, expression) {
   } else {
     scripted[key] = LSD.Script(expression, this, [this, key]);;
   }
-  return this._skip;
+  return this._nonenumerable;
 };
-LSD.Object.prototype._unscript = function(key, value, meta) {
+LSD.Object.prototype.unscript = function(key, value, meta) {
   var script = this._scripted[key];
   if (key === 'merged') {
     for (var i = 0, j = script.length; i < j; i++) {
@@ -1075,5 +1043,51 @@ LSD.Object.prototype._unscript = function(key, value, meta) {
     script.set('value', undefined, script.value, meta)
     delete this._scripted[key]
   }
-  return this._skip;
+  return this._nonenumerable;
 };
+LSD.Object.prototype._trigger = '_calculated';
+/*
+  A dictionary of internal keys that get skipped when iterating over all keys
+  of object. Some of these properties are skipped naturally by using a
+  hasOwnProperty function that filters out all properties that come from the
+  prototype of the object. But with this skip map, properties may be assigned
+  to the object itself and still be skipped by iterators.
+*/
+LSD.Object.prototype._nonenumerable = {
+  _nonenumerable: true,
+  _references: true,
+  _reference: true,
+  _watchers: true,
+  _watched: true,
+  _ownable: true,
+  _owning: true,
+  _stored: true,
+  _owner: true,
+  __hash: true,
+  _hash: true
+};
+/*
+  Dictionary is the same as observable objects, but it only
+  has underscored API methods to avoid key occlusion.
+*/
+LSD.Dictionary = function(object) {
+  if (object != null) this._mix(object)
+};
+!function(proto) {
+  var dict = LSD.Dictionary.prototype;
+  dict._nonenumerable = {};
+  for (var property in proto._nonenumerable)
+    dict._nonenumerable[property] = proto._nonenumerable[property];
+  for (var property in proto) {
+    if (property.charAt(0) == '_') {
+      dict._nonenumerable[property] = true;
+      proto._nonenumerable[property] = true
+      if (property != '_nonenumerable')
+        dict[property] = proto[property];
+    } else {
+      dict['_' + property] = proto['_' + property] = proto[property];
+      dict._nonenumerable['_' + property] = true;
+      proto._nonenumerable['_' + property] = true
+    }
+  };
+}(LSD.Object.prototype);

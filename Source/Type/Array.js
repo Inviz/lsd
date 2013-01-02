@@ -106,7 +106,7 @@ LSD.Array.prototype._hash = function(key, value, old, meta, from, i, get) {
       for (var i = 0, a; a = stored[i++];) 
         subject[value ? 'mix' : 'unmix'].apply(subject, a);
     if ((stored = this._stored))
-      for (var prop in stored) if (!this._skip[prop]) {
+      for (var prop in stored) if (!this._nonenumerable[prop]) {
         var dot = prop.indexOf('.');
         var property = dot > -1 ? prop.substring(0, dot) : prop;
         if (parseInt(property) != property) {
@@ -357,9 +357,9 @@ LSD.Array.prototype.seek = function(block, callback, state, meta) {
   }
   this._position = 0;
   for (var i = 0, result, fn, j = array._length >>> 0; i < j; i++) {
-    if (offset > 0 && (!this._skipped || this._skipped < offset)) {
+    if (offset > 0 && (!this._nonenumerableped || this._nonenumerableped < offset)) {
       if (fn == null) fn = block.block ? block.block.eval() : block;
-      this._skipped = (this._skipped || 0) + +!!fn(array[i], i, state, prev);
+      this._nonenumerableped = (this._nonenumerableped || 0) + +!!fn(array[i], i, state, prev);
       this._position++;
       result = undefined;
     } else {
@@ -546,7 +546,7 @@ LSD.Array.prototype.slice = Array.prototype.slice;
 LSD.Array.prototype.forEach = Array.prototype.forEach;
 LSD.Struct.implement(Array.prototype, LSD.Array.prototype, true);
 LSD.Struct.implement({
-  _skip: {
+  _nonenumerable: {
     _onSplice: true,
     _prefilter: true,
     _length: true,

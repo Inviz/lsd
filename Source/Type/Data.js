@@ -39,7 +39,7 @@ LSD.Data.prototype.fromString = LSD.Data.fromString = function(string, state, me
   }
 }
 LSD.Data.prototype.toString = LSD.Data.toString = function(prefix) {
-  var skip = this._skip, result;
+  var skip = this._nonenumerable, result;
   if (this.push) {
     for (var i = 0, j = this.length; i < j; i++) {
       var value = this[i];

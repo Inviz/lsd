@@ -34,7 +34,8 @@ LSD.Struct = function(properties, Base, Sub) {
   instances of that structure, which bears close resemblance to OOP.
 */
   var Struct = function() {
-    if (this.Variable || !this._construct) return new Struct(arguments[0], arguments[1])
+    if (!(this instanceof Struct))
+      return new Struct(arguments[0], arguments[1])
 /*
   Inherited properties is an internal concept that allows an instance of a
   class to recieve its own copy of a private object from prototype without
@@ -101,11 +102,18 @@ LSD.Struct = function(properties, Base, Sub) {
   if (!constructor.prototype.push) Struct.prototype._constructor = constructor;
   if (Sub) Struct.prototype.__constructor = typeof Sub == 'string' ? LSD[Sub] : Sub;
   Struct.prototype._constructors = {};
+  var Properties = LSD.Struct.Properties;
+  if (Properties) {
+    var props = new Properties;
+    props._struct = Struct;
+    if (properties)
+      props._mix(properties);
+  } 
+  Struct.prototype._properties = Struct.properties = props || properties || {};
   if (properties) {
-    Struct.prototype._properties = properties;
     for (var name in properties) {
       var mutator = LSD.Struct.Mutators[name];
-      if (mutator && typeof properties[name] != 'undefined') {
+      if (mutator && properties[name] !== undefined) {
         if (typeof mutator == 'function') {
           LSD.Struct.Mutators[name].call(Struct, properties[name]);
         } else Struct.prototype[mutator === true ? 'set' : mutator]('_' + name, properties[name]);
@@ -118,7 +126,7 @@ LSD.Struct.implement = function(object, host, reverse) {
   if (!host) host = this.prototype;
   for (var prop in object) {
     var value = object[prop];
-    if (typeof value == 'object' && value != null && !value.push && !value.exec) {
+    if (typeof value == 'object' && value != null && !value.push && !value.exec && prop !== '_owner') {
       var hosted = host[prop];
       if (hosted) {
         if (!host.hasOwnProperty(prop)) 
@@ -154,27 +162,24 @@ LSD.Struct.Mutators = {
       this.implement(Klasses[i].prototype, null, true);
   },
 /*
-  LSD does not use options convention, but mootools legacy classes use them
-  extensively. Objects given in a Struct definitions will be merged into the
-  prototype.
+  
 */
-  options: function(options) {
-    this.implement({options: options})
-  },
-/*
-  Structs allow some mootools-style class events to be defined in a class 
-  definition.
-*/
-  events: 'mix',
-/*
-  Structs support property skip list to be extended in a class definition. 
-  A property found in that list will not be iterated over in any of the loops.
-*/
-  skip: function(methods) {
-    LSD.Struct.merge({_skip: methods})
-  },
-  constructor: function(constructor) {
-    this._constructor = constructor === true ? this : constructor;
+  Formulas: function(Formulas) {
+    var prototype = this.prototype;
+    var formulas = (prototype.formulas || (prototype.formulas = {}))
+    var formulasByProperty = (prototype.formulasByProperty || (prototype.formulasByProperty = {}))
+    for (var property in Formulas) {
+      var expression = Formulas[property];
+      var parsed = LSD.Script.parse(expression);
+      if (!parsed.push) parsed = [parsed];
+      var fn = LSD.Script.toFunction(parsed);
+      var variables = LSD.Script.getVariables(parsed);
+      for (var i = 0, variable; variable = variables[i++];) {
+        var group = (formulasByProperty[variable] || (formulasByProperty[variable] = []));
+        group.push(property);
+      }
+      formulas[property] = fn;
+    }
   },
 /*
   Mutators that have value equal to `true`, will copy a given value into
@@ -186,13 +191,8 @@ LSD.Struct.Mutators = {
   order. Most of the predefined LSD structs only use a private constructor
   leaving a public one for third party subclassing.
 */
-  _initialize: true,
-  initialize: true,
-  construct: true,
   imports: true,
-  exports: true,
-  shared: true,
-  get: true
+  exports: true
 };
 /*
   The biggest thing about a Struct instance is how it handles property changes.
@@ -203,64 +203,70 @@ LSD.Struct.prototype._onChange = function(key, value, old, meta, extra) {
   if (typeof key != 'string') return value;
   var props = this._properties, prop;
   if (props) prop = props[key];
-  if (!prop && (props = this.__properties) && !(prop = props[key])) return value;
-  var group = this._observed, vdef = typeof value != 'undefined';
+  if (!prop && (props = this.__properties)) 
+    prop = props[key]
+  var group = this._observed, vdef = value !== undefined;
   if (group && (group = group[key])) {
     if (vdef) group[2] = value;
     else delete group[2];
   }
-/*
-  The found property definition may be of different kind:
-*/
-  switch (typeof prop) {
-/*
-  - A function, that will be called whenever property is set, changed, or 
-  unset. If it returns value, that value is passed to all following callbacks
-  and assigned to object instead of the original value.
-*/
-    case 'function':
-      if (prop.prototype._set) {
-        if (vdef && typeof this[key] == 'undefined')
-          this._construct(key, prop, meta)
-      } else return prop.call(this, value, old, meta, extra);
-      break;
-/*
-  - A string, the link to another property in current or a linked object.
-    Works as a one-way setter/getter alias. It means that the if a linked
-    property is changed by another callback, the original proeprty will
-    not be updated, unless the linked property is linked back to the original
-    property explicitly.
-*/
-    case 'string':
-      if (typeof value != 'object') {
-        var index = prop.indexOf(' ');
-        if (index > -1) {
-          var fn = prop.substring(index + 1);
-          if (!this[fn]) this[fn] = {
-            fn: this['_' + fn],
-            bind: this
-          };
-          this.mix(prop.substring(0, index) + '.' + value, this[fn], undefined, meta);
-          if (old != null && typeof old != 'object')
-            this.mix(prop.substring(0, index) + '.' + old, undefined, this[fn], meta);
-        } else this.mix(prop, value, old, meta);
+  if (prop) {
+    var set = prop.set;
+    if (set)
+      value = callback.set.call(this, value);
+    var callback = prop.callback || (prop.call && !prop._mix && prop);
+    if (callback) {
+      if (callback.prototype._set) {
+        if (vdef && this[key] === undefined)
+          this._construct(key, callback, meta)
+      } else
+        value = callback.call(this, value, old, meta, extra);
+    }
+    var alias = prop.alias;
+    if (alias && typeof value != 'object') {
+      var index = alias.indexOf(' ');
+      if (index > -1) {
+        var fn = alias.substring(index + 1);
+        if (!this[fn]) this[fn] = {
+          fn: this['_' + fn],
+          bind: this
+        };
+        this.mix(alias.substring(0, index) + '.' + value, this[fn], undefined, meta);
+        if (old != null && typeof old != 'object')
+          this.mix(alias.substring(0, index) + '.' + old, undefined, this[fn], meta);
+      } else 
+        this.mix(alias, value, old, meta);
+    };
+  } else if (this._aggregate && !this._nonenumerable[key]) {
+    var odef = old !== undefined
+    var storage = (this._stored || (this._stored = {}))
+    var group = storage[key] || (storage[key] = []);
+    if (vdef) group.push([value, key]);
+    if (odef) for (var i = 0, j = group.length; i < j; i++)
+      if (group[i][0] === old) {
+        group.splice(i, 1);
+        break;
       }
-      break;
-    case 'undefined':  
-      if (this._aggregate && !this._skip[key]) {
-        var odef = typeof old != 'undefined'
-        var storage = (this._stored || (this._stored = {}))
-        var group = storage[key] || (storage[key] = []);
-        if (vdef) group.push([value, key]);
-        if (odef) for (var i = 0, j = group.length; i < j; i++)
-          if (group[i][0] === old) {
-            group.splice(i, 1);
-            break;
-          }
-        for (var i = 0, j = this.length; i < j; i++)
-          this[i].set(key, value, old, meta);
+    for (var i = 0, j = this.length; i < j; i++)
+      this[i].set(key, value, old, meta);
+  }
+  var formulasByProperty = this.formulasByProperty;
+  if (formulasByProperty) {
+    var formulasByProperty = formulasByProperty[key];
+    if (formulasByProperty) {
+      var formulas = this.formulas;
+      var formulated = (this.formulated || (this.formulated = {}))
+      for (var prop, i = 0; prop = formulasByProperty[i++];) {
+        var formula = formulas[prop];
+        if (formula) {
+          var val = formula.call(this);
+          if (val != val) val = undefined;
+          this.change(prop, val, formulated[prop], meta);
+          formulated[prop] = val;
+        }
       }
-  };
+    }
+  }
   return value;
 };
 /*
@@ -268,26 +274,37 @@ LSD.Struct.prototype._onChange = function(key, value, old, meta, extra) {
   class
 */
 LSD.Struct.prototype._getConstructor = function(key) {
-  if (this._properties) {
+  var prop = this._properties[key];
+  if (prop)
+    var constructor = prop.constructor;
+  if (!constructor && this._Properties) {
     var Key = key.charAt(0).toUpperCase() + key.substring(1);
-    var prop = this._properties[Key] || this._properties[key];
+    var constructor = this._Properties[Key] || this._Properties[key];
   }
-  if (prop == null && this.__properties) prop = this.__properties[key];
-  if (prop) {
-    if (prop === Object) return prop;
-    var type = typeof prop;
-    if (type == 'function' && prop.prototype._construct) return prop;
-    else return (type == 'string') ? null : false;
+  if (constructor)
+    return constructor;
+  else if (prop) {
+    if (prop.alias)
+      return null;
+    if (prop.callback)
+      return false;
   }
   return this._constructor
 };
-LSD.Struct.prototype.onBeforeConstruct = function(key) {
+LSD.Struct.prototype._onBeforeConstruct = function(key) {
   var props = this._properties;
   var property = (props && props[key]) || (props = this.__properties) && props[key];
-  if (typeof property == 'string') {
-    if (!(this._observed || (this._observed = {}))[key])
-      this.watch(property, (this._observed[key] = [this, key]), false);
-    return typeof this[key] == 'undefined' ? this.get(property, true) || null : this[key]
+  if (property) {
+    if (property.get)
+      return property.get.call(this);
+    var alias = property.alias;
+    if (alias) {
+      if (!(this._observed || (this._observed = {}))[key])
+        this.watch(alias, (this._observed[key] = [this, key]), false);
+      if (this[key] !== undefined) 
+        return this[key];
+      return this.get(alias, true) || null;
+    }
   }
 };
 /*
@@ -342,13 +359,125 @@ LSD.Struct.prototype._linker = function(call, key, value, old, meta) {
   this.mix(call.key, value, old, meta);
 };
 LSD.Struct.prototype._unlinked = ['_journal', '_stored'];
-LSD.Struct.prototype._skip = {
+LSD.Struct.prototype._simple_property = /^[a-zA-Z._-]+?$/;
+LSD.Struct.prototype._nonenumerable = {
   initialize: true,
   _initialize: true,
   __initialize: true,
+  _constructor: true,
+  _constructors: true,
+  _Properties: true,
   _properties: true,
-  _linker: true,
   _exports: true,
+  _linker: true,
   _imports: true
 }
-LSD.Struct.prototype._simple_property = /^[a-zA-Z._-]+?$/;
+!function(proto) {
+  for (var property in proto)
+    proto._nonenumerable[property] = true;
+}(LSD.Struct.prototype);
+LSD.Struct.Property = function(callback, object, extra, arg) {
+  var property = this;
+  if (!property.call || !property._mix) {
+    var proto = LSD.Struct.Property.prototype;
+    var property = function(value, old, meta, extra) {
+      if (value !== undefined && property.set)
+        value = property.set.call(this, value);
+      if (property.callback)
+        value = property.callback.call(this, value, old, meta, extra);
+      return value;
+    }
+    for (var prop in proto)
+      property[prop] = proto[prop];
+  }
+  switch (typeof callback) {
+    case 'object':
+      property._mix(callback);
+      break;
+    case 'function':
+      var props = callback._properties;
+      if (props && !props._mix)
+        return callback//property._mix(callback);
+      else if (callback === Object || callback.prototype._construct)
+        property._set('constructor', callback);
+      else
+        property._set('callback', callback);
+      if (object)
+        property._mix(object);
+      break;
+    case 'string':
+      property._set('alias', callback);
+  }    
+  return property;
+};
+
+LSD.Struct.Property.prototype = new (LSD.Struct({
+  
+  get: function() {
+    
+  },
+  
+  set: function() {
+    
+  },
+  
+  callback: function() {
+    
+  },
+  
+  constructor: function() {
+    
+  },
+  
+  enumerable: function(value) {
+    var nonenumerable = this._owner._struct.prototype._nonenumerable;
+    if (value)
+      delete nonenumerable[this._reference];
+    else
+      nonenumerable[this._reference] = true;
+  },
+  
+  value: function(value) {
+    if (value == undefined)
+      delete this._owner._struct.prototype[this._reference];
+    else
+      this._owner._struct.prototype[this._reference] = value;
+  },
+  
+  writable: function() {
+    
+  },
+
+  chunked: function() {
+
+  },
+  
+  import: function() {
+    
+  },
+  
+  script: function(value, old) {
+    
+  },
+  
+  formula: function() {
+    
+  }
+}, 'Dictionary'));
+
+LSD.Struct.Property.prototype.enumerable = true;
+LSD.Struct.Property.prototype.writable = true;
+LSD.Struct.Property.prototype.constructor = undefined;
+
+LSD.Struct.Properties = new LSD.Struct({
+
+}, 'Dictionary');
+
+LSD.Struct.Properties.prototype._nonenumerable = LSD.Struct.implement(LSD.Struct.Properties.prototype._nonenumerable, {
+  _struct: true
+});
+LSD.Struct.Properties.prototype._onChange = function(key, value, old, meta) {
+  if (value !== undefined)
+    return new LSD.Struct.Property(value)
+};
+LSD.Struct.Properties.prototype._constructor = LSD.Struct.Property;

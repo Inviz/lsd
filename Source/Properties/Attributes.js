@@ -42,7 +42,7 @@ LSD.Properties.Attributes.prototype.onChange = function(key, value, old, meta) {
       owner.element.setAttribute(key, value === true ? key : value);
     else
       owner.element.removeAttribute(key);
-  if (((!meta || meta !== 'states') && ns.states[key]) || owner.__properties[key])
+  if (((!meta || meta !== 'states') && ns.states[key]) || owner._properties[key])
     owner.set(key, value, old, 'attributes');
   if (key.substr(0, 5) == 'data-')
     owner.mix('variables.' + key.substring(5), value, old, meta);

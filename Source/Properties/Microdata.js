@@ -52,7 +52,7 @@ LSD.Properties.Microdata.prototype._unscript = function(key, value, meta) {
 }
 LSD.Properties.Microdata.prototype._shared = true;
 LSD.Properties.Microdata.prototype._trigger = 'lsd';
-LSD.Properties.Microdata.prototype._skip = LSD.Struct.implement(LSD.Properties.Microdata.prototype._skip, {
+LSD.Properties.Microdata.prototype._nonenumerable = LSD.Struct.implement(LSD.Properties.Microdata.prototype._nonenumerable, {
   _values: true,
   _elements: true
 })

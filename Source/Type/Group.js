@@ -34,7 +34,7 @@ LSD.Group.prototype.constructor = LSD.Group;
 LSD.Group.prototype.__constructor = Array;
 LSD.Group.prototype._hash = function(key, value, old, meta, prepend, index) {
   var index = key.indexOf('.');
-  if (index == -1 && !this._skip[key] && !(this._properties && this._properties[key])) {
+  if (index == -1 && !this._nonenumerable[key] && !(this._properties && this._properties[key])) {
     var group = this[key];
     if (group == null) {
       group = this[key] = new this.__constructor;

@@ -62,7 +62,7 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, old, meta, extr
       if (odef) this.set(expressions[meta], undefined, old);
       if (j == 1 || expressions == key) break;
     }
-    if (j > 1 || l > 1) return this._skip;
+    if (j > 1 || l > 1) return this._nonenumerable;
   }
   /* 
     Expression may be a state key, that expects current node
@@ -140,7 +140,7 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, old, meta, extr
       }
     }
   }
-  return this._skip;
+  return this._nonenumerable;
 };
 /*
   Advancer callback is called whenever a widget is matched selector expression.
@@ -176,7 +176,7 @@ LSD.Properties.Matches.prototype._advancer = function(call, value, old) {
 */
 LSD.Properties.Matches.prototype.__hash = function(expression, value, old, meta, storage) {
   if (typeof expression == 'string') {
-    if (this._skip[expression]) return;
+    if (this._nonenumerable[expression]) return;
     expression = (this._parsed[expression] || (this._parsed[expression] = Slick.parse(expression))).expressions[0][0]
   }
   var tag = expression.tag;

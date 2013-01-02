@@ -9,9 +9,6 @@ license: Public domain (http://unlicense.org).
 
 authors: Yaroslaff Fedin
 
-requires:
-  - Slick/Slick.Parser
-
 provides: 
   - LSD
   - LSD.Properties

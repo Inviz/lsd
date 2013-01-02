@@ -182,7 +182,7 @@ LSD.Fragment.prototype.enumerable = function(object, parent, meta) {
   
 */
 LSD.Fragment.prototype.object = function(object, parent, meta, previous) {
-  var skip = object._skip, value, result, bound, fragment = this;
+  var skip = object._nonenumerable, value, result, bound, fragment = this;
   for (var selector in object) {
     if (!object.hasOwnProperty(selector) || (skip && skip[selector])) continue;
     if (!(result = fragment.instruction(selector, parent, meta, false)))

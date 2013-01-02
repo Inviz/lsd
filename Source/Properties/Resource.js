@@ -45,8 +45,8 @@ LSD.Resource = LSD.Struct({
   urls property is a simple map that contains action URL customizations
 */
   urls: Object,
-/**/
-  properties: Object,
+  
+  attributes: Object,
 /*
   Name of a resource in plural form
 */
@@ -169,12 +169,11 @@ LSD.Resource.prototype.onChange = function(key, value, old, meta) {
   }
 };
 LSD.Resource.prototype.key = 'id';
-LSD.Resource.prototype.onStore = true;
 LSD.Resource.prototype._initialize = function(name) {
   if (typeof name == 'string') this.set('plural', name);
-  this.attributes = LSD.Struct.implement(this.attributes, {}); 
-  LSD.Struct.implement(this.constructor.attributes, this.attributes);
-  var Struct = new LSD.Resource.Model(this.attributes), proto = Struct.prototype;
+  this.attributes = LSD.Struct.implement(this.attributes, {});
+  var Struct = new LSD.Resource.Model(LSD.Resource.Model.prototype.properties)
+  var proto = Struct.prototype;
   proto.constructor = Struct;
   Struct.constructor = Struct._constructor = LSD.Resource;
   Struct.resource = Struct;
@@ -183,7 +182,7 @@ LSD.Resource.prototype._initialize = function(name) {
       Struct[property] = this[property];
   var Model = LSD.Resource.Model.prototype;
   for (var property in Model)
-    if (!proto[property] || property == 'toString' || property == '_skip')
+    if (!proto[property] || property == 'toString' || property == '_nonenumerable')
       proto[property] = Model[property];
   delete Struct._owning;
   delete Struct._ownable;
@@ -347,20 +346,6 @@ LSD.Resource.prototype.deassociate = function(association, object, name) {
   association.set('object', undefined, object);
   object.set(name, undefined, association, 'associate');
 }
-LSD.Resource.prototype._Properties = {
-  urls: function(value, state) {
-    
-  },
-  actions: function() {
-
-  },
-  collection: function() {
-
-  },
-  member: function() {
-
-  }
-};
 LSD.Resource.prototype.all = function(params) {
 
 };
@@ -465,12 +450,6 @@ LSD.Resource.prototype.replace = LSD.Resource.prototype.put = function(params, u
 LSD.Resource.prototype.validate = function(params) {
   return true;
 };
-LSD.Resource.attributes = {
-  _id: function(value) {
-    this.change('url', this.constructor.url + '/' + value);
-  },
-  'id': '_id'
-};
 LSD.Resource.prototype.onSet = function(index, value, old, meta) {
   if (meta & 0x1 || !value) return;
   var subject = value.set ? value : new this(value);
@@ -540,7 +519,7 @@ LSD.Resource.Property.prototype.toJSON = function(object, options) {
     options = object;
   if (arguments.length == 0 || this instanceof LSD.Resource.Model)
     object = this;
-  var skip = object && object._skip;
+  var skip = object && object._nonenumerable;
   switch (typeof object) {
     case 'string':
       return '"' + object + '"';
@@ -590,6 +569,7 @@ LSD.Resource.Property.String  = new LSD.Resource.Property(String);
 LSD.Resource.Property.Object  = new LSD.Resource.Property(['fromString', Object]);
 LSD.Resource.Property.Date    = new LSD.Resource.Property(['fromString', Date]);
 LSD.Resource.Property.Array   = new LSD.Resource.Property(['fromString', Array])
+LSD.Resource.Property.Boolean = new LSD.Resource.Property(['fromString', Boolean]);
 LSD.Resource.Property.JSON    = new LSD.Resource.Property('fromJSON', 'toJSON');
 LSD.Resource.Property.XML     = new LSD.Resource.Property('fromXML', 'toXML');
 
@@ -644,7 +624,12 @@ LSD.Resource.Validation.Present = new LSD.Resource.Validation(function(value, va
 LSD.Resource.Model = function(argument) {
   return LSD.Struct.call(this, argument);
 }
-LSD.Resource.Model.prototype = LSD.Struct(LSD.Resource.attributes, 'Journal');
+LSD.Resource.Model.prototype = LSD.Struct({
+  _id: function(value) {
+    this.change('url', this.constructor.url + '/' + value);
+  },
+  'id': '_id'
+}, 'Journal');
 LSD.Resource.Model.prototype._owning = false;
 LSD.Resource.Model.prototype.__initialize = function(object) {
   if (typeof object == 'string') object = this.fromString(object);
@@ -678,7 +663,7 @@ LSD.Resource.Model.prototype.onChange = function(key, value, old, meta) {
       resource.associate(value, this, key);
     else if (oldResource && value && value.push) {
       old.push[value.push ? 'apply' : 'call'](old, value);
-      return this._skip;
+      return this._nonenumerable;
     }
     if (oldResource)
       oldResource.deassociate(value, this, key);
@@ -689,10 +674,10 @@ LSD.Resource.Model.prototype.onChange = function(key, value, old, meta) {
       for (var j = 0, model; model = foreigner[j++];)
         model.set(fKey, value, old, meta, true);
   } else {
-    var properties = this.constructor.properties;
-    var property = properties && properties[key];
-    if (property) 
-      value = this.cast(key, value, property);
+    var attributes = this.constructor.attributes;
+    var attribute = attributes && attributes[key];
+    if (attribute) 
+      value = this.cast(key, value, attribute);
   }
   return value;
 };
@@ -700,7 +685,7 @@ LSD.Resource.Model.prototype.onChange = function(key, value, old, meta) {
   Save associated models
 */
 LSD.Resource.Model.prototype.associate = function() {
-  var skip = this._skip;
+  var skip = this._nonenumerable;
   for (var property in this) 
     if (this.hasOwnProperty(property) && !skip[property]) {
       var value = this[property];
@@ -778,7 +763,7 @@ LSD.Resource.Model.prototype.toHTML = function() {
 ['toXML', 'fromXML', 'toJSON', 'fromJSON', 'toString', 'fromString'].forEach(function(name) {
   LSD.Resource.Model.prototype[name] = LSD.Resource.Property.prototype[name];
 })
-LSD.Resource.Model.prototype._skip = LSD.Struct.implement(LSD.Journal.prototype._skip, {
+LSD.Resource.Model.prototype._nonenumerable = LSD.Struct.implement(LSD.Journal.prototype._nonenumerable, {
   resource: true
 })
 LSD.Resource.Association = function(resource) {
@@ -787,8 +772,7 @@ LSD.Resource.Association = function(resource) {
   this.resource = resource;
   this.constructor = LSD.Resource.Association;
 };
-LSD.Resource.Association.prototype = new (new LSD.Struct('Array'));
-LSD.Resource.Association.prototype._properties = {
+LSD.Resource.Association.prototype = new (LSD.Struct({
   as: function(value, old) {
     if (this.object) for (var model, i = 0; model = this[i++];) {
       if (value != null) model.set(value, this.object);
@@ -806,7 +790,8 @@ LSD.Resource.Association.prototype._properties = {
   object: function(value, old) {
     
   }
-};
+}, 'Array'));
+
 LSD.Resource.Association.prototype.build = function() {
   var model = this.resource.build.apply(this.resource, arguments);
   this.push(model)

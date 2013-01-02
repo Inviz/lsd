@@ -33,7 +33,7 @@ LSD.Styles.prototype.onChange = function(key, value, old, meta) {
       value = this.constructor.parse(value);
     value = style[value.push ? 'apply' : 'call'](this, value);
     key = style.property;
-    if (value === false) return this._skip;
+    if (value === false) return this._nonenumerable;
     if (styles.type == 'simple') {
       if (this._owner.element)
         this._owner.element[style] = value;

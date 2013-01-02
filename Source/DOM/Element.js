@@ -46,47 +46,7 @@ provides:
   gets powerful observing and introspection capabilities almost for free.
 */
 
-LSD.Element = new LSD.Struct(LSD.Properties, 'Journal');
-LSD.Element.prototype.onChange = function(key, value, old, meta) {
-  var ns         = this.document || LSD.Document.prototype,
-      states     = ns.states,
-      definition = states[key];
-  if (this._inherited[key]) {
-    var children = this.childNodes;
-    if (children) for (var i = 0, child; child = children[i++];)
-      child.set(key, value, old, meta, true);
-  }
-  if (!definition) return
-  var stack      = this._journal;
-  if (stack) stack = stack[key];
-  if (value !== undefined && (!stack || stack.length < 2) && typeof this[definition[0]] != 'function') {
-    var compiled = states._compiled || (states._compiled = {});
-    var methods = compiled[key];
-    if (!methods) {
-      compiled[key] = methods = {};
-      methods[definition[0]] = function(meta) {
-        return this.change(key, true, undefined, meta);
-      };
-      methods[definition[1]] = function(meta) {
-        return this.change(key, false, undefined, meta);
-      };
-    }
-    for (var method in methods) this.set(method, methods[method]);
-  }
-  if (value || old)
-    if ((ns.attributes[key]) !== Boolean) {
-      if (meta !== 'classes' && key !== 'built')
-        this.classList.mix(key, value, old, 'states');
-    } else {
-      if (meta !== 'attributes')
-        this.attributes.mix(key, value, old, 'states');
-    }
-  if (value === undefined) {
-    var methods = states._compiled[key];
-    for (var method in methods) this.set(method, undefined, methods[method]);
-  }
-};
-LSD.Element.prototype.__properties = {
+LSD.Element = new LSD.Struct({
   /*
     Role is an object that defines the widget behavior. Roles, unlike mixins
     are exclusive, so element can have only one role at time. An element
@@ -109,24 +69,27 @@ LSD.Element.prototype.__properties = {
     `input.date` role. And if it's not there, it tries `input` which in terms
     of html is a text input.
   */
-  role: function(value, old, meta, prepend) {
-    if (typeof prepend == 'number' && isFinite(prepend)) {
-      var group = this._journal.role, role;
-      for (var i = 0, j = Math.min(group.position, 4) + 1; i < j; i++) {
-        var subrole = group[i];
-        if (subrole)
-          role = (role || '') + (role && role.length ? '-' : '') + subrole;
+  role: {
+    callback: function(value, old, meta, prepend) {
+      if (typeof prepend == 'number' && isFinite(prepend)) {
+        var group = this._journal.role, role;
+        for (var i = 0, j = Math.min(group.position, 4) + 1; i < j; i++) {
+          var subrole = group[i];
+          if (subrole)
+            role = (role || '') + (role && role.length ? '-' : '') + subrole;
+        }
+        var index = (group.before || 0) + (group.after || 0) + group.position;
+        this.set('role', role, group.after, meta, Infinity);
+      } else {
+        var roles = (this.document || LSD.Document.prototype).roles
+        if (!roles) return;
+        if (typeof value == 'string')
+          value = typeof roles[value] == 'undefined' ? roles.get(value) : roles[value];
+        if (typeof old == 'string') old = roles[old] || undefined;
+        this.mix(value, null, old, meta, false, true);
       }
-      var index = (group.before || 0) + (group.after || 0) + group.position;
-      this.set('role', role, group.after, meta, Infinity);
-    } else {
-      var roles = (this.document || LSD.Document.prototype).roles
-      if (!roles) return;
-      if (typeof value == 'string')
-        value = typeof roles[value] == 'undefined' ? roles.get(value) : roles[value];
-      if (typeof old == 'string') old = roles[old] || undefined;
-      this.mix(value, null, old, meta, false, true);
-    }
+    },
+    chunked: true
   },
 
   type: function(value, old, meta) {
@@ -272,7 +235,7 @@ LSD.Element.prototype.__properties = {
       if (value.tagName)
         var tag = opts.tagName = value.tagName.toLowerCase();
       if (value.lsd) {
-        var attributes = value.attributes, skip = attributes._skip;
+        var attributes = value.attributes, skip = attributes._nonenumerable;
         for (var attribute in attributes) {
           if (attributes.hasOwnProperty(attribute) && !skip[attribute]) {
             if (!opts.attributes) opts.attributes = {};
@@ -423,7 +386,7 @@ LSD.Element.prototype.__properties = {
       } else {
         var element = document.createElement(this.localName);
         var attrs = this.attributes, classes = this.classList;
-        var skip = attrs._skip;
+        var skip = attrs._nonenumerable;
         for (var name in attrs) {
           if (attrs.hasOwnProperty(name) && (skip == null || !skip[name])) {
             element.setAttribute(name, attrs[name]);
@@ -699,10 +662,47 @@ LSD.Element.prototype.__properties = {
   itemref: function() {
 
   }
+}, 'Journal');
+LSD.Element.prototype._Properties = LSD.Properties;
+LSD.Element.prototype.onChange = function(key, value, old, meta) {
+  var ns         = this.document || LSD.Document.prototype,
+      states     = ns.states,
+      definition = states[key];
+  if (this._inherited[key]) {
+    var children = this.childNodes;
+    if (children) for (var i = 0, child; child = children[i++];)
+      child.set(key, value, old, meta, true);
+  }
+  if (!definition) return
+  var stack      = this._journal;
+  if (stack) stack = stack[key];
+  if (value !== undefined && (!stack || stack.length < 2) && typeof this[definition[0]] != 'function') {
+    var compiled = states._compiled || (states._compiled = {});
+    var methods = compiled[key];
+    if (!methods) {
+      compiled[key] = methods = {};
+      methods[definition[0]] = function(meta) {
+        return this.change(key, true, undefined, meta);
+      };
+      methods[definition[1]] = function(meta) {
+        return this.change(key, false, undefined, meta);
+      };
+    }
+    for (var method in methods) this.set(method, methods[method]);
+  }
+  if (value || old)
+    if ((ns.attributes[key]) !== Boolean) {
+      if (meta !== 'classes' && key !== 'built')
+        this.classList.mix(key, value, old, 'states');
+    } else {
+      if (meta !== 'attributes')
+        this.attributes.mix(key, value, old, 'states');
+    }
+  if (value === undefined) {
+    var methods = states._compiled[key];
+    for (var method in methods) this.set(method, undefined, methods[method]);
+  }
 };
-LSD.Element.prototype._chunked = {
-  role: true
-}
 LSD.Element.implement(LSD.Node.prototype)
 LSD.Element.prototype.nodeType = 1;
 LSD.Element.prototype.localName = 'div';
