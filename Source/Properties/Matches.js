@@ -21,7 +21,7 @@ provides:
 ...
 */
   
-LSD.Properties.Matches = LSD.Struct('Group');
+LSD.Properties.Matches = LSD.Struct();
 /*
   Matches observes selectors in small bites.
 
@@ -37,7 +37,7 @@ LSD.Properties.Matches = LSD.Struct('Group');
    Then, dynamic part kicks in - a node observes its own state and fires
   callbacks when classes, pseudo classes or attributes are changed.
 */
-LSD.Properties.Matches.prototype.onChange = function(key, value, old, meta, extra, hash) {
+LSD.Properties.Matches.prototype.__cast = function(key, value, old, meta, extra, hash) {
   if (typeof key == 'string') 
     key = (this._parsed[key] || (this._parsed[key] = Slick.parse(key)));
   var odef = old !== undefined, vdef = value !== undefined;
@@ -109,7 +109,7 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, old, meta, extr
     if (vdef) {
       hash.push([key, value, stateful]);
       if (this._results) {
-        var group = this.__hash(key, null, null, null, this._results);
+        var group = this._hash(key, null, null, null, this._results);
         for (var i = 0, widget; widget = group[i++];) {
           if (!stateful) {
             if (typeof value == 'function') value(widget);
@@ -124,7 +124,7 @@ LSD.Properties.Matches.prototype.onChange = function(key, value, old, meta, extr
       if (hash) for (var i = hash.length, fn; i--;) {
         if ((fn = hash[i]) && (fn = fn[1]) && (fn === old || fn.callback === old)) {
           if (this._results) {
-            var group = this.__hash(key, null, null, null, this._results);
+            var group = this._hash(key, null, null, null, this._results);
             for (var j = 0, result; result = group[j++];) {
               if (!stateful) {
                 if (typeof fn == 'function') fn(undefined, old);
@@ -163,8 +163,6 @@ LSD.Properties.Matches.prototype._advancer = function(call, value, old) {
   }
 };
 /*
-  Hash hook allows Matches object to handle keys with types other than string.
-  
   It accepts singular parsed expressions, and returns the storage for given
   value - either callbacks or elements storage with a group dedicated to
   the combinator/tag pair. 
@@ -174,17 +172,18 @@ LSD.Properties.Matches.prototype._advancer = function(call, value, old) {
   the array of expression from left to right and handles each expression separately
   storing a callback that advances the selector to the next expression. 
 */
-LSD.Properties.Matches.prototype.__hash = function(expression, value, old, meta, storage) {
-  if (typeof expression == 'string') {
-    if (this._nonenumerable[expression]) return;
-    expression = (this._parsed[expression] || (this._parsed[expression] = Slick.parse(expression))).expressions[0][0]
+LSD.Properties.Matches.prototype._hash = function(key, value, old, meta, storage) {
+  if (typeof key == 'string') {
+    if (this._nonenumerable[key]) return;
+    var parsed = this._parsed;
+    key = (parsed[key] || (parsed[key] = Slick.parse(key))).expressions[0][0]
   }
-  var tag = expression.tag;
-  if (!tag) return expression;
+  var tag = key.tag;
+  if (!tag) return key;
   if (storage == null) storage = (value && value.lsd || old && old.lsd) 
     ? this._results || (this._results = {}) 
     : this._callbacks || (this._callbacks = {});
-  var combinator = expression.combinator || ' ';
+  var combinator = key.combinator || ' ';
   var group = storage[combinator];
   if (group == null) group = storage[combinator] = {};
   var array = group[tag];
@@ -277,3 +276,4 @@ LSD.Properties.Matches.prototype.remove = function(combinator, tag, value, wildc
 LSD.Properties.Matches.prototype._types = {pseudos: 1, classes: 1, attributes: 1};
 LSD.Properties.Matches.prototype._parsed = {};
 LSD.Properties.Matches.prototype._composite = false;
+LSD.Properties.Matches.prototype._watchable = null;

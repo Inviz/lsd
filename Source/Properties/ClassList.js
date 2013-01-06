@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD.Properties
   - LSD.Struct
+  - LSD.Journal
 
 provides:
   - LSD.Properties.ClassList
@@ -22,7 +23,7 @@ provides:
 LSD.Properties.ClassList = LSD.Struct({
   _name: '.className'
 }, 'Journal');
-LSD.Properties.ClassList.prototype.onChange = function(key, value, old, meta) {
+LSD.Properties.ClassList.prototype.__cast = function(key, value, old, meta) {
   if (key == '_name') return;
   var owner = this._owner, ns = owner.document || LSD.Document.prototype;
   if ((!meta || meta !== 'states') && ns.states[key])

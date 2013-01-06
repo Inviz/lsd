@@ -92,3 +92,4 @@ LSD.Data.prototype._hash = function(key, value, old, meta) {
     }
   }
 }
+LSD.Data.prototype._watchable = /^[a-zA-Z0-9._\[\]-]+?$/;

@@ -24,7 +24,9 @@ LSD.Textnode = LSD.Struct({
   textContent: function(value, old, meta) {
     if (typeof value != 'undefined') {
       value = String(value)
-      if (!meta || !(meta.push || meta.script)) {
+      if ((meta && meta._calculated) || value === '')
+        debugger
+      if (!meta || !(meta.push || meta._calculated)) {
         for (var previous = -1, start, end, bits, substr; (start = value.indexOf('${', previous + 1)) > -1;) {
           if ((end = value.indexOf('}', start)) == -1) continue;
           if (!bits) bits = [];
@@ -35,7 +37,7 @@ LSD.Textnode = LSD.Struct({
       }
     }
     if (!bits) {
-      if (this.origin) this.origin.textContent = typeof value == 'undefined' ? '' : value;
+      if (this.origin) this.origin.textContent = value == null ? '' : value;
       for (var node = this; node = node.parentNode;) {
         var children = node.childNodes;
         var content = children.textContent;

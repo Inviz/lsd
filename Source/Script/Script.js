@@ -12,6 +12,7 @@ authors: Yaroslaff Fedin
 requires:
   - LSD
   - LSD.Struct
+  - LSD.NodeList
 
 provides:
   - LSD.Script
@@ -145,7 +146,7 @@ LSD.Script = function(input, scope, output) {
   class for Function and Selector classes, so they are all handle
   `output` the same way.
 */
-LSD.Script.Struct = new LSD.Struct({
+LSD.Script.prototype = new (LSD.Struct({
   input: function(value, old) {
     
   },
@@ -153,8 +154,7 @@ LSD.Script.Struct = new LSD.Struct({
 
   },
   scope: function(value, old) {
-    if (old && this.attached) this.set('attached', undefined, this.attached)
-    if (value) this.set('attached', true);
+    this.change('attached', value);
   },
   placeholder: function(value, old) {
     if (this.placeheld) this.change('value', value);
@@ -215,7 +215,32 @@ LSD.Script.Struct = new LSD.Struct({
       old.unwatch(this._enumerator);
       delete this._enumerated;
     }
-    if (this.output) this.callback(value, old);
+    var output = this.output;
+    if (output) {
+      switch (output.nodeType) {
+        case 1: case 3:
+          if (output.lsd) output.set('nodeValue', value);
+          else output.textContent = value;
+          break;
+        case 7:
+          output.set('value', value);
+          break;
+        case 8:
+          break;
+        default:
+          switch (typeof output) {
+            case 'string':
+              this.scope.set(output, value, old);
+              break;
+            case 'function':
+              output(value);
+              break;
+            default:
+              if (output.push) this._callback(output, null, value, old, this);
+              else this._callback(output, value, null, old);
+          }
+      }
+    }
     if (this.type == 'variable')
       if (typeof value == 'undefined' && meta !== false && !this.input && this.attached) 
         this.execute(true)
@@ -350,8 +375,7 @@ LSD.Script.Struct = new LSD.Struct({
     if (old) delete old.wrapped;
     if (value) value.wrapped = this;
   }
-}, 'NodeList');
-LSD.Script.prototype = new LSD.Script.Struct;
+}, 'NodeList'));
 LSD.Script.prototype.Script = LSD.Script.Script = LSD.Script;
 
 /*
@@ -456,45 +480,6 @@ LSD.Script.prototype.toFunction = function(source, options) {
 }
 LSD.Script.prototype.eval = function(options) {
   return (this.evaled || (this.evaled = eval('(' + this.toJS(options) + ')')));
-};
-/*
-  Scripts are parsed, compiled and executed, but what then? Each script may
-  have its own output strategy. Scripts are often resolute it on the fly based
-  on what `this.output` value they are given.
-
-   Callback method is shared by all LSD.Script primitives, but may be
-  overriden.
-*/
-LSD.Script.prototype.callback = function(value, old) {
-  var object = this.output;
-  if (!object) return;
-  switch (object.nodeType) {
-    case 1:
-      if (object.lsd) object.set('nodeValue', value);
-      else object.innerHTML = value;
-      break;
-    case 3:
-      object.nodeValue = value;
-      break;
-    case 7:
-      object.set('value', value);
-      break;
-    case 8:
-      break;
-    default:
-      switch (typeof object) {
-        case 'string':
-          if (typeof value == 'undefined' && typeof old != 'undefined') this.scope.set(object, undefined, old)
-          else this.scope.set(object, value, old);
-          break;
-        case 'function':
-          object(value);
-          break;
-        default:
-          if (object.push) this._callback(object, null, value, old);
-          else this._callback(object, value, null, old);
-      }
-  }
 };
 LSD.Script.prototype.update = function(value) {
   if (this.parents) for (var i = 0, parent; parent = this.parents[i++];) {
@@ -644,11 +629,14 @@ LSD.Script.prototype.execute = function(value, meta) {
         case true:
           break;
         case false:
+          debugger
           for (var k = i + 1; k < j; k++) {
             var argument = this.args[k];
-            if (argument != null && argument._calculated && argument.attached);
-              if (argument.executed) 
-                argument.execute(false, false);
+            if (argument != null && argument._calculated && argument.attached)
+            
+            debugger
+            if (argument != null && argument._calculated && argument.attached)
+              argument._set('attached')
           }
           args = args[args.length - 1];
           break loop;

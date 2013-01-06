@@ -76,8 +76,8 @@ LSD.Array.prototype._offset = 0;
   LSD.Objects, thus it does not affect their `._owner` link.
 */
 LSD.Array.prototype._owning = false;
-LSD.Array.prototype._hash = function(key, value, old, meta, from, i, get) {
-  if (get) return;
+LSD.Array.prototype._hash = function(key, value, old, meta, from, i) {
+  if (arguments.length < 6) return;
   var index = parseInt(key);
   if (index != key) return;
   old = this[index];
@@ -141,10 +141,8 @@ LSD.Array.prototype.push = function() {
   return this._length;
 };
 LSD.Array.prototype.indexOf = function(object, from) {
-  for (var hasher = '_hash'; this[hasher];)
-    hasher = '_' + hasher;
-  for (; hasher != '_hash' && (hasher = hasher.substring(1));)
-    var hash = this[hasher](hash || object, undefined, undefined, undefined, undefined, undefined, true);
+  for (var method = '_hash'; hash === undefined && this[method]; method = '_' + method)
+    var hash = this[method](hash || object);
   var length = this._length >>> 0;
   for (var i = (from < 0) ? Math.max(0, length + from) : from || 0; i < length; i++) {
     var value = this[i];

@@ -17,10 +17,6 @@ provides:
 */
 
 LSD.URL = new LSD.Struct({})
-LSD.URL.prototype.onChange = function(key, value, old, meta) {
-  if (this._parts.indexOf(key) > -1)
-    this.change('value', this.toString());
-};
 LSD.URL.prototype.toString = function() {
   var url = '';
   if (this.scheme) url += this.scheme + '://';
@@ -37,7 +33,7 @@ LSD.URL.prototype.toString = function() {
   if (this.fragment) url += '#' + this.fragment;
   return url;
 };
-LSD.URL.prototype.onChange = function(key, value, old, meta) {
+LSD.URL.prototype.__cast = function(key, value, old, meta) {
   if (this._parts.indexOf(key) > -1 && meta !== 'composed') {
     var url = this.toString();
     this.set('url', url, this._composedURL, 'composed');
@@ -109,7 +105,7 @@ LSD.Request = LSD.Properties.Request = new LSD.Struct({
     this.mix(parsed, undefined, this._composed, meta);
     this._composed = parsed;
   }
-}, 'Journal');
+}, ['Data', 'Journal']);
 LSD.Request.prototype.send = function () {
   return this[this.transport](true, arguments, false)
 };
@@ -122,7 +118,8 @@ LSD.Request.prototype.onStateChange = function() {
 LSD.Request.prototype.isSuccess = function() {
   return this.status > 199 && this.status < 300;
 };
-LSD.Request.prototype.__hash = function(key) {
+LSD.Request.prototype.___hash = function(key) {
+  debugger
   var first = key.charAt(0);
   if (first != '_' && first === first.toUpperCase())
     return 'headers.' + key;

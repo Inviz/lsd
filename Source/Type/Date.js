@@ -77,7 +77,7 @@ LSD.Date.prototype._hash = function(key) {
   var alias = this.aliases[key];
   if (alias) return alias;
 }
-LSD.Date.prototype._onChange = function(key, value, old, meta) {
+LSD.Date.prototype._cast = function(key, value, old, meta) {
   if (meta != 'object') {
     var property = this._properties[key];
     if (property) {

@@ -145,8 +145,8 @@ LSD.Resource = LSD.Struct({
     this.set('rightKey', value && value.exportKey, old && old.exportKey);
     this.set('rightName', value && value.singular, old && old.singular);
   }
-}, ['Journal', 'Array']);
-LSD.Resource.prototype.onChange = function(key, value, old, meta) {
+}, ['Array', 'Journal']);
+LSD.Resource.prototype.__cast = function(key, value, old, meta) {
   if (this._properties[key]) return;
   var associations = this._associations, keys = this._foreignKeys;
   if (value != null && value.match === this.match) {
@@ -165,7 +165,7 @@ LSD.Resource.prototype.onChange = function(key, value, old, meta) {
       if (!value) delete associations[key];
     }
   } else {
-    LSD.URL.prototype.onChange.apply(this, arguments);
+    LSD.URL.prototype.__cast.apply(this, arguments);
   }
 };
 LSD.Resource.prototype.key = 'id';
@@ -642,7 +642,7 @@ LSD.Resource.Model.prototype.__initialize = function(object) {
   }
   return object;
 };
-LSD.Resource.Model.prototype.onChange = function(key, value, old, meta) {
+LSD.Resource.Model.prototype.__cast = function(key, value, old, meta) {
   var resource = this.constructor, association = resource._associations;
   if (association && (association = association[key])) {
     if (!association.multiple) {

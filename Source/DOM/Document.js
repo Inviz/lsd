@@ -83,7 +83,7 @@ LSD.Document = LSD.Struct({
 }, 'Journal')
 LSD.Document.prototype.nodeType = 9;
 LSD.Document.implement(LSD.Node.prototype);
-LSD.Document.prototype._preconstruct = ['childNodes', 'events'];
+LSD.Document.prototype._preconstructed = ['childNodes', 'events'];
 LSD.Document.prototype.__initialize = function() {
   if (!LSD.document) LSD.document = this;
   return LSD.Element.prototype.__initialize.apply(this, arguments);

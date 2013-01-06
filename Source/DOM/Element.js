@@ -16,6 +16,7 @@ requires:
   - LSD.Properties.Proxies
   - LSD.Node
   - LSD.Document
+  - Slick/Slick.Parser
 
 provides:
   - LSD.Element
@@ -86,7 +87,7 @@ LSD.Element = new LSD.Struct({
         if (typeof value == 'string')
           value = typeof roles[value] == 'undefined' ? roles.get(value) : roles[value];
         if (typeof old == 'string') old = roles[old] || undefined;
-        this.mix(value, null, old, meta, false, true);
+        this.mix(undefined, value, old, meta, false, true);
       }
     },
     chunked: true
@@ -640,7 +641,8 @@ LSD.Element = new LSD.Struct({
   element.
 */
   microdata: function(value, old, meta) {
-    this.mix('variables', value, old, meta, true);
+    if ((value && !this.variables) || (old && old == this.variables))
+      this.mix('variables', value, old, meta, true);
   },
   itemscope: function(value, old, meta) {
     value = value && this._construct('microdata') || undefined;
@@ -664,7 +666,7 @@ LSD.Element = new LSD.Struct({
   }
 }, 'Journal');
 LSD.Element.prototype._Properties = LSD.Properties;
-LSD.Element.prototype.onChange = function(key, value, old, meta) {
+LSD.Element.prototype.__cast = function(key, value, old, meta) {
   var ns         = this.document || LSD.Document.prototype,
       states     = ns.states,
       definition = states[key];
@@ -712,7 +714,7 @@ LSD.Element.prototype.textContent = '';
 LSD.Element.prototype.nextElementSibling = null;
 LSD.Element.prototype.previousElementSibling = null;
 LSD.Element.prototype._inherited = {'drawn': 1, 'built': 1, 'hidden': 1, 'disabled': 1, 'root': 1, 'microdata': 1, 'form': 1};
-LSD.Element.prototype._preconstruct = ['childNodes', 'attributes', 'classList', 'events', 'matches', 'styles'];
+LSD.Element.prototype._preconstructed = ['childNodes', 'attributes', 'classList', 'events', 'matches', 'styles'];
 LSD.Element.prototype.__initialize = function(options, element, selector, document) {
   LSD.UIDs[this.lsd = ++LSD.UID] = this;
   if (this.classList)

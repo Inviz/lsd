@@ -24,7 +24,7 @@ provides:
 */
 
 LSD.Properties.Attributes = LSD.Struct(LSD.attributes, 'Journal');
-LSD.Properties.Attributes.prototype.onChange = function(key, value, old, meta) {
+LSD.Properties.Attributes.prototype.__cast = function(key, value, old, meta) {
   var owner = this._owner
   var ns = owner.document || LSD.Document.prototype;
   var attributes = ns.attributes;
@@ -44,8 +44,10 @@ LSD.Properties.Attributes.prototype.onChange = function(key, value, old, meta) {
       owner.element.removeAttribute(key);
   if (((!meta || meta !== 'states') && ns.states[key]) || owner._properties[key])
     owner.set(key, value, old, 'attributes');
-  if (key.substr(0, 5) == 'data-')
+  if (key.substr(0, 5) == 'data-') {
+    if (value === undefined) debugger
     owner.mix('variables.' + key.substring(5), value, old, meta);
+  }
   if (owner.matches) {
     if (value != null)
       owner.matches.add('attributes', key, value);

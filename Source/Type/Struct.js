@@ -26,9 +26,9 @@ provides:
   observable property setters, callbacks or data transformers.
 */
 
-LSD.Struct = function(properties, Base, Sub) {
+LSD.Struct = function(properties, Structs, Sub) {
   if (typeof properties == 'string' || properties && properties.push) 
-    Sub = Base, Base = properties, properties = null;
+    Sub = Structs, Structs = properties, properties = null;
 /*
   `new LSD.Struct` creates a constructor, that can be used to construct
   instances of that structure, which bears close resemblance to OOP.
@@ -51,11 +51,11 @@ LSD.Struct = function(properties, Base, Sub) {
         }
       }
 /*
-  A Struct may have a _preconstruct array defined in a prototype that lists
+  A Struct may have a _preconstructed array defined in a prototype that lists
   all nested property names that should be initialized right away.
 */
-    var preconstruct = this._preconstruct;
-    if (preconstruct) for (var i = 0, type, constructors = this._constructors; type = preconstruct[i++];) {
+    var preconstructed = this._preconstructed;
+    if (preconstructed) for (var i = 0, type, constructors = this._constructors; type = preconstructed[i++];) {
       var constructor = constructors[type] || (constructors[type] = this._getConstructor(type));
       var obj = this[type] = new constructor;
       obj._owner = this;
@@ -68,38 +68,42 @@ LSD.Struct = function(properties, Base, Sub) {
       object = this.__initialize.apply(this, arguments);
     if (this.initialize)
       object = this.initialize.apply(this, arguments);
-    if (this._imports)
-      this._link(this._imports, true);
-    if (this._exports)
-      this._link(this._exports, true, true);
+    var scripted = this._scripted
+    if (scripted) for (var i = 0, property; property = scripted[i++];)
+      this._watch(this._properties[property].script, property);
     var subject = this._initialize && this._initialize.apply(this, arguments) || this;
     if (typeof object == 'object')
       subject.mix(object);
     return subject
   }
-  if (Base && Base.push) {
-    var Chain = Array.prototype.slice.call(Base, 1);
-    Base = Base[0];
-  }
+  if (!Structs) Structs = [];
+  if (!Structs.push) Structs = [Structs];
+  var Base = Structs[0];
   var constructor = (typeof Base == 'string' ? LSD[Base] : Base) || LSD.Object;
-  Struct.prototype = new constructor;
+  if (constructor != LSD.Dictionary)
+    Structs.unshift(LSD.Object);
+  Struct.prototype = LSD.Struct.implement(LSD.Struct.prototype, {});
   if (!Struct.instances) Struct.instances = [];
-  if (Chain) for (var other, i = 0; other = Chain[i]; i++) {
+  for (var other, i = 0; other = Structs[i]; i++) {
     if (typeof other == 'string') other = LSD[other];
-    var proto = other.prototype, def = LSD.Object.prototype;;
+    var proto = other.prototype;;
     for (var name in proto) {
       var value = proto[name];
-      if (value != def[name]) {
-        for (var p = name; p.charAt(0) == '_' && Struct.prototype[p] !== undefined  ;) {
-          p = '_' + p;
-        }
+      if (value != Struct.prototype[name]) {
+        var p = name;
+        if (p.charAt(0) == '_')
+          if (p == '_nonenumerable') {
+            Struct.prototype[p] = LSD.Struct.implement(Struct.prototype[p], {});
+            LSD.Struct.implement(value, Struct.prototype[p]);
+          } else if (typeof value == 'function')
+            for (; Struct.prototype[p] !== undefined;)
+              p = '_' + p;
         Struct.prototype[p] = value;
       }
     }
   }
   Struct.struct = true;
   Struct.implement = LSD.Struct.implement;
-  Struct.implement(LSD.Struct.prototype);
   Struct.prototype.constructor = Struct;
   if (!constructor.prototype.push) Struct.prototype._constructor = constructor;
   if (Sub) Struct.prototype.__constructor = typeof Sub == 'string' ? LSD[Sub] : Sub;
@@ -108,18 +112,17 @@ LSD.Struct = function(properties, Base, Sub) {
   if (Properties) {
     var props = new Properties;
     props._struct = Struct;
-    if (properties)
-      props._mix(properties);
   } 
   Struct.prototype._properties = Struct.properties = props || properties || {};
   if (properties) {
     for (var name in properties) {
+      var val = properties[name];
+      if (val === undefined) continue;
       var mutator = LSD.Struct.Mutators[name];
-      if (mutator && properties[name] !== undefined) {
-        if (typeof mutator == 'function') {
-          LSD.Struct.Mutators[name].call(Struct, properties[name]);
-        } else Struct.prototype[mutator === true ? 'set' : mutator]('_' + name, properties[name]);
-      }
+      if (mutator)
+        mutator.call(Struct, val);
+      else if (props)
+        props._mix(name, val)
     }
   }
   return Struct;
@@ -182,34 +185,89 @@ LSD.Struct.Mutators = {
       }
       formulas[property] = fn;
     }
-  },
-/*
-  Mutators that have value equal to `true`, will copy a given value into
-  prototype with a prefixed name. E.g. `imports` object will be saved as
-  `prototype._imports`, so struct instance will have a quick prototype access
-  to them
-
-   A struct can have up to two constructors, private and public, called in that
-  order. Most of the predefined LSD structs only use a private constructor
-  leaving a public one for third party subclassing.
-*/
-  imports: true,
-  exports: true
+  }
 };
-/*
-  The biggest thing about a Struct instance is how it handles property changes.
-  A single struct instance can have one or two property dictionaries, where 
-  properties are being looked up.
-*/
-LSD.Struct.prototype._onChange = function(key, value, old, meta, extra) {
+LSD.Struct.prototype._hash = function(key, value, old, meta, extra) {
+  /*
+    Objects accept special kind of values, compiled LSD.Script expressions.
+    They may use other keys in the object as observable variables, call
+    functions, fetch and iterate data. Script updates value for the key when it
+    computes its value asynchronously. The value stays undefined, while the
+    script doesn't have enough data to compute.
+  */
+  if (arguments.length < 5) return;
+  var stringy = typeof key == 'string';
+  var trigger = this._trigger;
+  var vscript = value && value[trigger] && !value._ignore;
+  var oscript = old && old[trigger] && !old._ignore;
+  if (stringy) {
+    var regex = this._watchable;
+    if (!regex) return;
+    if (key.charAt(0) == '^')
+      key = '.' + key.substring(1);
+    if (key.match(regex)) {
+      if (!vscript && !oscript)
+        return;
+    } else
+      key = LSD.Script(key)
+  }
+  if (key[trigger]) {
+    if (value)
+      this._hash(value, key, undefined, meta, extra)
+    if (old)
+      this._hash(old, undefined, key, meta, extra)
+    return true;
+  }
+  if ((vscript || (value = undefined)) == (oscript || (old = undefined)))
+    return;
+  var node = this.nodeType && this;
+  if (trigger != '_calculated') return;
+  var scripts = (this._scripts || (this._scripts = {}));
+  if (key === 'merged') {
+    if (value) {
+      var merged = (scripts.merged || (scripts.merged = []));
+      for (var i = 0, j = value.length; i < j; i++)
+        merged.push(LSD.Script(value, this, this))
+    }
+    if (old) {
+      for (var i = 0, script = scripts.merged, j = script.length; i < j; i++) {
+        for (var k = 0, l = old.length; k < l; k++) {
+          if (script[i].args[0] === old[k]) {
+            script[i].set('attached', undefined, script[i].attached, meta);
+            script[i].set('value', undefined, script[i].value, meta)
+            script.splice(i--, 1);
+            j--;
+          }
+        }
+      }
+    }
+  } else {
+    if (old) {
+      old.set('attached', undefined, old.attached, meta);
+      old.set('value', undefined, old.value, meta)
+      if (node)
+        node._unwatch('variables', '_scripts.' + key + '.scope');
+      if (!value && scripts)
+        delete scripts[key]
+    }
+    if (value)  
+      if (node) {
+        scripts[key] = LSD.Script(value, null, [this, key]);
+        node._watch('variables', '_scripts.' + key + '.scope');
+      } else if (value)
+        scripts[key] = LSD.Script(value, this, [this, key]);
+  }
+  return true;
+}
+LSD.Struct.prototype._cast = function(key, value, old, meta, extra) {
   if (typeof key != 'string') return value;
   var props = this._properties, prop;
   if (props) prop = props[key];
   if (!prop && (props = this.__properties)) 
     prop = props[key]
-  var group = this._observed, vdef = value !== undefined;
+  var group = this._observed;
   if (group && (group = group[key])) {
-    if (vdef) group[2] = value;
+    if (value !== undefined) group[2] = value;
     else delete group[2];
   }
   if (prop) {
@@ -219,7 +277,7 @@ LSD.Struct.prototype._onChange = function(key, value, old, meta, extra) {
     var callback = prop.callback || (prop.call && !prop._mix && prop);
     if (callback) {
       if (callback.prototype._set) {
-        if (vdef && this[key] === undefined)
+        if (value !== undefined && this[key] === undefined)
           this._construct(key, callback, meta)
       } else
         value = callback.call(this, value, old, meta, extra);
@@ -240,15 +298,16 @@ LSD.Struct.prototype._onChange = function(key, value, old, meta, extra) {
         this.mix(alias, value, old, meta);
     };
   } else if (this._aggregate && !this._nonenumerable[key]) {
-    var odef = old !== undefined
     var storage = (this._stored || (this._stored = {}))
-    var group = storage[key] || (storage[key] = []);
-    if (vdef) group.push([value, key]);
-    if (odef) for (var i = 0, j = group.length; i < j; i++)
-      if (group[i][0] === old) {
-        group.splice(i, 1);
-        break;
-      }
+    var group = (storage[key] || (storage[key] = []));
+    if (value !== undefined ) 
+      group.push([value, key]);
+    if (old !== undefined) 
+      for (var i = 0, j = group.length; i < j; i++)
+        if (group[i][0] === old) {
+          group.splice(i, 1);
+          break;
+        }
     for (var i = 0, j = this.length; i < j; i++)
       this[i].set(key, value, old, meta);
   }
@@ -271,6 +330,19 @@ LSD.Struct.prototype._onChange = function(key, value, old, meta, extra) {
   }
   return value;
 };
+LSD.Struct.prototype._finalize = function(key, value, old, meta, extra, hash) {
+  
+  /*
+  Global object listeners (and so custom property handlers in structs) 
+  may compile given value into expression (e.g. a textnode may find
+  interpolations in `textContent` property).
+  */
+  if (value != null && value[this._trigger] != null && !value._ignore) {
+    if (hash === undefined) this[key] = old;
+    this._watch(value, key, undefined, meta);
+    return true;
+  }
+}
 /*
   - An LSD.Object constructor, used to instantiate nested objects with specific
   class
@@ -301,8 +373,9 @@ LSD.Struct.prototype._onBeforeConstruct = function(key) {
       return property.get.call(this);
     var alias = property.alias;
     if (alias) {
-      if (!(this._observed || (this._observed = {}))[key])
-        this.watch(alias, (this._observed[key] = [this, key]), false);
+      var observed = (this._observed || (this._observed = {}));
+      if (!observed[key])
+        this.watch(alias, (observed[key] = [this, key]), undefined, undefined, false);
       if (this[key] !== undefined) 
         return this[key];
       return this.get(alias, true) || null;
@@ -317,8 +390,8 @@ LSD.Struct.prototype._onBeforeConstruct = function(key) {
   dictionary and only looks it up when actual properties change.
 
     var Struct = new LSD.Struct({
-      imports: {
-        'total': 'sum * rate * (1 - tax)'
+      total: {
+        script: 'sum * rate * (1 - tax)'
       }
     });
     Struct.prototype.rate = 1;
@@ -338,30 +411,11 @@ LSD.Struct.prototype._onBeforeConstruct = function(key) {
   and after that `tax` variables. When all variables are found, the result 
   is calculated and assigned to a property named `total`. 
 */
-LSD.Struct.prototype._link = function(properties, state, external) {
-  for (var name in properties) {
-    var alias = properties[name]
-    if (alias.match(this._simple_property)) {
-      if (state === false) {
-        this._unwatch(properties[name], this);
-      } else {
-        this._watch(properties[name], {
-          fn: this._linker,
-          bind: this,
-          callback: this,
-          key: external ? '.' + name : name
-        });
-      }
-    } else {
-      this[state === false ? '_unscript' : '_script'](name, alias)
-    }
-  }
-};
 LSD.Struct.prototype._linker = function(call, key, value, old, meta) {
   this.mix(call.key, value, old, meta);
 };
 LSD.Struct.prototype._unlinked = ['_journal', '_stored'];
-LSD.Struct.prototype._simple_property = /^[a-zA-Z._-]+?$/;
+LSD.Struct.prototype._watchable = /^[a-zA-Z0-9._-]+?$/;
 LSD.Struct.prototype._nonenumerable = {
   initialize: true,
   _initialize: true,
@@ -370,9 +424,8 @@ LSD.Struct.prototype._nonenumerable = {
   _constructors: true,
   _Properties: true,
   _properties: true,
-  _exports: true,
-  _linker: true,
-  _imports: true
+  _scripted: true,
+  _linker: true
 }
 !function(proto) {
   for (var property in proto)
@@ -432,11 +485,10 @@ LSD.Struct.Property.prototype = new (LSD.Struct({
   },
   
   enumerable: function(value) {
-    var nonenumerable = this._owner._struct.prototype._nonenumerable;
     if (value)
-      delete nonenumerable[this._reference];
+      delete this._owner._struct.prototype._nonenumerable[this._reference];
     else
-      nonenumerable[this._reference] = true;
+      this._owner._struct.prototype._nonenumerable[this._reference] = true;
   },
   
   value: function(value) {
@@ -459,13 +511,46 @@ LSD.Struct.Property.prototype = new (LSD.Struct({
   },
   
   script: function(value, old) {
-    
+    this._register('_scripted', value, old, true);
+    var instances = this._owner._struct;
+    var reference = this._reference;
+    for (var i = 0, instance; instance = instances[i++];) {
+      if (value) instance._watch(value, reference);
+      if (old) instance._watch(old, undefined, reference);
+    }
   },
   
   formula: function() {
     
+  },
+  
+  preconstruct: function() {
+    this._register('_preconstructed', value, old, true)
+  },
+  
+  inherit: function() {
+    this._register('_inherited', value, old)
   }
+  
+  
 }, 'Dictionary'));
+
+LSD.Struct.Property.prototype._register = function(key, value, old, array) {
+  var struct = this._owner._struct.prototype;
+  if (array) {
+    var object = (struct[key] || (struct[key] = []));
+    if (value)
+      object.push(this._reference);
+    if (old)
+      object.splice(object.indexOf(this._reference), 1);
+  } else {
+    var object = (struct[key] || (struct[key] = {}));
+    if (value !== undefined)
+      object[key] = value
+    else
+      delete object[key];
+  }
+}
 
 LSD.Struct.Property.prototype.enumerable = true;
 LSD.Struct.Property.prototype.writable = true;
@@ -478,7 +563,7 @@ LSD.Struct.Properties = new LSD.Struct({
 LSD.Struct.Properties.prototype._nonenumerable = LSD.Struct.implement(LSD.Struct.Properties.prototype._nonenumerable, {
   _struct: true
 });
-LSD.Struct.Properties.prototype._onChange = function(key, value, old, meta) {
+LSD.Struct.Properties.prototype._cast = function(key, value, old, meta) {
   if (value !== undefined)
     return new LSD.Struct.Property(value)
 };

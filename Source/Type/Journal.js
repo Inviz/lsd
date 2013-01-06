@@ -54,8 +54,8 @@ LSD.Journal = function(object) {
 
 LSD.Journal.prototype = new LSD.Object;
 LSD.Journal.prototype.constructor = LSD.Journal;
-LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index, get) {
-  if (get) return;
+LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
+  if (arguments.length < 6) return;
   if (typeof index != 'number') 
     index = key.indexOf('.');
   if (index > -1) return;
@@ -115,8 +115,8 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index, ge
           break;
         }
       }
-    if (old && old[this._trigger] && !old._ignore)
-      this._unscript(key, old, meta)
+    if (old && old._calculated)
+      this._watch(key, undefined, old, meta)
   } else old = current;
 /*
   Journal setters accept a position at which the value should be written in
@@ -216,7 +216,7 @@ LSD.Journal.prototype._finalize = function(key, value, old, meta, prepend, hash,
   if (val === value) return;
   var journal = this._journal;
   var group = journal && journal[key];
-  if (!group) (journal || (this._journal = {}))[key] = [val]
+  if (!group) (journal || (this._journal = {}))[key] = [val];
 }
 /*
   LSD.Journal is a subclass of LSD.Object and thus it inherits a method

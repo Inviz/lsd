@@ -140,8 +140,8 @@ LSD.ChildNodes.prototype._prefilter = function(node) {
   return true;
 };
 LSD.ChildNodes.Virtual = LSD.Struct({
-  imports: {
-    parentNode: '.parentNode'
+  parentNode: {
+    script: '.parentNode'
   }
 }, 'Array');
 LSD.ChildNodes.Virtual.prototype.virtual = true;
