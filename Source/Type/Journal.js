@@ -49,7 +49,7 @@ provides:
 */
 
 LSD.Journal = function(object) {
-  if (object != null) this.mix(object)
+  if (object != null) this.mix(undefined, object)
 };
 
 LSD.Journal.prototype = new LSD.Object;

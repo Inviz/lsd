@@ -73,7 +73,7 @@ LSD.Struct = function(properties, Structs, Sub) {
       this._watch(this._properties[property].script, property);
     var subject = this._initialize && this._initialize.apply(this, arguments) || this;
     if (typeof object == 'object')
-      subject.mix(object);
+      subject.mix(undefined, object);
     return subject
   }
   if (!Structs) Structs = [];
@@ -447,7 +447,7 @@ LSD.Struct.Property = function(callback, object, extra, arg) {
   }
   switch (typeof callback) {
     case 'object':
-      property._mix(callback);
+      property._mix(undefined, callback);
       break;
     case 'function':
       var props = callback._properties;
@@ -458,7 +458,7 @@ LSD.Struct.Property = function(callback, object, extra, arg) {
       else
         property._set('callback', callback);
       if (object)
-        property._mix(object);
+        property._mix(undefined, object);
       break;
     case 'string':
       property._set('alias', callback);

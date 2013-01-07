@@ -22,7 +22,7 @@ LSD.Data = function(object) {
   if (typeof object == 'string')
     subject.fromString(object);
   else if (object) 
-    subject.mix(object);
+    subject.mix(undefined, object);
   return subject;
 };
 LSD.Data.prototype = new LSD.Object;

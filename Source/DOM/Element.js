@@ -695,10 +695,10 @@ LSD.Element.prototype.__cast = function(key, value, old, meta) {
   if (value || old)
     if ((ns.attributes[key]) !== Boolean) {
       if (meta !== 'classes' && key !== 'built')
-        this.classList.mix(key, value, old, 'states');
+        this.classList.set(key, value, old, 'states');
     } else {
       if (meta !== 'attributes')
-        this.attributes.mix(key, value, old, 'states');
+        this.attributes.set(key, value, old, 'states');
     }
   if (value === undefined) {
     var methods = states._compiled[key];
@@ -797,7 +797,7 @@ LSD.Element.prototype.addEvent = function(name, fn, meta) {
   return this;
 };
 LSD.Element.prototype.addEvents = function(events, meta) {
-  this.events.mix(events, undefined, undefined, meta);
+  this.events.mix(undefined, events, undefined, meta);
   return this;
 };
 LSD.Element.prototype.removeEvent = function(name, fn, meta) {

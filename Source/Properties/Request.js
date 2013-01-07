@@ -102,7 +102,7 @@ LSD.Request = LSD.Properties.Request = new LSD.Struct({
   url: function(value, old, meta) {
     if (meta === 'composed') return;
     if (value != null) var parsed = this.parse(value);
-    this.mix(parsed, undefined, this._composed, meta);
+    this.mix(undefined, parsed, this._composed, meta);
     this._composed = parsed;
   }
 }, ['Data', 'Journal']);

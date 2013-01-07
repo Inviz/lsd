@@ -78,7 +78,7 @@ LSD.Textnode.prototype.__initialize = function() {
             this.fragment = arg;
             break;
           default:
-            this.mix(arg);
+            this.mix(undefined, arg);
         }
     }
   }

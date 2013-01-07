@@ -27,7 +27,7 @@ LSD.Group = function(object, constructor) {
     object = null;
   }
   if (constructor) this.__constructor = typeof constructor == 'string' ? LSD[constructor] : constructor;
-  if (object != null) this.mix(object)
+  if (object != null) this.mix(undefined, object)
 };
 LSD.Group.prototype = new LSD.Object;
 LSD.Group.prototype.constructor = LSD.Group;

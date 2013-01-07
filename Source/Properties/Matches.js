@@ -115,7 +115,7 @@ LSD.Properties.Matches.prototype.__cast = function(key, value, old, meta, extra,
             if (typeof value == 'function') value(widget);
             else if (value.callback || value.bind)
               (value.fn || (value.bind || this)[value.method]).call(value.bind || this, value, widget)
-            else widget.mix(value, undefined, undefined, meta)
+            else widget.mix(undefined, value, undefined, meta)
           } else widget.matches.set(key, value, undefined, 'state');
         }
       }
