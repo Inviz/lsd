@@ -76,8 +76,30 @@ LSD.Array.prototype._offset = 0;
   LSD.Objects, thus it does not affect their `._owner` link.
 */
 LSD.Array.prototype._owning = false;
-LSD.Array.prototype._hash = function(key, value, old, meta, from, i) {
-  if (arguments.length < 6) return;
+LSD.Array.prototype._join = function(key, value, old, meta, from) {
+  if (from != 'watch') return; 
+  if (value) {
+    for (var i = 0, j = this._length >>> 0; i < j; i++)
+      if (value._object)
+        this._callback(value, i, this[i], false);
+      else
+            this._callback(value, this[i], i, false);
+    (this.__watchers || (this.__watchers = [])).push(value);
+  }
+  if (old) {
+    for (var i = 0, j = this._length >>> 0; i < j; i++)
+      if (old._object)
+        this._callback(old, i, this[i], false);
+      else
+        this._callback(old, this[i], i, false);
+    var watchers = this.__watchers;
+    var index = watchers.indexOf(old);
+    watchers.splice(index, 1);
+  }
+  return true;
+}
+LSD.Array.prototype._hash = function(key, value, old, meta, from) {
+  if (from == 'get' || (key.indexOf && key.indexOf('.') > -1)) return;
   var index = parseInt(key);
   if (index != key) return;
   old = this[index];
@@ -141,8 +163,9 @@ LSD.Array.prototype.push = function() {
   return this._length;
 };
 LSD.Array.prototype.indexOf = function(object, from) {
-  for (var method = '_hash'; hash === undefined && this[method]; method = '_' + method)
-    var hash = this[method](hash || object);
+  if (object != null)
+    for (var method = '_hash'; hash === undefined && this[method]; method = '_' + method)
+      var hash = this[method](hash || object, undefined, undefined, undefined, 'get');
   var length = this._length >>> 0;
   for (var i = (from < 0) ? Math.max(0, length + from) : from || 0; i < length; i++) {
     var value = this[i];
@@ -308,26 +331,6 @@ LSD.Array.prototype.unshift = function() {
   this.splice.apply(this, [0, 0].concat(Array.prototype.slice.call(arguments, 0)))
   return this._length;
 };
-LSD.Array.prototype.watch = function(callback, fn, meta) {
-  if (typeof fn != 'undefined') return this._watch(callback, fn);
-  for (var i = 0, j = this._length >>> 0; i < j; i++)
-    if (callback._object)
-      this._callback(callback, i, this[i], false);
-    else
-      this._callback(callback, this[i], i, false);
-  (this.__watchers || (this.__watchers = [])).push(callback);
-};
-LSD.Array.prototype.unwatch = function(callback, fn, meta) {
-  if (typeof fn != 'undefined') return this._watch(callback, fn);
-  for (var i = 0, j = this._length >>> 0; i < j; i++)
-    if (callback._object)
-      this._callback(callback, i, this[i], false);
-    else
-      this._callback(callback, this[i], i, false);
-  var watchers = this.__watchers;
-  var index = watchers.indexOf(callback);
-  watchers.splice(index, 1);
-};
 LSD.Array.prototype._seeker = function(call, index, value, old, meta, from) {
   var block = call.block, invoker = call.invoker, array = call.meta, length = array && array.length;
   if (value !== undefined) {
@@ -427,7 +430,7 @@ LSD.Array.prototype.sort = function(callback, plain) {
   if (!callback) callback = this._sorter;
   var sorted = plain ? [] : new LSD.Array;
   var map = [];
-  this.watch(function(value, index, old, meta, from) {
+  this.watch(undefined, function(value, index, old, meta, from) {
     var moving = meta & 0x1;
     if (value !== undefined) {
       for (var i = sorted._length || sorted.length; i > 0; i--)
@@ -453,10 +456,16 @@ LSD.Array.prototype.sort = function(callback, plain) {
   return sorted;
 };
 LSD.Array.prototype.limit = function(number) {
-  return (this._origin ? this : (new this.constructor).mix('_origin', this)).mix('_limit', number);
+  var array = this._origin ? this : new this.constructor
+  array.set('_origin', this)
+  array.set('_limit', number);
+  return array;
 };
 LSD.Array.prototype.offset = function(number) {
-  return (this._origin ? this : (new this.constructor).mix('_origin', this)).mix('_offset', number);
+  var array = this._origin ? this : new this.constructor
+  array.set('_origin', this)
+  array.set('_offset', number);
+  return array;
 };
 LSD.Array.prototype.every = function(callback) {
   if (callback.result != null) return callback.result === 0;

@@ -119,7 +119,7 @@ LSD.Request.prototype.isSuccess = function() {
   return this.status > 199 && this.status < 300;
 };
 LSD.Request.prototype.___hash = function(key) {
-  debugger
+  if (typeof key != 'string') return;
   var first = key.charAt(0);
   if (first != '_' && first === first.toUpperCase())
     return 'headers.' + key;

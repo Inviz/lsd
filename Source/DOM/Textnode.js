@@ -24,8 +24,6 @@ LSD.Textnode = LSD.Struct({
   textContent: function(value, old, meta) {
     if (typeof value != 'undefined') {
       value = String(value)
-      if ((meta && meta._calculated) || value === '')
-        debugger
       if (!meta || !(meta.push || meta._calculated)) {
         for (var previous = -1, start, end, bits, substr; (start = value.indexOf('${', previous + 1)) > -1;) {
           if ((end = value.indexOf('}', start)) == -1) continue;
@@ -78,7 +76,7 @@ LSD.Textnode.prototype.__initialize = function() {
             this.fragment = arg;
             break;
           default:
-            this.mix(undefined, arg);
+            this._mix(undefined, arg);
         }
     }
   }

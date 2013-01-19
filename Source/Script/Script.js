@@ -51,9 +51,8 @@ provides:
 LSD.Script = function(input, scope, output) {
   var regex = this._regexp, type = typeof input;
   if (regex) {
-    if (scope) {
+    if (scope)
       this.scope = scope;
-    }
     if (output)
       if (output.nodeType == 9) this.document = output;
       else this.output = output;
@@ -93,7 +92,7 @@ LSD.Script = function(input, scope, output) {
       if (!this.proto && this.locals) this.findLocals(this.locals);
       if (this.locals) {
         this.variables = new LSD.Journal;
-        if (this.scope) this.mix('variables', this.scope.variables || this.scope, undefined, undefined, true);
+        if (this.scope) this.mix('variables', this.scope.variables || this.scope, undefined, undefined, 'under');
         this.parentScope = this.scope;
         this.scope = this;
       }
@@ -208,11 +207,11 @@ LSD.Script.prototype = new (LSD.Struct({
           self.value = value;
         }
         this._enumerated = true;
-        value.watch(this._enumerator);
+        value.watch(undefined, this._enumerator);
       }  
     }
     if (old != null && old.push && old._watch && this._enumerated) {
-      old.unwatch(this._enumerator);
+      old.unwatch(undefined, this._enumerator);
       delete this._enumerated;
     }
     var output = this.output;
@@ -237,7 +236,7 @@ LSD.Script.prototype = new (LSD.Struct({
               break;
             default:
               if (output.push) this._callback(output, null, value, old, this);
-              else this._callback(output, value, null, old);
+              else this._callback(output, null, value, old);
           }
       }
     }
@@ -298,51 +297,9 @@ LSD.Script.prototype = new (LSD.Struct({
         this.execute(!!value, meta);
     }
   },
-
-/*
-  Selectors can be used without escaping them in strings in LSD.Script.
-  A selector targetted at widgets updates the collection as the widgets
-  change and recalculates the expression in real time.
-
-  The only tricky part is that a simple selector may be recognized as
-  a variable (e.g. `div.container`) or logical expression (`ul > li`) and
-  not fetch the elements. A combinator added before ambigious expression
-  would help parser to recognize selector. Referential combinators
-  `$`, `&`, `&&`, and `$$` may be used for that. Selectors are targetted
-  at widgets by default, unless `$$` or `$` combinator is used.
-
-  You can learn more about selectors and combinators in LSD.Module.Selector
-
-  Examples of expressions with selectors:
-
-      // Following selectors will observe changes in DOM and update collection
-      // Because they are targetted at widgets
-
-      // Count `item` children in `menu#main` widget
-      "count(menu#main > item)"
-
-      // Returns collection of widgets related to `grid` as `items` that are `:selected`
-      "grid::items:selected"
-
-      // Return next widget to current widget
-      "& + *"
-
-      // Combinators that have $ or $$ as referential combinators will not observe changes
-      // and only fetch element once from Element DOM
-
-      // Find all `item` children in `menu` in current element
-      "$ menu > item"
-
-      // Find `section` in parents that has no `section` siblings, and a details element next to it
-      "$ ! section:only-of-type() + details"
-
-      // Following example is INCORRECT, because it is AMBIGIOUS and will not be recognized selector
-      "ul > li" // variable `ul` greater than `li`
-
-      // CORRECT way: Add a combinator to disambiguate
-      "& ul > li"
-
-*/
+  wrapper: function() {
+    
+  },
   selector: function(value, old) {
     console.log(value, old)
   },
@@ -629,14 +586,11 @@ LSD.Script.prototype.execute = function(value, meta) {
         case true:
           break;
         case false:
-          debugger
           for (var k = i + 1; k < j; k++) {
             var argument = this.args[k];
             if (argument != null && argument._calculated && argument.attached)
-            
-            debugger
-            if (argument != null && argument._calculated && argument.attached)
-              argument._set('attached')
+              if (argument.executed)
+                argument.execute(false, false)
           }
           args = args[args.length - 1];
           break loop;

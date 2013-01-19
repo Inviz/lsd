@@ -37,11 +37,6 @@ LSD.Struct = function(properties, Structs, Sub) {
     if (!(this instanceof Struct))
       return new Struct(arguments[0], arguments[1])
     Struct.instances.push(this);
-/*
-  Inherited properties is an internal concept that allows an instance of a
-  class to recieve its own copy of a private object from prototype without
-  recursive cloning.
-*/
     for (var i = 0, obj = this._unlinked, inherited, group, cloned, value; obj && (inherited = obj[i++]);)
       if ((group = this[inherited])) {
         var cloned = this[inherited] = {};
@@ -50,10 +45,6 @@ LSD.Struct = function(properties, Structs, Sub) {
           cloned[property] = typeof value.push == 'function' ? value.slice() : value
         }
       }
-/*
-  A Struct may have a _preconstructed array defined in a prototype that lists
-  all nested property names that should be initialized right away.
-*/
     var preconstructed = this._preconstructed;
     if (preconstructed) for (var i = 0, type, constructors = this._constructors; type = preconstructed[i++];) {
       var constructor = constructors[type] || (constructors[type] = this._getConstructor(type));
@@ -72,8 +63,8 @@ LSD.Struct = function(properties, Structs, Sub) {
     if (scripted) for (var i = 0, property; property = scripted[i++];)
       this._watch(this._properties[property].script, property);
     var subject = this._initialize && this._initialize.apply(this, arguments) || this;
-    if (typeof object == 'object')
-      subject.mix(undefined, object);
+    if (typeof object == 'object') 
+      subject._mix(undefined, object);
     return subject
   }
   if (!Structs) Structs = [];
@@ -115,9 +106,13 @@ LSD.Struct = function(properties, Structs, Sub) {
   } 
   Struct.prototype._properties = Struct.properties = props || properties || {};
   if (properties) {
+    var nonenum = properties._nonenumerable;
     for (var name in properties) {
+      if (!properties.hasOwnProperty(name) || (nonenum && nonenum[name]))
+        continue;
       var val = properties[name];
-      if (val === undefined) continue;
+      if (val === undefined)
+        continue;
       var mutator = LSD.Struct.Mutators[name];
       if (mutator)
         mutator.call(Struct, val);
@@ -126,49 +121,34 @@ LSD.Struct = function(properties, Structs, Sub) {
     }
   }
   return Struct;
-};
-LSD.Struct.implement = function(object, host, reverse) {
+}; 
+LSD.Struct.implement = function(object, host, reverse, plain) {
   if (!host) host = this.prototype;
   for (var prop in object) {
     var value = object[prop];
-    if (typeof value == 'object' && value != null && !value.push && !value.exec && prop !== '_owner') {
+    if (!plain && typeof value == 'object' && value != null && !value.push && !value.exec && prop !== '_owner') {
       var hosted = host[prop];
       if (hosted) {
         if (!host.hasOwnProperty(prop)) 
           hosted = host[prop] = LSD.Struct.implement({}, hosted);
       } else hosted = host[prop] = {}
       LSD.Struct.implement(value, hosted)
-    } else if (!reverse || !host[prop] || prop == 'toString') host[prop] = value;
+    } else if (!reverse || !host[prop] || prop == 'toString') 
+      host[prop] = value;
   }
   return host;
 }
 LSD.Struct.prototype.implement = LSD.Struct.implement;
-/*
-  Every property defined in a class properties object will be treated like a
-  property, unless it is defined in the Mutators object. Mutators are a hooks
-  that allow some DSL functions to be added to handle some sugary class
-  definitions.
-*/
 LSD.Struct.Mutators = {
-/*
-  Structs are slightly compatible with mootools classes, and can use Extends 
-  property to inherit the prototype from given object.
-*/
   Extends: function(Klass) {
     if (Klass.push) return LSD.Struct.Mutators.Implements.call(this, Klass);
     this.implement(Klass.prototype, null, true);
   },
-/*
-  Implements directive mixes in multiple object prototypes in order.
-*/
   Implements: function(Klasses) {
     if (!Klasses.push) return LSD.Struct.Mutators.Extends.call(this, Klasses);
     for (var i = 0, j = Klasses.length; i < j; i++)
       this.implement(Klasses[i].prototype, null, true);
   },
-/*
-  
-*/
   Formulas: function(Formulas) {
     var prototype = this.prototype;
     var formulas = (prototype.formulas || (prototype.formulas = {}))
@@ -188,34 +168,24 @@ LSD.Struct.Mutators = {
   }
 };
 LSD.Struct.prototype._hash = function(key, value, old, meta, extra) {
-  /*
-    Objects accept special kind of values, compiled LSD.Script expressions.
-    They may use other keys in the object as observable variables, call
-    functions, fetch and iterate data. Script updates value for the key when it
-    computes its value asynchronously. The value stays undefined, while the
-    script doesn't have enough data to compute.
-  */
-  if (arguments.length < 5) return;
+  if (extra == 'get' || (!key && extra == 'watch')) return;
   var stringy = typeof key == 'string';
   var trigger = this._trigger;
   var vscript = value && value[trigger] && !value._ignore;
   var oscript = old && old[trigger] && !old._ignore;
   if (stringy) {
-    var regex = this._watchable;
-    if (!regex) return;
     if (key.charAt(0) == '^')
       key = '.' + key.substring(1);
-    if (key.match(regex)) {
-      if (!vscript && !oscript)
-        return;
-    } else
-      key = LSD.Script(key)
+    if (!this._composite && !/^[a-z0-9-_.]*$/i.test(key))
+      key = (this._parse || LSD.Script)(key);
+    else if (!vscript && !oscript)
+      return;
   }
   if (key[trigger]) {
     if (value)
-      this._hash(value, key, undefined, meta, extra)
+      this._hash(value, key, undefined, meta, 'watch')
     if (old)
-      this._hash(old, undefined, key, meta, extra)
+      this._hash(old, undefined, key, meta, 'watch')
     return true;
   }
   if ((vscript || (value = undefined)) == (oscript || (old = undefined)))
@@ -242,6 +212,8 @@ LSD.Struct.prototype._hash = function(key, value, old, meta, extra) {
       }
     }
   } else {
+    var literal = this._literal;
+    if (literal && literal[key]) return;
     if (old) {
       old.set('attached', undefined, old.attached, meta);
       old.set('value', undefined, old.value, meta)
@@ -250,7 +222,7 @@ LSD.Struct.prototype._hash = function(key, value, old, meta, extra) {
       if (!value && scripts)
         delete scripts[key]
     }
-    if (value)  
+    if (value)
       if (node) {
         scripts[key] = LSD.Script(value, null, [this, key]);
         node._watch('variables', '_scripts.' + key + '.scope');
@@ -291,11 +263,11 @@ LSD.Struct.prototype._cast = function(key, value, old, meta, extra) {
           fn: this['_' + fn],
           bind: this
         };
-        this.mix(alias.substring(0, index) + '.' + value, this[fn], undefined, meta);
+        this._set(alias.substring(0, index) + '.' + value, this[fn], undefined, meta);
         if (old != null && typeof old != 'object')
-          this.mix(alias.substring(0, index) + '.' + old, undefined, this[fn], meta);
+          this._set(alias.substring(0, index) + '.' + old, undefined, this[fn], meta);
       } else 
-        this.mix(alias, value, old, meta);
+        this._set(alias, value, old, meta);
     };
   } else if (this._aggregate && !this._nonenumerable[key]) {
     var storage = (this._stored || (this._stored = {}))
@@ -331,22 +303,15 @@ LSD.Struct.prototype._cast = function(key, value, old, meta, extra) {
   return value;
 };
 LSD.Struct.prototype._finalize = function(key, value, old, meta, extra, hash) {
-  
-  /*
-  Global object listeners (and so custom property handlers in structs) 
-  may compile given value into expression (e.g. a textnode may find
-  interpolations in `textContent` property).
-  */
-  if (value != null && value[this._trigger] != null && !value._ignore) {
+  if (!this._nonenumerable[key] && value != null 
+  && value[this._trigger] != null && !value._ignore) {
+    var literal = this._literal;
+    if (literal && literal[key]) return;
     if (hash === undefined) this[key] = old;
     this._watch(value, key, undefined, meta);
     return true;
   }
 }
-/*
-  - An LSD.Object constructor, used to instantiate nested objects with specific
-  class
-*/
 LSD.Struct.prototype._getConstructor = function(key) {
   var prop = this._properties[key];
   if (prop)
@@ -382,38 +347,6 @@ LSD.Struct.prototype._onBeforeConstruct = function(key) {
     }
   }
 };
-/*
-  There's a way to define dynamic properties and two-way references by using
-  `exports` & `imports` object directives. Properties defined in those objects
-  will be defined when object is instantiated, unlike property dictionaries
-  that are lazy in the way that when object is created, it does not iterate the
-  dictionary and only looks it up when actual properties change.
-
-    var Struct = new LSD.Struct({
-      total: {
-        script: 'sum * rate * (1 - tax)'
-      }
-    });
-    Struct.prototype.rate = 1;
-    Struct.prototype.tax = 0.15
-    var struct = new Struct;
-    expect(struct.total).toBeUndefined();
-    struct.set('sum', 200);
-    expect(struct.total).toBe(200 * 0.85);
-    struct.set('sum', 85);
-    expect(struct.total).toBe(85 * 0.85);
-    struct.set('tax', 0.2);
-    expect(struct.total).toBe(85 * 0.8);
-
-  LSD.Script is compiled when struct is instantiated. It starts observing
-  variables in expression from left to right. In example above it starts 
-  by observing `sum`, and only when it gets it, it starts observing `rate`
-  and after that `tax` variables. When all variables are found, the result 
-  is calculated and assigned to a property named `total`. 
-*/
-LSD.Struct.prototype._linker = function(call, key, value, old, meta) {
-  this.mix(call.key, value, old, meta);
-};
 LSD.Struct.prototype._unlinked = ['_journal', '_stored'];
 LSD.Struct.prototype._watchable = /^[a-zA-Z0-9._-]+?$/;
 LSD.Struct.prototype._nonenumerable = {
@@ -424,8 +357,7 @@ LSD.Struct.prototype._nonenumerable = {
   _constructors: true,
   _Properties: true,
   _properties: true,
-  _scripted: true,
-  _linker: true
+  _scripted: true
 }
 !function(proto) {
   for (var property in proto)
@@ -515,8 +447,10 @@ LSD.Struct.Property.prototype = new (LSD.Struct({
     var instances = this._owner._struct;
     var reference = this._reference;
     for (var i = 0, instance; instance = instances[i++];) {
-      if (value) instance._watch(value, reference);
-      if (old) instance._watch(old, undefined, reference);
+      if (value)
+        instance._watch(value, reference);
+      if (old)
+        instance._watch(old, undefined, reference);
     }
   },
   

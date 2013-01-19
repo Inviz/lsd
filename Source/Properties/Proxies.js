@@ -34,10 +34,10 @@ LSD.Properties.Proxies.prototype._hash = function(key) {
     // return this.content || this.content 
     case '_owner':
       return;
-    default:  
+    default:
       if (typeof key == 'string') {
         var object = this._selectors || (this._selectors = {});
-      } else if (key && key.exec) {
+      } else if (key.exec) {
         var object = this._wildcards || (this._wildcards = {});
         var regexes = this._regexes || (this._regexes = {});
         if (!regexes[key]) regexes[key] = key;

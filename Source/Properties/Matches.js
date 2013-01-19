@@ -109,7 +109,7 @@ LSD.Properties.Matches.prototype.__cast = function(key, value, old, meta, extra,
     if (vdef) {
       hash.push([key, value, stateful]);
       if (this._results) {
-        var group = this._hash(key, null, null, null, this._results);
+        var group = this.__hash(key, null, null, null, null, this._results);
         for (var i = 0, widget; widget = group[i++];) {
           if (!stateful) {
             if (typeof value == 'function') value(widget);
@@ -124,7 +124,7 @@ LSD.Properties.Matches.prototype.__cast = function(key, value, old, meta, extra,
       if (hash) for (var i = hash.length, fn; i--;) {
         if ((fn = hash[i]) && (fn = fn[1]) && (fn === old || fn.callback === old)) {
           if (this._results) {
-            var group = this._hash(key, null, null, null, this._results);
+            var group = this.__hash(key, null, null, null, null, this._results);
             for (var j = 0, result; result = group[j++];) {
               if (!stateful) {
                 if (typeof fn == 'function') fn(undefined, old);
@@ -172,7 +172,7 @@ LSD.Properties.Matches.prototype._advancer = function(call, value, old) {
   the array of expression from left to right and handles each expression separately
   storing a callback that advances the selector to the next expression. 
 */
-LSD.Properties.Matches.prototype._hash = function(key, value, old, meta, storage) {
+LSD.Properties.Matches.prototype.__hash = function(key, value, old, meta, mode, storage) {
   if (typeof key == 'string') {
     if (this._nonenumerable[key]) return;
     var parsed = this._parsed;
@@ -275,5 +275,5 @@ LSD.Properties.Matches.prototype.remove = function(combinator, tag, value, wildc
 }
 LSD.Properties.Matches.prototype._types = {pseudos: 1, classes: 1, attributes: 1};
 LSD.Properties.Matches.prototype._parsed = {};
-LSD.Properties.Matches.prototype._composite = false;
-LSD.Properties.Matches.prototype._watchable = null;
+LSD.Properties.Matches.prototype._parser = Slick.parse;
+LSD.Properties.Matches.prototype._composite = true;

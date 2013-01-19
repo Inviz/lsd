@@ -87,7 +87,7 @@ LSD.Element = new LSD.Struct({
         if (typeof value == 'string')
           value = typeof roles[value] == 'undefined' ? roles.get(value) : roles[value];
         if (typeof old == 'string') old = roles[old] || undefined;
-        this.mix(undefined, value, old, meta, false, true);
+        this.mix(undefined, value, old, meta, 'under');
       }
     },
     chunked: true
@@ -397,9 +397,10 @@ LSD.Element = new LSD.Struct({
         if (classes && classes._name != element.className)
           element.className = classes._name;
       }
-      this.set('element', element)
+      this._set('element', element)
     }
-    this.mix('childNodes.built', value, old, meta);
+    if (value || old)
+      this._set('childNodes.built', value, old, meta);
   },
 /*
   Javascript DOM is known for its unfriendly implementation of accessibility
@@ -427,8 +428,8 @@ LSD.Element = new LSD.Struct({
   environments, in focus-driven navigation and lots of other applications.
 */
   focused: function(value, old, meta) {
-    if (meta === this) return;
-    this.mix('parentNode.focused', value, old, meta || this);
+    if (meta === this || (!value && !old)) return;
+    this.set('parentNode.focused', value, old, meta || this);
     if (value && !meta && this.ownerDocument)
       this.ownerDocument.change('activeElement', this, undefined, false);
   },
@@ -558,7 +559,7 @@ LSD.Element = new LSD.Struct({
     if (meta === 'variables') return;
     for (var child, i = 0, children = this.childNodes; child = children[i++];)
       if (child.nodeType != 3 && (!child.fragment || child.fragment == this.fragment))
-        child.mix('variables', value, old, this, true);
+        child.mix('variables', value, old, this);
   },
   multiple: function(value, old) {
     if (value) {
@@ -641,8 +642,7 @@ LSD.Element = new LSD.Struct({
   element.
 */
   microdata: function(value, old, meta) {
-    if ((value && !this.variables) || (old && old == this.variables))
-      this.mix('variables', value, old, meta, true);
+    this.mix('variables', value, old, meta);
   },
   itemscope: function(value, old, meta) {
     value = value && this._construct('microdata') || undefined;
@@ -651,9 +651,9 @@ LSD.Element = new LSD.Struct({
   },
   itemprop: function(value, old, meta) {
     if (value) 
-      this.mix('parentNode.microdata.' + value, this, undefined, meta, true);
+      this._set('parentNode.microdata.' + value, this, undefined, meta);
     if (old)
-      this.mix('parentNode.microdata.' + old, undefined, this, meta, true);
+      this._set('parentNode.microdata.' + old, undefined, this, meta);
   },
   itemtype: function(value, old) {
 
@@ -944,7 +944,7 @@ LSD.Document.prototype.mix('states', {
   invoked:   ['invoke',     'revoke']
 })
 
-LSD.Element.prototype.set('built', false);
-LSD.Element.prototype.set('hidden', false);
-LSD.Element.prototype.set('disabled', false);
-LSD.Element.prototype.set('focused', false);
+LSD.Element.prototype._set('built', false);
+LSD.Element.prototype._set('hidden', false);
+LSD.Element.prototype._set('disabled', false);
+LSD.Element.prototype._set('focused', false);

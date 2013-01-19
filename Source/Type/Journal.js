@@ -49,35 +49,34 @@ provides:
 */
 
 LSD.Journal = function(object) {
-  if (object != null) this.mix(undefined, object)
+  if (object != null) this._mix(undefined, object)
 };
 
 LSD.Journal.prototype = new LSD.Object;
 LSD.Journal.prototype.constructor = LSD.Journal;
-LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
-  if (arguments.length < 6) return;
-  if (typeof index != 'number') 
-    index = key.indexOf('.');
-  if (index > -1) return;
-/*
-  Most of hash table implementations have a simplistic way to delete
-  a key - they just erase the value. LSD.Journal's unset function 
-  call may result in one of 3 cases
-
-  * Value becomes undefined, like after a `delete object.key` call in
-    javascript. It only happens if there was a single logged value by
-    that key. Callbacks are called and passed that value as a second
-    argument.
-  * Value is reverted to previous value on the stack. Callbacks are
-    fired with both new and old value as arguments.
-  * Value does not change, if the value being unset was not on top of
-    the stack. It may also happen if there were two identical values 
-    on top of the stack, so removing the top value falls back to the
-    same value. Callbacks don't fire.
-*/
+LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, get) {
+  if (prepend == 'watch' || prepend == 'get' || key.indexOf('.') > -1) return;
   var property = this._properties;
   if (property && (property = property[key]) && property.journal === false)
     return;
+  switch (typeof prepend) {
+    case 'number':
+      var position = prepend;
+      prepend = false;
+      break;
+    case 'string':
+      switch (prepend) {
+        case 'over': case 'under':
+          var val = value || old;
+          if (typeof val == 'object' && !val.exec && !val.push && !val.nodeType)
+              return;
+          prepend = prepend == 'under';
+          break;
+        default:
+          prepend = prepend == 'before';
+          break;
+      }
+  }
   var journal = this._journal;
   if (journal) {
     var group = journal[key];
@@ -91,19 +90,10 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
           old = group[k];
     }
   }
-  if (typeof prepend == 'number') {
-    var position = prepend;
-    prepend = false;
-  }    
   var chunked = property && property.chunked, current = this[key];
   if (positioned == null) positioned = -1;
   if (before) positioned ++;
   if (after) positioned ++;
-/*
-  When Journal setter is given an old value, it removes it from the
-  journal. If a new value is not given and the old value was on top
-  of the stack, it falls back to a previous value from the stack.
-*/  
   if (old !== undefined) {
     var erasing = old === current;
     if (j && position == null)
@@ -118,19 +108,6 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
     if (old && old._calculated)
       this._watch(key, undefined, old, meta)
   } else old = current;
-/*
-  Journal setters accept a position at which the value should be written in
-  journal. Positioned values are inserted in the beginning of the stack before
-  regular values and may only be unset with the same position argument. In
-  addition to regular numerical indecies, setters accept Infinity and
-  -Infinity positions that insert a value after/before other indexed values.
-
-  That adds up to 5 distinct sections in the journal. Journal can have multiple
-  indexed, prepended or appended values. But only one value for Infinity and
-  one for -Infinity positions.
-  
-  [-Infinity, ... 0, 1, 2 .., Infinity, ... 'prepended' .., 'regular' ...]
-*/
   if (position != null) {
     if (!group) {
       if (!journal) journal = this._journal = {};
@@ -154,12 +131,12 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
       group.before = value;
     }
     var diff = position - positioned;
-    if (diff > 0) {
+    if (diff > 0)
       for (var i = j, k = positioned; --i > k;)
         group[i + diff] = group[i];
-    }
     if (value !== undefined) {
-      if (diff > 0) j += diff;
+      if (diff > 0)
+        j += diff;
       group[position] = value;
     } else
       delete group[position];
@@ -173,7 +150,7 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
             break;
           } else if (k > position) return true;
     if (k > -1)
-      return this.set(key, value, undefined, meta, prepend, index, false);
+      return this._set(key, value, undefined, meta, undefined, false);
     return;
   }
   if (value !== undefined) {
@@ -204,47 +181,16 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, index) {
       } else return;
     } else if (old !== current) 
       return false;
-    return this.set(key, value, undefined, meta, prepend, index, false);
+    return this._set(key, value, undefined, meta, undefined, false);
   }
     
 };
-/*
-  If a given value was transformed and the journal was not initialized yet,
-  create a journal and write the given value
-*/
 LSD.Journal.prototype._finalize = function(key, value, old, meta, prepend, hash, val) {
   if (val === value) return;
   var journal = this._journal;
   var group = journal && journal[key];
   if (!group) (journal || (this._journal = {}))[key] = [val];
 }
-/*
-  LSD.Journal is a subclass of LSD.Object and thus it inherits a method
-  named `change` that is an alias to `set` with predefined `old` argument.
-  As a LSD.Object method it does nothing of interest, but in LSD.Journal
-  it pops the value on top the stack and then adds a new value instead.
-  
-  The method is useful to alter the value by the key in journalized hash
-  from the outside:
-    
-    object.set('a', 1);             // adds value to stack
-    console.log(object._journal.a)  // [1]
-    object.set('a', 2);             // adds another value to the stack
-    console.log(object._journal.a)  // [1, 2]
-    object.change('a', 3);          // changes the value on top of the stack
-    console.log(object._journal.a)  // [1, 3]
-  
-  Change method removes a value on top from the journal, but that may lead to
-  unexpected results, if the top value was set by another entity that does
-  not expect that value to be removed. It is possible to avoid side-effects
-  completely by unsetting specific value that is known to be given by the party
-  that invokes `change`. It is easy to do within a callback, because callbacks
-  in LSD receive both old and new value:
-  
-    object.watch('a', function(value, old, meta) {
-      object.set('b', value, old, meta);
-    })
-*/
 LSD.Journal.prototype.change = function(key, value, old, meta, prepend) {
   if (old === undefined) {
     var group = this._journal;
@@ -258,7 +204,7 @@ LSD.Journal.prototype.change = function(key, value, old, meta, prepend) {
       }
     } else old = this[key];
   }
-  return this.set(key, value, old, meta, prepend);
+  return this._set(key, value, old, meta, prepend);
 };
 LSD.Struct.implement({
   _nonenumerable: {

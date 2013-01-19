@@ -22,7 +22,7 @@ LSD.Data = function(object) {
   if (typeof object == 'string')
     subject.fromString(object);
   else if (object) 
-    subject.mix(undefined, object);
+    subject._mix(undefined, object);
   return subject;
 };
 LSD.Data.prototype = new LSD.Object;
@@ -92,4 +92,5 @@ LSD.Data.prototype._hash = function(key, value, old, meta) {
     }
   }
 }
-LSD.Data.prototype._watchable = /^[a-zA-Z0-9._\[\]-]+?$/;
+
+LSD.Data.prototype._composite = true;

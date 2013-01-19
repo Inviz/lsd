@@ -27,7 +27,7 @@ provides:
  * `LSD.Storage(key)` to unset a value by key
  * `LSD.Storage(array)` to sync array with storage (store values from array 
    and fetch values from cookies, use array values in case of conflicts)
- * `array.watch(LSD.Storage.Cookies)` to use it as a callback (won't retrieve values 
+ * `array.watch(undefined, LSD.Storage.Cookies)` to use it as a callback (won't retrieve values 
    from storage initially, but will save changes in array)
  * `[1,2,3].forEach(LSD.Storage)` to store values from native array. 
  * `LSD.Storage([])` to populate a native array with values from cookies
@@ -115,7 +115,7 @@ LSD.Storage = function(key, value, old, meta, prefix, storage, get, self, length
     return (result == null) ? undefined : result;
   } else {  
     if (context.push && context._watch) 
-      context.watch(self);
+      context.watch(undefined, self);
     storage.getAllItems(prefix, callback || context || this, meta, storage);
   }
 };
@@ -195,7 +195,7 @@ LSD.Storage.Cookies.prototype.getItem = function(key, prefix, callback, meta) {
       var eql = cookie.indexOf('=', p);
       var index = cookie.substring(p + skip, eql);
       if (key && index != key) continue;
-      var val = cookie.substring(eql + 1, i);
+      var val = cookie.substring(eql + 1, i > -1 ? i : undefined);
       if (callback) this.callback(callback, index, val, meta);
       if (key) return val;
     }

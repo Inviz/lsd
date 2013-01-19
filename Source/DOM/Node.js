@@ -67,7 +67,7 @@ LSD.Node.prototype.setVariables = function(value, old, meta) {
   this.mix('variables', 
            value && (fragment && fragment != value.fragment && fragment.variables || value.get('variables', true, 'variables')), 
            old && (fragment && fragment != old.fragment && fragment || old).variables,
-           'variables', true);
+           'variables');
 };
 LSD.Node.prototype.$family = function() {
   return 'widget';

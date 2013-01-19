@@ -45,7 +45,6 @@ LSD.Properties.Attributes.prototype.__cast = function(key, value, old, meta) {
   if (((!meta || meta !== 'states') && ns.states[key]) || owner._properties[key])
     owner.set(key, value, old, 'attributes');
   if (key.substr(0, 5) == 'data-') {
-    if (value === undefined) debugger
     owner.mix('variables.' + key.substring(5), value, old, meta);
   }
   if (owner.matches) {

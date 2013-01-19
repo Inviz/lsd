@@ -30,7 +30,7 @@ LSD.NodeList = function() {
     return collection;
   } else {
     if (this._sortBy)
-      this.watch(this._observeIndex);
+      this.watch(undefined, this._observeIndex);
     return LSD.Array.apply(this, arguments);
   }
 }
@@ -73,8 +73,8 @@ LSD.NodeList.prototype.fn = function(collection, key, value, old, meta) {
 };
 
 LSD.Relation = new LSD.Struct({
-  match: '_owner.matches.set manager',
-  proxy: '_owner.proxies.set manager'
+  match: '_owner.matches manager',
+  proxy: '_owner.proxies manager'
 }, 'NodeList');
 LSD.Relation.prototype._aggregate = true;
 LSD.Relation.prototype._object = false;

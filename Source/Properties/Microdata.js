@@ -25,6 +25,7 @@ LSD.Properties.Microdata.prototype.__cast = function(key, value, old, meta) {
   if (meta !== 'microdata' && meta !== 'textContent') {
     if (!this._elements) return;
     var element = this._elements[key];
+    if (element == null) return;
     var storage = this._values;
     if (!storage) storage = this._values = {};
     if (odef && old !== storage[key]) odef = old = undefined;
@@ -35,6 +36,8 @@ LSD.Properties.Microdata.prototype.__cast = function(key, value, old, meta) {
   }
 }
 LSD.Properties.Microdata.prototype.___hash = function(key, value, old, meta) {
+  if (this._nonenumerable[key])
+    return;
   if (value && value.lsd) {
     var storage = this._elements || (this._elements = {});
     var group = storage[key];
@@ -59,6 +62,7 @@ LSD.Properties.Microdata.prototype.___hash = function(key, value, old, meta) {
     return true;
 }
 LSD.Properties.Microdata.prototype._shared = true;
+LSD.Properties.Microdata.prototype._owning = false;
 LSD.Properties.Microdata.prototype._trigger = 'lsd';
 LSD.Properties.Microdata.prototype._nonenumerable = LSD.Struct.implement(LSD.Properties.Microdata.prototype._nonenumerable, {
   _values: true,
