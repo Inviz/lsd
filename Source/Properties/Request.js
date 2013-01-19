@@ -60,14 +60,14 @@ LSD.Request = LSD.Properties.Request = new LSD.Struct({
       case 'unsent':
         break;
       case 'opened':
-        this.change('progress', 0);
+        this.set('progress', 0, undefined, undefined, 'change');
         break;
       case 'head':
-        this.change('status', this.object.status);
+        this.set('status', this.object.status, undefined, undefined, 'change');
         break;
       case 'complete':
-        this.change('progress', 1);
-        this.change('response', this.object.responseText)
+        this.set('progress', 1,  undefined, undefined, 'change');
+        this.set('response', this.object.responseText, undefined, undefined, 'change')
     }
     return state;
   },
@@ -102,7 +102,7 @@ LSD.Request = LSD.Properties.Request = new LSD.Struct({
   url: function(value, old, meta) {
     if (meta === 'composed') return;
     if (value != null) var parsed = this.parse(value);
-    this.mix(undefined, parsed, this._composed, meta);
+    this._set(undefined, parsed, this._composed, meta, 'over');
     this._composed = parsed;
   }
 }, ['Data', 'Journal']);

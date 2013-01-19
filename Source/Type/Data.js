@@ -18,17 +18,17 @@ provides:
 ...
 */
 LSD.Data = function(object) {
-  var subject = this.mix ? this : new LSD.Data;
+  var subject = this._set ? this : new LSD.Data;
   if (typeof object == 'string')
     subject.fromString(object);
   else if (object) 
-    subject._mix(undefined, object);
+    subject._set(undefined, object, undefined, undefined, 'over');
   return subject;
 };
 LSD.Data.prototype = new LSD.Object;
 LSD.Data.prototype.constructor = LSD.Data;
 LSD.Data.prototype.fromString = LSD.Data.fromString = function(string, state, meta) {
-  var object = this.mix ? this : new LSD.Data;
+  var object = this._set ? this : new LSD.Data;
   for (var start = -1, delimeter; delimeter = string.indexOf('&', start);) {
     var bit = string.substring(start, delimeter == -1 ? string.length : delimeter);
     var pos = bit.indexOf('=');

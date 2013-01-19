@@ -31,7 +31,7 @@ LSD.Properties.Attributes.prototype.__cast = function(key, value, old, meta) {
   var attribute = attributes && attributes[key];
   if (attribute)
     if (typeof attribute == 'string') {
-      owner.mix(attribute, value, old, meta);
+      owner._set(attribute, value, old, meta);
     } else if (value){
       var result = attribute.call(owner, value, old);
       if (typeof result != 'undefined')
@@ -44,9 +44,8 @@ LSD.Properties.Attributes.prototype.__cast = function(key, value, old, meta) {
       owner.element.removeAttribute(key);
   if (((!meta || meta !== 'states') && ns.states[key]) || owner._properties[key])
     owner.set(key, value, old, 'attributes');
-  if (key.substr(0, 5) == 'data-') {
-    owner.mix('variables.' + key.substring(5), value, old, meta);
-  }
+  if (key.substr(0, 5) == 'data-')
+    owner.set('variables.' + key.substring(5), value, old, meta);
   if (owner.matches) {
     if (value != null)
       owner.matches.add('attributes', key, value);

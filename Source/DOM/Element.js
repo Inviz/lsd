@@ -87,7 +87,7 @@ LSD.Element = new LSD.Struct({
         if (typeof value == 'string')
           value = typeof roles[value] == 'undefined' ? roles.get(value) : roles[value];
         if (typeof old == 'string') old = roles[old] || undefined;
-        this.mix(undefined, value, old, meta, 'under');
+        this._set(undefined, value, old, meta, 'under');
       }
     },
     chunked: true
@@ -431,7 +431,7 @@ LSD.Element = new LSD.Struct({
     if (meta === this || (!value && !old)) return;
     this.set('parentNode.focused', value, old, meta || this);
     if (value && !meta && this.ownerDocument)
-      this.ownerDocument.change('activeElement', this, undefined, false);
+      this.ownerDocument.set('activeElement', this, undefined, false, 'change');
   },
   rendered: function(value, old) {
   },
@@ -454,10 +454,14 @@ LSD.Element = new LSD.Struct({
     if (meta !== false) for (var node = this, next, i = 0; node; node = next) {
       for (next = node.firstChild || node.nextSibling;
           !next && (node = node.parentNode); next = node.nextSibling)
-        if (next === this.nextSibling && collapse) return;
-        else if (value) node.sourceLastIndex = index + i;
-      if (next === this.nextSibling && collapse) return;
-      else if (next) next.change('sourceIndex', index + ++i, undefined, false)
+        if (next === this.nextSibling && collapse) 
+          return;
+        else if (value) 
+          node.sourceLastIndex = index + i;
+      if (next === this.nextSibling && collapse) 
+        return;
+      else if (next)
+        next.set('sourceIndex', index + ++i, undefined, false, 'change')
     }
   },
 /*
@@ -559,7 +563,7 @@ LSD.Element = new LSD.Struct({
     if (meta === 'variables') return;
     for (var child, i = 0, children = this.childNodes; child = children[i++];)
       if (child.nodeType != 3 && (!child.fragment || child.fragment == this.fragment))
-        child.mix('variables', value, old, this);
+        child._set('variables', value, old, this, 'under');
   },
   multiple: function(value, old) {
     if (value) {
@@ -642,7 +646,7 @@ LSD.Element = new LSD.Struct({
   element.
 */
   microdata: function(value, old, meta) {
-    this.mix('variables', value, old, meta);
+    this.set('variables', value, old, meta, 'over');
   },
   itemscope: function(value, old, meta) {
     value = value && this._construct('microdata') || undefined;
@@ -684,10 +688,10 @@ LSD.Element.prototype.__cast = function(key, value, old, meta) {
     if (!methods) {
       compiled[key] = methods = {};
       methods[definition[0]] = function(meta) {
-        return this.change(key, true, undefined, meta);
+        return this.set(key, true, undefined, meta, 'change');
       };
       methods[definition[1]] = function(meta) {
-        return this.change(key, false, undefined, meta);
+        return this.set(key, false, undefined, meta, 'change');
       };
     }
     for (var method in methods) this.set(method, methods[method]);
@@ -771,7 +775,7 @@ LSD.Element.prototype.getAttributeNode = function(name) {
   }
 };
 LSD.Element.prototype.setAttribute = function(name, value) {
-  this.attributes.change(name, value);
+  this.attributes.set(name, value, undefined, undefined, 'change');
   return this;
 };
 LSD.Element.prototype.removeAttribute = function(name) {
@@ -793,19 +797,19 @@ LSD.Element.prototype.fireEvent = function() {
   return this.events.fire.apply(this.events, arguments);
 };
 LSD.Element.prototype.addEvent = function(name, fn, meta) {
-  this.events.mix(name, fn, undefined, meta);
+  this.events._set(name, fn, undefined, meta);
   return this;
 };
 LSD.Element.prototype.addEvents = function(events, meta) {
-  this.events.mix(undefined, events, undefined, meta);
+  this.events._set(undefined, events, undefined, meta, 'over');
   return this;
 };
 LSD.Element.prototype.removeEvent = function(name, fn, meta) {
-  this.events.mix(name, undefined, fn, meta);
+  this.events._set(name, undefined, fn, meta);
   return this;
 };
 LSD.Element.prototype.removeEvents = function(events, meta) {
-  this.events.mix(undefined, undefined, events, meta);
+  this.events._set(undefined, undefined, events, meta, 'over');
   return this;
 };
 LSD.Element.prototype.store = function(name, value) {

@@ -122,7 +122,7 @@ LSD.Array.prototype._hash = function(key, value, old, meta, from) {
     } else this._callback(callback, index, value, old, meta, from);
   }
   var subject = value || old;
-  if (from == null && subject && subject.mix) {
+  if (from == null && subject && subject._set) {
     var stored = this._owner;
     if (stored && (stored = stored._stored) && (stored = stored[this._reference]))
       for (var i = 0, a; a = stored[i++];) 
@@ -541,10 +541,10 @@ LSD.Array.prototype.clone = function() {
   for (var i = 0; i < this._length; i++) clone.push(this[i]);
   return clone;
 };
-LSD.Array.prototype.onConstructRefused = function() {
+LSD.Array.prototype.onConstructRefused = function(key, value, old, meta, prepend) {
   for (var i = 0, j = this._length, val; i < j; i++) {
-    if ((val = this[i]) && val.mix)
-      val.mix.apply(val, arguments);
+    if ((val = this[i]) && val._set)
+      val._set(key, value, old, meta, prepend || 'over')
   }
 }
 LSD.Array.prototype['<<'] = LSD.Array.prototype.push;

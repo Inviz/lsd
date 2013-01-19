@@ -68,7 +68,7 @@ LSD.Fragment.prototype.render = function(object, parent, meta) {
 LSD.Fragment.prototype.node = function(node, parent, meta, nodeType) {
   if (!parent) parent = this;
   var uid      = node.lsd,
-      widget   = node.mix ? node : uid && LSD.UIDs[uid], 
+      widget   = node._set ? node : uid && LSD.UIDs[uid], 
       children = node.childNodes;
   if (typeof nodeType != 'number') nodeType = node.nodeType || 1;
   if (!widget) {

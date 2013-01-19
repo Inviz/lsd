@@ -36,29 +36,33 @@ LSD.ChildNodes.prototype.onSet = function(index, value, old, meta, from) {
   if (owner && owner.onChildSet) owner.onChildSet.apply(owner, arguments);
   if (prev !== node && (!moving || (state && (meta & this.FIRST)))) {
     if (prev && (state || (!splicing || !next)))
-      prev.change('nextSibling', state ? node : next, undefined, meta);
+      prev.set('nextSibling', state ? node : next, undefined, meta, 'change');
     if ((state || moving))
-      node.change('previousSibling', prev, undefined, meta);
+      node.set('previousSibling', prev, undefined, meta, 'change');
     else if (node.previousSibling == prev)
       node.set('previousSibling', undefined, prev, meta);
   }
   if (next !== node && !moving) {
     if (next && (state || (!splicing || !prev)))
-      next.change('previousSibling', state ? node : prev, undefined, meta);
+      next.set('previousSibling', state ? node : prev, undefined, meta, 'change');
     if ((state || moving))
-      node.change('nextSibling', next, undefined, meta);
+      node.set('nextSibling', next, undefined, meta, 'change');
     else if (node.nextSibling == next)
       node.set('nextSibling', undefined, next, meta);
   }
   if (owner) {
     if (index === 0) {
-      if (state) owner.change('firstChild', node);
-      else owner.set('firstChild', undefined, owner.firstChild);
+      if (state) 
+        owner.set('firstChild', node, undefined, meta, 'change');
+      else 
+        owner.set('firstChild');
     }
     var last = this.length - +state;
     if (index === last && !moving) {
-      if (state || last) owner.change('lastChild', state ? node : this[last - 1]);
-      else owner.set('lastChild', undefined, owner.lastChild);
+      if (state || last) 
+        owner.set('lastChild', state ? node : this[last - 1], undefined, meta, 'change');
+      else
+        owner.set('lastChild', undefined, owner.lastChild);
     }
   }
   if (node.nodeType === 1 && (state || !moving)) {
@@ -74,29 +78,29 @@ LSD.ChildNodes.prototype.onSet = function(index, value, old, meta, from) {
     else next = null;
     if (prev && (!moving || meta != null)) {
       if (state || moving) {
-        prev.change('nextElementSibling', node, undefined, meta);
+        prev.set('nextElementSibling', node, undefined, meta, 'change');
       } else if (prev.nextElementSibling === node)
         if (next) {
           if (!emptying && !splicing) 
-            prev.change('nextElementSibling', next, undefined, meta);
+            prev.set('nextElementSibling', next, undefined, meta, 'change');
         } else 
           prev.set('nextElementSibling', undefined, node, meta);
       if (state) 
-        node.change('previousElementSibling', prev, undefined, meta);
+        node.set('previousElementSibling', prev, undefined, meta, 'change');
       else if (node.previousElementSibling)
         node.set('previousElementSibling', undefined, node.previousElementSibling, meta)
     } 
     if (next && (!state || (meta & this.LAST))) {
       if ((state && !moving) || moving) {
-        next.change('previousElementSibling', node, undefined, meta);
+        next.set('previousElementSibling', node, undefined, meta, 'change');
       } else if (next.previousElementSibling === node)
         if (prev) {
           if ((state || !emptying)) 
-            next.change('previousElementSibling', prev, undefined, meta);
+            next.set('previousElementSibling', prev, undefined, meta, 'change');
         } else 
           next.set('previousElementSibling', undefined, node, meta);
       if (state) {
-        if (!moving) node.change('nextElementSibling', next, undefined, meta);
+        if (!moving) node.set('nextElementSibling', next, undefined, meta, 'change');
       } else if (node.nextElementSibling)
         node.set('nextElementSibling', undefined, node.nextElementSibling, meta)
     }
@@ -105,9 +109,9 @@ LSD.ChildNodes.prototype.onSet = function(index, value, old, meta, from) {
     node.set('parentNode', state && owner || undefined, !state && owner || undefined, meta)
   if (owner) if (state) {
     if (index == 0) 
-      node.change('sourceIndex', (owner.sourceIndex || 0) + 1, undefined, meta);
+      node.set('sourceIndex', (owner.sourceIndex || 0) + 1, undefined, meta, 'change');
     else if (prev) 
-      node.change('sourceIndex', (prev.sourceLastIndex || prev.sourceIndex || 0) + 1, undefined, meta);
+      node.set('sourceIndex', (prev.sourceLastIndex || prev.sourceIndex || 0) + 1, undefined, meta, 'change');
   } else if (!moving && (state || !(meta & this.FORWARD))) 
       node.set('sourceIndex', undefined, node.sourceIndex, meta);
 };

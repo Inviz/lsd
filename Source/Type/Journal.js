@@ -49,7 +49,8 @@ provides:
 */
 
 LSD.Journal = function(object) {
-  if (object != null) this._mix(undefined, object)
+  if (object != null) 
+    this._set(undefined, object, undefined, undefined, 'over');
 };
 
 LSD.Journal.prototype = new LSD.Object;
@@ -71,6 +72,21 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, get) {
           if (typeof val == 'object' && !val.exec && !val.push && !val.nodeType)
               return;
           prepend = prepend == 'under';
+          break;
+        case 'change':
+          if (old === undefined) {
+            var group = this._journal;
+            if (group && (group = group[key])) {
+              for (var j = group.length; --j;) {
+                var val = group[j];
+                if (val !== undefined) {
+                  old = val;
+                  break;
+                }
+              }
+            } else old = this[key];
+          }
+          prepend = false;
           break;
         default:
           prepend = prepend == 'before';
@@ -185,27 +201,14 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, get) {
   }
     
 };
+
 LSD.Journal.prototype._finalize = function(key, value, old, meta, prepend, hash, val) {
   if (val === value) return;
   var journal = this._journal;
   var group = journal && journal[key];
   if (!group) (journal || (this._journal = {}))[key] = [val];
-}
-LSD.Journal.prototype.change = function(key, value, old, meta, prepend) {
-  if (old === undefined) {
-    var group = this._journal;
-    if (group && (group = group[key])) {
-      for (var j = group.length; --j;) {
-        var val = group[j];
-        if (val !== undefined) {
-          old = val;
-          break;
-        }
-      }
-    } else old = this[key];
-  }
-  return this._set(key, value, old, meta, prepend);
 };
+
 LSD.Struct.implement({
   _nonenumerable: {
     _journal: true

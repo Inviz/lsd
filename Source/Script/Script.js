@@ -92,13 +92,14 @@ LSD.Script = function(input, scope, output) {
       if (!this.proto && this.locals) this.findLocals(this.locals);
       if (this.locals) {
         this.variables = new LSD.Journal;
-        if (this.scope) this.mix('variables', this.scope.variables || this.scope, undefined, undefined, 'under');
+        if (this.scope) 
+          this.set('variables', this.scope.variables || this.scope, undefined, undefined, 'under');
         this.parentScope = this.scope;
         this.scope = this;
       }
     }
   } else {
-    if (input._calculated && input._mix) {
+    if (input._calculated && input._set) {
       if (output) input.set('output', output);
       if (scope) {
         input.set('scope', scope);
@@ -115,36 +116,6 @@ LSD.Script = function(input, scope, output) {
     }
   }
 };
-/*
-  Variables are the core of LSD.Script. A variable attaches to a widget and
-  notifies it that there's a named variable that needs to populate its value.
-
-  A widget may have muptiple scopes of data for variables. The only scope
-  that is enabled by default is microdata and dataset, so a HTML written the
-  right way provides values for variables. Microdata and dataset objects,
-  just like other other store objects used are LSD.Object-compatible.
-  These objects provide `.watch()` interface that allows to observe changes
-  in object values. Any object may be used as the scope for data to populate
-  variables with values.
-
-  Each variable has a name, which is used as the key to fetch values.
-  LSD.Object provides support for nested keys as in `post.author.name` that
-  sets up a chain of observers and whenever any of the parts are changed,
-  the variable is set a new value.
-
-  A value may have a placeholder - default value to be used when the value
-  was not found in widget.
-
-  A variable may have a parent object, a function that has that variable
-  as argument. Whenever variable changes, it only calls parent function
-  to update, and that function cascades up updating all the parents. That
-  makes values recompute lazily.
-
-  A variable accepts `output` as a second parameter. It may be function,
-  text node, a layout branch or widget. Variable class is also a base
-  class for Function and Selector classes, so they are all handle
-  `output` the same way.
-*/
 LSD.Script.prototype = new (LSD.Struct({
   input: function(value, old) {
     
@@ -153,10 +124,11 @@ LSD.Script.prototype = new (LSD.Struct({
 
   },
   scope: function(value, old) {
-    this.change('attached', value);
+    this.set('attached', value, undefined, undefined, 'change');
   },
   placeholder: function(value, old) {
-    if (this.placeheld) this.change('value', value);
+    if (this.placeheld) 
+      this.set('value', value, undefined, undefined, 'change');
   },
   value: function(value, old, meta) {
     if (this.frozen) return;
@@ -283,8 +255,7 @@ LSD.Script.prototype = new (LSD.Struct({
           (scope._owner || scope).matches[value ? 'set' : 'unset'](this.input, this.setter);
         } else {
           if (!this.setter) var self = this, setter = this.setter = function(value, old, meta) {
-            if (typeof value == 'undefined') return self.set('value', undefined, old, meta);
-            else return self.change('value', value, undefined, meta)
+            return self.set('value', value, old, meta);
           };
           var key = this.name || this.input;
           if (scope.nodeType || scope.variables)
@@ -297,50 +268,15 @@ LSD.Script.prototype = new (LSD.Struct({
         this.execute(!!value, meta);
     }
   },
-  wrapper: function() {
-    
-  },
   selector: function(value, old) {
-    console.log(value, old)
+
   },
-/*
-  Another way powerful technique is wrapping. It allows a script being
-  overloaded by another script, that may alter its execution flow by calling
-  its own methods and processing arguments before wrappee script kicks in. It
-  also allows to call scripts after the wrappee, possibly handing the failed
-  call.
-
-   LSD Script wrapping is pretty much the same concept that is known by the
-  name Aspects in "objective reality". Although instead of overloading a
-  method, it overloads a single expression.
-
-   var wrappee = LSD.Script('submit'); 
-   var wrapper = LSD.Script('prepare, yield || error, finalize')
-   wrapper.wrap(wrappee).execute();
-
-   In example above, `prepare()` method may return data that will be piped to
-  `submit()` call. Then, after submit is executed (synchronously or not), if
-  it returns a falsy value, `error()` method is called, that can handle the
-  error by showing a pesky red message to user. There's some control to what
-  happens next, the expression may be automatically retried, or a user may
-  decide to retry or cancel the whole chain of expression. When an expression
-  is cancelled, it gets unrolled, possibly removing all side effects, like
-  displayed messages, pending requests, or even putting removed element back
-  on its place.
-*/
   wrapper: function(value, old) {
     if (old) delete old.wrapped;
     if (value) value.wrapped = this;
   }
 }, 'NodeList'));
 LSD.Script.prototype.Script = LSD.Script.Script = LSD.Script;
-
-/*
-  LSD is all about compiling code into asynchronous objects that observe
-  properties. But sometimes there needs to be a javascript function compiled
-  that can be used on a hot code and not observe any variables with as few
-  function calls as possible.
-*/
 LSD.Script.prototype.getVariables = function(source, variables) {
   if (this.source) {
     variables = source;
@@ -446,15 +382,6 @@ LSD.Script.prototype.update = function(value) {
     }
   }
 }
-/*
-  Methods are dispatched by the first argument in LSD. If an argument has a
-  function defined by that property, it uses that local method then.
-  Otherwise, it looks for all parent scopes to find a function defined in
-  either `methods` sub object or scope object itself.
-
-   Finally, it falls back to helpers defined in `LSD.Script.Helpers` object
-  and Object methods as a last resort.
-*/
 LSD.Script.prototype.lookup = function(name, arg, scope, meta) {
   if (arg != null && typeof arg[name] == 'function') 
     return meta !== 'enumerate';
@@ -489,24 +416,13 @@ LSD.Script.toJS = LSD.Script.prototype.toJS;
 LSD.Script.toFunction = LSD.Script.prototype.toFunction;
 LSD.Script.getVariables = LSD.Script.prototype.getVariables;
 LSD.Script.prototype.onSuccess = function(value) {
-  this.change('value', value);
+  this.set('value', value, undefined, undefined, 'change');
 };
 LSD.Script.prototype.onFailure = function(value) {
   var object = new Boolean(false);
   object.failure = value;
-  this.change('value', object);
+  this.set('value', object, undefined, undefined, 'change');
 };
-/*
-  Functions only deal with data coming from variable tokens or as raw values
-  like strings, numbers and objects. So a function is executed once,
-  when all of its arguments are resolved. A function has its arguments as
-  child nodes in AST, so when a variable argument is changed, it propagates
-  the change up in the tree, and execute the parent function with updated
-  values.
-
-  A value is calculated once and will be recalculated when any of its variable
-  arguments is changed.
-*/
 LSD.Script.prototype.execute = function(value, meta) {
   this.executed = value;
   var name = value ? this.name : LSD.Script.Revertable[this.name]/* || LSD.Negation[name] */
@@ -627,7 +543,7 @@ LSD.Script.prototype.execute = function(value, meta) {
     }
   }
   if (args == null || !args.push) {
-    this.change('value', args)
+    this.set('value', args, undefined, undefined, 'change')
     return args;
   }
   if (name) {
@@ -637,7 +553,7 @@ LSD.Script.prototype.execute = function(value, meta) {
     else if (meta === 'enumerate') return;
   } else val = args[0];
   if (value)
-    this.change('value', val, undefined, meta === 'enumerate' ? null : meta);
+    this.set('value', val, undefined, meta === 'enumerate' ? null : meta, 'change');
   else if (typeof this.value != 'undefined')
     this.set('value', undefined, this.value);
 }
@@ -767,15 +683,6 @@ LSD.Script.prototype.findLocals = function(locals) {
     }
   }
 };
-/*
-  LSD.Function constructor and function is a Function compatible
-  API to produce a javascript function that calls LSD.Script
-
-    var fn = LSD.Function('key', 'value', 'return key % 2 ? value + 1 : value - 1')
-    fn(2, 5); // 6
-
-  The first object argument will be treated as a scope for variable values.
-*/
 LSD.Function = function() {
   var args = Array.prototype.slice.call(arguments, 0);
   for (var i = 0, j = args.length, scope, output; i < j; i++) {

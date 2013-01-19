@@ -54,8 +54,8 @@ LSD.Resource = LSD.Struct({
     if (value) value = value.toLowerCase();
     if (meta !== 'singular')
       this.set('singular', value && value.singularize(), old && old.singularize(), 'plural');
-    this.change('exportKey', this.singular + '_id')
-    this.change('directory', this.prefix ? value ? this.prefix + '/' + value : this.prefix : value || '');
+    this.set('exportKey', this.singular + '_id', undefined, undefined, 'change')
+    this.set('directory', this.prefix ? value ? this.prefix + '/' + value : this.prefix : value || '', undefined, undefined, 'change');
     if (this.collection)
       this.set('through', this.getThroughName(value, this.collection), this.getThroughName(old, this.collection), meta, true)
     return value;
@@ -75,7 +75,7 @@ LSD.Resource = LSD.Struct({
   Directory location of a resource
 */
   prefix: function(value, old) {
-    this.change('directory', this.plural ? value ? value + '/' + this.plural : this.plural  : value || '');
+    this.set('directory', this.plural ? value ? value + '/' + this.plural : this.plural  : value || '');
   },
 /*
   Name of the attribute that is used as an indetifier
@@ -625,8 +625,10 @@ LSD.Resource.Model = function(argument) {
   return LSD.Struct.call(this, argument);
 }
 LSD.Resource.Model.prototype = LSD.Struct({
-  _id: function(value) {
-    this.change('url', this.constructor.url + '/' + value);
+  _id: function(value, old) {
+    this.set('url', 
+      value != null && this.constructor.url + '/' + value || undefined,
+      old != null && this.constructor.url + '/' + old || undefined);
   },
   'id': '_id'
 }, 'Journal');

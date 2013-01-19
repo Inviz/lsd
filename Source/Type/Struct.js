@@ -64,7 +64,7 @@ LSD.Struct = function(properties, Structs, Sub) {
       this._watch(this._properties[property].script, property);
     var subject = this._initialize && this._initialize.apply(this, arguments) || this;
     if (typeof object == 'object') 
-      subject._mix(undefined, object);
+      subject._set(undefined, object, undefined, undefined, 'over');
     return subject
   }
   if (!Structs) Structs = [];
@@ -117,7 +117,7 @@ LSD.Struct = function(properties, Structs, Sub) {
       if (mutator)
         mutator.call(Struct, val);
       else if (props)
-        props._mix(name, val)
+        props._set(name, val, undefined, undefined, 'over')
     }
   }
   return Struct;
@@ -246,7 +246,7 @@ LSD.Struct.prototype._cast = function(key, value, old, meta, extra) {
     var set = prop.set;
     if (set)
       value = callback.set.call(this, value);
-    var callback = prop.callback || (prop.call && !prop._mix && prop);
+    var callback = prop.callback || (prop.call && !prop._set && prop);
     if (callback) {
       if (callback.prototype._set) {
         if (value !== undefined && this[key] === undefined)
@@ -294,7 +294,7 @@ LSD.Struct.prototype._cast = function(key, value, old, meta, extra) {
         if (formula) {
           var val = formula.call(this);
           if (val != val) val = undefined;
-          this.change(prop, val, formulated[prop], meta);
+          this.set(prop, val, formulated[prop], meta, 'change');
           formulated[prop] = val;
         }
       }
@@ -365,7 +365,7 @@ LSD.Struct.prototype._nonenumerable = {
 }(LSD.Struct.prototype);
 LSD.Struct.Property = function(callback, object, extra, arg) {
   var property = this;
-  if (!property.call || !property._mix) {
+  if (!property.call || !property._set) {
     var proto = LSD.Struct.Property.prototype;
     var property = function(value, old, meta, extra) {
       if (value !== undefined && property.set)
@@ -379,18 +379,18 @@ LSD.Struct.Property = function(callback, object, extra, arg) {
   }
   switch (typeof callback) {
     case 'object':
-      property._mix(undefined, callback);
+      property._set(undefined, callback, undefined, undefined, 'over');
       break;
     case 'function':
       var props = callback._properties;
-      if (props && !props._mix)
-        return callback//property._mix(callback);
+      if (props && !props._set)
+        return callback;
       else if (callback === Object || callback.prototype._construct)
         property._set('constructor', callback);
       else
         property._set('callback', callback);
       if (object)
-        property._mix(undefined, object);
+        property._set(undefined, object, undefined, undefined, 'over');
       break;
     case 'string':
       property._set('alias', callback);

@@ -19,7 +19,7 @@ provides:
 */
 LSD.Object = function(object) {
   if (object != null)
-    this._mix(undefined, object)
+    this._set(undefined, object, undefined, undefined, 'over');
 };
 LSD.Object.prototype.constructor = LSD.Object;
 LSD.Object.prototype.set = function(key, value, old, meta, prepend, hash) {
@@ -54,12 +54,13 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, hash) {
   if (key == null) {
     var unstorable = meta && meta._delegateble, val;
     if (value) {
-      if (typeof value._watch == 'function') value._watch(undefined, {
-        fn: this._merger,
-        bind: this,
-        callback: this,
-        prepend: prepend
-      });
+      if (typeof value._watch == 'function') 
+        value._watch(undefined, {
+          fn: this._merger,
+          bind: this,
+          callback: this,
+          prepend: prepend
+        });
       var skip = value._nonenumerable;
       for (var prop in value)
         if (value.hasOwnProperty(prop) 
@@ -113,9 +114,9 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, hash) {
       var subindex = subkey.indexOf('.');
       var prop = (subindex > -1) ? subkey.substring(0, subindex) : subkey;
       if (parseInt(prop) == prop)
-        obj._mix(subkey, value, old, meta, prepend, hash)
+        obj._set(subkey, value, old, meta, prepend, hash)
       else for (var i = 0, j = obj.length; i < j; i++)
-        obj[i]._mix(subkey, value, old, meta, prepend, hash);
+        obj[i]._set(subkey, value, old, meta, prepend, hash);
     // invoke a function
     } else if (obj.apply) {
       if (value !== undefined) 
@@ -126,7 +127,7 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, hash) {
       }
     // set property in object
     } else {
-      if (obj._mix && obj._ownable !== false) {
+      if (obj._set && obj._ownable !== false) {
         if (!this._nonenumerable[name] 
         && value !== undefined
         && old !== obj && this._owning !== false
@@ -137,7 +138,7 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, hash) {
       } else {
         for (var previous, k, object = obj; (subindex = subkey.indexOf('.', previous)) > -1;) {
           k = subkey.substring(previous || 0, subindex)
-          if (previous > -1 && object._mix) {
+          if (previous > -1 && object._set) {
             object._set(subkey.substring(subindex), value, old, meta, prepend, hash);
             break;
           } else if (object[k] != null) 
@@ -171,14 +172,14 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, hash) {
       // set a reference to remote object without copying it
       if (obj == null) {
         if (value !== undefined && !this._nonenumerable[key])
-          obj = (value && value._mix && this._set(key, value, undefined, 'reference') && value)
+          obj = (value && value._set && this._set(key, value, undefined, 'reference') && value)
                || this._construct(key, null, meta);
       // if remote object is array, merge object with every item in it
       } else if (obj.push && obj._object !== true) {
         for (var i = 0, j = obj.length; i < j; i++)
           if (!meta || !meta._delegate || !meta._delegate(obj[i], key, value, old, meta))
-            obj[i]._mix(undefined, value, old, meta, prepend, hash);
-      } else if (obj._mix) {
+            obj[i]._set(undefined, value, old, meta, prepend, hash);
+      } else if (obj._set) {
         var ref = obj._reference, owner = obj._owner;
         // if there was an object referenced by that key, copy it
         if (!this._nonenumerable[name] 
@@ -193,7 +194,7 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, hash) {
             this._set(key, value, old, meta)
           // merge objects
           else if (obj !== value) 
-            obj._mix(undefined, value, old, meta, prepend)
+            obj._set(undefined, value, old, meta, prepend)
         }
       // merge into regular javascript object (possible side effects)
       } else {
@@ -269,7 +270,7 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, hash) {
         k = args[0], val = args[1], mem = args[3];
         if (val === value) continue;
         if (value != null && (!mem || !mem._delegate || !mem._delegate(value, key, val)))
-          if (value._mix)
+          if (value._set)
             value._set.apply(value, args);
           else if (k == null)  {
             if (typeof value == 'object')
@@ -525,7 +526,9 @@ LSD.Object.prototype.getKeys = function() {
   return keys;
 };
 
-LSD.Object.prototype.change = LSD.Object.prototype.set;
+LSD.Object.prototype.change = function(key, value, old, meta, prepend) {
+  return this._set(key, value, old, meta, 'change');
+};
 
 LSD.Object.prototype.toObject = function(normalize, serializer) {
   if (this === LSD.Object || this === LSD)
@@ -589,7 +592,8 @@ LSD.Object.prototype.toObject = function(normalize, serializer) {
 LSD.toObject = LSD.Object.toObject = LSD.Object.prototype.toObject;
 LSD.Object.prototype._trigger = '_calculated';
 LSD.Dictionary = function(object) {
-  if (object != null) this._mix(undefined, object)
+  if (object != null)
+    this._set(undefined, object, undefined, undefined, 'over');
 };
 
 LSD.Object.prototype._nonenumerable = {
