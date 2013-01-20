@@ -60,14 +60,14 @@ LSD.Request = LSD.Properties.Request = new LSD.Struct({
       case 'unsent':
         break;
       case 'opened':
-        this.set('progress', 0, undefined, undefined, 'change');
+        this.set('progress', 0, undefined, undefined, 'replace');
         break;
       case 'head':
-        this.set('status', this.object.status, undefined, undefined, 'change');
+        this.set('status', this.object.status, undefined, undefined, 'replace');
         break;
       case 'complete':
-        this.set('progress', 1,  undefined, undefined, 'change');
-        this.set('response', this.object.responseText, undefined, undefined, 'change')
+        this.set('progress', 1,  undefined, undefined, 'replace');
+        this.set('response', this.object.responseText, undefined, undefined, 'replace')
     }
     return state;
   },

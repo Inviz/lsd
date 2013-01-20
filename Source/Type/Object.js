@@ -527,7 +527,7 @@ LSD.Object.prototype.getKeys = function() {
 };
 
 LSD.Object.prototype.change = function(key, value, old, meta, prepend) {
-  return this._set(key, value, old, meta, 'change');
+  return this._set(key, value, old, meta, 'replace');
 };
 
 LSD.Object.prototype.toObject = function(normalize, serializer) {

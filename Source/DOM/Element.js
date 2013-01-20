@@ -431,7 +431,7 @@ LSD.Element = new LSD.Struct({
     if (meta === this || (!value && !old)) return;
     this.set('parentNode.focused', value, old, meta || this);
     if (value && !meta && this.ownerDocument)
-      this.ownerDocument.set('activeElement', this, undefined, false, 'change');
+      this.ownerDocument.set('activeElement', this, undefined, false, 'replace');
   },
   rendered: function(value, old) {
   },
@@ -461,7 +461,7 @@ LSD.Element = new LSD.Struct({
       if (next === this.nextSibling && collapse) 
         return;
       else if (next)
-        next.set('sourceIndex', index + ++i, undefined, false, 'change')
+        next.set('sourceIndex', index + ++i, undefined, false, 'replace')
     }
   },
 /*
@@ -688,10 +688,10 @@ LSD.Element.prototype.__cast = function(key, value, old, meta) {
     if (!methods) {
       compiled[key] = methods = {};
       methods[definition[0]] = function(meta) {
-        return this.set(key, true, undefined, meta, 'change');
+        return this.set(key, true, undefined, meta, 'replace');
       };
       methods[definition[1]] = function(meta) {
-        return this.set(key, false, undefined, meta, 'change');
+        return this.set(key, false, undefined, meta, 'replace');
       };
     }
     for (var method in methods) this.set(method, methods[method]);
@@ -775,7 +775,7 @@ LSD.Element.prototype.getAttributeNode = function(name) {
   }
 };
 LSD.Element.prototype.setAttribute = function(name, value) {
-  this.attributes.set(name, value, undefined, undefined, 'change');
+  this.attributes.set(name, value, undefined, undefined, 'replace');
   return this;
 };
 LSD.Element.prototype.removeAttribute = function(name) {

@@ -54,8 +54,8 @@ LSD.Resource = LSD.Struct({
     if (value) value = value.toLowerCase();
     if (meta !== 'singular')
       this.set('singular', value && value.singularize(), old && old.singularize(), 'plural');
-    this.set('exportKey', this.singular + '_id', undefined, undefined, 'change')
-    this.set('directory', this.prefix ? value ? this.prefix + '/' + value : this.prefix : value || '', undefined, undefined, 'change');
+    this.set('exportKey', this.singular + '_id', undefined, undefined, 'replace')
+    this.set('directory', this.prefix ? value ? this.prefix + '/' + value : this.prefix : value || '', undefined, undefined, 'replace');
     if (this.collection)
       this.set('through', this.getThroughName(value, this.collection), this.getThroughName(old, this.collection), meta, true)
     return value;

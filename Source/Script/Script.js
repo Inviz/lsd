@@ -124,11 +124,11 @@ LSD.Script.prototype = new (LSD.Struct({
 
   },
   scope: function(value, old) {
-    this.set('attached', value, undefined, undefined, 'change');
+    this.set('attached', value, undefined, undefined, 'replace');
   },
   placeholder: function(value, old) {
     if (this.placeheld) 
-      this.set('value', value, undefined, undefined, 'change');
+      this.set('value', value, undefined, undefined, 'replace');
   },
   value: function(value, old, meta) {
     if (this.frozen) return;
@@ -416,12 +416,12 @@ LSD.Script.toJS = LSD.Script.prototype.toJS;
 LSD.Script.toFunction = LSD.Script.prototype.toFunction;
 LSD.Script.getVariables = LSD.Script.prototype.getVariables;
 LSD.Script.prototype.onSuccess = function(value) {
-  this.set('value', value, undefined, undefined, 'change');
+  this.set('value', value, undefined, undefined, 'replace');
 };
 LSD.Script.prototype.onFailure = function(value) {
   var object = new Boolean(false);
   object.failure = value;
-  this.set('value', object, undefined, undefined, 'change');
+  this.set('value', object, undefined, undefined, 'replace');
 };
 LSD.Script.prototype.execute = function(value, meta) {
   this.executed = value;
@@ -543,7 +543,7 @@ LSD.Script.prototype.execute = function(value, meta) {
     }
   }
   if (args == null || !args.push) {
-    this.set('value', args, undefined, undefined, 'change')
+    this.set('value', args, undefined, undefined, 'replace')
     return args;
   }
   if (name) {
@@ -553,7 +553,7 @@ LSD.Script.prototype.execute = function(value, meta) {
     else if (meta === 'enumerate') return;
   } else val = args[0];
   if (value)
-    this.set('value', val, undefined, meta === 'enumerate' ? null : meta, 'change');
+    this.set('value', val, undefined, meta === 'enumerate' ? null : meta, 'replace');
   else if (typeof this.value != 'undefined')
     this.set('value', undefined, this.value);
 }

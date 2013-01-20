@@ -294,7 +294,7 @@ LSD.Struct.prototype._cast = function(key, value, old, meta, extra) {
         if (formula) {
           var val = formula.call(this);
           if (val != val) val = undefined;
-          this.set(prop, val, formulated[prop], meta, 'change');
+          this.set(prop, val, formulated[prop], meta, 'replace');
           formulated[prop] = val;
         }
       }

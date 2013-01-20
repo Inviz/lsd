@@ -73,7 +73,7 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, get) {
               return;
           prepend = prepend == 'under';
           break;
-        case 'change':
+        case 'replace':
           if (old === undefined) {
             var group = this._journal;
             if (group && (group = group[key])) {
