@@ -3,7 +3,7 @@
  
 script: Date.js
  
-description: Flexible date object heavily. Ripoff of an amazing mootools-more Date library
+description: Flexible date object heavily. Ripoff of an amazing mootools-more Date library by digitarald
  
 license: Public domain (http://unlicense.org).
 
@@ -19,6 +19,8 @@ provides:
 */
 
 LSD.Date = function(date) {
+  if (!(this instanceof LSD.Date))
+    return new LSD.Date(date)
   switch (typeof date) {
     case 'string':
       date = LSD.Date.parse(date);
@@ -27,44 +29,28 @@ LSD.Date = function(date) {
       date = new Date(date);
       break;
     case 'object': case 'undefined':
-      if (date == null) date = new Date;
+      if (date == null)
+        date = new Date;
   }
   this.set('object', date)
 }
 LSD.Date.prototype = new LSD.Object;
 LSD.Date.prototype._properties = {
   object: function(value, old) {
+    if (value && value.object)
+      value = value.object;
     var lengths = this.lengths;
     for (var name in lengths) {
       var method = 'get' + lengths[name];
-      this.set(name, value && value[method](), old && old[method](), 'object')
+      this.set(name, 
+        value && value[method](), 
+        old && old[method](), 'object')
     }
+    return value;
   },
   time: function(value) {
-    if (value) {
+    if (value)
       value = Date.parse(value);
-    }
-  },
-  year: function() {
-
-  },
-  month: function() {
-    
-  },
-  date: function() {
-    
-  },
-  hours: function() {
-    
-  },
-  minutes: function() {
-
-  },
-  seconds: function() {
-    
-  },
-  milliseconds: function() {
-
   },
   locale: function() {
 
@@ -79,26 +65,27 @@ LSD.Date.prototype._hash = function(key) {
 }
 LSD.Date.prototype._cast = function(key, value, old, meta) {
   if (meta != 'object') {
+    var lengths = this.lengths;
+    var method = lengths[key];
+    if (method) {
+      this.object['set' + method](value);
+      var after = this.object['get' + method]();
+      if (value != after) {
+        var prop
+        for (var name in lengths) {
+          if (name == key)
+            break;
+          prop = name;
+        }
+        if (prop)
+          this.set(prop, this.object['get' + lengths[prop]]());
+      }
+      value = after;
+    }
     var property = this._properties[key];
     if (property) {
-      var lengths = this.lengths;
-      var method = lengths[key];
-      if (method) {
-        this.object['set' + method](value);
-        var after = this.object['get' + method]();
-        if (after != value) {
-          var prop
-          for (var name in lengths) {
-            if (name == key)
-              break;
-            prop = name;
-          }
-          if (prop)
-            this.set(prop, this.object['get' + lengths[prop]]());
-          value = after;
-        }
-      }
-      property.call(this, value, old, meta);
+      var ret = property.call(this, value, old, meta);
+      if (ret != null) value = ret;
     }
   }
   return value;
@@ -141,8 +128,8 @@ LSD.Date.prototype.strftime = function(format){
         case 'T': return date.format('%H:%M:%S');
         case 'U': return date.pad(date['week'], 2);
         case 'w': return date.day;
-        case 'x': return date.strftime(Date.getMsg('shortDate'));
-        case 'X': return date.strftime(Date.getMsg('shortTime'));
+        //case 'x': return date.strftime(Date.getMsg('shortDate'));
+        //case 'X': return date.strftime(Date.getMsg('shortTime'));
         case 'y': return date.year.toString().substr(2);
         case 'Y': return date.year;
         case 'z': return date['GMTOffset'];
@@ -296,18 +283,23 @@ LSD.Date.prototype.build = function(format){
       for (var i = 0, j = bits.length; i < j; i++)
         associated[parsed[i]] = bits[i];
       bits = associated;
-      var date = new LSD.Date();
-      date.object.setSeconds(0);
-      date.object.setHours(0);
-      date.object.setMinutes(0);
-      date.object.setMilliseconds(0);
+      var date = new Date;
+      date.setSeconds(0);
+      date.setHours(0);
+      date.setMinutes(0);
+      date.setMilliseconds(0);
       var year = bits.y || bits.Y;
 
-      if (year != null) date.handle('y', year); // need to start in the right year
-      if ('d' in bits) date.handle('d', 1);
-      if ('m' in bits || bits.b || bits.B) date.handle('m', 1);
-
-      for (var key in bits) date.handle(key, bits[key]);
+      if (year != null) 
+        date.setYear(year); // need to start in the right year
+      if ('d' in bits) 
+        date.setDate(1);
+      if ('m' in bits || bits.b || bits.B)
+        date.setMonth('month', 1);
+      date = new LSD.Date(date);
+      for (var key in bits) 
+        if (bits[key] != null)
+          date.handle(key, bits[key]);
       return date;
     }
   };
@@ -347,7 +339,10 @@ LSD.Date.prototype.pad = function(n, digits, string){
 };
 
 LSD.Date.prototype.isValid = function(date){
-  if (!date) date = this.object;
+  if (!date) 
+    date = this.object;
+  else if (date.object) 
+    date = date.object;
   return date && date instanceof Date && !isNaN(date.valueOf());
 };
 
@@ -367,13 +362,17 @@ LSD.Date.parse = function(from) {
       break;
     }
   }
-
-  if (!(parsed && parsed.isValid())){
+  var validator = LSD.Date.prototype.isValid;
+  if (!(parsed && validator(parsed))){
     parsed = new Date(Date.parse(from));
-    if (!(parsed && parsed.isValid())) 
+    if (!(parsed && validator(parsed))) {
       parsed = new Date(parseInt(from));
+      if (!(parsed && validator(parsed)))
+        parsed = undefined;
+    }
   }
-  return parsed;
+  if (parsed)
+    return new LSD.Date(parsed);
 }
 
 
