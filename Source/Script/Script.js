@@ -93,7 +93,7 @@ LSD.Script = function(input, scope, output) {
       if (this.locals) {
         this.variables = new LSD.Journal;
         if (this.scope) 
-          this.set('variables', this.scope.variables || this.scope, undefined, undefined, 'under');
+          this.set('variables', this.scope.variables || this.scope, undefined, undefined, 'defaults');
         this.parentScope = this.scope;
         this.scope = this;
       }

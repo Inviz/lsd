@@ -36,6 +36,22 @@ LSD.Struct = function(properties, Structs, Sub) {
   var Struct = function() {
     if (!(this instanceof Struct))
       return new Struct(arguments[0], arguments[1])
+    if (this._hashers === undefined) {
+      prototype._methods = {};
+      for (var hook, i = 0; hook = this._hooks[i++];) {
+        var chr = hook.charAt(hook.length - 1);
+        var key = '_' + hook + (chr == 'e' ? '' : 'e') + 'rs';
+        var hashers = prototype[key];
+        for (var method = '_' + hook; prototype[method]; method = '_' + method) {
+          if (!hashers) hashers = prototype[key] = [];
+          if (hashers.indexOf(method) == -1)
+            hashers.push(method);
+        }
+        for (var method in prototype)
+          if (method.substring(0, 2) == '__')
+            prototype._methods[method.substring(2)] = method
+      }
+    }
     Struct.instances.push(this);
     for (var i = 0, obj = this._unlinked, inherited, group, cloned, value; obj && (inherited = obj[i++]);)
       if ((group = this[inherited])) {
@@ -64,7 +80,7 @@ LSD.Struct = function(properties, Structs, Sub) {
       this._watch(this._properties[property].script, property);
     var subject = this._initialize && this._initialize.apply(this, arguments) || this;
     if (typeof object == 'object') 
-      subject._set(undefined, object, undefined, undefined, 'over');
+      subject._set(undefined, object, undefined, undefined, 'merge');
     return subject
   }
   if (!Structs) Structs = [];
@@ -73,38 +89,43 @@ LSD.Struct = function(properties, Structs, Sub) {
   var constructor = (typeof Base == 'string' ? LSD[Base] : Base) || LSD.Object;
   if (constructor != LSD.Dictionary)
     Structs.unshift(LSD.Object);
-  Struct.prototype = LSD.Struct.implement(LSD.Struct.prototype, {});
+  var prototype = Struct.prototype = LSD.Struct.implement(LSD.Struct.prototype, {});
   if (!Struct.instances) Struct.instances = [];
   for (var other, i = 0; other = Structs[i]; i++) {
     if (typeof other == 'string') other = LSD[other];
     var proto = other.prototype;;
     for (var name in proto) {
       var value = proto[name];
-      if (value != Struct.prototype[name]) {
+      if (value != prototype[name]) {
         var p = name;
         if (p.charAt(0) == '_')
           if (p == '_nonenumerable') {
-            Struct.prototype[p] = LSD.Struct.implement(Struct.prototype[p], {});
-            LSD.Struct.implement(value, Struct.prototype[p]);
-          } else if (typeof value == 'function')
-            for (; Struct.prototype[p] !== undefined;)
+            prototype[p] = LSD.Struct.implement(prototype[p], {});
+            LSD.Struct.implement(value, prototype[p]);
+          } else if (typeof value == 'function' 
+                 && (p.indexOf('hash') > -1
+                 ||  p.indexOf('cast') > -1
+                 ||  p.indexOf('finalize') > -1))
+            for (; prototype[p] !== undefined;)
               p = '_' + p;
-        Struct.prototype[p] = value;
+        prototype[p] = value;
       }
     }
   }
   Struct.struct = true;
   Struct.implement = LSD.Struct.implement;
-  Struct.prototype.constructor = Struct;
-  if (!constructor.prototype.push) Struct.prototype._constructor = constructor;
-  if (Sub) Struct.prototype.__constructor = typeof Sub == 'string' ? LSD[Sub] : Sub;
-  Struct.prototype._constructors = {};
+  prototype.constructor = Struct;
+  if (!constructor.prototype.push)
+    prototype._constructor = constructor;
+  if (Sub) 
+    prototype.__constructor = typeof Sub == 'string' ? LSD[Sub] : Sub;
+  prototype._constructors = {};
   var Properties = LSD.Struct.Properties;
   if (Properties) {
     var props = new Properties;
     props._struct = Struct;
   } 
-  Struct.prototype._properties = Struct.properties = props || properties || {};
+  prototype._properties = Struct.properties = props || properties || {};
   if (properties) {
     var nonenum = properties._nonenumerable;
     for (var name in properties) {
@@ -117,7 +138,7 @@ LSD.Struct = function(properties, Structs, Sub) {
       if (mutator)
         mutator.call(Struct, val);
       else if (props)
-        props._set(name, val, undefined, undefined, 'over')
+        props._set(name, val, undefined, undefined, 'merge')
     }
   }
   return Struct;
@@ -340,15 +361,15 @@ LSD.Struct.prototype._onBeforeConstruct = function(key) {
     if (alias) {
       var observed = (this._observed || (this._observed = {}));
       if (!observed[key])
-        this.watch(alias, (observed[key] = [this, key]), undefined, undefined, false);
+        this._set(alias, (observed[key] = [this, key]), undefined, undefined, 'link');
       if (this[key] !== undefined) 
         return this[key];
       return this.get(alias, true) || null;
     }
   }
 };
+LSD.Struct.prototype._hooks = ['hash', 'cast', 'finalize']
 LSD.Struct.prototype._unlinked = ['_journal', '_stored'];
-LSD.Struct.prototype._watchable = /^[a-zA-Z0-9._-]+?$/;
 LSD.Struct.prototype._nonenumerable = {
   initialize: true,
   _initialize: true,
@@ -379,7 +400,7 @@ LSD.Struct.Property = function(callback, object, extra, arg) {
   }
   switch (typeof callback) {
     case 'object':
-      property._set(undefined, callback, undefined, undefined, 'over');
+      property._set(undefined, callback, undefined, undefined, 'merge');
       break;
     case 'function':
       var props = callback._properties;
@@ -390,7 +411,7 @@ LSD.Struct.Property = function(callback, object, extra, arg) {
       else
         property._set('callback', callback);
       if (object)
-        property._set(undefined, object, undefined, undefined, 'over');
+        property._set(undefined, object, undefined, undefined, 'merge');
       break;
     case 'string':
       property._set('alias', callback);

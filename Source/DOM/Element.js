@@ -87,7 +87,7 @@ LSD.Element = new LSD.Struct({
         if (typeof value == 'string')
           value = typeof roles[value] == 'undefined' ? roles.get(value) : roles[value];
         if (typeof old == 'string') old = roles[old] || undefined;
-        this._set(undefined, value, old, meta, 'under');
+        this._set(undefined, value, old, meta, 'defaults');
       }
     },
     chunked: true
@@ -563,7 +563,7 @@ LSD.Element = new LSD.Struct({
     if (meta === 'variables') return;
     for (var child, i = 0, children = this.childNodes; child = children[i++];)
       if (child.nodeType != 3 && (!child.fragment || child.fragment == this.fragment))
-        child._set('variables', value, old, this, 'under');
+        child._set('variables', value, old, this, 'defaults');
   },
   multiple: function(value, old) {
     if (value) {
@@ -646,7 +646,7 @@ LSD.Element = new LSD.Struct({
   element.
 */
   microdata: function(value, old, meta) {
-    this.set('variables', value, old, meta, 'over');
+    this.set('variables', value, old, meta, 'merge');
   },
   itemscope: function(value, old, meta) {
     value = value && this._construct('microdata') || undefined;
@@ -801,7 +801,7 @@ LSD.Element.prototype.addEvent = function(name, fn, meta) {
   return this;
 };
 LSD.Element.prototype.addEvents = function(events, meta) {
-  this.events._set(undefined, events, undefined, meta, 'over');
+  this.events._set(undefined, events, undefined, meta, 'merge');
   return this;
 };
 LSD.Element.prototype.removeEvent = function(name, fn, meta) {
@@ -809,7 +809,7 @@ LSD.Element.prototype.removeEvent = function(name, fn, meta) {
   return this;
 };
 LSD.Element.prototype.removeEvents = function(events, meta) {
-  this.events._set(undefined, undefined, events, meta, 'over');
+  this.events._set(undefined, undefined, events, meta, 'merge');
   return this;
 };
 LSD.Element.prototype.store = function(name, value) {

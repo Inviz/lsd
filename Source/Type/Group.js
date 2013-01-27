@@ -28,7 +28,7 @@ LSD.Group = function(object, constructor) {
   }
   if (constructor) this.__constructor = typeof constructor == 'string' ? LSD[constructor] : constructor;
   if (object != null) 
-    this._set(undefined, object, undefined, undefined, 'over');
+    this._set(undefined, object, undefined, undefined, 'merge');
 };
 LSD.Group.prototype = new LSD.Object;
 LSD.Group.prototype.constructor = LSD.Group;

@@ -115,7 +115,7 @@ LSD.Properties.Matches.prototype.__cast = function(key, value, old, meta, extra,
             if (typeof value == 'function') value(widget);
             else if (value.callback || value.bind)
               (value.fn || (value.bind || this)[value.method]).call(value.bind || this, value, widget)
-            else widget.set(undefined, value, undefined, meta, 'over')
+            else widget.set(undefined, value, undefined, meta, 'merge')
           } else widget.matches.set(key, value, undefined, 'state');
         }
       }
@@ -130,7 +130,7 @@ LSD.Properties.Matches.prototype.__cast = function(key, value, old, meta, extra,
                 if (typeof fn == 'function') fn(undefined, old);
                 else if (fn.callback || fn.bind)
                   (fn.fn || (fn.bind || this)[fn.method]).call(fn.bind || this, fn, undefined, result)
-                else result.set(undefined, undefined, old, meta, 'over')
+                else result.set(undefined, undefined, old, meta, 'merge')
               } else result.matches.set(key, undefined, old, 'state');
             }
           }

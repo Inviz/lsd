@@ -19,195 +19,101 @@ provides:
 */
 LSD.Object = function(object) {
   if (object != null)
-    this._set(undefined, object, undefined, undefined, 'over');
+    this._set(undefined, object, undefined, undefined, 'merge');
 };
 LSD.Object.prototype.constructor = LSD.Object;
-LSD.Object.prototype.set = function(key, value, old, meta, prepend, hash) {
-  //run hashing hooks to transform key
+
+// a catch-all method for all public method calls
+LSD.Object.prototype._dispatch = function(key, value, old, meta, prepend) {
+  if (key == null)
+    if (prepend === 'watch' || prepend === 'observe')
+      return this.__observe(key, value, old, meta, prepend);
+    else
+      return this.__join(key, value, old, meta, prepend);
   var stringy = typeof key == 'string';
-  hasher: switch (hash) {
-    case undefined:
-      for (var method = key == null ? '_join' : '_hash'; this[method]; method = '_' + method) {
-        hash = this[method](key, value, old, meta, prepend);
-        switch (typeof hash) {
-          case 'boolean':
-            return hash;
-          case 'string': 
-            key = hash
-            hash = undefined;
-            stringy = true;
-            break;
-          case 'number':
-            key = hash;
-            hash = undefined;
-            break;
-          case 'object':
-            break hasher;
-        }
-      };
-      break hasher;
-    case false:
-      hash = undefined;
-  }
-  if (!meta && this._delegate) meta = this;
-  // merge objects
-  if (key == null) {
-    var unstorable = meta && meta._delegateble, val;
-    if (value) {
-      if (typeof value._watch == 'function') 
-        value._watch(undefined, {
-          fn: this._merger,
-          bind: this,
-          callback: this,
-          prepend: prepend
-        });
-      var skip = value._nonenumerable;
-      for (var prop in value)
-        if (value.hasOwnProperty(prop) 
-        && (unstorable == null || !unstorable[prop]) 
-        && (skip == null || !skip[prop])
-        && (val = value[prop]) !== undefined) { 
-          this._set(prop, val, undefined, meta, prepend);
-        }
-    };
-    if (old && typeof old == 'object') {
-      if (typeof old._unwatch == 'function') 
-        old._unwatch(undefined, this);
-      var skip = old._nonenumerable;
-      for (var prop in old)
-        if (old.hasOwnProperty(prop) 
-        && (unstorable == null || !unstorable[prop]) 
-        && (skip == null || !skip[prop])
-        && (val = old[prop]) !== undefined) {
-          this._set(prop, undefined, val, meta, prepend);
-        }
+  var hashers = this._hashers;
+  // hash hook can transform keys or overload setters 
+  loop: for (var i = 0, method; method = hashers ? hashers[i++] : !method && this._hash && '_hash';) {
+    var hash = this[method](key, value, old, meta, prepend);
+    switch (typeof hash) {
+      case 'boolean':
+        return hash;
+      case 'string': 
+        key = hash
+        hash = undefined;
+        stringy = true;
+        break;
+      case 'number':
+        key = hash;
+        hash = undefined;
+        break;
+      case 'object':
+        break loop;
     }
-    return true;
-  }
-  // set property in a foreign object, observe objects in path
+  };
+  if (!meta && this._delegate) meta = this;
   if (!hash && stringy)
     var index = key.indexOf('.', -1);
   if (index > -1) {
-    var name = key.substr(key.lastIndexOf('.', index - 1) + 1, index) || '_owner';
-    var subkey = key.substring(index + 1);
-    if (this.onStore && this.onStore(name, value, old, meta, prepend, subkey) === false) return;
-    // store arguments to reuse when object in path changes
-    var storage = (this._stored || (this._stored = {}));
-    var group = (storage[name] || (storage[name] = []));
-    if (value !== undefined)
-    group.push([subkey, value, undefined, meta, prepend, hash]);
-    if (old !== undefined) 
-      for (var i = 0, j = group.length; i < j; i++)
-        if (group[i][1] === old) {
-          group.splice(i, 1);
-          break;
-        }
-    var obj = this[name];
-    // build object in path
-    if (obj == null) {
-      if (value !== undefined && !this._nonenumerable[name] && !hash)
-        obj = this._construct(name, null, meta);
-      if (obj == null && this.onConstructRefused)
-        this.onConstructRefused(key, value, meta, old, prepend, hash)
-    // broadcast value to array
-    } else if (obj.push && obj._object !== true) {
-      var subindex = subkey.indexOf('.');
-      var prop = (subindex > -1) ? subkey.substring(0, subindex) : subkey;
-      if (parseInt(prop) == prop)
-        obj._set(subkey, value, old, meta, prepend, hash)
-      else for (var i = 0, j = obj.length; i < j; i++)
-        obj[i]._set(subkey, value, old, meta, prepend, hash);
-    // invoke a function
-    } else if (obj.apply) {
-      if (value !== undefined) 
-        this[name](subkey, value);
-      if (old !== undefined) {
-        var negated = LSD.negated[name] || (LSD.negated[name] = LSD.negate(name));
-        this[negated](subkey, old)
-      }
-    // set property in object
-    } else {
-      if (obj._set && obj._ownable !== false) {
-        if (!this._nonenumerable[name] 
-        && value !== undefined
-        && old !== obj && this._owning !== false
-        && obj._shared !== true && obj._owner !== this)
-          obj = this._construct(name, null, 'copy', obj)
-        else
-          obj._set(subkey, value, old, meta, prepend, hash);
-      } else {
-        for (var previous, k, object = obj; (subindex = subkey.indexOf('.', previous)) > -1;) {
-          k = subkey.substring(previous || 0, subindex)
-          if (previous > -1 && object._set) {
-            object._set(subkey.substring(subindex), value, old, meta, prepend, hash);
-            break;
-          } else if (object[k] != null) 
-            object = object[k];
-          previous = subindex + 1;
-        }
-        k = subkey.substring(previous);
-        if (object._set)
-          object._set(k, value, old, meta, prepend, hash)
-        else
-          object[k] = value;
-      }
-    }
-    return true;
-  // merge objects by key
-  } else if (prepend === 'over' || prepend === 'under') {
-    var arg = value || old;
-    if (arg && typeof arg == 'object' && !arg.exec && !arg.push && !arg.nodeType) {
-      if (this.onStore && this.onStore(key, value, meta, old, prepend) === false) return;
-      var storage = (this._stored || (this._stored = {}));
-      var group = storage[key] || (storage[key] = []);
-      if (value !== undefined) 
-        group.push([undefined, value, undefined, meta, prepend, hash, index]);
-      if (old !== undefined) 
-        for (var i = 0, j = group.length; i < j; i++)
-          if (group[i][1] === old) {
-            group.splice(i, 1);
-            break;
-          }
-      var obj = this[key];
-      // set a reference to remote object without copying it
-      if (obj == null) {
-        if (value !== undefined && !this._nonenumerable[key])
-          obj = (value && value._set && this._set(key, value, undefined, 'reference') && value)
-               || this._construct(key, null, meta);
-      // if remote object is array, merge object with every item in it
-      } else if (obj.push && obj._object !== true) {
-        for (var i = 0, j = obj.length; i < j; i++)
-          if (!meta || !meta._delegate || !meta._delegate(obj[i], key, value, old, meta))
-            obj[i]._set(undefined, value, old, meta, prepend, hash);
-      } else if (obj._set) {
-        var ref = obj._reference, owner = obj._owner;
-        // if there was an object referenced by that key, copy it
-        if (!this._nonenumerable[name] 
-        && value !== undefined && obj !== old 
-        && (!meta || !meta._delegate)
-        && !value._shared
-        && (ref && ref !== key || owner !== this)) {
-          obj = this._construct(key, null, 'copy', obj)
-        } else {
-          // swap objects
-          if (obj === old)
-            this._set(key, value, old, meta)
-          // merge objects
-          else if (obj !== value) 
-            obj._set(undefined, value, old, meta, prepend)
-        }
-      // merge into regular javascript object (possible side effects)
-      } else {
-        if (value !== undefined) for (var prop in value) 
-          obj[prop] = value[prop];
-        if (old !== undefined) for (var prop in old) 
-          if (old[prop] === obj[prop] && (value === undefined || old[prop] !== value[prop])) 
-            delete old[prop];
-      }
-      return true;
-    }
+    return this.__walk(key, value, old, meta, prepend, hash, index);
+  } else if (typeof prepend == 'string') {
+    var methods = this._methods;
+    var method = methods && methods[prepend] || '__' + prepend;
+    var result = this[method](key, value, old, meta, prepend);
+    if (result != null)
+      return result;
   }
-  // set value by key
+  return this.__set(key, value, old, meta, prepend, hash);
+};
+
+LSD.Object.prototype.set = LSD.Object.prototype._dispatch;
+
+LSD.Object.prototype.construct = function(key, value, old, meta) {
+  return this._dispatch(key, value, value, meta, 'construct')
+};
+
+LSD.Object.prototype.unset = function(key, value, old, meta, index, hash) {
+  return this._dispatch(key, old, value, meta, index, hash);
+};
+
+LSD.Object.prototype.mix = function(key, value, old, meta, prepend, lazy) {
+  return this._dispatch(key, value, old, meta, prepend || 'merge', lazy)
+};
+
+LSD.Object.prototype.unmix = function(key, value, old, meta, prepend, lazy) {
+  return this._dispatch(key, old, value, meta, prepend || 'merge', lazy)
+};
+
+LSD.Object.prototype.watch = function(key, value, old, meta, lazy) {
+  return this._dispatch(key, value, old, meta, 'watch');
+};
+
+LSD.Object.prototype.unwatch = function(key, value, old, meta, lazy) {
+  return this._dispatch(key, old, value, meta, 'watch');
+};
+
+LSD.Object.prototype.get = function(key, value, old, meta) {
+  return this._dispatch(key, value, old, meta, 'get')
+};
+
+LSD.Object.prototype.merge = function(value, old, meta, prepend) {
+  return this._dispatch(undefined, value, old, meta, prepend || 'merge')
+};
+
+LSD.Object.prototype.unmerge = function(value, old, meta, prepend) {
+  return this._dispatch(undefined, old, value, meta, prepend || 'merge')
+};
+
+LSD.Object.prototype.observe = function(value, old, meta, prepend) {
+  return this._dispatch(undefined, value, old, meta, 'watch')
+};
+
+LSD.Object.prototype.unobserve = function(value, old, meta, prepend) {
+  return this._dispatch(undefined, old, value, meta, 'watch')
+};
+
+// assign a value by key
+LSD.Object.prototype.__set = function(key, value, old, meta, prepend, hash) {
   var skip = this._nonenumerable;
   var nonenum = skip[key];
   var deleting = value === undefined
@@ -253,224 +159,302 @@ LSD.Object.prototype.set = function(key, value, old, meta, prepend, hash) {
       if ((watcher = watchers[i]) == null) continue;
       this._callback(watcher, key, value, old, meta, prepend, hash, val);
     }
-  if (stringy && !(index > -1)) {
-    if (!deleting && hash === undefined && this[key] !== value)
-      this[key] = value;
-    var watched = this._watched;
-    if (watched && (watched = watched[key]))
-      for (var i = 0, fn; fn = watched[i++];)
-        if (typeof fn == 'function')
-          fn.call(this, value, old, meta, prepend, hash, val);
-        else
-          this._callback(fn, key, value, old, meta, prepend, hash, val);
-    // apply stored arguments
-    var stored = this._stored, mem, k;
-    if (stored && (stored = stored[key])) 
-      for (var i = 0, args; args = stored[i++];) {
-        k = args[0], val = args[1], mem = args[3];
-        if (val === value) continue;
-        if (value != null && (!mem || !mem._delegate || !mem._delegate(value, key, val)))
-          if (value._set)
-            value._set.apply(value, args);
-          else if (k == null)  {
-            if (typeof value == 'object')
-              for (var p in val)
-                value[p] = val[p];
-          } else
-            value[k] = val;
-        if (old != null && typeof old == 'object' && meta !== 'copy' && val !== old 
-        && (!mem || !mem._delegate || !mem._delegate(old, key, undefined, val, meta)))
-          if (old._unmix)
-            old._unset.apply(old, args);
+  if (!deleting && hash === undefined && this[key] !== value)
+    this[key] = value;
+  if (value === true && key == 'variables')
+    debugger
+  var watched = this._watched;
+  if (watched && (watched = watched[key]))
+    for (var i = 0, fn; fn = watched[i++];)
+      if (typeof fn == 'function')
+        fn.call(this, value, old, meta, prepend, hash, val);
+      else
+        this._callback(fn, key, value, old, meta, prepend, hash, val);
+  // apply stored arguments
+  var stored = this._stored, mem, k;
+  if (stored && (stored = stored[key])) 
+    for (var i = 0, args; args = stored[i++];) {
+      k = args[0], val = args[1], mem = args[3];
+      var delegate = mem && mem._delegate;
+      if (val === value) continue;
+      if (value != null && (!delegate || !mem._delegate(value, key, val)))
+        if (value._set)
+          value._set(args[0], val, args[2], mem, args[4]);
+        else if (k == null)  {
+          if (typeof value == 'object')
+            for (var p in val)
+              value[p] = val[p];
+        } else
+          value[k] = val;
+      if (old != null && old._unmix && meta !== 'copy' && val !== old 
+      && (!delegate || !mem._delegate(old, key, undefined, val, meta)))
+        old._set(args[0], args[2], val, mem, args[4]);
+    }
+  return true;
+}
+LSD.Object.prototype.__replace  = LSD.Object.prototype.__set; 
+
+// dispatches a composite key
+LSD.Object.prototype.__walk = function(key, value, old, meta, prepend, hash, index) {
+  var name = key.substr(key.lastIndexOf('.', index - 1) + 1, index) || '_owner';
+  var subkey = key.substring(index + 1);
+  // store arguments to reuse when object in path changes
+  var storage = (this._stored || (this._stored = {}));
+  var group = (storage[name] || (storage[name] = []));
+  if (value !== undefined)
+    group.push([subkey, value, undefined, meta, prepend]);
+  if (old !== undefined) 
+    for (var i = 0, j = group.length; i < j; i++)
+      if (group[i][1] === old) {
+        group.splice(i, 1);
+        break;
       }
+  var obj = this[name];
+  // build object in path
+  if (obj == null) {
+    if (value !== undefined && !this._nonenumerable[name]
+    && prepend !== 'watch' && prepend !== 'get')
+      obj = this._dispatch(name, undefined, undefined, meta, 'construct');
+    //if (obj == null && this.onConstructRefused)
+    //  this.onConstructRefused(key, value, meta, old, prepend)
+  // broadcast value to every element of an array
+  } else if (obj.push && obj._object !== true) {
+    var subindex = subkey.indexOf('.');
+    var prop = (subindex > -1) ? subkey.substring(0, subindex) : subkey;
+    if (parseInt(prop) == prop)
+      obj._set(subkey, value, old, meta, prepend)
+    else for (var i = 0, j = obj.length; i < j; i++)
+      obj[i]._set(subkey, value, old, meta, prepend);
+  // invoke a function
+  } else if (obj.apply) {
+    if (value !== undefined) 
+      this[name](subkey, value);
+    if (old !== undefined) {
+      var negated = LSD.negated[name] || (LSD.negated[name] = LSD.negate(name));
+      this[negated](subkey, old)
+    }
+  // set property in object
+  } else {
+    if (obj._set && obj._ownable !== false) {
+      if (!this._nonenumerable[name] 
+      && value !== undefined
+      && old !== obj && this._owning !== false
+      && obj._shared !== true && obj._owner !== this)
+        obj = this._dispatch(name, obj, undefined, 'copy', 'construct');
+      else
+        obj._set(subkey, value, old, meta, prepend);
+    } else {
+      for (var previous, k, object = obj; (subindex = subkey.indexOf('.', previous)) > -1;) {
+        k = subkey.substring(previous || 0, subindex)
+        if (previous > -1 && object._set) {
+          object._set(subkey.substring(subindex), value, old, meta, prepend);
+          break;
+        } else if (object[k] != null) 
+          object = object[k];
+        previous = subindex + 1;
+      }
+      k = subkey.substring(previous);
+      if (object._set)
+        object._set(k, value, old, meta, prepend)
+      else
+        object[k] = value;
+    }
+  }
+  return true;
+}
+
+// merge an object into this
+LSD.Object.prototype.__join = function(key, value, old, meta, prepend) {
+  var unstorable = meta && meta._delegateble, val;
+  if (value) {
+    if (value.__observe) 
+      value.__observe(undefined, {
+        fn: this._merger,
+        bind: this,
+        callback: this,
+        prepend: prepend
+      });
+    var skip = value._nonenumerable;
+    for (var prop in value)
+      if (value.hasOwnProperty(prop) 
+      && (!unstorable || !unstorable[prop]) 
+      && (!skip || !skip[prop])
+      && (val = value[prop]) !== undefined)
+        this._set(prop, val, undefined, meta, prepend);
+  };
+  if (old) {
+    if (old.__observe) 
+      old.__observe(undefined, undefined, this);
+    var skip = old._nonenumerable;
+    for (var prop in old)
+      if (old.hasOwnProperty(prop) 
+      && (!unstorable || !unstorable[prop]) 
+      && (!skip || !skip[prop])
+      && (val = old[prop]) !== undefined)
+        this._set(prop, undefined, val, meta, prepend);
+  }
+  return true;
+}
+
+// merge object by a property
+LSD.Object.prototype.__merge = function(key, value, old, meta, prepend) {
+  if (key == 'author' && !value && old && old.title)
+    debugger
+  var arg = value || old;
+  if (!(arg instanceof Object) || arg.apply || arg.nodeType || arg.push)
+    return null;
+  var storage = (this._stored || (this._stored = {}));
+  var group = storage[key] || (storage[key] = []);
+  if (value !== undefined) 
+    group.push([undefined, value, undefined, meta, prepend]);
+  if (old !== undefined) 
+    for (var i = 0, j = group.length; i < j; i++)
+      if (group[i][1] === old) {
+        group.splice(i, 1);
+        break;
+      }
+  var obj = this[key];
+  // set a reference to remote object without copying it
+  if (obj == null) {
+    if (value !== undefined && !this._nonenumerable[key]) {
+      if (value && value._set)
+        obj = this.__set(key, value, undefined, 'reference') && value;
+      if (!obj) 
+        obj = this.__construct(key, undefined, undefined, meta);
+    }
+  // if remote object is array, merge object with every item in it
+  } else if (obj.push && obj._object !== true) {
+    for (var i = 0, j = obj.length; i < j; i++)
+      if (!meta || !meta._delegate || !meta._delegate(obj[i], key, value, old, meta))
+        obj[i].__join(undefined, value, old, meta, prepend);
+  } else if (obj._set) {
+    var ref = obj._reference, owner = obj._owner;
+    // if there was an object referenced by that key, copy it
+    if (!this._nonenumerable[name] 
+    && value !== undefined && obj !== old 
+    && (!meta || !meta._delegate)
+    && !value._shared
+    && (ref && ref !== key || owner !== this)) {
+      obj = this.__construct(key, obj, undefined, 'copy')
+    } else {
+      // swap objects
+      if (obj === old || (old && obj._origin === old))
+        this._set(key, value, old, meta)
+      // merge objects
+      else if (obj !== value) 
+        obj._set(undefined, value, old, meta, prepend)
+    }
+  // merge into regular javascript object (possible side effects)
+  } else {
+    if (value !== undefined) for (var prop in value) 
+      obj[prop] = value[prop];
+    if (old !== undefined) for (var prop in old) 
+      if (old[prop] === obj[prop] && (value === undefined || old[prop] !== value[prop])) 
+        delete old[prop];
+  }
+  return true;
+};
+LSD.Object.prototype.__defaults = LSD.Object.prototype.__merge;
+
+// set up a global observer
+LSD.Object.prototype.__observe = function(key, value, old, meta, method) {
+  var watchers = (this._watchers || (this._watchers = []));
+  if (value !== undefined) 
+    watchers.push(value)
+  if (old !== undefined) for (var i = 0, j = watchers.length, fn; i < j; i++) {
+    var fn = watchers[i];
+    if (fn === old || (fn != null && fn.callback == old))
+      watchers.splice(i, 1);
+    break;
+  }
+}
+
+// set up a property observer
+LSD.Object.prototype.__watch = function(key, value, old, meta, method) {
+  var val = this.__get(key, value, old, meta, method);
+  var watched = (this._watched || (this._watched = {}));
+  watched = (watched[key] || (watched[key] = []))
+  if (value) {
+    watched.push(value);
+    if (val != undefined) {
+      if (value.call)
+        value(val, undefined, meta);
+      else
+        this._callback(value, key, val, undefined, meta);
+    }
+  }
+  if (old) {
+    for (var i = watched.length, fn; fn = watched[--i];) {
+      var match = fn.callback || fn;
+      if (match.push) {
+        if (!old.push || old[0] != match[0] || old[1] != match[1])
+          continue;
+      } else if (match != old && fn != old)
+        continue;
+      old = watched[i];
+      watched.splice(i, 1);
+      break;
+    }
+    if (val != undefined && i > -1) {
+      if (fn.call)
+        old(undefined, val, meta);
+      else
+        this._callback(old, key, undefined, val, meta);
+    }
   }
   return true;
 };
 
-LSD.Object.prototype.unset = function(key, value, old, meta, index, hash) {
-  return this._set(key, old, value, meta, index, hash);
+// get a single property
+LSD.Object.prototype.__get = function(key, value, old, meta, method) {
+  var result = this[key];
+  var nonenum = this._nonenumerable;
+  if (result == undefined && method === 'construct' && this._construct)
+    result = this.__construct(key, value, old, meta);
+  if (result === true)
+      debugger
+  return result;
 };
 
-LSD.Object.prototype.get = function(key, construct, meta) {
-  for (var method = '_hash'; this[method] && hash === undefined; method = '_' + method) {
-    var hash = this[method](key, undefined, undefined, meta, 'get');
-    switch (typeof hash) {
-      case 'boolean':
-        return;
-      case 'string': case 'number':
-        key = hash;
-        hash = undefined;
-    }
-  };
-  for (var dot, start, result, object = this; dot != -1;) {
-    start = (dot == null ? -1 : dot) + 1;
-    dot = key.indexOf('.', start)
-    var subkey = ((dot == -1 && !start) ? key : key.substring(start, dot == -1 ? key.length : dot)) || '_owner';
-    if (object === this) {
-      result = this[subkey];
-    } else {
-      if (construct == null)
-        construct = this._eager || false;
-      result = typeof object.get == 'function' ? object.get(subkey, construct) : object[subkey];
-    }
-    if (result == undefined && construct && !object._nonenumerable[subkey])
-      result = object._construct(subkey, undefined, meta)
-    if (result != undefined) {
-      if (dot != -1) object = result;
-      else return result;
-    } else break;
-  }
-};
-
-LSD.Object.prototype.mix = function(key, value, old, meta, prepend, lazy) {
-  return this._set(key, value, old, meta, prepend || 'over', lazy)
-};
-
-LSD.Object.prototype.unmix = function(key, value, old, meta, prepend, lazy) {
-  return this._set(key, old, value, meta, prepend || 'over', lazy)
-};
-
-LSD.Object.prototype.merge = function(value, prepend, meta, old) {
-  return this._set(undefined, value, old, meta, prepend || 'over')
-};
-
-LSD.Object.prototype.unmerge = function(value, prepend, meta) {
-  return this._set(undefined, undefined, value, meta, prepend || 'over')
-};
-
-LSD.Object.prototype.watch = function(key, value, old, meta, lazy) {
-  for (var method = key == null ? '_join' : '_hash'; this[method]; method = '_' + method) {
-    var hash = this[method](key, value, old, meta, 'watch');
-    switch (typeof hash) {
-      case 'string':
-        key = hash;
-        string = true;
-        break;
-      case 'object':
-        if (value) {
-          if (typeof hash.push == 'function')
-            hash.push(value)
-          else
-            hash.watch(key, value);
-          value = undefined;
-        }
-        if (old) {
-          if (typeof hash.splice == 'function')
-            for (var i = hash.length, fn; i--;) {
-              if ((fn = hash[i]) == old || fn.callback == old) {
-                hash.splice(i, 1);
-                break;
-              }
-            }
-          else 
-            hash.unwatch(key, old);
-          old = undefined;
-        }
-    }
-  }
-  if (!key) {
-    var watchers = (this._watchers || (this._watchers = []));
-    if (value !== undefined) 
-      watchers.push(value)
-    if (old !== undefined) for (var i = 0, j = watchers.length, fn; i < j; i++) {
-      var fn = watchers[i];
-      if (fn === old || (fn != null && fn.callback == old))
-        watchers.splice(i, 1);
-      break;
-    }
-  } else {
-    var index = key.indexOf('.');
-    if (index > -1) {
-      this._watch(key.substr(0, index) || '_owner', value && {
-        fn: this._watcher,
-        index: index,
-        key: key,
-        callback: typeof value == 'string' ? [this, value] : value,
-        meta: meta,
-        lazy: lazy
-      }, typeof old == 'string' ? [this, old] : old, meta, lazy)
-    } else {
-      var val = this._get(key, value && lazy === false);
-      var watched = (this._watched || (this._watched = {}));
-      watched = (watched[key] || (watched[key] = []))
-      if (value) {
-        watched.push(value);
-        if (val != undefined) {
-          if (value.call)
-            value(val, undefined, meta);
-          else
-            this._callback(value, key, val, undefined, meta, lazy);
-        }
-      }
-      if (old) {
-        for (var i = watched.length, fn; fn = watched[--i];) {
-          var match = fn.callback || fn;
-          if (match.push) {
-            if (!old.push || old[0] != match[0] || old[1] != match[1])
-              continue;
-          } else if (match != old && fn != old)
-            continue;
-          old = watched[i];
-          watched.splice(i, 1);
-          break;
-        }
-        if (val != undefined && i > -1) {
-          if (fn.call)
-            old(undefined, val, meta);
-          else
-            this._callback(old, key, undefined, val, meta, lazy);
-        }
-      }
-    }
-  }
-};
-
-LSD.Object.prototype.unwatch = function(key, value, old, meta, lazy) {
-  return this._watch(key, old, value, meta, lazy);
-};
-
-LSD.Object.prototype._construct = function(name, constructor, meta, value) {
+LSD.Object.prototype.__construct = function(key, value, old, meta, method) {
   var constructors = this._constructors;
   if (constructors)
-    var found = constructors[name] || false, instance;
+    var found = constructors[key] || false, instance;
   if (!(constructor = found) && this._getConstructor &&
-     (constructor = this._getConstructor(name)) === false) 
+     (constructor = this._getConstructor(key)) === false) 
     return;
-  if (!constructor)
-    constructor = (value && value.constructor);
+  if (method !== 'link') {
+    if (value) switch (typeof value) {
+      case 'object':
+        var given = value.constructor
+        if (given != Object);
+          constructor = given;
+        break;
+      case 'function':
+        constructor = value;
+    }
+  }
   if (!constructor)
     if (this.constructor.prototype._object === false)
       return;
     else
       constructor = this.constructor;
   if (found === false)
-    constructors[name] = constructor;
-  if (!this._onBeforeConstruct || (instance = this._onBeforeConstruct(name, constructor)) === undefined) {
+    constructors[key] = constructor;
+  if (!this._onBeforeConstruct || (instance = this._onBeforeConstruct(key, constructor)) === undefined) {
     instance = new constructor;
-    this._set(name, instance, value, this._delegate && !meta ? this : meta);
+    this.__set(key, instance, undefined, this._delegate && !meta ? this : meta);
+  }
+  if (given)
+    instance._origin = given;
+  if (method === 'link') {
+    debugger
+    console.error('error', key, value, old, meta, method)
+    this.__watch(key, value, old, meta, 'construct')
   }
   return instance;
 };
-
-LSD.Object.prototype._watcher = function(call, key, value, old, meta) {
-  for (var i = 0, object; i < 2; i++) {
-    if ((object = (i ? value : old)) == null) continue;
-    for (var dot = null, start; dot != -1;) {
-      start = (dot == null ? call.index == null ? -1 : call.index : dot) + 1;
-      dot = call.key.indexOf('.', start)
-      if (object && object._watch) {
-        object[i ? '_watch' : '_unwatch'](call.key.substring(start), call.callback, undefined, call.meta || meta, call.lazy);
-        break;
-      } else {
-        var subkey = call.key.substring(start, dot == -1 ? call.key.length : dot);
-        if (typeof (object = object[subkey]) == 'undefined') break;
-        if (dot == -1) 
-          if (typeof call.callback == 'function') call.callback(object);
-          else this._callback(call.callback, key, object, undefined, meta);
-      }
-    }
-  }
-};
+LSD.Object.prototype.__link = LSD.Object.prototype.__construct;
 
 LSD.Object.prototype._merger = function(call, name, value, old, meta) {
   this._set(name, value, old, meta, call.prepend);
@@ -485,7 +469,7 @@ LSD.Object.prototype._callback = function(callback, key, value, old, meta, lazy)
       break;
     default:
       if (typeof callback.fn == 'function')
-        return (callback.fn || (callback.bind || this)[callback.method]).apply(callback.bind || this, arguments);
+        return (callback.fn || (callback.bind || this)[callback.method]).call(callback.bind || this, callback, key, value, old, meta, lazy);
       else if (typeof callback._watch == 'function')
         var subject = callback, property = key;
       else if (callback.push)
@@ -593,7 +577,7 @@ LSD.toObject = LSD.Object.toObject = LSD.Object.prototype.toObject;
 LSD.Object.prototype._trigger = '_calculated';
 LSD.Dictionary = function(object) {
   if (object != null)
-    this._set(undefined, object, undefined, undefined, 'over');
+    this._set(undefined, object, undefined, undefined, 'merge');
 };
 
 LSD.Object.prototype._nonenumerable = {

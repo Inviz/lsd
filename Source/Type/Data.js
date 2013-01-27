@@ -22,7 +22,7 @@ LSD.Data = function(object) {
   if (typeof object == 'string')
     subject.fromString(object);
   else if (object) 
-    subject._set(undefined, object, undefined, undefined, 'over');
+    subject._set(undefined, object, undefined, undefined, 'merge');
   return subject;
 };
 LSD.Data.prototype = new LSD.Object;

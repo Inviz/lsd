@@ -76,8 +76,7 @@ LSD.Array.prototype._offset = 0;
   LSD.Objects, thus it does not affect their `._owner` link.
 */
 LSD.Array.prototype._owning = false;
-LSD.Array.prototype._join = function(key, value, old, meta, from) {
-  if (from != 'watch') return; 
+LSD.Array.prototype.__observe = function(key, value, old, meta, from) {
   if (value) {
     for (var i = 0, j = this._length >>> 0; i < j; i++)
       if (value._object)
@@ -544,7 +543,7 @@ LSD.Array.prototype.clone = function() {
 LSD.Array.prototype.onConstructRefused = function(key, value, old, meta, prepend) {
   for (var i = 0, j = this._length, val; i < j; i++) {
     if ((val = this[i]) && val._set)
-      val._set(key, value, old, meta, prepend || 'over')
+      val._set(key, value, old, meta, prepend || 'merge')
   }
 }
 LSD.Array.prototype['<<'] = LSD.Array.prototype.push;

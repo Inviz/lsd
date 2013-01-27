@@ -50,7 +50,7 @@ provides:
 
 LSD.Journal = function(object) {
   if (object != null) 
-    this._set(undefined, object, undefined, undefined, 'over');
+    this._set(undefined, object, undefined, undefined, 'merge');
 };
 
 LSD.Journal.prototype = new LSD.Object;
@@ -67,11 +67,11 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, get) {
       break;
     case 'string':
       switch (prepend) {
-        case 'over': case 'under':
+        case 'merge': case 'defaults':
           var val = value || old;
           if (typeof val == 'object' && !val.exec && !val.push && !val.nodeType)
               return;
-          prepend = prepend == 'under';
+          prepend = prepend == 'defaults';
           break;
         case 'replace':
           if (old === undefined) {
@@ -166,7 +166,7 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, get) {
             break;
           } else if (k > position) return true;
     if (k > -1)
-      return this._set(key, value, undefined, meta, undefined, false);
+      return this.__set(key, value, undefined, meta, prepend);
     return;
   }
   if (value !== undefined) {
@@ -197,10 +197,14 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, get) {
       } else return;
     } else if (old !== current) 
       return false;
-    return this._set(key, value, undefined, meta, undefined, false);
+    return this.__set(key, value, undefined, meta, prepend);
   }
     
 };
+
+LSD.Journal.prototype.__after   =
+LSD.Journal.prototype.__replace =
+LSD.Journal.prototype.__before  = LSD.Journal.prototype._hash;
 
 LSD.Journal.prototype._finalize = function(key, value, old, meta, prepend, hash, val) {
   if (val === value) return;

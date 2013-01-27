@@ -65,9 +65,9 @@ LSD.Node.prototype.dispose = function() {
 LSD.Node.prototype.setVariables = function(value, old, meta) {
   var fragment = this.fragment;
   this.set('variables', 
-           value && (fragment && fragment != value.fragment && fragment.variables || value.get('variables', true, 'variables')), 
+           value && (fragment && fragment != value.fragment && fragment.variables || value.__get('variables', undefined, undefined, 'variables', 'construct')), 
            old && (fragment && fragment != old.fragment && fragment || old).variables,
-           'variables', 'under');
+           'variables', 'defaults');
 };
 LSD.Node.prototype.$family = function() {
   return 'widget';
