@@ -60,7 +60,7 @@ LSD.Object.prototype._dispatch = function(key, value, old, meta, prepend) {
     var methods = this._methods;
     var method = methods && methods[prepend] || '__' + prepend;
     var result = this[method](key, value, old, meta, prepend);
-    if (result != null)
+    if (result != null || prepend == 'get')
       return result;
   }
   return this.__set(key, value, old, meta, prepend, hash);
@@ -145,7 +145,7 @@ LSD.Object.prototype.__set = function(key, value, old, meta, prepend, hash) {
   var changed, val = value;
   for (var method = '_cast', i = 0; (changed === undefined || !nonenum) && this[method]; method = '_' + method)
     if ((changed = this[method](key, value, old, meta, prepend, hash)) !== undefined)
-      if (changed === skip) {
+      if (changed === skip) { 
         if (hash === undefined) this[key] = old;
         return;
       } else value = changed;
@@ -161,8 +161,6 @@ LSD.Object.prototype.__set = function(key, value, old, meta, prepend, hash) {
     }
   if (!deleting && hash === undefined && this[key] !== value)
     this[key] = value;
-  if (value === true && key == 'variables')
-    debugger
   var watched = this._watched;
   if (watched && (watched = watched[key]))
     for (var i = 0, fn; fn = watched[i++];)
@@ -171,24 +169,29 @@ LSD.Object.prototype.__set = function(key, value, old, meta, prepend, hash) {
       else
         this._callback(fn, key, value, old, meta, prepend, hash, val);
   // apply stored arguments
-  var stored = this._stored, mem, k;
+  var stored = this._stored, m, k, v, o, p;
   if (stored && (stored = stored[key])) 
     for (var i = 0, args; args = stored[i++];) {
-      k = args[0], val = args[1], mem = args[3];
-      var delegate = mem && mem._delegate;
-      if (val === value) continue;
-      if (value != null && (!delegate || !mem._delegate(value, key, val)))
-        if (value._set)
-          value._set(args[0], val, args[2], mem, args[4]);
-        else if (k == null)  {
-          if (typeof value == 'object')
-            for (var p in val)
-              value[p] = val[p];
-        } else
-          value[k] = val;
-      if (old != null && old._unmix && meta !== 'copy' && val !== old 
-      && (!delegate || !mem._delegate(old, key, undefined, val, meta)))
-        old._set(args[0], args[2], val, mem, args[4]);
+      k = args[0], v = args[1], o = args[2], m = args[3], p = args[4];
+      var delegate = m && m._delegate;
+      if (v === value) continue;
+      if (typeof p == 'string') {
+        var methods = this._methods;
+        var method = k == null ? 'join' : p;
+        method = methods && methods[method] || '__' + method;
+      }
+      if (old != null && meta !== 'copy' && v !== old && typeof old == 'object'
+      && (!delegate || !m._delegate(old, key, undefined, v, meta))) {
+        if (old._dispatch)
+          old._dispatch(k, o, v, m, p)
+        else
+          this[method].call(old, k, o, v, m, p);
+      }
+      if (value != null && (!delegate || !m._delegate(value, key, v)))
+        if (value._dispatch)
+          value._dispatch(k, v, o, m, p);
+        else if (method)
+          this[method].call(value, k, v, o, m, p)
     }
   return true;
 }
@@ -201,6 +204,12 @@ LSD.Object.prototype.__walk = function(key, value, old, meta, prepend, hash, ind
   // store arguments to reuse when object in path changes
   var storage = (this._stored || (this._stored = {}));
   var group = (storage[name] || (storage[name] = []));
+  if (prepend === 'watch') {
+    if (typeof value == 'string')
+      value = [this, value];
+    if (typeof old == 'string')
+      old = [this, old];
+  }
   if (value !== undefined)
     group.push([subkey, value, undefined, meta, prepend]);
   if (old !== undefined) 
@@ -210,21 +219,19 @@ LSD.Object.prototype.__walk = function(key, value, old, meta, prepend, hash, ind
         break;
       }
   var obj = this[name];
+  var getting = prepend === 'watch' || prepend === 'get';
   // build object in path
   if (obj == null) {
-    if (value !== undefined && !this._nonenumerable[name]
-    && prepend !== 'watch' && prepend !== 'get')
+    if (value !== undefined && !this._nonenumerable[name] && !getting)
       obj = this._dispatch(name, undefined, undefined, meta, 'construct');
-    //if (obj == null && this.onConstructRefused)
-    //  this.onConstructRefused(key, value, meta, old, prepend)
   // broadcast value to every element of an array
   } else if (obj.push && obj._object !== true) {
     var subindex = subkey.indexOf('.');
     var prop = (subindex > -1) ? subkey.substring(0, subindex) : subkey;
     if (parseInt(prop) == prop)
-      obj._set(subkey, value, old, meta, prepend)
+      return obj._dispatch(subkey, value, old, meta, prepend)
     else for (var i = 0, j = obj.length; i < j; i++)
-      obj[i]._set(subkey, value, old, meta, prepend);
+      obj[i]._dispatch(subkey, value, old, meta, prepend);
   // invoke a function
   } else if (obj.apply) {
     if (value !== undefined) 
@@ -233,34 +240,39 @@ LSD.Object.prototype.__walk = function(key, value, old, meta, prepend, hash, ind
       var negated = LSD.negated[name] || (LSD.negated[name] = LSD.negate(name));
       this[negated](subkey, old)
     }
-  // set property in object
+  // dispatch last bit
   } else {
-    if (obj._set && obj._ownable !== false) {
+    if (obj._dispatch) {
       if (!this._nonenumerable[name] 
+      && !getting
+      && obj._ownable !== false
       && value !== undefined
       && old !== obj && this._owning !== false
       && obj._shared !== true && obj._owner !== this)
         obj = this._dispatch(name, obj, undefined, 'copy', 'construct');
       else
-        obj._set(subkey, value, old, meta, prepend);
+        return obj._dispatch(subkey, value, old, meta, prepend);
     } else {
-      for (var previous, k, object = obj; (subindex = subkey.indexOf('.', previous)) > -1;) {
-        k = subkey.substring(previous || 0, subindex)
-        if (previous > -1 && object._set) {
-          object._set(subkey.substring(subindex), value, old, meta, prepend);
-          break;
-        } else if (object[k] != null) 
-          object = object[k];
+      for (var previous = 0, k, object = obj; subindex = subkey.indexOf('.', previous);) {
+        if (object._dispatch)
+          return object._dispatch(subkey.substring(previous), value, old, meta, prepend);
+        k = subkey.substring(previous, subindex == -1 ? undefined : subindex)
+        if (subindex == -1 && !getting)
+          object[k] = value;
+        else if ((object = object[k]) === undefined)
+          return;
         previous = subindex + 1;
+        if (!previous) {
+          if (prepend === 'watch' && value)
+            if (value.call)
+              value.call(this, object, undefined, meta)
+            else
+              this._callback(value, k, undefined, meta)
+          return object;
+        }
       }
-      k = subkey.substring(previous);
-      if (object._set)
-        object._set(k, value, old, meta, prepend)
-      else
-        object[k] = value;
     }
   }
-  return true;
 }
 
 // merge an object into this
@@ -280,7 +292,10 @@ LSD.Object.prototype.__join = function(key, value, old, meta, prepend) {
       && (!unstorable || !unstorable[prop]) 
       && (!skip || !skip[prop])
       && (val = value[prop]) !== undefined)
-        this._set(prop, val, undefined, meta, prepend);
+        if (this._set) 
+          this._set(prop, val, undefined, meta, prepend);
+        else
+          this[prop] = val;
   };
   if (old) {
     if (old.__observe) 
@@ -298,8 +313,6 @@ LSD.Object.prototype.__join = function(key, value, old, meta, prepend) {
 
 // merge object by a property
 LSD.Object.prototype.__merge = function(key, value, old, meta, prepend) {
-  if (key == 'author' && !value && old && old.title)
-    debugger
   var arg = value || old;
   if (!(arg instanceof Object) || arg.apply || arg.nodeType || arg.push)
     return null;
@@ -371,11 +384,15 @@ LSD.Object.prototype.__observe = function(key, value, old, meta, method) {
 
 // set up a property observer
 LSD.Object.prototype.__watch = function(key, value, old, meta, method) {
-  var val = this.__get(key, value, old, meta, method);
-  var watched = (this._watched || (this._watched = {}));
-  watched = (watched[key] || (watched[key] = []))
+  if (this.__get) {
+    var val = this.__get(key, value, old, meta, method);
+    var watched = (this._watched || (this._watched = {}));
+    watched = (watched[key] || (watched[key] = []))
+  } else {
+    var val = this[key];
+  }
   if (value) {
-    watched.push(value);
+    if (watched) watched.push(value);
     if (val != undefined) {
       if (value.call)
         value(val, undefined, meta);
@@ -384,7 +401,7 @@ LSD.Object.prototype.__watch = function(key, value, old, meta, method) {
     }
   }
   if (old) {
-    for (var i = watched.length, fn; fn = watched[--i];) {
+    if (watched) for (var i = watched.length, fn; fn = watched[--i];) {
       var match = fn.callback || fn;
       if (match.push) {
         if (!old.push || old[0] != match[0] || old[1] != match[1])
@@ -395,11 +412,13 @@ LSD.Object.prototype.__watch = function(key, value, old, meta, method) {
       watched.splice(i, 1);
       break;
     }
-    if (val != undefined && i > -1) {
-      if (fn.call)
+    if (val != undefined) {
+      if (old.call)
         old(undefined, val, meta);
-      else
+      else if (this._callback)
         this._callback(old, key, undefined, val, meta);
+      else 
+        LSD.Object.prototype._callback.call(old, key, undefined, val, meta)
     }
   }
   return true;
@@ -411,8 +430,6 @@ LSD.Object.prototype.__get = function(key, value, old, meta, method) {
   var nonenum = this._nonenumerable;
   if (result == undefined && method === 'construct' && this._construct)
     result = this.__construct(key, value, old, meta);
-  if (result === true)
-      debugger
   return result;
 };
 
@@ -447,11 +464,8 @@ LSD.Object.prototype.__construct = function(key, value, old, meta, method) {
   }
   if (given)
     instance._origin = given;
-  if (method === 'link') {
-    debugger
-    console.error('error', key, value, old, meta, method)
+  if (method === 'link')
     this.__watch(key, value, old, meta, 'construct')
-  }
   return instance;
 };
 LSD.Object.prototype.__link = LSD.Object.prototype.__construct;

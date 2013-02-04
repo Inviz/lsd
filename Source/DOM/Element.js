@@ -649,7 +649,7 @@ LSD.Element = new LSD.Struct({
     this.set('variables', value, old, meta, 'merge');
   },
   itemscope: function(value, old, meta) {
-    value = value && this._construct('microdata') || undefined;
+    value = value && this.__construct('microdata') || undefined;
     old = old && this.microdata || undefined;
     this.set('nodeValue', value, old, meta);
   },

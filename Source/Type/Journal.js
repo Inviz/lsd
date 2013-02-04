@@ -56,7 +56,7 @@ LSD.Journal = function(object) {
 LSD.Journal.prototype = new LSD.Object;
 LSD.Journal.prototype.constructor = LSD.Journal;
 LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, get) {
-  if (prepend == 'watch' || prepend == 'get' || key.indexOf('.') > -1) return;
+  if (prepend == 'watch' || prepend == 'construct' || prepend == 'get' || prepend == 'link' || key.indexOf('.') > -1) return;
   var property = this._properties;
   if (property && (property = property[key]) && property.journal === false)
     return;
@@ -174,7 +174,8 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, get) {
       if (!group) {
         if (!journal) journal = this._journal = {};
         group = journal[key] = [];
-        if (current !== undefined) group.push(current);
+        if (current !== undefined) 
+          group.push(current);
       }
       if (prepend) {
         group.splice(positioned + 1, 0, value);
@@ -203,7 +204,7 @@ LSD.Journal.prototype._hash = function(key, value, old, meta, prepend, get) {
 };
 
 LSD.Journal.prototype.__after   =
-LSD.Journal.prototype.__replace =
+//LSD.Journal.prototype.__replace =
 LSD.Journal.prototype.__before  = LSD.Journal.prototype._hash;
 
 LSD.Journal.prototype._finalize = function(key, value, old, meta, prepend, hash, val) {
